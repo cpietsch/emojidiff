@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-23T16:09:40Z
+Updated: 2026-08-23T16:14:29Z
 
 ## Current hypothesis and evidence
 
@@ -24,6 +24,12 @@ fixture loses 181/509 segments and 0/13 contours. Q256 improves over q128, but i
 255-interval grid displaces ordinary pixel-aligned coordinates and inflates antialias
 error. This is not yet a final codec selection.
 
+The controlled aligned-grid rerun supports a quarter-unit coordinate lattice. At the
+coverage budget, semantic q289 lowers median q256 RGBA MAE by 48.2% at 72 px and 42.5%
+at 18 px; outlined improvements are 23.9% and 30.2%. Q145 also beats q128 with a
+similarly sized vocabulary. Q289 is now the leading coordinate vocabulary and q145 is
+the compact ablation; full-primary structural tails still gate the final P/S choice.
+
 ## Last completed action and verification
 
 Pinned OpenMoji 17.0.0 at commit
@@ -43,7 +49,11 @@ normalization succeeded for 87/88 icons; the reason-coded nonuniform-stroke fail
 the outlined representation as fallback. P64/S384 covered both fixture representations
 without truncation. Worst-case 72/18 px contact sheets were inspected; compact outlined
 truncation visibly corrupted the rice ball and UFO, while untruncated q256 candidates
-remained recognizable despite alignment-sensitive pixel metrics.
+remained recognizable despite alignment-sensitive pixel metrics. Checkpoint `832952d`
+then changed only coordinate bins to q145/q289; the aligned probe completed another 700
+stable round trips. At q289, semantic/outlined median 18 px MAE is 0.001710/0.002319,
+and the previously pathological `E2C2` semantic case improves from 0.117692 to 0.001970.
+The full suite now passes 37 tests; Ruff and strict mypy pass.
 
 ## Active jobs
 
@@ -58,8 +68,9 @@ Raw source (405 MB), audit v1/v2 renders and tables (about 102 MB), and derived 
 fixture SVGs (660 KB) are on the persistent workspace. Compact reports
 are on the persistent `gtc` workspace. Curation artifacts are versioned at `0b96473`
 and representation evidence at `6478654`; typed-codec derived SVGs add 11 MB and the
-compact typed-codec report adds 1.2 MB pending its local evidence checkpoint. Nothing
-was pushed. No external artifact sink is configured or verified, so these
+typed-codec report is versioned at `67ae76f`. Aligned-grid derived SVGs add 5.2 MB and
+the compact aligned-grid report adds about 1 MB pending its evidence checkpoint.
+Nothing was pushed. No external artifact sink is configured or verified, so these
 bulk artifacts are not durable against loss of the control-plane volume and meaningful
 GPU work remains blocked.
 
@@ -87,7 +98,7 @@ GPU work remains blocked.
 
 ## Next smallest evidence-producing action
 
-Checkpoint typed-codec evidence, then compare pixel-aligned 145- and 289-value
-coordinate lattices (0.5 and 0.25 unit steps) on the identical fixture and budgets. If
-that resolves the observed edge-alignment error, run structural normalization over the
-full 4,006-row primary manifest before selecting final path/segment budgets.
+Checkpoint the aligned-lattice evidence, then run a read-only structural normalization
+pass over the full 4,006-row primary manifest. Record semantic unsupported reason
+counts, outlined fallback expansion, palette/style coverage, contour and segment tails,
+and truncation counts before selecting final path/segment budgets.

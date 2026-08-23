@@ -131,3 +131,32 @@ without full-corpus tails. Before interpreting q256 as the coordinate choice, co
 pixel-aligned 145- and 289-value lattices (0.5 and 0.25 unit steps). Preserve this
 power-of-two-grid result as a negative finding, then run structural normalization over
 the full primary manifest before selecting final slot budgets.
+
+## 2026-08-23 — Pixel-aligned coordinate lattice probe
+
+**Hypothesis.** Much of the q128/q256 error comes from using 127/255 equal intervals
+over 0..72, which cannot preserve common integer and half-integer source coordinates.
+Lattices with 145 values (0.5-unit steps) and 289 values (0.25-unit steps) should improve
+edge fidelity while leaving all structural results unchanged.
+
+**Observation.** The controlled rerun held the 88-icon fixture, normalizers, palette and
+style vocabularies, P48/S128 and P64/S384 budgets, renderer, and metrics fixed. All 700
+candidates again validated, rendered, and reproduced stable hashes. At P64/S384,
+semantic q145 reduced median RGBA MAE from q128's 0.004638/0.004717 to
+0.002700/0.002648 at 72/18 px despite a similarly sized vocabulary. Semantic q289
+reduced q256's 0.002922/0.002971 to 0.001513/0.001710: improvements of 48.2% and 42.5%.
+Outlined q289 improved over q256 by 23.9% at 72 px and 30.2% at 18 px.
+
+The alignment-sensitive `E2C2` case was decisive: semantic 18 px MAE fell from 0.117692
+at q256 to 0.001970 at q289, and alpha IoU rose from 0.8 to 1.0. The q289 worst-case
+semantic 18 px MAE over the fixture fell to 0.035594 from q256's 0.117692. Visual
+inspection confirmed preserved recognition and crisper agreement at ordinary edges.
+Aligned coordinates also serialize more compactly because exact quarter-unit values
+need shorter decimals: median q289 SVG size was 2,448 semantic and 3,547 outlined bytes,
+versus 4,936 and 9,760 for q256.
+
+**Decision.** Adopt the 289-value quarter-unit lattice as the leading codec choice and
+retain q145 as the compact coordinate ablation. This result strengthens the semantic
+representation choice but does not determine final P/S ceilings: perform a full-primary
+structural normalization pass next, retaining outlined fallback counts and every
+unsupported semantic reason, before closing Gate C.
