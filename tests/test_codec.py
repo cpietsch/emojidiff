@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import copy
 from collections.abc import Callable
+from pathlib import Path
 from xml.etree import ElementTree
 
 import numpy as np
 import pytest
 
+from mojidiff.representation.codec_study import load_codec_study_config
 from mojidiff.representation.normalizer import NormalizationError, normalize_svg
 from mojidiff.representation.program import (
     NONE,
@@ -44,6 +46,15 @@ def _config(
         miter_limits=(4.0, 10.0),
         max_serialized_bytes=20_000,
     )
+
+
+def test_aligned_coordinate_probe_has_exact_half_and_quarter_unit_lattices() -> None:
+    root = Path(__file__).resolve().parents[1]
+    config = load_codec_study_config(root / "configs/codec/aligned-coordinate-probe-v1.yaml")
+
+    assert config.coordinate_bins == (145, 289)
+    assert dequantize_coordinate(8, 145) == 4.0
+    assert dequantize_coordinate(16, 289) == 4.0
 
 
 def _contour(

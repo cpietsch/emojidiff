@@ -95,8 +95,8 @@ def load_codec_study_config(path: Path) -> CodecStudyConfig:
         _positive_int(value, "codec.coordinate_bins")
         for value in _sequence(codec.get("coordinate_bins"), "codec.coordinate_bins")
     )
-    if bins != (128, 256):
-        raise CodecStudyError("coordinate bins must be exactly [128, 256]")
+    if len(bins) != 2 or len(set(bins)) != 2 or tuple(sorted(bins)) != bins:
+        raise CodecStudyError("coordinate bins must contain two distinct increasing values")
     return CodecStudyConfig(
         version=_string(root, "probe_version"),
         source_revision=_string(root, "source_revision"),
@@ -536,8 +536,9 @@ def _markdown(summary: dict[str, Any]) -> str:
     ]
     for key, item in summary["comparisons"].items():
         metrics = item["metrics"]
+        display_key = key.replace("|", " / ")
         lines.append(
-            f"| {key} | {item['successful']}/{item['attempted']} | "
+            f"| {display_key} | {item['successful']}/{item['attempted']} | "
             f"{_format(metrics['rgba_mae_72']['median'])} | "
             f"{_format(metrics['rgba_mae_18']['median'])} | "
             f"{_format(metrics['alpha_iou_18']['median'])} | "
