@@ -1,0 +1,27 @@
+{
+  "checks": {
+    "all_metadata_flags_reversible": true,
+    "decision_paths_unique": true,
+    "decision_row_count": 4495,
+    "exact_clusters_with_multiple_primary_rows": {},
+    "family_clusters_crossing_splits": [],
+    "flag_count": 270,
+    "primary_contains_no_metadata_flags": true,
+    "primary_count": 4006,
+    "raw_git_clean": true,
+    "reviewed_override_count": 104,
+    "source_decision_path_sets_equal": true,
+    "source_hash_mismatches": [],
+    "source_paths_unique": true,
+    "source_row_count": 4495,
+    "unresolved_quarantine_count": 0,
+    "writable_raw_paths": []
+  },
+  "decisions_path": "data/manifests/openmoji-17.0.0-curation-v4-reviewed-decisions.parquet",
+  "decisions_sha256": "0baba2c2224b21e8b04905488afb94e9199713c83619d887e9018a25489ee81a",
+  "failures": [],
+  "passed": true,
+  "schema_version": 1,
+  "source_manifest_sha256": "a5008009cfa9b27d0ab155afc53e9e8d09d4eb2b7aaf3224f67781876fd19c63",
+  "source_revision": "f9fc506a3f913be9897ab0181d611d4c910a4104"
+}

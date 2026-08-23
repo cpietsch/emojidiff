@@ -1,0 +1,13 @@
+schema_version: 1
+source:
+  name: OpenMoji
+  url: https://github.com/hfg-gmuend/openmoji.git
+  tag: 17.0.0
+  revision: f9fc506a3f913be9897ab0181d611d4c910a4104
+  license: CC-BY-SA-4.0
+  license_path: LICENSE.txt
+  metadata_path: data/openmoji.csv
+  palette_path: data/color-palette.json
+  svg_glob: color/svg/*.svg
+raw_root: data/raw/openmoji/17.0.0
+source_manifest: data/manifests/openmoji-17.0.0-source.json

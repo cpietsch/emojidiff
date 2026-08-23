@@ -1,0 +1,4 @@
+
+{"active_job_id":null,"artifact_durability":"persistent-local-only","recorded_retroactively":true,"result":"completed_with_falsified_safety_rule","run_id":"openmoji-audit-v1-f9fc506-4d58ec61","state":"completed","timestamp":"2026-08-23T14:53:35.881143Z"}
+{"active_job_id":null,"artifact_durability":"persistent-local-only","recorded_retroactively":true,"result":"completed_with_one_renderer_defect","run_id":"openmoji-audit-v2-f9fc506-3bc8e542","state":"completed","timestamp":"2026-08-23T14:53:35.882122Z"}
+{"active_job_id":null,"artifact_durability":"persistent-local-only","recorded_retroactively":true,"result":"completed_reviewed_manifest","run_id":"openmoji-curation-v4-f9fc506-73aa9901","state":"completed","timestamp":"2026-08-23T14:53:35.882649Z"}

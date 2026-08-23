@@ -1,0 +1,45 @@
+# Merge the relevant blocks into ~/.ssh/config on gtc and chmod that file 600.
+# Replace placeholders locally. Do not commit the resulting real configuration.
+
+Host vast-5090
+    HostName REPLACE_WITH_VAST_PUBLIC_HOST
+    Port REPLACE_WITH_VAST_SSH_PORT
+    User root
+    IdentityFile ~/.ssh/REPLACE_WITH_KEY
+    IdentitiesOnly yes
+    BatchMode yes
+    ForwardAgent no
+    ConnectTimeout 15
+    ServerAliveInterval 30
+    ServerAliveCountMax 3
+    StrictHostKeyChecking yes
+    UserKnownHostsFile ~/.ssh/known_hosts_vast
+
+Host owned-gpu
+    HostName REPLACE_WITH_TAILSCALE_MAGICDNS_NAME
+    User REPLACE_WITH_REMOTE_USER
+    IdentityFile ~/.ssh/REPLACE_WITH_KEY
+    IdentitiesOnly yes
+    BatchMode yes
+    ForwardAgent no
+    ConnectTimeout 15
+    ServerAliveInterval 30
+    ServerAliveCountMax 3
+    StrictHostKeyChecking yes
+
+Host a100-gateway
+    HostName REPLACE_WITH_CLUSTER_GATEWAY
+    Port 22
+    User REPLACE_WITH_CLUSTER_USER
+    IdentityFile ~/.ssh/REPLACE_WITH_KEY
+    IdentitiesOnly yes
+    BatchMode yes
+    ForwardAgent no
+    ConnectTimeout 15
+    ServerAliveInterval 30
+    ServerAliveCountMax 3
+    StrictHostKeyChecking yes
+
+# If the A100 gateway is only reachable through another host, add that host as its own
+# verified alias and use `ProxyJump verified-bastion-alias`. Do not disable host-key
+# verification to make a jump host work.

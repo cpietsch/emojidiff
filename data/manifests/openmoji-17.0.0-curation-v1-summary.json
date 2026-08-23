@@ -1,0 +1,31 @@
+{
+  "manifest_sha256": {
+    "decisions": "9966cf9cb2a1efee9533a93302ba948ed55df54cfba77698b90b800c79c71947",
+    "defects": "5d72b29bac1e33f5a2c856427aec06b0f8a921032cd6fb4136dec79283328519",
+    "families": "4a666c811fa1f3002b91fb8932363cd9727f208b4f871284b86e335957e513f4",
+    "flags": "5cd8722802d885f45e796a11c57b9ce932e7325a336994c75898bab025089de4",
+    "primary": "a3fe2014a069df12c46dd0495824cc70aadbc236563cb843207fcd39421da1ac",
+    "quarantine": "1ab7a93a5f5b9972998b3ade22b7acc662fe6ce5a623aa20e9b26b20327c9d99"
+  },
+  "reason_counts": {
+    "EXACT_DUPLICATE": 272,
+    "PARSE_ERROR": 2,
+    "SCOPE_FLAGS": 270,
+    "SINGLE_OPEN_STROKE": 6
+  },
+  "split_counts": {
+    "excluded/defects": 2,
+    "excluded/flags": 270,
+    "primary/test": 405,
+    "primary/train": 3125,
+    "primary/validation": 415,
+    "quarantine": 278
+  },
+  "status_counts": {
+    "exclude_defect": 2,
+    "exclude_policy": 270,
+    "include": 3945,
+    "quarantine_auto": 278
+  },
+  "total": 4495
+}

@@ -1,0 +1,12 @@
+run_id: openmoji-curation-v4-f9fc506-73aa9901
+state: completed
+hypothesis: empirical tail nomination plus contact-sheet review preserves legitimate outliers
+parent_run: openmoji-audit-v2-f9fc506-3bc8e542
+git_commit: null
+code_identity_status: exact dirty pre-run snapshot was not recorded
+config: configs/data/openmoji-curation-v4-reviewed.yaml
+config_sha256: 73aa9901131874d4bdf3526f6781e64321c55f9569b6e2ac6472ef8db7a57ff8
+source_revision: f9fc506a3f913be9897ab0181d611d4c910a4104
+worker: gtc-local-cpu
+resource_cap: local reversible curation only
+artifact_policy: compact manifests versioned; renders persistent-local-only

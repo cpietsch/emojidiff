@@ -1,0 +1,12 @@
+run_id: openmoji-audit-v1-f9fc506-4d58ec61
+state: completed
+hypothesis: rejecting every url() attribute identifies resource-bearing SVGs safely
+expected_information_gain: measure raw corpus rendering and safety failures
+git_commit: null
+code_identity_status: exact dirty pre-run snapshot was not recorded
+config: configs/data/openmoji-audit-v1.yaml
+config_sha256: 4d58ec61b0545108e0bfbe5f9e8848290334fa2864a344ac6cdc310755ee7c93
+source_revision: f9fc506a3f913be9897ab0181d611d4c910a4104
+worker: gtc-local-cpu
+resource_cap: local reversible audit only
+artifact_policy: persistent workspace; no external sink

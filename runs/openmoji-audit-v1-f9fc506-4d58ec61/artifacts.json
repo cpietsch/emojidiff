@@ -1,0 +1,1 @@
+{"audit_parquet":{"path":"data/audit/openmoji-17.0.0-audit-v1/audit.parquet","sha256":"daa4bf3f7f0e9d707082eb3c0ef6478aab762ec2a075ab4d0c769a97bb4b4152","durability":"persistent-local-only"}}

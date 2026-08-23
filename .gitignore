@@ -1,0 +1,52 @@
+# Local authorization, endpoints, and credentials
+state/hosts.local.yaml
+state/*.local.*
+state/secrets/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+
+# Python and test tooling
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+dist/
+build/
+*.egg-info/
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Immutable/downloaded and derived bulk data; manifests remain versioned
+data/raw/
+data/audit/
+data/processed/
+data/downloads/
+
+# Heavy run products; lightweight run records remain versioned
+runs/**/checkpoints/
+runs/**/samples-full/
+*.ckpt
+*.safetensors
+*.pt
+*.pth
+
+# Local logs and temporary files
+*.log
+!runs/**/stdout.log
+*.tmp
+tmp/

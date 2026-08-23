@@ -1,0 +1,89 @@
+version: 1
+
+# Copy this file to state/hosts.local.yaml. The local copy may contain real aliases and
+# paths and must be gitignored. Do not put private keys, tokens, passwords, or cloud
+# credentials in either file.
+
+orchestrator:
+  name: gtc
+  role: control-plane
+  tailscale: true
+  image_source: https://github.com/cpietsch/code-server-cpu
+  repo_path: /home/dev/workspace/mojidiff
+  state_dir: state
+  codex_mode: yolo
+  host_docker_socket_mounted: false
+  vast_api_credentials_present: false
+
+artifact_store:
+  # No substantial training should begin until this is configured and a write/read/hash
+  # round trip succeeds. Examples of types: ssh, s3-compatible, rclone, cluster-pvc.
+  type: unset
+  uri: null
+  credentials_source: null
+
+defaults:
+  project_image: nvcr.io/nvidia/pytorch:25.06-py3
+  code_stage_mode: git-snapshot
+  preserve_remote_workspaces: true
+  benchmark_warmup_iterations: null
+  benchmark_measure_iterations: null
+
+workers:
+  vast_5090:
+    enabled: false
+    ssh_alias: vast-5090
+    kind: vast-ephemeral
+    connection: public-ssh
+    execution: container-shell
+    workspace_root: /workspace/mojidiff-runs
+    expected_gpu: NVIDIA GeForce RTX 5090
+    image: nvcr.io/nvidia/pytorch:25.06-py3
+    minimum_driver: "575.51"
+    artifact_policy: evacuate-and-verify
+    # Both compute/spend bounds and a storage bound are required before enabling.
+    resource_cap:
+      max_steps: null
+      max_spend_usd: null
+      max_storage_gb: null
+    notes: >-
+      The Vast instance is already a container. Do not run Docker inside it. Record the
+      actual image digest, GPU, driver, disk, and offer ID during probe.
+
+  owned_gpu:
+    enabled: false
+    ssh_alias: owned-gpu
+    kind: owned-persistent
+    connection: tailscale-ssh
+    execution: docker
+    workspace_root: /srv/mojidiff-runs
+    expected_gpu: null
+    image: nvcr.io/nvidia/pytorch:25.06-py3
+    artifact_policy: retain-and-sync-selected
+    resource_cap:
+      max_steps: null
+      max_storage_gb: null
+    notes: >-
+      Requires Docker, NVIDIA Container Toolkit, and explicit data/output mounts. Use
+      the Tailscale-backed SSH alias rather than embedding a tailnet address in scripts.
+
+  a100_cluster:
+    enabled: false
+    ssh_alias: a100-gateway
+    kind: cluster
+    connection: ssh-gateway
+    execution: kubernetes
+    workspace_root: null
+    expected_gpu: NVIDIA A100
+    image: nvcr.io/nvidia/pytorch:25.06-py3
+    namespace: null
+    service_account: null
+    pvc: null
+    artifact_policy: pvc-and-external-selected
+    resource_cap:
+      max_jobs: null
+      max_steps_per_job: null
+      max_storage_gb: null
+    notes: >-
+      Submit versioned Kubernetes Jobs and record Job UID, namespace, image digest, and
+      storage. Do not keep a long training run only in a Jupyter kernel or login shell.

@@ -1,0 +1,20 @@
+schema_version: 1
+audit_version: openmoji-17.0.0-audit-v2
+source_config: configs/data/openmoji-17.0.0.yaml
+output_root: data/audit/openmoji-17.0.0-audit-v2
+report_root: reports/corpus/openmoji-17.0.0-curation-v4-reviewed
+manifest_prefix: data/manifests/openmoji-17.0.0-curation-v4-reviewed
+review_manifest: data/manifests/openmoji-17.0.0-review-v1.yaml
+render:
+  sizes: [72, 18]
+  timeout_seconds: 5
+  max_svg_bytes: 2000000
+  max_elements: 5000
+decisions:
+  threshold_version: empirical-tail-v1-reviewed
+  low_ink_fraction_72_max: 0.06405477260348584
+  thin_bbox_width_72_max: 20
+  thin_bbox_height_72_max: 25
+  small_bbox_area_72_max: 946
+  excessive_paths_min: 34
+  excessive_segments_min: 329

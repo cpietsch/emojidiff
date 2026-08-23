@@ -1,0 +1,54 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "mojidiff"
+version = "0.1.0"
+description = "Evidence-driven categorical denoising research for typed SVG programs"
+requires-python = ">=3.12"
+dependencies = [
+  "CairoSVG>=2.8.2",
+  "Pillow>=11.3",
+  "PyYAML>=6.0.2",
+  "defusedxml>=0.7.1",
+  "numpy>=2.3",
+  "pyarrow>=21.0",
+  "svg.path>=7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+  "mypy>=1.15",
+  "pytest>=8.3",
+  "ruff>=0.11",
+  "types-defusedxml>=0.7.0.20250822",
+  "types-PyYAML>=6.0.12",
+]
+
+[project.scripts]
+mojidiff-curate = "mojidiff.curation.cli:main"
+mojidiff-worker = "mojidiff.orchestration.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/mojidiff"]
+
+[tool.pytest.ini_options]
+addopts = "-ra"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["B", "E", "F", "I", "UP"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+module = ["cairosvg", "pyarrow", "pyarrow.*"]
+ignore_missing_imports = true

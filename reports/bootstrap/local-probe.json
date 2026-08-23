@@ -1,0 +1,59 @@
+{
+  "docker": {
+    "context": {
+      "available": true,
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "default"
+    },
+    "host": "tcp://localhost:2376",
+    "host_socket_paths": {
+      "/run/docker.sock": false,
+      "/run/host-services/docker.sock": false,
+      "/var/run/docker.sock": false
+    },
+    "info": {
+      "available": true,
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "\"gtc\" \"/var/lib/docker\" \"overlay2\""
+    },
+    "tls_verify": true
+  },
+  "git": {
+    "head": {
+      "available": true,
+      "exit_code": 128,
+      "stderr": "fatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.\nUse '--' to separate paths from revisions, like this:\n'git <command> [<revision>...] -- [<file>...]'",
+      "stdout": "HEAD"
+    },
+    "status": {
+      "available": true,
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "## No commits yet on main\n?? .gitignore\n?? AGENTS.md\n?? DATA_CURATION.md\n?? DEVBOX_BOOTSTRAP.md\n?? PROJECT_PLAN.md\n?? README.md\n?? START_PROMPT.md\n?? hosts.example.yaml\n?? pyproject.toml\n?? reports/\n?? scripts/\n?? src/\n?? ssh_config.example\n?? state/\n?? tests/\n?? uv.lock"
+    }
+  },
+  "hostname": "gtc",
+  "platform": "Linux-6.8.0-134-generic-x86_64-with-glibc2.39",
+  "python_version": "3.12.3",
+  "repo_path": "/home/dev/workspace/mojidiff",
+  "schema_version": 1,
+  "tools": {
+    "docker": "/usr/bin/docker",
+    "gh": "/usr/bin/gh",
+    "git": "/usr/bin/git",
+    "kubectl": null,
+    "python3": "/home/dev/workspace/mojidiff/.venv/bin/python3",
+    "rg": "/home/dev/.codex/packages/standalone/releases/0.149.0-x86_64-unknown-linux-musl/codex-path/rg",
+    "ssh": "/usr/bin/ssh",
+    "tmux": "/usr/bin/tmux",
+    "uv": "/usr/local/bin/uv"
+  },
+  "workspace": {
+    "free_bytes": 158859976704,
+    "path": "/home/dev/workspace",
+    "total_bytes": 373317672960,
+    "used_bytes": 214440919040
+  }
+}

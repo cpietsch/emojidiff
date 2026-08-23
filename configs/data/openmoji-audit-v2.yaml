@@ -1,0 +1,18 @@
+schema_version: 1
+audit_version: openmoji-17.0.0-audit-v2
+source_config: configs/data/openmoji-17.0.0.yaml
+output_root: data/audit/openmoji-17.0.0-audit-v2
+report_root: reports/corpus/openmoji-17.0.0-audit-v2
+manifest_prefix: data/manifests/openmoji-17.0.0-curation-v2
+render:
+  sizes: [72, 18]
+  timeout_seconds: 5
+  max_svg_bytes: 2000000
+  max_elements: 5000
+decisions:
+  # Raw metrics and distributions must be observed before numeric thresholds are set.
+  threshold_version: observe-only
+  low_ink_fraction_72_max: null
+  thin_bbox_width_72_max: null
+  thin_bbox_height_72_max: null
+  excessive_segments_min: null

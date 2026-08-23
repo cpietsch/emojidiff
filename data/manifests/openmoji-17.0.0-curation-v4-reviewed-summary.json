@@ -1,0 +1,35 @@
+{
+  "manifest_sha256": {
+    "decisions": "0baba2c2224b21e8b04905488afb94e9199713c83619d887e9018a25489ee81a",
+    "defects": "2784f7f84a48754b3fabdfc5226a6feece710ccbeb5c9e80bf716ace68e0f474",
+    "exact_duplicates": "54451258167127f763ae76882dc86b6cc001c647450c49766406df15c7effe94",
+    "families": "52eafe139a178dcf8440a58fb3975c3e64d0d4edb28e192099ac0244c9030efd",
+    "flags": "014bdb47cb1e1163e6d40a0f3418abbe8ccc1105165ae23ce5fb92f4ec6ec6fc",
+    "primary": "4e7162ec6e14546bacaad0372c1b122dc6b0f9d6d0651801c025e9488a8239e6",
+    "quarantine": "120c9915dca9d60edcd781f535fac4a84695684bb2a61326518addf0f9fb25af"
+  },
+  "reason_counts": {
+    "EXACT_DUPLICATE_ALIAS": 218,
+    "EXCESSIVE_COMPLEXITY": 32,
+    "LOW_INK": 23,
+    "RENDER_ERROR": 1,
+    "SCOPE_FLAGS": 270,
+    "SINGLE_OPEN_STROKE": 6,
+    "THIN_BBOX": 58
+  },
+  "split_counts": {
+    "excluded/defects": 1,
+    "excluded/exact-duplicates": 218,
+    "excluded/flags": 270,
+    "primary/test": 405,
+    "primary/train": 3184,
+    "primary/validation": 417
+  },
+  "status_counts": {
+    "exclude_defect": 1,
+    "exclude_policy": 488,
+    "include": 3902,
+    "include_override": 104
+  },
+  "total": 4495
+}

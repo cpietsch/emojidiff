@@ -1,0 +1,36 @@
+{
+  "manifest_sha256": {
+    "decisions": "c8228c840f3ac6d5c7130acc5b2d3a167da99b0d75265bea109312a1aad310ef",
+    "defects": "aba8cc9e787a9963f2f358e502a35fbc60ec0da405fd113d41e615d8ab91fcd0",
+    "exact_duplicates": "2ed55581d385d3ffb2e9756d1ca569b020ea4dedc678405efebe24f7e0265e80",
+    "families": "686b088918e26d8839c767f6dc46a8aa748d151f3c18f91fe8fac0e34a86a7b1",
+    "flags": "7c54523618eda0505116bdde42807a6a8878c74da21621c7d54c242c530ae4d5",
+    "primary": "c0c4fac02caa8e56281072fe37319ef0be0db0018e19e7fc66a60e30784b3675",
+    "quarantine": "b2d48f7487852f39dc2f7dc039cb568336deae3379fa50daad1534d66b6df952"
+  },
+  "reason_counts": {
+    "EXACT_DUPLICATE_ALIAS": 218,
+    "EXCESSIVE_COMPLEXITY": 32,
+    "LOW_INK": 23,
+    "RENDER_ERROR": 1,
+    "SCOPE_FLAGS": 270,
+    "SINGLE_OPEN_STROKE": 6,
+    "THIN_BBOX": 58
+  },
+  "split_counts": {
+    "excluded/defects": 1,
+    "excluded/exact-duplicates": 218,
+    "excluded/flags": 270,
+    "primary/test": 391,
+    "primary/train": 3103,
+    "primary/validation": 408,
+    "quarantine": 104
+  },
+  "status_counts": {
+    "exclude_defect": 1,
+    "exclude_policy": 488,
+    "include": 3902,
+    "quarantine_auto": 104
+  },
+  "total": 4495
+}

@@ -1,0 +1,23 @@
+schema_version: 1
+base_decisions_path: data/manifests/openmoji-17.0.0-curation-v3-decisions.parquet
+base_decisions_sha256: c8228c840f3ac6d5c7130acc5b2d3a167da99b0d75265bea109312a1aad310ef
+candidate_count: 104
+candidate_set_sha256: e07eadca09c3e536fd68a8d88583b752d1f915f9321d680eefc921fcaacbc87a
+reviewer: codex-visual-review-v1
+reviewed_at: 2026-08-23T14:48:00Z
+decision: include_override
+note: >-
+  Reviewed every cell on all seven empirical-tail contact sheets. Each candidate is a
+  visible, coherent, intentional icon at 72 px and survives recognizably at 18 px.
+  Thin symbols and single strokes are legitimate minimal glyphs; high-complexity icons
+  are detailed but not corrupt. Complexity remains measured for the representation
+  study rather than being treated as a data defect.
+contact_sheet_root: data/audit/openmoji-17.0.0-audit-v2/contact-sheets
+contact_sheets_sha256:
+  excessive_complexity-001.png: 8f01e4deadb78f9169b872e889d5e0e4d87ba93a26bd323617505c9b25520a02
+  excessive_complexity-002.png: 8ae023d1ac1ce226968dbdcffbee5010b793edbf993f3854ec954f49b21f9b72
+  low_ink-001.png: c927ef614f2e2baeda0a6821606359cde71ee0b61acd145b67292d5f4db9d64d
+  single_open_stroke-001.png: fafe323089cbf2b7025700d3a7406a583a128efea679eedd18401ef4f8367d72
+  thin_bbox-001.png: f027141f35ff71609b55c2a312d49fb2f76d835989de24c90fc258b974f45c58
+  thin_bbox-002.png: 6990f0055d4229911a0968c03d1fbd02021e4c0e10744dd084ae8aec9ba6dc97
+  thin_bbox-003.png: 43dfed7ec84ee1275f6658e96d87fb7f3e2577d3d5265966a98b169bc1dfef8b

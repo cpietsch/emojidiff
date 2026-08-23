@@ -1,0 +1,12 @@
+run_id: openmoji-audit-v2-f9fc506-3bc8e542
+state: completed
+hypothesis: bounded same-document fragment references are safe without enabling external resources
+parent_run: openmoji-audit-v1-f9fc506-4d58ec61
+git_commit: null
+code_identity_status: exact dirty pre-run snapshot was not recorded
+config: configs/data/openmoji-audit-v2.yaml
+config_sha256: 3bc8e542207c711a60aa42320a9ec1d634a490ac44e22ac90abcf185590c70b7
+source_revision: f9fc506a3f913be9897ab0181d611d4c910a4104
+worker: gtc-local-cpu
+resource_cap: local reversible audit only
+artifact_policy: persistent workspace; no external sink
