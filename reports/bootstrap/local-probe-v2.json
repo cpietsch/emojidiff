@@ -1,0 +1,59 @@
+{
+  "docker": {
+    "context": {
+      "available": true,
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "default"
+    },
+    "host": "tcp://localhost:2376",
+    "host_socket_paths": {
+      "/run/docker.sock": false,
+      "/run/host-services/docker.sock": false,
+      "/var/run/docker.sock": false
+    },
+    "info": {
+      "available": true,
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "\"gtc\" \"/var/lib/docker\" \"overlay2\""
+    },
+    "tls_verify": true
+  },
+  "git": {
+    "head": {
+      "available": true,
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "a324c5739e67426d2c05b29760b83f403c1232db"
+    },
+    "status": {
+      "available": true,
+      "exit_code": 0,
+      "stderr": "",
+      "stdout": "## main\n M reports/findings.md\n M state/CURRENT.md\n M state/runs.jsonl\n?? data/manifests/openmoji-17.0.0-representation-fixture-v1.json\n?? reports/bootstrap/hardening.md\n?? reports/codec/\n?? runs/representation-probe-v1-a324c57-43aafdcb-4e7162ec/"
+    }
+  },
+  "hostname": "gtc",
+  "platform": "Linux-6.8.0-134-generic-x86_64-with-glibc2.39",
+  "python_version": "3.12.3",
+  "repo_path": "/home/dev/workspace/mojidiff",
+  "schema_version": 1,
+  "tools": {
+    "docker": "/usr/bin/docker",
+    "gh": "/usr/bin/gh",
+    "git": "/usr/bin/git",
+    "kubectl": null,
+    "python3": "/home/dev/workspace/mojidiff/.venv/bin/python3",
+    "rg": "/home/dev/.codex/packages/standalone/releases/0.149.0-x86_64-unknown-linux-musl/codex-path/rg",
+    "ssh": "/usr/bin/ssh",
+    "tmux": "/usr/bin/tmux",
+    "uv": "/usr/local/bin/uv"
+  },
+  "workspace": {
+    "free_bytes": 157547118592,
+    "path": "/home/dev/workspace",
+    "total_bytes": 373317672960,
+    "used_bytes": 215753777152
+  }
+}

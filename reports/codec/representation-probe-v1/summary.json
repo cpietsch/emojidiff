@@ -1,0 +1,122 @@
+{
+  "fixture_count": 88,
+  "group_counts": {
+    "activities": 8,
+    "animals-nature": 8,
+    "component": 8,
+    "extras-openmoji": 8,
+    "extras-unicode": 8,
+    "food-drink": 8,
+    "objects": 8,
+    "people-body": 8,
+    "smileys-emotion": 8,
+    "symbols": 8,
+    "travel-places": 8
+  },
+  "metrics": {
+    "alpha_iou_18": {
+      "count": 88,
+      "max": 1.0,
+      "median": 1.0,
+      "p95": 1.0
+    },
+    "alpha_iou_72": {
+      "count": 88,
+      "max": 1.0,
+      "median": 0.9990049008899093,
+      "p95": 1.0
+    },
+    "outline_path_count": {
+      "count": 88,
+      "max": 48.0,
+      "median": 10.0,
+      "p95": 32.64999999999999
+    },
+    "outline_segment_count": {
+      "count": 88,
+      "max": 1167.0,
+      "median": 146.0,
+      "p95": 514.3999999999996
+    },
+    "path_expansion_ratio": {
+      "count": 88,
+      "max": 1.6666666666666667,
+      "median": 1.0,
+      "p95": 1.3408045977011493
+    },
+    "pixel_exact_fraction_18": {
+      "count": 88,
+      "max": 0.9876543209876543,
+      "median": 0.8194444444444444,
+      "p95": 0.9753086419753086
+    },
+    "pixel_exact_fraction_72": {
+      "count": 88,
+      "max": 0.9992283950617284,
+      "median": 0.9403935185185185,
+      "p95": 0.9976851851851852
+    },
+    "rgba_mae_18": {
+      "count": 88,
+      "max": 0.006036673928830792,
+      "median": 0.0011725369160009683,
+      "p95": 0.0034918905833938477
+    },
+    "rgba_mae_72": {
+      "count": 88,
+      "max": 0.002489560639070443,
+      "median": 0.0005581843076736866,
+      "p95": 0.001827559534616315
+    },
+    "segment_expansion_ratio": {
+      "count": 88,
+      "max": 13.833333333333334,
+      "median": 2.2409988385598143,
+      "p95": 5.287105263157894
+    },
+    "semantic_proxy_path_count": {
+      "count": 88,
+      "max": 48.0,
+      "median": 10.0,
+      "p95": 30.949999999999974
+    },
+    "semantic_proxy_segment_count": {
+      "count": 88,
+      "max": 1167.0,
+      "median": 51.5,
+      "p95": 323.39999999999986
+    }
+  },
+  "outline_failures": [],
+  "outline_success_count": 88,
+  "picosvg_version": "0.23.0",
+  "probe_version": "representation-probe-v1",
+  "schema_version": 1,
+  "source_revision": "f9fc506a3f913be9897ab0181d611d4c910a4104",
+  "truncation": {
+    "outline": {
+      "path_slots": {
+        "16": 19,
+        "32": 5,
+        "64": 0
+      },
+      "segments_per_path": {
+        "128": 8,
+        "32": 43,
+        "64": 18
+      }
+    },
+    "semantic_proxy": {
+      "path_slots": {
+        "16": 19,
+        "32": 4,
+        "64": 0
+      },
+      "segments_per_path": {
+        "128": 5,
+        "32": 16,
+        "64": 7
+      }
+    }
+  }
+}

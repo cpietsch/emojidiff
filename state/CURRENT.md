@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-23T14:54:00Z
+Updated: 2026-08-23T15:03:00Z
 
 ## Current hypothesis and evidence
 
@@ -12,9 +12,11 @@ split, and retains one renderer-failing SVG as a defect row. Independent verific
 passes raw hash/immutability, row coverage, duplicate, flag-policy, and family-split
 invariants.
 
-The next research hypothesis is unresolved: semantic OpenMoji strokes may preserve
-editability with shorter programs, while outlining may simplify style fields at the
-cost of path/segment expansion and fidelity drift.
+Gate C probe evidence makes semantic OpenMoji strokes the leading representation
+candidate. On an 88-icon stratified fixture, PicoSVG outlining preserved renders closely
+but expanded segments 2.241x at the median, 5.287x at p95, and 13.833x in the worst
+case. At 64 segments/path, 18 outlined fixtures exceeded budget versus 7 semantic
+proxies. This is not yet a final codec selection.
 
 ## Last completed action and verification
 
@@ -23,7 +25,10 @@ Pinned OpenMoji 17.0.0 at commit
 non-writable; retained a falsified audit v1; completed safe audit v2; generated empirical
 distribution reports and seven quarantine contact sheets; visually reviewed all 104
 candidates; produced the reviewed v4 manifest; and ran independent curation validation.
-Formatter, linter, strict type checking, and 15 tests pass.
+After local checkpoint `a324c57`, ran representation probe v1 with an exact config and
+primary-manifest hash. All 88/88 PicoSVG 0.23.0 normalizations succeeded. Median RGBA
+MAE was 0.000558 at 72 px and 0.001173 at 18 px; all outlined outputs removed strokes.
+Formatter, linter, strict type checking, and 19 tests pass.
 
 ## Active jobs
 
@@ -32,7 +37,8 @@ and no remote command has been issued.
 
 ## Artifact durability
 
-Raw source (405 MB), audit v1/v2 renders and tables (about 102 MB), and compact reports
+Raw source (405 MB), audit v1/v2 renders and tables (about 102 MB), and derived outlined
+fixture SVGs (660 KB) are on the persistent workspace. Compact reports
 are on the persistent `gtc` workspace. Compact manifests and reports are versioned in
 local Git checkpoint `0b96473`; nothing was pushed. No external artifact sink is configured or verified, so these
 bulk artifacts are not durable against loss of the control-plane volume and meaningful
@@ -56,7 +62,7 @@ GPU work remains blocked.
 
 ## Next smallest evidence-producing action
 
-Begin Gate C with a CPU-only measured semantic-versus-outlined representation probe:
-path/segment distributions, transform
-coverage, candidate slot truncation, and 72/18 px round-trip fidelity on a deterministic
-stratified fixture before implementing the full codecs.
+Implement a deterministic semantic-stroke normalizer/codec on the fixed fixture and
+measure transform flattening, unsupported path commands, 128-versus-256 coordinate-bin
+round-trip fidelity, and actual fixed-slot truncation. Apply the identical typed codec
+budgets to outlined paths as the fallback/control before making the Gate C selection.

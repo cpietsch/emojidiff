@@ -1,0 +1,13 @@
+run_id: representation-probe-v1-a324c57-43aafdcb-4e7162ec
+state: completed
+hypothesis: outlining simplifies style but expands structure while preserving fixture renders
+expected_information_gain: test whether outline expansion threatens fixed-slot budgets before codec implementation
+git_commit: a324c5739e67426d2c05b29760b83f403c1232db
+config: configs/codec/representation-probe-v1.yaml
+config_sha256: 43aafdcb3eb396a832e88f97a2363f1f71a62105bd3a1158d83ece6fdd8493ad
+dataset_manifest: data/manifests/openmoji-17.0.0-curation-v4-reviewed-primary.parquet
+dataset_manifest_sha256: 4e7162ec6e14546bacaad0372c1b122dc6b0f9d6d0651801c025e9488a8239e6
+worker: gtc-local-cpu
+environment: Python 3.12.3; PicoSVG 0.23.0; Cairo 1.18.0
+resource_cap: deterministic 88-icon fixture only
+artifact_policy: compact evidence in next local Git checkpoint; outlined SVGs persistent-local-only

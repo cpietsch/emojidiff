@@ -59,3 +59,30 @@ first local Git commit. Their configs and artifacts are hashed, but the exact pr
 dirty worktree snapshot was not recorded. This violates the preferred code-identity
 practice and is retained as a negative orchestration finding. A local checkpoint is
 required before the next material experiment; nothing will be pushed.
+
+## 2026-08-23 — Stratified representation probe v1
+
+**Hypothesis.** Fully outlining OpenMoji will simplify style operations and preserve
+renders, but may lengthen programs enough to make a fixed-slot categorical codec less
+attractive than preserving semantic strokes.
+
+**Method.** From the reviewed primary manifest, deterministically select eight icons
+from each of 11 metadata groups (88 total), combining ink/complexity extremes with
+hash-selected examples. Normalize with PicoSVG 0.23.0 and compare source-primitive
+semantic proxies against outlined paths. Render both with the pinned Cairo stack at 72
+and 18 px. This is a pre-codec proxy, not a final codec comparison.
+
+**Observation.** All 88 assets normalized successfully and all outlined outputs removed
+stroke elements. Visual drift was small: median RGBA MAE was 0.000558 at 72 px and
+0.001173 at 18 px; median alpha IoU was 0.9990 and 1.0 respectively. Structural cost was
+material: outlined segment counts grew 2.241× at the median, 5.287× at p95, and 13.833×
+in the worst case. At a 64-segment/path budget, 18 outlined fixtures would truncate
+versus 7 semantic proxies. Path-slot pressure was similar (5 versus 4 above 32 paths).
+The dotted-line face expanded from 24 to 332 segments; this is precisely the kind of
+stroke geometry destroyed by outlining.
+
+**Decision.** Prefer the semantic-stroke representation as the leading candidate, but
+do not select it finally yet. Implement a deterministic semantic normalizer/codec next
+and measure actual 128/256-bin round trips, transform flattening, unsupported commands,
+and truncation. Retain outlined PicoSVG as the required fallback/control and compare it
+with the same codec budgets.

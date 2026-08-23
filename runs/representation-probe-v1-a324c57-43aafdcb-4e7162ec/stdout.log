@@ -1,0 +1,2 @@
+Completed 88/88 PicoSVG normalizations with zero failures. Median segment expansion was
+2.241x; median 72 px RGBA MAE was 0.000558; median 18 px RGBA MAE was 0.001173.
