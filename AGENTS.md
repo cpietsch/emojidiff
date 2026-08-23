@@ -109,9 +109,13 @@ work and report the missing control. Do not compensate by trusting a prompt alon
 - Keep private keys and tokens out of the repository, logs, shell history, configs, and
   command output. Use the SSH agent or root/user-readable secret files outside the repo.
 - Set `BatchMode yes`, `ForwardAgent no`, and finite connection keepalives/timeouts.
-- Preserve host-key verification. Never globally set `StrictHostKeyChecking no`.
-- For a newly rented ephemeral host, verify and record the fingerprint for that exact
-  instance. Remove or replace stale entries narrowly, never the whole known-hosts file.
+- When the operator supplies the exact SSH user, host, and port for a newly provisioned
+  ephemeral worker, first-use pinning is sufficient: use per-alias
+  `StrictHostKeyChecking accept-new`, then record the observed fingerprint for recovery
+  and audit. Out-of-band fingerprint confirmation is not required unless the operator
+  explicitly requests high-assurance verification. Never use
+  `StrictHostKeyChecking no`, and treat any later key change as a blocker.
+- Remove or replace stale host-key entries narrowly, never the whole known-hosts file.
 - Prefer pulling results from workers to `gtc` or a configured artifact sink. Do
   not open inbound services merely for convenience.
 - Never print a complete environment, secret-bearing config, SSH private key, or token.
