@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-23T15:03:00Z
+Updated: 2026-08-23T15:05:00Z
 
 ## Current hypothesis and evidence
 
@@ -28,7 +28,8 @@ candidates; produced the reviewed v4 manifest; and ran independent curation vali
 After local checkpoint `a324c57`, ran representation probe v1 with an exact config and
 primary-manifest hash. All 88/88 PicoSVG 0.23.0 normalizations succeeded. Median RGBA
 MAE was 0.000558 at 72 px and 0.001173 at 18 px; all outlined outputs removed strokes.
-Formatter, linter, strict type checking, and 19 tests pass.
+Compact evidence and the completed run record are committed locally at `6478654`; no
+push occurred. Formatter, linter, strict type checking, and 19 tests pass.
 
 ## Active jobs
 
@@ -39,8 +40,9 @@ and no remote command has been issued.
 
 Raw source (405 MB), audit v1/v2 renders and tables (about 102 MB), and derived outlined
 fixture SVGs (660 KB) are on the persistent workspace. Compact reports
-are on the persistent `gtc` workspace. Compact manifests and reports are versioned in
-local Git checkpoint `0b96473`; nothing was pushed. No external artifact sink is configured or verified, so these
+are on the persistent `gtc` workspace. Curation artifacts are versioned at `0b96473`
+and representation evidence at `6478654`; nothing was pushed. No external artifact
+sink is configured or verified, so these
 bulk artifacts are not durable against loss of the control-plane volume and meaningful
 GPU work remains blocked.
 
