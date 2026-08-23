@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-23T16:14:29Z
+Updated: 2026-08-23T17:21:47Z
 
 ## Current hypothesis and evidence
 
@@ -25,10 +25,19 @@ fixture loses 181/509 segments and 0/13 contours. Q256 improves over q128, but i
 error. This is not yet a final codec selection.
 
 The controlled aligned-grid rerun supports a quarter-unit coordinate lattice. At the
-coverage budget, semantic q289 lowers median q256 RGBA MAE by 48.2% at 72 px and 42.5%
-at 18 px; outlined improvements are 23.9% and 30.2%. Q145 also beats q128 with a
-similarly sized vocabulary. Q289 is now the leading coordinate vocabulary and q145 is
-the compact ablation; full-primary structural tails still gate the final P/S choice.
+fixture coverage budget, semantic q289 lowers median q256 RGBA MAE by 48.2% at 72 px
+and 42.5% at 18 px; outlined improvements are 23.9% and 30.2%. Q145 also beats q128
+with a similarly sized vocabulary. Q289 is the leading coordinate vocabulary and q145
+is the compact ablation.
+
+The exact full-primary census attempted semantic and outlined normalization for every
+one of 4,006 icons. Semantic succeeds for 3,937; outlined fallback recovers 60 of its
+69 failures; nine partial-opacity icons remain unsupported, for hybrid coverage of
+3,997/4,006 (99.775%). P64/S128 is falsified as lossless: it drops 35 contours and 493
+segments across eight supported icons. P96/S384 is structurally lossless for all 3,997
+supported programs but only 0.240% slot-utilized. Style vocabulary (344 nonexact icons),
+35 out-of-bounds coordinate scalars in 22 icons, opacity, and sparse-tail handling keep
+Gate C open.
 
 ## Last completed action and verification
 
@@ -37,23 +46,21 @@ Pinned OpenMoji 17.0.0 at commit
 non-writable; retained a falsified audit v1; completed safe audit v2; generated empirical
 distribution reports and seven quarantine contact sheets; visually reviewed all 104
 candidates; produced the reviewed v4 manifest; and ran independent curation validation.
-After local checkpoint `a324c57`, ran representation probe v1 with an exact config and
-primary-manifest hash. All 88/88 PicoSVG 0.23.0 normalizations succeeded. Median RGBA
-MAE was 0.000558 at 72 px and 0.001173 at 18 px; all outlined outputs removed strokes.
-Compact evidence and the completed run record are committed locally at `6478654`; no
-push occurred. Implemented and checkpointed the deterministic semantic normalizer,
-typed codec, actual truncation reporting, outlined control harness, and standalone safe
-serializer at `60e3dd7`. The full local suite passes (36 tests), as do Ruff and strict
-mypy. Typed codec probe v1 completed 700 stable renderable round trips. Semantic
-normalization succeeded for 87/88 icons; the reason-coded nonuniform-stroke failure has
-the outlined representation as fallback. P64/S384 covered both fixture representations
-without truncation. Worst-case 72/18 px contact sheets were inspected; compact outlined
-truncation visibly corrupted the rice ball and UFO, while untruncated q256 candidates
-remained recognizable despite alignment-sensitive pixel metrics. Checkpoint `832952d`
-then changed only coordinate bins to q145/q289; the aligned probe completed another 700
-stable round trips. At q289, semantic/outlined median 18 px MAE is 0.001710/0.002319,
-and the previously pathological `E2C2` semantic case improves from 0.117692 to 0.001970.
-The full suite now passes 37 tests; Ruff and strict mypy pass.
+Representation, typed-codec, and aligned-lattice evidence is committed locally through
+`2099f3d`. The aligned probe completed 700 stable round trips; at q289,
+semantic/outlined median 18 px MAE is 0.001710/0.002319, and the alignment-sensitive
+`E2C2` semantic case improves from 0.117692 at q256 to 0.001970.
+
+Implemented the immutable full-primary census at `6bb0f10` and bounded Vast stage/smoke
+adapters at `c396922`. The census run
+`full-primary-structure-v1-6bb0f10-4f1bf442-4e7162ec` completed locally with exactly
+8,012 attempts and 4,006 hybrid rows. Actual SHA-256 values match the embedded report
+identities; every source has exactly one semantic and one outlined attempt; paired
+identity fields and deterministic ordering validate; all three routes contain the
+complete 30-point P/S grid; and every loss decomposition balances. Adapter verification
+passes the full 49-test suite, Ruff, strict mypy, a local idempotent stage, and a
+pre-import tamper regression. GPU smoke has not run because `gtc` has no CUDA and the
+Vast worker is not authorized.
 
 ## Active jobs
 
@@ -64,15 +71,12 @@ authorization record and has no active MojiDiff job.
 
 ## Artifact durability
 
-Raw source (405 MB), audit v1/v2 renders and tables (about 102 MB), and derived outlined
-fixture SVGs (660 KB) are on the persistent workspace. Compact reports
-are on the persistent `gtc` workspace. Curation artifacts are versioned at `0b96473`
-and representation evidence at `6478654`; typed-codec derived SVGs add 11 MB and the
-typed-codec report is versioned at `67ae76f`. Aligned-grid derived SVGs add 5.2 MB and
-the compact aligned-grid report adds about 1 MB pending its evidence checkpoint.
-Nothing was pushed. No external artifact sink is configured or verified, so these
-bulk artifacts are not durable against loss of the control-plane volume and meaningful
-GPU work remains blocked.
+Raw source (405 MB), audit renders/tables, and derived fixture SVGs remain on the
+persistent workspace. Curation, representation, typed-codec, and aligned-grid compact
+evidence is versioned locally through `2099f3d`. The new full-primary report is 26 MB
+and is pending its local evidence checkpoint. Nothing was pushed. No external artifact
+sink is configured or verified, so bulk artifacts are not durable against loss of the
+control-plane volume and meaningful GPU work remains blocked.
 
 ## Current blockers and missing authorization
 
@@ -84,21 +88,23 @@ GPU work remains blocked.
   `artifact_store.credentials_source` are unset.
 - `vast_5090` is disabled; `resource_cap.max_steps`, `max_spend_usd`, and
   `max_storage_gb` are null.
-- The operator supplied two distinct Vast port references. A non-authenticating host-key
-  scan found a different SSH host on each, so the exact SSH command, username/port, and
-  expected host fingerprint remain ambiguous. No host key was trusted and no login was
-  attempted.
+- The operator supplied a public endpoint but two distinct Vast port references and no
+  SSH username. The exact username and one exact SSH port are still required. Under the
+  current contract, per-alias `StrictHostKeyChecking accept-new` is sufficient for first
+  use; no out-of-band fingerprint is required. No host key has been trusted and no login
+  has been attempted.
 - The reported 100 GB attached volume has no recorded mount path or persistence
   guarantee and therefore is not yet treated as the configured durable artifact sink.
 - `owned_gpu` is disabled; `resource_cap.max_steps` and `max_storage_gb` are null.
 - `a100_cluster` is disabled; `workspace_root`, `namespace`, `service_account`, `pvc`,
   `resource_cap.max_jobs`, `max_steps_per_job`, and `max_storage_gb` are null.
-- The template SSH alias names exist in local authorization state, but no real aliases,
-  endpoints, per-worker keys, or verified host fingerprints exist in `~/.ssh/config`.
+- The template SSH alias names exist in local authorization state, but no real named
+  Vast alias exists in `~/.ssh/config`. A local SSH key is present, but its username and
+  endpoint have not been recorded or used.
 
 ## Next smallest evidence-producing action
 
-Checkpoint the aligned-lattice evidence, then run a read-only structural normalization
-pass over the full 4,006-row primary manifest. Record semantic unsupported reason
-counts, outlined fallback expansion, palette/style coverage, contour and segment tails,
-and truncation counts before selecting final path/segment budgets.
+Checkpoint the completed full-primary evidence, then add exact per-path `opacity`,
+`fill-opacity`, and `stroke-opacity` categorical fields and run the nine-icon recovery
+test. Follow with q289 render/round-trip evidence on the opacity set and selected
+style/OOB/structural tails before choosing a fixed, ragged, or overflow capacity policy.

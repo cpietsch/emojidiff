@@ -160,3 +160,48 @@ retain q145 as the compact coordinate ablation. This result strengthens the sema
 representation choice but does not determine final P/S ceilings: perform a full-primary
 structural normalization pass next, retaining outlined fallback counts and every
 unsupported semantic reason, before closing Gate C.
+
+## 2026-08-23 — Full-primary structural codec census
+
+**Hypothesis.** Semantic-native programs with a reason-coded outlined fallback will
+cover nearly all 4,006 curated primary icons at lower structural cost than outlining
+everything, and the corpus tails will identify a compact lossless fixed P/S budget.
+
+**Method.** Hash-check every source in the pinned reviewed-primary manifest, attempt
+both semantic and PicoSVG-outlined normalization for every icon, and retain exact
+ordered contour/layer/style evidence. Evaluate path-first truncation over the Cartesian
+grid P={32,48,64,96,128}, S={64,128,192,256,384,512}. The run made exactly 8,012
+attempts and installed four immutable outputs with independently verified hashes and
+row counts.
+
+**Observation.** Semantic normalization succeeded for 3,937 icons. Its 69 failures
+were 33 unsupported `paint-order` presentations, 26 anisotropically transformed
+strokes, nine partial-opacity programs, and one same-document resource. Outlining
+recovered 60 of those failures, leaving only the same nine partial-opacity icons
+unsupported. The resulting hybrid route covers 3,997/4,006 icons (99.775%). On the
+3,937 icons supported by both routes, outlining expands contour count 1.154x and
+segment count 2.242x at the median; segment expansion reaches 4.038x at p95 and
+13.917x at the maximum.
+
+The structural tails are real rather than percentile-safe: hybrid programs reach 80
+contours, 1,211 total segments, and 283 segments in one contour. P64/S128 is therefore
+not lossless: it drops 35 contours and 493 segments across eight supported icons,
+damaging 30 icon-layer incidences. P96/S384 retains every contour and segment in the
+3,997 supported programs, but uses only 0.240% of its 36,864 segment slots. This
+falsifies the hypothesis that the census would directly justify a compact dense
+lossless rectangle; the tail-safe rectangle is extremely sparse.
+
+Structural success is also not codec losslessness. The semantic route contains 309
+literal stroke-width values, six dash patterns, and eight miter-limit values; 344
+icons use styles outside the fixture vocabulary. Twenty-two hybrid icons contain 35
+coordinate scalars outside 0..72, spanning -6.6875 to 95.0224, so strict q289 clipping
+would alter them. All 28 configured palette colors are used and there are no palette
+outliers.
+
+**Decision.** Keep semantic-native plus explicit outlined fallback as the leading
+route, but do not close Gate C or adopt P96/S384 as the model shape. First add exact
+per-path `opacity`, `fill-opacity`, and `stroke-opacity` categories and test the nine
+failures. Then measure q289 rendering on the opacity set and selected style/OOB/tail
+programs, while evaluating a less wasteful overflow or ragged capacity policy. Preserve
+P64/S128 as a falsified lossless budget and P96/S384 as a structural upper bound, not a
+final architecture choice.
