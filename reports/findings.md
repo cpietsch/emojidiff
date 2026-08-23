@@ -86,3 +86,48 @@ do not select it finally yet. Implement a deterministic semantic normalizer/code
 and measure actual 128/256-bin round trips, transform flattening, unsupported commands,
 and truncation. Retain outlined PicoSVG as the required fallback/control and compare it
 with the same codec budgets.
+
+## 2026-08-23 — Typed codec probe v1
+
+**Hypothesis.** At matched typed budgets, semantic strokes will retain less structure
+than outlined paths, and 256 coordinate values will improve raster fidelity over 128
+without exposing a more important codec failure.
+
+**Method.** Normalize the fixed 88-icon fixture into ordered contour slots. Adjacent
+contours from one SVG paint operation share a layer ID and serialize back into one
+compound path, preserving holes without allowing geometry after `close`. Encode both
+source-semantic and PicoSVG-outlined programs at P48/S128 and P64/S384 with 128 or 256
+coordinate values. Validate and deterministically re-encode every tensor, serialize
+through a fixed SVG allow-list, and render against the original source at 72 and 18 px.
+
+**Observation.** Semantic normalization succeeded for 87/88 icons. `1F250` was
+reason-coded `anisotropic_stroke_transform`: its nonuniform transform cannot preserve a
+painted stroke with one scalar width. The outlined fallback normalized all 88. At the
+coverage P64/S384 budget neither representation truncated. Semantic programs used 53
+segments/icon at the median versus 146 outlined, and their median q256 serialization
+was 4,936 bytes versus 9,760. At compact P48/S128, semantic dropped no contours and 181
+segments across three icons; outlined dropped 13 contours and 509 total segments. The
+outlined truncation made the rice ball visibly invalid and removed the UFO dome, while
+the semantic versions preserved those structures.
+
+All 700 encoded candidates validated, rendered, and reproduced byte-stable tensor/SVG
+hashes; the 28-entry palette had no outliers. At the coverage budget, moving from q128
+to q256 lowered median 18 px RGBA MAE from 0.004717 to 0.002971 for semantic programs
+and from 0.005490 to 0.003321 for outlined programs. Q256 medians were close between
+representations: semantic/outlined RGBA MAE was 0.002922/0.002609 at 72 px and
+0.002971/0.003321 at 18 px.
+
+Worst-case inspection exposed a separate quantizer issue. Mapping 256 values uniformly
+over the closed 0..72 interval cannot represent ordinary integer coordinates exactly;
+for example, the `E2C2` background edge at 4 becomes 3.952941. That tiny movement turns
+pixel-aligned edges into antialiased edges and inflates pixelwise MAE despite preserving
+recognizability. One semantic and two outlined icons also required explicitly recorded
+clamping of a Bézier control point outside the viewBox.
+
+**Decision.** Semantic strokes remain the leading representation and outlined paths
+remain the explicit per-icon fallback, but Gate C is not closed. P48/S128 is falsified
+as a lossless fixture budget, while P64/S384 is coverage-safe but too generous to adopt
+without full-corpus tails. Before interpreting q256 as the coordinate choice, compare
+pixel-aligned 145- and 289-value lattices (0.5 and 0.25 unit steps). Preserve this
+power-of-two-grid result as a negative finding, then run structural normalization over
+the full primary manifest before selecting final slot budgets.
