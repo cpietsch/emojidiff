@@ -33,8 +33,8 @@ and no remote command has been issued.
 ## Artifact durability
 
 Raw source (405 MB), audit v1/v2 renders and tables (about 102 MB), and compact reports
-are on the persistent `gtc` workspace. Compact manifests and reports are ready for a
-local Git checkpoint. No external artifact sink is configured or verified, so these
+are on the persistent `gtc` workspace. Compact manifests and reports are versioned in
+local Git checkpoint `0b96473`; nothing was pushed. No external artifact sink is configured or verified, so these
 bulk artifacts are not durable against loss of the control-plane volume and meaningful
 GPU work remains blocked.
 
@@ -56,7 +56,7 @@ GPU work remains blocked.
 
 ## Next smallest evidence-producing action
 
-Create a local Git checkpoint (no push), then begin Gate C with a CPU-only measured
-semantic-versus-outlined representation probe: path/segment distributions, transform
+Begin Gate C with a CPU-only measured semantic-versus-outlined representation probe:
+path/segment distributions, transform
 coverage, candidate slot truncation, and 72/18 px round-trip fidelity on a deterministic
 stratified fixture before implementing the full codecs.

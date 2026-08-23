@@ -13,6 +13,7 @@ dependencies = [
   "PyYAML>=6.0.2",
   "defusedxml>=0.7.1",
   "numpy>=2.3",
+  "picosvg>=0.23.0",
   "pyarrow>=21.0",
   "svg.path>=7.0",
 ]
@@ -28,6 +29,7 @@ dev = [
 
 [project.scripts]
 mojidiff-curate = "mojidiff.curation.cli:main"
+mojidiff-representation = "mojidiff.representation.cli:main"
 mojidiff-worker = "mojidiff.orchestration.cli:main"
 
 [tool.hatch.build.targets.wheel]

@@ -1,0 +1,17 @@
+schema_version: 1
+probe_version: representation-probe-v1
+source_revision: f9fc506a3f913be9897ab0181d611d4c910a4104
+raw_root: data/raw/openmoji/17.0.0
+primary_manifest: data/manifests/openmoji-17.0.0-curation-v4-reviewed-primary.parquet
+fixture_manifest: data/manifests/openmoji-17.0.0-representation-fixture-v1.json
+derived_root: data/processed/representation-probe-v1
+report_root: reports/codec/representation-probe-v1
+selection:
+  version: group-extremes-hash-v1
+  per_group: 8
+budgets:
+  path_slots: [16, 32, 64]
+  segments_per_path: [32, 64, 128]
+render:
+  sizes: [72, 18]
+  timeout_seconds: 5
