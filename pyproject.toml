@@ -29,6 +29,7 @@ dev = [
 
 [project.scripts]
 mojidiff-curate = "mojidiff.curation.cli:main"
+mojidiff-codec-study = "mojidiff.representation.codec_study:main"
 mojidiff-representation = "mojidiff.representation.cli:main"
 mojidiff-worker = "mojidiff.orchestration.cli:main"
 

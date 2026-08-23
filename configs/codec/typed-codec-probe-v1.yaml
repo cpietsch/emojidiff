@@ -1,0 +1,32 @@
+schema_version: 1
+probe_version: typed-codec-probe-v1
+source_revision: f9fc506a3f913be9897ab0181d611d4c910a4104
+raw_root: data/raw/openmoji/17.0.0
+fixture_manifest: data/manifests/openmoji-17.0.0-representation-fixture-v1.json
+palette_path: data/raw/openmoji/17.0.0/data/color-palette.json
+derived_root: data/processed/typed-codec-probe-v1
+report_root: reports/codec/typed-codec-probe-v1
+
+codec:
+  coordinate_bins: [128, 256]
+  budgets:
+    - name: compact-p48-s128
+      path_slots: 48
+      segments_per_path: 128
+    - name: coverage-p64-s384
+      path_slots: 64
+      segments_per_path: 384
+  # Exact semantic-stroke widths observed on the fixed 88-icon fixture after transform
+  # flattening. Full-corpus width-category selection remains a later Gate C experiment.
+  stroke_widths:
+    [1.0, 1.5, 1.6, 1.747, 1.7979, 1.8, 2.0, 2.089, 2.0967, 2.1,
+     2.3031, 3.0, 4.6452, 4.781, 4.795, 6.0]
+  dash_patterns:
+    - [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.1598, 5.1598]
+    - [2.0, 4.0]
+  miter_limits: [4.0, 7.0, 10.0]
+  max_serialized_bytes: 2000000
+
+render:
+  sizes: [72, 18]
+  timeout_seconds: 5

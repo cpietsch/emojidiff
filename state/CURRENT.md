@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-23T15:05:00Z
+Updated: 2026-08-23T16:02:44Z
 
 ## Current hypothesis and evidence
 
@@ -16,7 +16,9 @@ Gate C probe evidence makes semantic OpenMoji strokes the leading representation
 candidate. On an 88-icon stratified fixture, PicoSVG outlining preserved renders closely
 but expanded segments 2.241x at the median, 5.287x at p95, and 13.833x in the worst
 case. At 64 segments/path, 18 outlined fixtures exceeded budget versus 7 semantic
-proxies. This is not yet a final codec selection.
+proxies. A typed contour codec now preserves compound paint operations, semantic
+stroke categories, fill rules, dashes, and painter order while enforcing canonical
+padding and a safe fixed serializer. This is not yet a final codec selection.
 
 ## Last completed action and verification
 
@@ -29,12 +31,17 @@ After local checkpoint `a324c57`, ran representation probe v1 with an exact conf
 primary-manifest hash. All 88/88 PicoSVG 0.23.0 normalizations succeeded. Median RGBA
 MAE was 0.000558 at 72 px and 0.001173 at 18 px; all outlined outputs removed strokes.
 Compact evidence and the completed run record are committed locally at `6478654`; no
-push occurred. Formatter, linter, strict type checking, and 19 tests pass.
+push occurred. Implemented the deterministic semantic normalizer, 128/256-bin codec,
+actual truncation reporting, outlined control harness, and standalone safe serializer.
+The narrow codec tests and the full local suite pass (32 tests), as do Ruff and strict
+mypy. The new code has not yet been checkpointed or used for the material codec run.
 
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
-and no remote command has been issued.
+and no authenticated remote command has been issued. The operator reports a running
+Vast RTX 5090 instance with a 100 GB attached volume, but it remains disabled in the
+authorization record and has no active MojiDiff job.
 
 ## Artifact durability
 
@@ -56,6 +63,12 @@ GPU work remains blocked.
   `artifact_store.credentials_source` are unset.
 - `vast_5090` is disabled; `resource_cap.max_steps`, `max_spend_usd`, and
   `max_storage_gb` are null.
+- The operator supplied two distinct Vast port references. A non-authenticating host-key
+  scan found a different SSH host on each, so the exact SSH command, username/port, and
+  expected host fingerprint remain ambiguous. No host key was trusted and no login was
+  attempted.
+- The reported 100 GB attached volume has no recorded mount path or persistence
+  guarantee and therefore is not yet treated as the configured durable artifact sink.
 - `owned_gpu` is disabled; `resource_cap.max_steps` and `max_storage_gb` are null.
 - `a100_cluster` is disabled; `workspace_root`, `namespace`, `service_account`, `pvc`,
   `resource_cap.max_jobs`, `max_steps_per_job`, and `max_storage_gb` are null.
@@ -64,7 +77,7 @@ GPU work remains blocked.
 
 ## Next smallest evidence-producing action
 
-Implement a deterministic semantic-stroke normalizer/codec on the fixed fixture and
-measure transform flattening, unsupported path commands, 128-versus-256 coordinate-bin
-round-trip fidelity, and actual fixed-slot truncation. Apply the identical typed codec
-budgets to outlined paths as the fallback/control before making the Gate C selection.
+Create a clean local Git checkpoint, record the exact typed-codec probe as planned, and
+run the fixed 88-icon CPU study at 128/256 bins with P48/S128 and P64/S384 budgets.
+Inspect the worst round trips before deciding whether Gate C evidence is sufficient or
+the full primary corpus needs another codec-vocabulary pass.
