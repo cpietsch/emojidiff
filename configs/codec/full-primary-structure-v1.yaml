@@ -1,0 +1,33 @@
+schema_version: 1
+audit_version: full-primary-structure-v1
+source_revision: f9fc506a3f913be9897ab0181d611d4c910a4104
+raw_root: data/raw/openmoji/17.0.0
+primary_manifest: data/manifests/openmoji-17.0.0-curation-v4-reviewed-primary.parquet
+primary_manifest_sha256: 4e7162ec6e14546bacaad0372c1b122dc6b0f9d6d0651801c025e9488a8239e6
+expected_manifest_rows: 4006
+palette_path: data/raw/openmoji/17.0.0/data/color-palette.json
+palette_sha256: 566f30548fbc0fe4f4aa0c2a563820f0c26e46a89523b174e25a685720058228
+report_root: reports/codec/full-primary-structure-v1
+
+capacity:
+  # Full grid; the two prior fixture anchors P48/S128 and P64/S384 are included.
+  path_slots: [32, 48, 64, 96, 128]
+  segments_per_path: [64, 128, 192, 256, 384, 512]
+
+style_vocabulary:
+  # Fixture vocabulary is measured here as a candidate, never silently imposed.
+  stroke_widths:
+    [1.0, 1.5, 1.6, 1.747, 1.7979, 1.8, 2.0, 2.089, 2.0967, 2.1,
+     2.3031, 3.0, 4.6452, 4.781, 4.795, 6.0]
+  dash_patterns:
+    - [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.1598, 5.1598]
+    - [2.0, 4.0]
+  miter_limits: [4.0, 7.0, 10.0]
+
+limits:
+  max_manifest_bytes: 33554432
+  max_manifest_rows: 5000
+  max_source_bytes: 2097152
+  max_outlined_bytes: 4194304
+  max_error_chars: 400
+  tail_count: 20
