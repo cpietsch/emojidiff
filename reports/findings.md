@@ -205,3 +205,40 @@ failures. Then measure q289 rendering on the opacity set and selected style/OOB/
 programs, while evaluating a less wasteful overflow or ragged capacity policy. Preserve
 P64/S128 as a falsified lossless budget and P96/S384 as a structural upper bound, not a
 final architecture choice.
+
+## 2026-08-29 — Exact opacity recovery probe
+
+**Hypothesis.** A shared categorical vocabulary for per-path element, fill, and stroke
+opacity will recover the nine icons rejected by both prior routes without introducing
+structural or style approximation. The only remaining loss should be the two previously
+observed out-of-bounds moon coordinates.
+
+**Method.** Select exactly the nine `unsupported_both:partial_opacity` rows from the
+hash-pinned full-primary census. Normalize both source-semantic and PicoSVG-outlined
+forms, then encode each at q289 and P96/S64 with the exact observed opacity, stroke
+width, and miter vocabularies. Forbid truncation. Attempt strict encoding first; permit
+coordinate clamping only after preserving the strict result. Render every serialized
+program against the upstream source at 72 and 18 px. Outputs are create-or-identical
+and a second complete invocation verified idempotency.
+
+**Observation.** Both routes normalize all 9/9 icons and all 18 typed programs produce
+stable encode/decode/serialize round trips. No contour or segment is dropped, no stroke
+width or miter limit is approximated, all colors remain in the 28-entry palette, and
+P96/S64 covers the set. Semantic programs remain shorter on this difficult slice:
+median contours/segments are 15/64 versus outlined 24/218.
+
+Strict encoding succeeds for 14/18 programs. `1F31A` and `1F31D` each contain one
+coordinate scalar outside 0..72 in both representations; the declared projection
+clamps exactly one scalar in each affected program. No other safety projection occurs.
+Semantic median RGBA MAE is 0.001547 at 72 px and 0.001722 at 18 px, with median 18 px
+alpha IoU of 1.0. Outlined medians are 0.002070, 0.002046, and 0.9934 respectively.
+Visual inspection of the worst clamped moon (`1F31D`) at 72 and 18 px and the 64-segment
+umbrella tail (`26F1`) found no recognizable discrepancy among source, semantic, and
+outlined renders.
+
+**Decision.** Accept the three opacity fields and nine-value vocabulary as the leading
+codec semantics. They remove the known partial-opacity blocker on its complete pinned
+failure set, but do not yet prove a 4,006/4,006 full-primary regression. Keep the two
+coordinate clamps explicitly labelled as safety projections; opacity must not be used
+to hide the separate OOB-coordinate question. Run an opacity-aware full-primary census
+next before closing normalization coverage or choosing the final capacity policy.

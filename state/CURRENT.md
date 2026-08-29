@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-29T12:35:18Z
+Updated: 2026-08-29T12:45:47Z
 
 ## Current hypothesis and evidence
 
@@ -39,12 +39,14 @@ supported programs but only 0.240% slot-utilized. Style vocabulary (344 nonexact
 35 out-of-bounds coordinate scalars in 22 icons, opacity, and sparse-tail handling keep
 Gate C open.
 
-The exact opacity extension now recovers all nine formerly unsupported icons under both
-semantic and outlined normalization. The observed categorical values are exactly
-`0.25, 0.4, 0.5, 0.502, 0.6, 0.9969, 0.997, 0.999, 1.0`; `0.997` is the PicoSVG-rounded
-outlined form of source `0.9969`. This is normalization evidence, not yet q289 render
-fidelity. `1F31A` and `1F31D` each retain one out-of-bounds scalar and therefore still
-require an explicitly measured clamp or a coordinate-vocabulary extension.
+The exact opacity extension recovers all nine formerly unsupported icons under both
+semantic and outlined normalization and q289/P96/S64 typed round trips. All 18 programs
+are stable with no structural loss or style approximation. The observed categorical
+values are exactly `0.25, 0.4, 0.5, 0.502, 0.6, 0.9969, 0.997, 0.999, 1.0`; `0.997` is
+the PicoSVG-rounded outlined form of source `0.9969`. `1F31A` and `1F31D` each retain
+one out-of-bounds scalar in both routes, so 14/18 programs are strict-lossless and four
+use one explicitly recorded clamp. A full-primary regression is still required before
+claiming 4,006/4,006 normalization coverage.
 
 ## Last completed action and verification
 
@@ -77,6 +79,14 @@ Focused codec tests pass 22/22; the full suite passes 53/53; Ruff and strict myp
 An unregistered read-only nine-icon diagnostic confirmed semantic and outlined
 normalization recovery and identified the two one-scalar OOB cases above.
 
+Implemented and checkpointed the reproducible opacity probe at `5164a95`, then ran
+`opacity-recovery-v1-5164a95-5f7afab1-49923968` locally. Both routes succeeded for all
+nine icons; all 18 tensor/SVG identities are stable; no P/S truncation or style
+approximation occurred; and the only four projected programs are the two OOB moons in
+both routes. Semantic median RGBA MAE is 0.001547 at 72 px and 0.001722 at 18 px. A
+second complete invocation accepted every exact prior artifact, verifying idempotency.
+The full suite passes 55/55; Ruff and strict mypy pass. No GPU work was performed.
+
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
@@ -89,9 +99,10 @@ Raw source (405 MB), audit renders/tables, and derived fixture SVGs remain on th
 persistent workspace. Curation, representation, typed-codec, and aligned-grid compact
 evidence is versioned locally through `2099f3d`; the 26 MB full-primary report is
 versioned at `1063fc7`, and the opacity codec is versioned at `e31273c`. Nothing was
-pushed. No external artifact sink is configured or verified, so bulk artifacts are not
-durable against loss of the control-plane volume and meaningful GPU work remains
-blocked.
+pushed. The 64 KB compact opacity report is pending its local evidence checkpoint; its
+260 KB derived SVGs are reproducible but local-only. No external artifact sink is
+configured or verified, so bulk artifacts are not durable against loss of the
+control-plane volume and meaningful GPU work remains blocked.
 
 ## Current blockers and missing authorization
 
@@ -119,7 +130,6 @@ blocked.
 
 ## Next smallest evidence-producing action
 
-Create and register a deterministic nine-icon q289 opacity recovery probe. Measure
-semantic and outlined round-trip renders, strict versus explicit clamp behavior for the
-two OOB moons, exact style vocabulary, and P/S structure before choosing the next
-style/OOB/structural-tail experiment. Keep the GPU server off during this CPU-only gate.
+Checkpoint the opacity evidence, then create an opacity-aware full-primary census v2 to
+verify 4,006/4,006 normalization coverage and recompute style/OOB/capacity tails. Keep
+the GPU server off during this CPU-only Gate C regression.
