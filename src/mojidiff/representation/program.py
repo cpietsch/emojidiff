@@ -48,6 +48,12 @@ _COORDS_PER_SEGMENT = {
     SegmentType.CUBIC: 6,
     SegmentType.CLOSE: 0,
 }
+_CONTROL_COORDS_PER_SEGMENT = {
+    SegmentType.LINE: 0,
+    SegmentType.QUAD: 2,
+    SegmentType.CUBIC: 4,
+    SegmentType.CLOSE: 0,
+}
 
 
 @dataclass(frozen=True)
@@ -63,6 +69,9 @@ class CodecConfig:
     miter_limits: tuple[float, ...]
     opacities: tuple[float, ...]
     max_serialized_bytes: int = 2_000_000
+    control_coordinate_bins: int | None = None
+    control_coordinate_min: float = 0.0
+    control_coordinate_max: float = VIEWBOX_SIZE
 
     def __post_init__(self) -> None:
         for name, value in (
@@ -85,6 +94,25 @@ class CodecConfig:
             or self.coordinate_bins > 65_536
         ):
             raise CodecError("coordinate_bins must be an integer of at least 2")
+        if self.control_coordinate_bins is not None and (
+            isinstance(self.control_coordinate_bins, bool)
+            or not isinstance(self.control_coordinate_bins, int)
+            or self.control_coordinate_bins < 2
+            or self.control_coordinate_bins > 65_536
+        ):
+            raise CodecError("control_coordinate_bins must be null or an integer of at least 2")
+        if (
+            isinstance(self.control_coordinate_min, bool)
+            or isinstance(self.control_coordinate_max, bool)
+            or not isinstance(self.control_coordinate_min, (int, float))
+            or not isinstance(self.control_coordinate_max, (int, float))
+            or not math.isfinite(self.control_coordinate_min)
+            or not math.isfinite(self.control_coordinate_max)
+            or self.control_coordinate_min > 0
+            or self.control_coordinate_max < VIEWBOX_SIZE
+            or self.control_coordinate_min >= self.control_coordinate_max
+        ):
+            raise CodecError("control coordinate bounds must be finite and cover 0..72")
         if not self.palette or len(set(self.palette)) != len(self.palette):
             raise CodecError("palette must contain unique colors")
         if any(_HEX_COLOR.fullmatch(color) is None for color in self.palette):
@@ -110,6 +138,16 @@ class CodecConfig:
                 raise CodecError("dash patterns cannot be entirely zero")
             if len(pattern) % 2 or len(pattern) > 32:
                 raise CodecError("dash patterns must be canonical even tuples of at most 32 values")
+
+    @property
+    def effective_control_coordinate_bins(self) -> int:
+        """Control-handle vocabulary size, defaulting to the endpoint vocabulary."""
+
+        return (
+            self.coordinate_bins
+            if self.control_coordinate_bins is None
+            else self.control_coordinate_bins
+        )
 
 
 def _validate_positive_vocabulary(name: str, values: tuple[float, ...]) -> None:
@@ -189,6 +227,8 @@ class EncodingReport:
     dropped_segments: int
     partial_layers: tuple[int, ...]
     clamped_coordinates: int
+    clamped_endpoint_coordinates: int
+    clamped_control_coordinates: int
     approximated_stroke_widths: int
     max_stroke_width_error: float
     approximated_miter_limits: int
@@ -210,15 +250,33 @@ class EncodingReport:
 def quantize_coordinate(value: float, bins: int) -> int:
     """Quantize an in-range coordinate using a fixed round-half-up rule."""
 
+    return quantize_bounded_coordinate(value, bins, 0.0, VIEWBOX_SIZE)
+
+
+def quantize_bounded_coordinate(
+    value: float, bins: int, minimum: float, maximum: float
+) -> int:
+    """Quantize within explicit finite bounds using a fixed round-half-up rule."""
+
     if isinstance(bins, bool) or not isinstance(bins, int) or bins < 2:
         raise CodecError("coordinate bins must be an integer of at least 2")
-    if not math.isfinite(value) or value < 0 or value > VIEWBOX_SIZE:
-        raise CodecError("coordinate must be finite and within 0..72")
-    return int(math.floor(value * (bins - 1) / VIEWBOX_SIZE + 0.5))
+    if not all(math.isfinite(item) for item in (value, minimum, maximum)) or minimum >= maximum:
+        raise CodecError("coordinate value and bounds must be finite and increasing")
+    if value < minimum or value > maximum:
+        raise CodecError("coordinate must be within its configured bounds")
+    return int(math.floor((value - minimum) * (bins - 1) / (maximum - minimum) + 0.5))
 
 
 def dequantize_coordinate(token: int, bins: int) -> float:
     """Map a zero-based coordinate category back into the fixed viewBox."""
+
+    return dequantize_bounded_coordinate(token, bins, 0.0, VIEWBOX_SIZE)
+
+
+def dequantize_bounded_coordinate(
+    token: int, bins: int, minimum: float, maximum: float
+) -> float:
+    """Map a zero-based coordinate category into explicit finite bounds."""
 
     if isinstance(bins, bool) or not isinstance(bins, int) or bins < 2:
         raise CodecError("coordinate bins must be an integer of at least 2")
@@ -226,7 +284,9 @@ def dequantize_coordinate(token: int, bins: int) -> float:
         raise CodecError("coordinate token must be an integer")
     if token < 0 or token >= bins:
         raise CodecError("coordinate token is outside the configured vocabulary")
-    return VIEWBOX_SIZE * int(token) / (bins - 1)
+    if not all(math.isfinite(item) for item in (minimum, maximum)) or minimum >= maximum:
+        raise CodecError("coordinate bounds must be finite and increasing")
+    return minimum + (maximum - minimum) * int(token) / (bins - 1)
 
 
 def encode_program(
@@ -255,7 +315,8 @@ def encode_program(
     kept_layers = {contour.layer for contour in retained}
     dropped_layers = {contour.layer for contour in dropped}
     partial_layers = tuple(sorted(kept_layers & dropped_layers))
-    clamp_count = 0
+    endpoint_clamp_count = 0
+    control_clamp_count = 0
     width_count = 0
     width_error = 0.0
     miter_count = 0
@@ -277,9 +338,16 @@ def encode_program(
         arrays.fill_rule[path_index] = (
             NONE if contour.fill is None else _FILL_RULES.index(contour.fill_rule) + 2
         )
-        start_tokens, count = _encode_coords(contour.start, config, allow_clamping)
+        start_tokens, count = _encode_coords(
+            contour.start,
+            bins=config.coordinate_bins,
+            minimum=0.0,
+            maximum=VIEWBOX_SIZE,
+            allow_clamping=allow_clamping,
+            role="endpoint",
+        )
         arrays.start[path_index] = start_tokens
-        clamp_count += count
+        endpoint_clamp_count += count
 
         if contour.stroke is None:
             for field in (
@@ -307,9 +375,12 @@ def encode_program(
 
         for segment_index, segment in enumerate(segments):
             arrays.segment_type[path_index, segment_index] = int(segment.kind)
-            encoded, count = _encode_coords(segment.coords, config, allow_clamping)
+            encoded, endpoint_count, control_count = _encode_segment_coords(
+                segment, config, allow_clamping
+            )
             arrays.coordinates[path_index, segment_index, : len(encoded)] = encoded
-            clamp_count += count
+            endpoint_clamp_count += endpoint_count
+            control_clamp_count += control_count
 
     tensor = TensorProgram(**arrays.as_dict())
     validate_tensor_program(tensor, config)
@@ -319,7 +390,9 @@ def encode_program(
         dropped_contours=len(dropped),
         dropped_segments=dropped_segments,
         partial_layers=partial_layers,
-        clamped_coordinates=clamp_count,
+        clamped_coordinates=endpoint_clamp_count + control_clamp_count,
+        clamped_endpoint_coordinates=endpoint_clamp_count,
+        clamped_control_coordinates=control_clamp_count,
         approximated_stroke_widths=width_count,
         max_stroke_width_error=width_error,
         approximated_miter_limits=miter_count,
@@ -391,7 +464,13 @@ def _nearest_token(value: float, vocabulary: tuple[float, ...]) -> tuple[int, fl
 
 
 def _encode_coords(
-    values: tuple[float, ...], config: CodecConfig, allow_clamping: bool
+    values: tuple[float, ...],
+    *,
+    bins: int,
+    minimum: float,
+    maximum: float,
+    allow_clamping: bool,
+    role: str,
 ) -> tuple[IntArray, int]:
     encoded = np.zeros(len(values), dtype=np.int64)
     clamped = 0
@@ -399,13 +478,39 @@ def _encode_coords(
         if not math.isfinite(raw):
             raise CodecError("coordinate must be finite")
         value = raw
-        if value < 0 or value > VIEWBOX_SIZE:
+        if value < minimum or value > maximum:
             if not allow_clamping:
-                raise CodecError("coordinate is outside 0..72 and clamping is disabled")
-            value = min(VIEWBOX_SIZE, max(0.0, value))
+                raise CodecError(
+                    f"{role} coordinate is outside {minimum:g}..{maximum:g} "
+                    "and clamping is disabled"
+                )
+            value = min(maximum, max(minimum, value))
             clamped += 1
-        encoded[index] = quantize_coordinate(value, config.coordinate_bins) + 1
+        encoded[index] = quantize_bounded_coordinate(value, bins, minimum, maximum) + 1
     return encoded, clamped
+
+
+def _encode_segment_coords(
+    segment: FloatSegment, config: CodecConfig, allow_clamping: bool
+) -> tuple[IntArray, int, int]:
+    control_count = _CONTROL_COORDS_PER_SEGMENT[segment.kind]
+    controls, clamped_controls = _encode_coords(
+        segment.coords[:control_count],
+        bins=config.effective_control_coordinate_bins,
+        minimum=config.control_coordinate_min,
+        maximum=config.control_coordinate_max,
+        allow_clamping=allow_clamping,
+        role="control",
+    )
+    endpoints, clamped_endpoints = _encode_coords(
+        segment.coords[control_count:],
+        bins=config.coordinate_bins,
+        minimum=0.0,
+        maximum=VIEWBOX_SIZE,
+        allow_clamping=allow_clamping,
+        role="endpoint",
+    )
+    return np.concatenate((controls, endpoints)), clamped_endpoints, clamped_controls
 
 
 def _validate_float_program(program: FloatProgram) -> None:
@@ -546,7 +651,7 @@ def validate_tensor_program(program: TensorProgram, config: CodecConfig) -> None
                 len(config.opacities) + 1,
                 "fill_opacity",
             )
-        _coordinate_tokens(program.start[path_index], config)
+        _coordinate_tokens(program.start[path_index], config.coordinate_bins, "endpoint")
 
         if stroke == NONE:
             if any(
@@ -622,7 +727,17 @@ def validate_tensor_program(program: TensorProgram, config: CodecConfig) -> None
             if kind == SegmentType.CLOSE and segment_index != length - 1:
                 raise ProgramValidationError("close cannot precede active geometry")
             active_coords = _COORDS_PER_SEGMENT[kind]
-            _coordinate_tokens(coords[:active_coords], config)
+            control_coords = _CONTROL_COORDS_PER_SEGMENT[kind]
+            _coordinate_tokens(
+                coords[:control_coords],
+                config.effective_control_coordinate_bins,
+                "control",
+            )
+            _coordinate_tokens(
+                coords[control_coords:active_coords],
+                config.coordinate_bins,
+                "endpoint",
+            )
             if np.any(coords[active_coords:]):
                 raise ProgramValidationError("unused segment coordinates must be PAD")
 
@@ -640,9 +755,9 @@ def _token_range(token: int, maximum: int, field: str, allow_none: bool = False)
         raise ProgramValidationError(f"{field} token is outside its vocabulary")
 
 
-def _coordinate_tokens(tokens: IntArray, config: CodecConfig) -> None:
-    if np.any(tokens < 1) or np.any(tokens > config.coordinate_bins):
-        raise ProgramValidationError("active coordinate token is outside its vocabulary")
+def _coordinate_tokens(tokens: IntArray, bins: int, role: str) -> None:
+    if np.any(tokens < 1) or np.any(tokens > bins):
+        raise ProgramValidationError(f"active {role} coordinate token is outside its vocabulary")
 
 
 def decode_program(program: TensorProgram, config: CodecConfig) -> FloatProgram:
@@ -660,11 +775,22 @@ def decode_program(program: TensorProgram, config: CodecConfig) -> FloatProgram:
         for segment_index in range(length):
             kind = SegmentType(int(program.segment_type[path_index, segment_index]))
             count = _COORDS_PER_SEGMENT[kind]
-            coords = tuple(
-                dequantize_coordinate(int(token) - 1, config.coordinate_bins)
-                for token in program.coordinates[path_index, segment_index, :count]
+            control_count = _CONTROL_COORDS_PER_SEGMENT[kind]
+            raw_tokens = program.coordinates[path_index, segment_index, :count]
+            controls = tuple(
+                dequantize_bounded_coordinate(
+                    int(token) - 1,
+                    config.effective_control_coordinate_bins,
+                    config.control_coordinate_min,
+                    config.control_coordinate_max,
+                )
+                for token in raw_tokens[:control_count]
             )
-            segments.append(FloatSegment(kind, coords))
+            endpoints = tuple(
+                dequantize_coordinate(int(token) - 1, config.coordinate_bins)
+                for token in raw_tokens[control_count:]
+            )
+            segments.append(FloatSegment(kind, controls + endpoints))
         contours.append(
             FloatContour(
                 layer=int(program.layer[path_index]),

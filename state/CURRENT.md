@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-29T17:38:35Z
+Updated: 2026-08-29T17:42:36Z
 
 ## Current hypothesis and evidence
 
@@ -110,6 +110,13 @@ Focused tests pass 26/26, the full suite passes 57/57, Ruff passes, and strict m
 passes. The negative result and compact report are checkpointed locally at `45ca009`.
 No GPU work was performed.
 
+Implemented role-typed coordinate vocabularies: move/line/curve endpoints remain q289
+over 0..72, while quadratic/cubic controls may use a separately bounded vocabulary.
+The proposed schema-v3 probe uses 417 quarter-unit control values over [-8,96], forbids
+both truncation and clamping, and retains explicit tensor validation for each role. The
+full suite passes 59/59; Ruff and strict mypy pass. This implementation is not yet
+checkpointed or run on the pinned fixture.
+
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
@@ -155,7 +162,7 @@ control-plane volume and meaningful GPU work remains blocked.
 
 ## Next smallest evidence-producing action
 
-Checkpoint the negative OOB result, then implement and test a distinct quarter-unit
-`[-8, 96]` control-handle vocabulary (417 values) while retaining q289 for endpoints.
-Re-run the complete 24-icon slice before addressing style categories or capacity. Keep
-the GPU server off during this CPU-only Gate C experiment.
+Checkpoint the role-typed coordinate implementation, register its schema-v3 config,
+then re-run the complete 24-icon slice with q417 controls and q289 endpoints before
+addressing style categories or capacity. Keep the GPU server off during this CPU-only
+Gate C experiment.

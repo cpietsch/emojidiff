@@ -1,0 +1,37 @@
+schema_version: 3
+probe_version: control-coordinate-vocabulary-v1
+source_revision: f9fc506a3f913be9897ab0181d611d4c910a4104
+raw_root: data/raw/openmoji/17.0.0
+fixture_manifest: data/manifests/openmoji-17.0.0-oob-fixture-v1.json
+palette_path: data/raw/openmoji/17.0.0/data/color-palette.json
+derived_root: data/processed/control-coordinate-vocabulary-v1
+report_root: reports/codec/control-coordinate-vocabulary-v1
+
+codec:
+  # Move points and segment endpoints stay on the leading 0..72 quarter-unit lattice.
+  coordinate_bins: [289]
+  # Only quadratic/cubic control fields use the extended bounded vocabulary. This
+  # covers the observed -6.6875..95.0224 corpus range without permitting endpoints
+  # outside the fixed canvas.
+  control_coordinates:
+    bins: [417]
+    minimum: -8.0
+    maximum: 96.0
+  budgets:
+    - name: coverage-p48-s64
+      path_slots: 48
+      segments_per_path: 64
+  opacities: [0.4, 1.0]
+  stroke_widths: [0.204, 0.25, 1.0, 2.0]
+  dash_patterns:
+    - [5.2132, 5.2132]
+  miter_limits: [4.0, 10.0]
+  max_serialized_bytes: 2000000
+
+projection:
+  allow_truncation: false
+  allow_clamping: false
+
+render:
+  sizes: [72, 18]
+  timeout_seconds: 5

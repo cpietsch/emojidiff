@@ -60,6 +60,9 @@ class CodecStudyConfig:
     derived_root: Path
     report_root: Path
     coordinate_bins: tuple[int, ...]
+    control_coordinate_bins: tuple[int, ...]
+    control_coordinate_min: float
+    control_coordinate_max: float
     budgets: tuple[CodecBudget, ...]
     stroke_widths: tuple[float, ...]
     dash_patterns: tuple[tuple[float, ...], ...]
@@ -82,9 +85,9 @@ def load_codec_study_config(path: Path) -> CodecStudyConfig:
     if (
         isinstance(raw_schema_version, bool)
         or not isinstance(raw_schema_version, int)
-        or raw_schema_version not in {1, 2}
+        or raw_schema_version not in {1, 2, 3}
     ):
-        raise CodecStudyError("codec study schema_version must be 1 or 2")
+        raise CodecStudyError("codec study schema_version must be 1, 2, or 3")
     schema_version = raw_schema_version
     codec = _mapping(root.get("codec"), "codec")
     opacities: tuple[float, ...]
@@ -138,6 +141,22 @@ def load_codec_study_config(path: Path) -> CodecStudyConfig:
         raise CodecStudyError("coordinate bins must contain unique increasing values")
     if schema_version == 1 and len(bins) != 2:
         raise CodecStudyError("schema_version 1 requires exactly two coordinate bins")
+    if schema_version == 3:
+        control = _mapping(codec.get("control_coordinates"), "codec.control_coordinates")
+        control_bins = tuple(
+            _positive_int(value, "codec.control_coordinates.bins")
+            for value in _sequence(control.get("bins"), "codec.control_coordinates.bins")
+        )
+        control_minimum = _finite_number(control.get("minimum"), "control minimum")
+        control_maximum = _finite_number(control.get("maximum"), "control maximum")
+        if len(control_bins) != len(bins):
+            raise CodecStudyError("control coordinate bins must pair with endpoint bins")
+        if control_minimum > 0 or control_maximum < 72 or control_minimum >= control_maximum:
+            raise CodecStudyError("control coordinate bounds must cover 0..72")
+    else:
+        control_bins = bins
+        control_minimum = 0.0
+        control_maximum = 72.0
     return CodecStudyConfig(
         schema_version=schema_version,
         version=_string(root, "probe_version"),
@@ -148,6 +167,9 @@ def load_codec_study_config(path: Path) -> CodecStudyConfig:
         derived_root=Path(_string(root, "derived_root")),
         report_root=Path(_string(root, "report_root")),
         coordinate_bins=bins,
+        control_coordinate_bins=control_bins,
+        control_coordinate_min=control_minimum,
+        control_coordinate_max=control_maximum,
         budgets=tuple(budgets),
         stroke_widths=_float_tuple(codec.get("stroke_widths"), "codec.stroke_widths"),
         dash_patterns=tuple(
@@ -202,6 +224,15 @@ def _boolean(value: object, field: str) -> bool:
     return value
 
 
+def _finite_number(value: object, field: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise CodecStudyError(f"{field} must be a finite number")
+    number = float(value)
+    if not math.isfinite(number):
+        raise CodecStudyError(f"{field} must be a finite number")
+    return number
+
+
 def _float_tuple(value: object, field: str) -> tuple[float, ...]:
     items = _sequence(value, field)
     result: list[float] = []
@@ -233,6 +264,7 @@ def _palette(path: Path) -> tuple[str, ...]:
 def _codec_config(
     config: CodecStudyConfig, budget: CodecBudget, bins: int, palette: tuple[str, ...]
 ) -> CodecConfig:
+    control_bins = config.control_coordinate_bins[config.coordinate_bins.index(bins)]
     return CodecConfig(
         max_paths=budget.path_slots,
         max_segments=budget.segments_per_path,
@@ -243,6 +275,9 @@ def _codec_config(
         miter_limits=config.miter_limits,
         opacities=config.opacities,
         max_serialized_bytes=config.max_serialized_bytes,
+        control_coordinate_bins=control_bins,
+        control_coordinate_min=config.control_coordinate_min,
+        control_coordinate_max=config.control_coordinate_max,
     )
 
 
@@ -252,9 +287,9 @@ def run_codec_study(config: CodecStudyConfig, config_path: Path) -> dict[str, An
     code_identity = _code_identity()
     fixture_bytes = config.fixture_manifest.read_bytes()
     fixture = _mapping(json.loads(fixture_bytes), "fixture")
-    if config.schema_version == 2:
+    if config.schema_version >= 2:
         if fixture.get("source_revision") != config.source_revision:
-            raise CodecStudyError("schema_version 2 fixture source_revision mismatch")
+            raise CodecStudyError("versioned fixture source_revision mismatch")
         selection = _mapping(fixture.get("selection"), "fixture.selection")
         _verify_fixture_parent(selection, "parent_summary")
         if "parent_hybrid" in selection or "parent_hybrid_sha256" in selection:
@@ -421,6 +456,9 @@ def _round_trip(
         "path_slots": budget.path_slots,
         "segments_per_path": budget.segments_per_path,
         "coordinate_bins": bins,
+        "control_coordinate_bins": codec.effective_control_coordinate_bins,
+        "control_coordinate_min": codec.control_coordinate_min,
+        "control_coordinate_max": codec.control_coordinate_max,
         "allow_truncation": config.allow_truncation,
         "allow_clamping": config.allow_clamping,
         "segments_dropped_by_path_budget": sum(
@@ -730,6 +768,15 @@ def _summarize(
     groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in metrics:
         key = f"{row['representation']}|{row['budget']}|q{row['coordinate_bins']}"
+        if (
+            row["control_coordinate_bins"] != row["coordinate_bins"]
+            or row["control_coordinate_min"] != 0
+            or row["control_coordinate_max"] != 72
+        ):
+            key += (
+                f"|control-q{row['control_coordinate_bins']}@"
+                f"{row['control_coordinate_min']:g}..{row['control_coordinate_max']:g}"
+            )
         groups[key].append(row)
     comparisons: dict[str, Any] = {}
     for key, rows in sorted(groups.items()):
@@ -774,6 +821,8 @@ def _summarize(
                     "source_path": row["source_path"],
                     "strict_error": row.get("strict_error"),
                     "clamped_coordinates": row.get("clamped_coordinates"),
+                    "clamped_endpoint_coordinates": row.get("clamped_endpoint_coordinates"),
+                    "clamped_control_coordinates": row.get("clamped_control_coordinates"),
                     "approximated_stroke_widths": row.get("approximated_stroke_widths"),
                     "approximated_miter_limits": row.get("approximated_miter_limits"),
                 }
@@ -912,6 +961,9 @@ def _summarize(
         },
         "codec": {
             "coordinate_bins": list(config.coordinate_bins),
+            "control_coordinate_bins": list(config.control_coordinate_bins),
+            "control_coordinate_min": config.control_coordinate_min,
+            "control_coordinate_max": config.control_coordinate_max,
             "budgets": [asdict(budget) for budget in config.budgets],
             "opacities": list(config.opacities),
             "stroke_widths": list(config.stroke_widths),

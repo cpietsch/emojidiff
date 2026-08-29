@@ -32,8 +32,10 @@ from mojidiff.representation.program import (
     SegmentType,
     TensorProgram,
     decode_program,
+    dequantize_bounded_coordinate,
     dequantize_coordinate,
     encode_program,
+    quantize_bounded_coordinate,
     quantize_coordinate,
     serialize_float_svg,
     serialize_svg,
@@ -46,6 +48,9 @@ def _config(
     max_paths: int = 4,
     max_segments: int = 8,
     coordinate_bins: int = 128,
+    control_coordinate_bins: int | None = None,
+    control_coordinate_min: float = 0.0,
+    control_coordinate_max: float = VIEWBOX_SIZE,
 ) -> CodecConfig:
     return CodecConfig(
         max_paths=max_paths,
@@ -57,6 +62,9 @@ def _config(
         miter_limits=(4.0, 10.0),
         opacities=OPACITY_VOCABULARY,
         max_serialized_bytes=20_000,
+        control_coordinate_bins=control_coordinate_bins,
+        control_coordinate_min=control_coordinate_min,
+        control_coordinate_max=control_coordinate_max,
     )
 
 
@@ -112,6 +120,20 @@ def test_oob_control_probe_is_pinned_and_analysis_only() -> None:
     assert selected == expected
     assert len(selected) == 24
     assert sum(selected.values()) == 37
+
+
+def test_control_coordinate_vocabulary_probe_separates_endpoints() -> None:
+    root = Path(__file__).resolve().parents[1]
+    config = load_codec_study_config(
+        root / "configs/codec/control-coordinate-vocabulary-v1.yaml"
+    )
+
+    assert config.schema_version == 3
+    assert config.coordinate_bins == (289,)
+    assert config.control_coordinate_bins == (417,)
+    assert config.control_coordinate_min == -8.0
+    assert config.control_coordinate_max == 96.0
+    assert not config.allow_clamping
 
 
 def test_codec_study_artifacts_are_create_or_identical(tmp_path: Path) -> None:
@@ -176,6 +198,57 @@ def test_coordinate_quantizer_roundtrips_every_token_and_bounds_error(bins: int)
         for value in samples
     )
     assert max_error <= step / 2 + 1e-12
+
+
+def test_extended_control_lattice_is_quarter_unit_and_keeps_endpoints_bounded() -> None:
+    config = _config(
+        coordinate_bins=289,
+        control_coordinate_bins=417,
+        control_coordinate_min=-8.0,
+        control_coordinate_max=96.0,
+    )
+    assert quantize_bounded_coordinate(-8.0, 417, -8.0, 96.0) == 0
+    assert quantize_bounded_coordinate(0.0, 417, -8.0, 96.0) == 32
+    assert quantize_bounded_coordinate(72.0, 417, -8.0, 96.0) == 320
+    assert quantize_bounded_coordinate(96.0, 417, -8.0, 96.0) == 416
+    assert dequantize_bounded_coordinate(412, 417, -8.0, 96.0) == 95.0
+
+    program = FloatProgram(
+        (
+            _contour(
+                segments=(
+                    FloatSegment(
+                        SegmentType.CUBIC,
+                        (-6.6875, 95.0224, 20.0, 30.0, 72.0, 50.0),
+                    ),
+                )
+            ),
+        )
+    )
+    tensor, report = encode_program(program, config)
+    assert report.lossless
+    assert report.clamped_coordinates == 0
+    assert report.clamped_endpoint_coordinates == 0
+    assert report.clamped_control_coordinates == 0
+    decoded = decode_program(tensor, config)
+    assert decoded.contours[0].segments[0].coords == (-6.75, 95.0, 20.0, 30.0, 72.0, 50.0)
+
+    mutated = copy.deepcopy(tensor)
+    mutated.coordinates[0, 0, 0] = 417
+    validate_tensor_program(mutated, config)
+    mutated.coordinates[0, 0, 4] = 417
+    with pytest.raises(ProgramValidationError, match="endpoint coordinate"):
+        validate_tensor_program(mutated, config)
+
+    endpoint_oob = FloatProgram(
+        (
+            _contour(
+                segments=(FloatSegment(SegmentType.LINE, (73.0, 50.0)),),
+            ),
+        )
+    )
+    with pytest.raises(CodecError, match="endpoint coordinate"):
+        encode_program(endpoint_oob, config)
 
 
 def test_encode_validate_and_inactive_padding_are_canonical() -> None:
@@ -312,6 +385,8 @@ def test_oob_analysis_classifies_control_handles_and_preserves_counterfactual() 
 
     tensor, report = encode_program(program, _config(coordinate_bins=289), allow_clamping=True)
     assert report.clamped_coordinates == 2
+    assert report.clamped_endpoint_coordinates == 1
+    assert report.clamped_control_coordinates == 1
     assert counterfactual != serialize_svg(tensor, _config(coordinate_bins=289))
 
 
