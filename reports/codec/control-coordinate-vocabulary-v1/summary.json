@@ -1,0 +1,485 @@
+{
+  "analysis": {
+    "compare_unclamped_coordinates": false,
+    "unclamped_counterfactual": null
+  },
+  "cairosvg_version": "2.9.0",
+  "code_identity": {
+    "codec_study_sha256": "178210474e18266bccef3dc019e412fac6f09654cca14cf7d05ea5ad2ad3bba5",
+    "git_commit": "24461b37fa6c8b0859e9fdbc2ea4e2dc50a36c40",
+    "normalizer_sha256": "f65c08aee3e0b9d9e6db6b6a9889761e7144fffd5841e89f926047c7ac497281",
+    "program_sha256": "0d02b532b1dbe573d772e11054bea0e781bded3a26217de87eeb8bbd6ab9c2f7"
+  },
+  "codec": {
+    "budgets": [
+      {
+        "name": "coverage-p48-s64",
+        "path_slots": 48,
+        "segments_per_path": 64
+      }
+    ],
+    "control_coordinate_bins": [
+      417
+    ],
+    "control_coordinate_max": 96.0,
+    "control_coordinate_min": -8.0,
+    "coordinate_bins": [
+      289
+    ],
+    "dash_patterns": [
+      [
+        5.2132,
+        5.2132
+      ]
+    ],
+    "miter_limits": [
+      4.0,
+      10.0
+    ],
+    "opacities": [
+      0.4,
+      1.0
+    ],
+    "stroke_widths": [
+      0.204,
+      0.25,
+      1.0,
+      2.0
+    ]
+  },
+  "comparisons": {
+    "outlined|coverage-p48-s64|q289|control-q417@-8..96": {
+      "attempted": 24,
+      "dropped_contours": 0,
+      "dropped_segments": 0,
+      "errors": [],
+      "failures": 0,
+      "icons_with_coordinate_clamping": 0,
+      "icons_with_path_truncation": 0,
+      "icons_with_safety_projection": 0,
+      "icons_with_segment_truncation": 0,
+      "metrics": {
+        "alpha_iou_18": {
+          "count": 24,
+          "max": 1.0,
+          "median": 0.9943277244351492,
+          "min": 0.984375,
+          "p95": 1.0
+        },
+        "alpha_iou_72": {
+          "count": 24,
+          "max": 1.0,
+          "median": 0.9945454545454545,
+          "min": 0.989480198019802,
+          "p95": 1.0
+        },
+        "pixel_exact_fraction_18": {
+          "count": 24,
+          "max": 0.7561728395061729,
+          "median": 0.6604938271604939,
+          "min": 0.5493827160493827,
+          "p95": 0.7429012345679011
+        },
+        "pixel_exact_fraction_72": {
+          "count": 24,
+          "max": 0.9151234567901234,
+          "median": 0.8575424382716049,
+          "min": 0.8177083333333334,
+          "p95": 0.8923996913580247
+        },
+        "rgba_mae_18": {
+          "count": 24,
+          "max": 0.006469377874606633,
+          "median": 0.0033360566448801744,
+          "min": 0.0015190026627935125,
+          "p95": 0.005994765190026627
+        },
+        "rgba_mae_72": {
+          "count": 24,
+          "max": 0.003778216533526991,
+          "median": 0.0027087493948196564,
+          "min": 0.0011990135560396998,
+          "p95": 0.003650201978939723
+        },
+        "serialized_bytes": {
+          "count": 24,
+          "max": 8042.0,
+          "median": 4361.0,
+          "min": 1710.0,
+          "p95": 7231.0
+        }
+      },
+      "segments_dropped_by_path_budget": 0,
+      "segments_dropped_by_segment_budget": 0,
+      "strict_encode_failures": 0,
+      "strict_lossy_encodings": 0,
+      "strict_projection_cases": [],
+      "successful": 24,
+      "worst_clamp_increment_rgba_mae_18": [],
+      "worst_rgba_mae_18": [
+        {
+          "clamped_coordinates": 0,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F31D",
+          "rgba_mae_18": 0.006469377874606633,
+          "source_path": "color/svg/1F31D.svg"
+        },
+        {
+          "clamped_coordinates": 0,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F9BB-1F3FB",
+          "rgba_mae_18": 0.00604877753570564,
+          "source_path": "color/svg/1F9BB-1F3FB.svg"
+        },
+        {
+          "clamped_coordinates": 0,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F9BB-1F3FC",
+          "rgba_mae_18": 0.005688695231178892,
+          "source_path": "color/svg/1F9BB-1F3FC.svg"
+        },
+        {
+          "clamped_coordinates": 0,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F441-FE0F-200D-1F5E8-FE0F",
+          "rgba_mae_18": 0.005098644396030016,
+          "source_path": "color/svg/1F441-FE0F-200D-1F5E8-FE0F.svg"
+        },
+        {
+          "clamped_coordinates": 0,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F4AA-1F3FB",
+          "rgba_mae_18": 0.00506233357540547,
+          "source_path": "color/svg/1F4AA-1F3FB.svg"
+        },
+        {
+          "clamped_coordinates": 0,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F9BB",
+          "rgba_mae_18": 0.004814209634471072,
+          "source_path": "color/svg/1F9BB.svg"
+        },
+        {
+          "clamped_coordinates": 0,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F9BB-1F3FD",
+          "rgba_mae_18": 0.004544904381505689,
+          "source_path": "color/svg/1F9BB-1F3FD.svg"
+        },
+        {
+          "clamped_coordinates": 0,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F4AA-1F3FC",
+          "rgba_mae_18": 0.004496489954006294,
+          "source_path": "color/svg/1F4AA-1F3FC.svg"
+        }
+      ]
+    },
+    "semantic|coverage-p48-s64|q289|control-q417@-8..96": {
+      "attempted": 24,
+      "dropped_contours": 0,
+      "dropped_segments": 0,
+      "errors": [],
+      "failures": 0,
+      "icons_with_coordinate_clamping": 0,
+      "icons_with_path_truncation": 0,
+      "icons_with_safety_projection": 0,
+      "icons_with_segment_truncation": 0,
+      "metrics": {
+        "alpha_iou_18": {
+          "count": 24,
+          "max": 1.0,
+          "median": 1.0,
+          "min": 0.9903846153846154,
+          "p95": 1.0
+        },
+        "alpha_iou_72": {
+          "count": 24,
+          "max": 1.0,
+          "median": 0.994987468411468,
+          "min": 0.989454094292804,
+          "p95": 1.0
+        },
+        "pixel_exact_fraction_18": {
+          "count": 24,
+          "max": 0.7870370370370371,
+          "median": 0.662037037037037,
+          "min": 0.5679012345679012,
+          "p95": 0.7662037037037036
+        },
+        "pixel_exact_fraction_72": {
+          "count": 24,
+          "max": 0.9143518518518519,
+          "median": 0.8585069444444444,
+          "min": 0.8198302469135802,
+          "p95": 0.9075327932098765
+        },
+        "rgba_mae_18": {
+          "count": 24,
+          "max": 0.00515916243040426,
+          "median": 0.0027520576131687246,
+          "min": 0.0010076252723311546,
+          "p95": 0.004789397240377631
+        },
+        "rgba_mae_72": {
+          "count": 24,
+          "max": 0.0039102214960058095,
+          "median": 0.0020674473493100943,
+          "min": 0.0008014857177438877,
+          "p95": 0.0031300494734931013
+        },
+        "serialized_bytes": {
+          "count": 24,
+          "max": 6480.0,
+          "median": 2878.0,
+          "min": 1015.0,
+          "p95": 5980.599999999995
+        }
+      },
+      "segments_dropped_by_path_budget": 0,
+      "segments_dropped_by_segment_budget": 0,
+      "strict_encode_failures": 0,
+      "strict_lossy_encodings": 0,
+      "strict_projection_cases": [],
+      "successful": 24,
+      "worst_clamp_increment_rgba_mae_18": [],
+      "worst_rgba_mae_18": [
+        {
+          "clamped_coordinates": 0,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F9BB-1F3FB",
+          "rgba_mae_18": 0.00515916243040426,
+          "source_path": "color/svg/1F9BB-1F3FB.svg"
+        },
+        {
+          "clamped_coordinates": 0,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F9BB-1F3FC",
+          "rgba_mae_18": 0.004874727668845316,
+          "source_path": "color/svg/1F9BB-1F3FC.svg"
+        },
+        {
+          "clamped_coordinates": 0,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F31D",
+          "rgba_mae_18": 0.004305858145727427,
+          "source_path": "color/svg/1F31D.svg"
+        },
+        {
+          "clamped_coordinates": 0,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F441-FE0F-200D-1F5E8-FE0F",
+          "rgba_mae_18": 0.004100096828854999,
+          "source_path": "color/svg/1F441-FE0F-200D-1F5E8-FE0F.svg"
+        },
+        {
+          "clamped_coordinates": 0,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F9BB",
+          "rgba_mae_18": 0.00399116436698136,
+          "source_path": "color/svg/1F9BB.svg"
+        },
+        {
+          "clamped_coordinates": 0,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F9BB-1F3FD",
+          "rgba_mae_18": 0.003900387315419995,
+          "source_path": "color/svg/1F9BB-1F3FD.svg"
+        },
+        {
+          "clamped_coordinates": 0,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F4AA-1F3FB",
+          "rgba_mae_18": 0.0036855482933914304,
+          "source_path": "color/svg/1F4AA-1F3FB.svg"
+        },
+        {
+          "clamped_coordinates": 0,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F4AA-1F3FC",
+          "rgba_mae_18": 0.003213507625272331,
+          "source_path": "color/svg/1F4AA-1F3FC.svg"
+        }
+      ]
+    }
+  },
+  "config_sha256": "4c2f9833770aa8977556c940893bf412f0eea68b23c52b8797e20acd4cd0b572",
+  "fixture_count": 24,
+  "fixture_manifest": "data/manifests/openmoji-17.0.0-oob-fixture-v1.json",
+  "fixture_manifest_sha256": "8469ae8f003616fff2c535d389adc3c66314f62248d00a8eaef32431bbdf3df4",
+  "metrics_sha256": "e7f4d1cf5b52117ad3f49c1368d8f36c55f4fe0e99113dafbff38598e85c3b37",
+  "normalization": {
+    "outlined": {
+      "attempted": 24,
+      "contours": {
+        "count": 24,
+        "max": 33.0,
+        "median": 15.0,
+        "min": 6.0,
+        "p95": 28.699999999999996
+      },
+      "coordinate_excursions": {
+        "by_axis": {
+          "x": 14,
+          "y": 13
+        },
+        "by_role": {
+          "control": 27
+        },
+        "by_segment_type": {
+          "cubic": 27
+        },
+        "by_side": {
+          "above": 17,
+          "below": 10
+        },
+        "count": 27,
+        "distance_outside": {
+          "count": 27,
+          "max": 23.022003173828125,
+          "median": 0.240997314453125,
+          "min": 0.03400000184774399,
+          "p95": 7.9137021541595445
+        }
+      },
+      "failures": [],
+      "icons_with_compound_layers": 21,
+      "icons_with_out_of_bounds_coordinates": 22,
+      "icons_with_partial_opacity": 2,
+      "max_segments_per_contour": {
+        "count": 24,
+        "max": 50.0,
+        "median": 25.0,
+        "min": 14.0,
+        "p95": 50.0
+      },
+      "observed_miter_limits": [],
+      "observed_opacity_values": {
+        "fill_opacity_values": [
+          1.0
+        ],
+        "opacity_values": [
+          0.4,
+          1.0
+        ],
+        "stroke_opacity_values": []
+      },
+      "observed_stroke_widths": [],
+      "partially_opaque_layers": 3,
+      "segments": {
+        "count": 24,
+        "max": 323.0,
+        "median": 168.5,
+        "min": 75.0,
+        "p95": 289.0
+      },
+      "successful": 24
+    },
+    "semantic": {
+      "attempted": 24,
+      "contours": {
+        "count": 24,
+        "max": 32.0,
+        "median": 13.0,
+        "min": 5.0,
+        "p95": 20.949999999999985
+      },
+      "coordinate_excursions": {
+        "by_axis": {
+          "x": 19,
+          "y": 18
+        },
+        "by_role": {
+          "control": 37
+        },
+        "by_segment_type": {
+          "cubic": 37
+        },
+        "by_side": {
+          "above": 22,
+          "below": 15
+        },
+        "count": 37,
+        "distance_outside": {
+          "count": 37,
+          "max": 23.02239990234375,
+          "median": 0.6100000143051147,
+          "min": 0.03400000184774399,
+          "p95": 9.915600585937469
+        }
+      },
+      "failures": [],
+      "icons_with_compound_layers": 0,
+      "icons_with_out_of_bounds_coordinates": 24,
+      "icons_with_partial_opacity": 2,
+      "max_segments_per_contour": {
+        "count": 24,
+        "max": 31.0,
+        "median": 8.5,
+        "min": 5.0,
+        "p95": 23.0
+      },
+      "observed_miter_limits": [
+        4.0,
+        10.0
+      ],
+      "observed_opacity_values": {
+        "fill_opacity_values": [
+          1.0
+        ],
+        "opacity_values": [
+          0.4,
+          1.0
+        ],
+        "stroke_opacity_values": [
+          1.0
+        ]
+      },
+      "observed_stroke_widths": [
+        0.204,
+        0.25,
+        1.0,
+        2.0
+      ],
+      "partially_opaque_layers": 2,
+      "segments": {
+        "count": 24,
+        "max": 170.0,
+        "median": 55.0,
+        "min": 31.0,
+        "p95": 90.64999999999998
+      },
+      "successful": 24
+    }
+  },
+  "normalization_sha256": "9d05566e87a031ec417b0afcb06617cdc72bff6a8b97e3897452ccd8677e92c9",
+  "palette": {
+    "configured_entries": 28,
+    "outliers": [],
+    "used_entries": 20
+  },
+  "picosvg_version": "0.23.0",
+  "probe_version": "control-coordinate-vocabulary-v1",
+  "projection_policy": {
+    "allow_clamping": false,
+    "allow_truncation": false
+  },
+  "schema_version": 3,
+  "source_revision": "f9fc506a3f913be9897ab0181d611d4c910a4104"
+}

@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-29T17:42:36Z
+Updated: 2026-08-29T17:44:37Z
 
 ## Current hypothesis and evidence
 
@@ -53,8 +53,15 @@ handles; no visible endpoint is outside 0..72. Median clamp-only drift is small,
 the tail falsifies viewBox clamping as a safe primary rule. At 18 px, five semantic
 icons exceed 0.001 RGBA MAE and two exceed 0.01. `1F4AB` is visibly broken (MAE
 0.03812, alpha IoU 0.8641), while clamping the eye/speech-bubble icon removes most of
-its interior (MAE 0.02015). Outlining does not repair those tail cases. Keep endpoints
-on q289, but test a separate bounded control-handle vocabulary before closing Gate C.
+its interior (MAE 0.02015). Outlining does not repair those tail cases; this falsified
+viewBox clamping and motivated the separate bounded control-handle vocabulary below.
+
+The role-typed follow-up resolves that blocker on the complete pinned set. Q289
+endpoints over [0,72] plus q417 quadratic/cubic controls over [-8,96] encode all 48
+semantic/outlined programs strictly with zero projection, and every output SVG exactly
+matches the prior unclamped quarter-grid counterfactual. The two catastrophic clamp
+tails recover. This is the leading coordinate codec; model and corruption masks must
+retain the endpoint/control distinction.
 
 ## Last completed action and verification
 
@@ -110,12 +117,12 @@ Focused tests pass 26/26, the full suite passes 57/57, Ruff passes, and strict m
 passes. The negative result and compact report are checkpointed locally at `45ca009`.
 No GPU work was performed.
 
-Implemented role-typed coordinate vocabularies: move/line/curve endpoints remain q289
-over 0..72, while quadratic/cubic controls may use a separately bounded vocabulary.
-The proposed schema-v3 probe uses 417 quarter-unit control values over [-8,96], forbids
-both truncation and clamping, and retains explicit tensor validation for each role. The
-full suite passes 59/59; Ruff and strict mypy pass. This implementation is not yet
-checkpointed or run on the pinned fixture.
+Implemented and checkpointed role-typed coordinates at `24461b3`, then ran
+`control-coordinate-vocabulary-v1-24461b3-4c2f9833-8469ae8f`. All 48 programs are
+strict-lossless and stable; all counterfactual SVG hashes match; semantic median MAE is
+0.002067/0.002752 at 72/18 px and worst 18 px MAE is 0.005159. A second complete
+invocation reproduced every artifact. The full suite passes 59/59; Ruff and strict
+mypy pass. No GPU work was performed.
 
 ## Active jobs
 
@@ -132,7 +139,8 @@ versioned at `1063fc7`, the opacity codec at `e31273c`, and the 64 KB opacity ev
 at `86f7d03`; the 32 MB full-primary opacity report is versioned at `88532a5`, and the
 216 KB OOB compact report at `45ca009`. Nothing was pushed. The OOB probe's 812 KB
 derived SVGs and opacity probe's 260 KB derived SVGs are reproducible but local-only.
-No external artifact sink is
+The 152 KB role-typed coordinate report is pending its local evidence checkpoint; its
+500 KB derived SVGs are reproducible and local-only. No external artifact sink is
 configured or verified, so bulk artifacts are not durable against loss of the
 control-plane volume and meaningful GPU work remains blocked.
 
@@ -162,7 +170,7 @@ control-plane volume and meaningful GPU work remains blocked.
 
 ## Next smallest evidence-producing action
 
-Checkpoint the role-typed coordinate implementation, register its schema-v3 config,
-then re-run the complete 24-icon slice with q417 controls and q289 endpoints before
-addressing style categories or capacity. Keep the GPU server off during this CPU-only
-Gate C experiment.
+Checkpoint the role-typed coordinate evidence, then build a pinned style-tail fixture
+from the 347 hybrid programs outside the current style vocabulary. Measure a compact,
+principled stroke-width/miter/dash categorical policy before revisiting sparse capacity.
+Keep the GPU server off during this CPU-only Gate C work.

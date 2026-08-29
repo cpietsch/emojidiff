@@ -315,3 +315,34 @@ candidate is a quarter-unit `[-8, 96]` control lattice (417 values), which cover
 observed -6.6875..95.0224 range while preventing model-generated endpoints from leaving
 the canvas. Retain the current clamp as an explicitly labelled fallback projection,
 not a lossless normalization rule.
+
+## 2026-08-29 — Role-typed control-coordinate vocabulary
+
+**Hypothesis.** Keeping move/segment endpoints on q289 over 0..72 while assigning only
+quadratic/cubic controls to a q417 quarter-unit lattice over [-8,96] will encode the
+complete OOB fixture strictly and reproduce the unclamped render evidence without
+allowing model-generated endpoints outside the canvas.
+
+**Method.** Add segment-role-aware encoding, decoding, validation, and token bounds to
+the typed tensor codec. Hold the 24-icon fixture, both representations, P48/S64, exact
+styles, renderer, and q289 endpoint lattice fixed. Disable both truncation and
+clamping. Compare every output SVG hash against the corresponding analysis-only
+unclamped q289 counterfactual from the parent run. Repeat the full invocation to verify
+create-or-identical artifacts.
+
+**Observation.** All 48 semantic/outlined programs are strict-lossless: zero encode
+failures, safety projections, dropped contours, dropped segments, style approximations,
+palette outliers, or unstable round trips. All 48 SVG hashes exactly match the prior
+unclamped quarter-grid counterfactual. Semantic median source MAE is 0.002067 at 72 px
+and 0.002752 at 18 px; worst 18 px MAE is 0.005159. The recovered `1F4AB` falls from
+the clamped 18 px MAE of 0.03909 to 0.001755, and the eye/speech-bubble case falls from
+0.02408 to 0.004100 with alpha IoU restored to 1.0. A second complete run reproduced
+all report hashes.
+
+**Decision.** Accept role-typed coordinates as the leading codec: q289 for moves and
+segment endpoints over [0,72], q417 for quadratic/cubic controls over [-8,96]. The
+control vocabulary adds 128 categories only where segment grammar marks a control
+field; legal-token masks must preserve that distinction during corruption and model
+prediction. Keep viewBox clamping solely as an explicit fallback for values beyond the
+bounded control range. The coordinate blocker is resolved on its complete pinned
+failure set; Gate C remains open on style vocabulary and sparse capacity policy.
