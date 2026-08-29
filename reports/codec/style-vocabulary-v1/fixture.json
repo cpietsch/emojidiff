@@ -1,0 +1,543 @@
+{
+  "manifest_version": "style-vocabulary-v1-fixture",
+  "rows": [
+    {
+      "group": "symbols",
+      "hexcode": "1F202",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "compact-k32:top-absolute",
+        "compact-k32:top-relative"
+      ],
+      "source_path": "color/svg/1F202.svg",
+      "source_svg_sha256": "fa075c2230cc98a7a21daaa8c91e623b61e0a4adc014704b5e3db21b1c09d8a4",
+      "split": "primary/train",
+      "subgroup": "alphanum"
+    },
+    {
+      "group": "symbols",
+      "hexcode": "1F234",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "leading-k48:top-absolute",
+        "leading-k48:top-relative"
+      ],
+      "source_path": "color/svg/1F234.svg",
+      "source_svg_sha256": "12fb5b39cb1a8abea43bdbecc5404817a39c4876e7c598b4fb5c4387ac023889",
+      "split": "primary/train",
+      "subgroup": "alphanum"
+    },
+    {
+      "group": "travel-places",
+      "hexcode": "1F31A",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "compact-k32:top-relative"
+      ],
+      "source_path": "color/svg/1F31A.svg",
+      "source_svg_sha256": "a72d8f8d8b612ddcb841de4af5e9d3c6dac215b08b4568e90183b64095583c68",
+      "split": "primary/train",
+      "subgroup": "sky-weather"
+    },
+    {
+      "group": "activities",
+      "hexcode": "1F3B0",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "leading-k48:top-relative"
+      ],
+      "source_path": "color/svg/1F3B0.svg",
+      "source_svg_sha256": "fc298a213ffb7f16bedeb72c9ecc0e36913ff092e4d8e42dc9e7b648052ef8de",
+      "split": "primary/train",
+      "subgroup": "game"
+    },
+    {
+      "group": "extras-openmoji",
+      "hexcode": "1F3F3-FE0F-200D-1F7E6-200D-1F30C",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "compact-k32:top-relative",
+        "leading-k48:top-absolute",
+        "leading-k48:top-relative"
+      ],
+      "source_path": "color/svg/1F3F3-FE0F-200D-1F7E6-200D-1F30C.svg",
+      "source_svg_sha256": "caf90466be69c6f8cedc895db0a82cffcd4b17adcf835c4e4557ca7eceed09bf",
+      "split": "primary/train",
+      "subgroup": "flags"
+    },
+    {
+      "group": "extras-unicode",
+      "hexcode": "1F3F4-E0065-E0073-E0061-E006E-E007F",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "compact-k32:top-relative"
+      ],
+      "source_path": "color/svg/1F3F4-E0065-E0073-E0061-E006E-E007F.svg",
+      "source_svg_sha256": "b91b6a186440702dd601be70767dc2f292af5dc9e18e94afd6c8c6bb8ede276e",
+      "split": "primary/train",
+      "subgroup": "subdivision-flag"
+    },
+    {
+      "group": "extras-unicode",
+      "hexcode": "1F3F4-E0065-E0073-E0061-E0072-E007F",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "leading-k48:top-relative"
+      ],
+      "source_path": "color/svg/1F3F4-E0065-E0073-E0061-E0072-E007F.svg",
+      "source_svg_sha256": "8fdfc4f2ffa4488e89e4331dd9da415158de89b0463b8e7005eaef4199f1551d",
+      "split": "primary/train",
+      "subgroup": "subdivision-flag"
+    },
+    {
+      "group": "extras-unicode",
+      "hexcode": "1F3F4-E0065-E0073-E0063-E006E-E007F",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "compact-k32:top-relative",
+        "leading-k48:top-relative"
+      ],
+      "source_path": "color/svg/1F3F4-E0065-E0073-E0063-E006E-E007F.svg",
+      "source_svg_sha256": "a55819d29b40b6a65ef8df56e9d0819e45ebaefd10972a5db3abf04711f097fa",
+      "split": "primary/train",
+      "subgroup": "subdivision-flag"
+    },
+    {
+      "group": "extras-unicode",
+      "hexcode": "1F3F4-E0075-E0073-E0063-E006F-E007F",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "compact-k32:top-relative"
+      ],
+      "source_path": "color/svg/1F3F4-E0075-E0073-E0063-E006F-E007F.svg",
+      "source_svg_sha256": "ce96e8b4473538ff7400f0432fc9142ef2e35b745b9884ea4e3d78d045687cd8",
+      "split": "primary/train",
+      "subgroup": "subdivision-flag"
+    },
+    {
+      "group": "objects",
+      "hexcode": "1F3F9",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "compact-k32:top-absolute",
+        "compact-k32:top-relative",
+        "leading-k48:top-absolute",
+        "leading-k48:top-relative"
+      ],
+      "source_path": "color/svg/1F3F9.svg",
+      "source_svg_sha256": "62f6f74ad85d2249a40eccf1be1a0d1181aec8a72b8edd69eacd95e9ee3ee1a1",
+      "split": "primary/train",
+      "subgroup": "tool"
+    },
+    {
+      "group": "animals-nature",
+      "hexcode": "1F428",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "all-nonexact-miter"
+      ],
+      "source_path": "color/svg/1F428.svg",
+      "source_svg_sha256": "5dc549f4e9776fd52952c119055dcac5c131a006e9424d7ff7db460fe69277ef",
+      "split": "primary/train",
+      "subgroup": "animal-mammal"
+    },
+    {
+      "group": "smileys-emotion",
+      "hexcode": "1F4AF",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "leading-k48:top-absolute"
+      ],
+      "source_path": "color/svg/1F4AF.svg",
+      "source_svg_sha256": "2bd614366223be1977c3bd196810398fc5d909581a827b9c4c203ebe63a5747b",
+      "split": "primary/train",
+      "subgroup": "emotion"
+    },
+    {
+      "group": "objects",
+      "hexcode": "1F4FF",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "all-dashed"
+      ],
+      "source_path": "color/svg/1F4FF.svg",
+      "source_svg_sha256": "70c818f4c2763bab49eab16864d21391415fc09b8078f767bbfc8b574f7e3407",
+      "split": "primary/test",
+      "subgroup": "clothing"
+    },
+    {
+      "group": "objects",
+      "hexcode": "1F50F",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "compact-k32:top-absolute",
+        "compact-k32:top-relative",
+        "leading-k48:top-absolute"
+      ],
+      "source_path": "color/svg/1F50F.svg",
+      "source_svg_sha256": "83e459c211bcc6ce1d01cd553a3dabb2837409001e383c93eed050f82f6dd253",
+      "split": "primary/train",
+      "subgroup": "lock"
+    },
+    {
+      "group": "symbols",
+      "hexcode": "1F51E",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "compact-k32:top-absolute",
+        "leading-k48:top-absolute"
+      ],
+      "source_path": "color/svg/1F51E.svg",
+      "source_svg_sha256": "8f176ca0c3b0bb32dfc2729137bb7188c133b880a64edabc2711a3a841730409",
+      "split": "primary/test",
+      "subgroup": "warning"
+    },
+    {
+      "group": "travel-places",
+      "hexcode": "1F570",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "compact-k32:top-absolute",
+        "leading-k48:top-absolute",
+        "leading-k48:top-relative"
+      ],
+      "source_path": "color/svg/1F570.svg",
+      "source_svg_sha256": "1cd9d3ce8543d3060f8ff88dc9aabc7ebcf0d25d0aa0d6bb3ed4f434c93ab253",
+      "split": "primary/train",
+      "subgroup": "time"
+    },
+    {
+      "group": "travel-places",
+      "hexcode": "1F5FE",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "leading-k48:top-relative"
+      ],
+      "source_path": "color/svg/1F5FE.svg",
+      "source_svg_sha256": "2b317660d8d4afb48d605f3e4d372fad4e9bd381e2b7732b937bff8e36d72020",
+      "split": "primary/train",
+      "subgroup": "place-map"
+    },
+    {
+      "group": "people-body",
+      "hexcode": "1F9D1-1F3FB-200D-1F3A4",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "all-nonexact-miter"
+      ],
+      "source_path": "color/svg/1F9D1-1F3FB-200D-1F3A4.svg",
+      "source_svg_sha256": "e82fe7e57ce3347a50cc49ec54666cee7ef8203d4c3dacbf7b6faac775343db2",
+      "split": "primary/train",
+      "subgroup": "person-role"
+    },
+    {
+      "group": "people-body",
+      "hexcode": "1F9D1-1F3FC-200D-1F3A4",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "all-nonexact-miter"
+      ],
+      "source_path": "color/svg/1F9D1-1F3FC-200D-1F3A4.svg",
+      "source_svg_sha256": "4142eae83a7d6cea163533172cc4948b82ec50bb8e01f80bd1fd88f653ca8871",
+      "split": "primary/train",
+      "subgroup": "person-role"
+    },
+    {
+      "group": "people-body",
+      "hexcode": "1F9D1-1F3FD-200D-1F3A4",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "all-nonexact-miter"
+      ],
+      "source_path": "color/svg/1F9D1-1F3FD-200D-1F3A4.svg",
+      "source_svg_sha256": "c70834d1589daa664d439e067bdbf23ff8b8436851cce29b0541789342c96825",
+      "split": "primary/train",
+      "subgroup": "person-role"
+    },
+    {
+      "group": "people-body",
+      "hexcode": "1F9D1-1F3FE-200D-1F3A4",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "all-nonexact-miter"
+      ],
+      "source_path": "color/svg/1F9D1-1F3FE-200D-1F3A4.svg",
+      "source_svg_sha256": "3b5b172269ad87d389a866ecfa7550de906d87b215ef4878b441d002745e787a",
+      "split": "primary/train",
+      "subgroup": "person-role"
+    },
+    {
+      "group": "people-body",
+      "hexcode": "1F9D1-1F3FF-200D-1F3A4",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "all-nonexact-miter"
+      ],
+      "source_path": "color/svg/1F9D1-1F3FF-200D-1F3A4.svg",
+      "source_svg_sha256": "b0e463ae8d9b3e44540d3da13ea6d949e9d0f957bccfa595c9862cc821ce483f",
+      "split": "primary/train",
+      "subgroup": "person-role"
+    },
+    {
+      "group": "people-body",
+      "hexcode": "1F9D1-200D-1F3A4",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "all-nonexact-miter"
+      ],
+      "source_path": "color/svg/1F9D1-200D-1F3A4.svg",
+      "source_svg_sha256": "9be2def909ee04bdc44ac92cd7076be8aa8388e9957da6b4ce626f3ccd5bde30",
+      "split": "primary/train",
+      "subgroup": "person-role"
+    },
+    {
+      "group": "objects",
+      "hexcode": "1F9FB",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "all-dashed"
+      ],
+      "source_path": "color/svg/1F9FB.svg",
+      "source_svg_sha256": "fde78bd0901f198757d2606fe96ea01b642ae27ca68c78a829d44a01910106bb",
+      "split": "primary/train",
+      "subgroup": "household"
+    },
+    {
+      "group": "people-body",
+      "hexcode": "1FAC6",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "compact-k32:top-absolute",
+        "compact-k32:top-relative"
+      ],
+      "source_path": "color/svg/1FAC6.svg",
+      "source_svg_sha256": "f6466645b46bb257cee4d10814946a0185b585ce221af50c892f2ea099c16235",
+      "split": "primary/train",
+      "subgroup": "person-symbol"
+    },
+    {
+      "group": "objects",
+      "hexcode": "1FAE7",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "compact-k32:top-absolute",
+        "leading-k48:top-absolute",
+        "leading-k48:top-relative"
+      ],
+      "source_path": "color/svg/1FAE7.svg",
+      "source_svg_sha256": "6178a28f10f62ff12e4e3f23debe40c55b633036d4e194984f6037579b0faf37",
+      "split": "primary/validation",
+      "subgroup": "household"
+    },
+    {
+      "group": "extras-unicode",
+      "hexcode": "2120",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "compact-k32:top-absolute",
+        "leading-k48:top-absolute"
+      ],
+      "source_path": "color/svg/2120.svg",
+      "source_svg_sha256": "9d85aba30464f22a07dcbf3f965aa1357e1d212660963c837c9abafdd5ca941e",
+      "split": "primary/train",
+      "subgroup": "symbol-other"
+    },
+    {
+      "group": "symbols",
+      "hexcode": "2139",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "compact-k32:top-absolute",
+        "leading-k48:top-absolute",
+        "leading-k48:top-relative"
+      ],
+      "source_path": "color/svg/2139.svg",
+      "source_svg_sha256": "8b57a07123e6049f0bdcfe5a7c09b88c88f768e46c365b90e0233e600b556d04",
+      "split": "primary/train",
+      "subgroup": "alphanum"
+    },
+    {
+      "group": "smileys-emotion",
+      "hexcode": "2763",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "all-nonexact-miter"
+      ],
+      "source_path": "color/svg/2763.svg",
+      "source_svg_sha256": "9e1132dc6f5b740d9ccac30fed273fae71d91fe6316fd71bb0e8541163be46c8",
+      "split": "primary/train",
+      "subgroup": "heart"
+    },
+    {
+      "group": "extras-openmoji",
+      "hexcode": "E05D",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "all-dashed"
+      ],
+      "source_path": "color/svg/E05D.svg",
+      "source_svg_sha256": "f3088e1c7cef9f50dd07853a3e963298fd71b5114ae06db50f09b7408a6d21b7",
+      "split": "primary/train",
+      "subgroup": "brand"
+    },
+    {
+      "group": "extras-openmoji",
+      "hexcode": "E068",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "compact-k32:top-absolute",
+        "compact-k32:top-relative"
+      ],
+      "source_path": "color/svg/E068.svg",
+      "source_svg_sha256": "6b879c2170f3bc3364260419fadfc42d7d2fbcaf8d8cf0c037eff390ab90fe65",
+      "split": "primary/train",
+      "subgroup": "brand"
+    },
+    {
+      "group": "extras-openmoji",
+      "hexcode": "E069",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "compact-k32:top-absolute",
+        "compact-k32:top-relative"
+      ],
+      "source_path": "color/svg/E069.svg",
+      "source_svg_sha256": "773f6e2ac649e4303fd52374c7fc66fef0c56fc694cb392d0e14955fd4b01536",
+      "split": "primary/train",
+      "subgroup": "brand"
+    },
+    {
+      "group": "extras-openmoji",
+      "hexcode": "E06C",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "compact-k32:top-absolute",
+        "leading-k48:top-absolute",
+        "leading-k48:top-relative"
+      ],
+      "source_path": "color/svg/E06C.svg",
+      "source_svg_sha256": "7cf835ba0c1625e67ce4738be5f72c5646775292b55630fac1083715b932703c",
+      "split": "primary/train",
+      "subgroup": "brand"
+    },
+    {
+      "group": "extras-openmoji",
+      "hexcode": "E103",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "all-dashed"
+      ],
+      "source_path": "color/svg/E103.svg",
+      "source_svg_sha256": "63d012d12f185d2776fe69c22d279e63131bc5f730f2ef46c01dc28523b6eca0",
+      "split": "primary/train",
+      "subgroup": "interaction"
+    },
+    {
+      "group": "extras-openmoji",
+      "hexcode": "E189",
+      "selected_representation": "semantic",
+      "selection_reasons": [
+        "compact-k32:top-relative",
+        "leading-k48:top-absolute",
+        "leading-k48:top-relative"
+      ],
+      "source_path": "color/svg/E189.svg",
+      "source_svg_sha256": "c81a75f498239a5dce1ea403bf942b90de6916c233ea36e4f948f961709424da",
+      "split": "primary/train",
+      "subgroup": "people"
+    }
+  ],
+  "schema_version": 1,
+  "selection": {
+    "parent_hybrid": "reports/codec/full-primary-structure-v2-opacity/hybrid.jsonl",
+    "parent_hybrid_sha256": "9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b",
+    "rule": "union of each candidate's top relative and absolute width-error tails, all dashed icons, and all nonexact-miter icons within the parent's 347-icon style tail",
+    "width_vocabularies": {
+      "compact-k32": [
+        0.1,
+        0.25,
+        0.5,
+        0.75,
+        0.853973,
+        0.9238,
+        1.0,
+        1.25,
+        1.3618,
+        1.5,
+        1.548,
+        1.6,
+        1.6438,
+        1.757,
+        1.8,
+        1.879,
+        1.9487,
+        2.0,
+        2.0247,
+        2.04,
+        2.0787,
+        2.2166,
+        2.32,
+        2.4999579387999997,
+        3.0,
+        3.146,
+        3.868,
+        4.0,
+        4.784,
+        6.0,
+        6.73,
+        10.0
+      ],
+      "leading-k48": [
+        0.1,
+        0.204,
+        0.25,
+        0.3,
+        0.5,
+        0.625,
+        0.75,
+        0.853973,
+        0.8974,
+        0.9285,
+        1.0,
+        1.25,
+        1.3618,
+        1.5,
+        1.548,
+        1.6,
+        1.64,
+        1.675,
+        1.757,
+        1.8,
+        1.8573578976656555,
+        1.879,
+        1.9083,
+        1.9487,
+        1.968,
+        2.0,
+        2.0071,
+        2.0247,
+        2.04,
+        2.0737,
+        2.1,
+        2.1659,
+        2.219,
+        2.32,
+        2.434,
+        2.4999579387999997,
+        3.0,
+        3.146,
+        3.227,
+        3.501278,
+        3.868,
+        4.0,
+        4.453,
+        4.784,
+        6.0,
+        6.73,
+        8.0,
+        10.0
+      ]
+    }
+  },
+  "source_revision": "f9fc506a3f913be9897ab0181d611d4c910a4104"
+}

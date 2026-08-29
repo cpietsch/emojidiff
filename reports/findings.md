@@ -346,3 +346,38 @@ field; legal-token masks must preserve that distinction during corruption and mo
 prediction. Keep viewBox clamping solely as an explicit fallback for values beyond the
 bounded control range. The coordinate blocker is resolved on its complete pinned
 failure set; Gate C remains open on style vocabulary and sparse capacity policy.
+
+## 2026-08-29 — Categorical style-vocabulary probe v1
+
+**Hypothesis.** A 48-token stroke-width vocabulary optimized by frequency-weighted
+relative L1 error, together with all six observed dash patterns and the five semantic
+miter categories, will improve materially on a compact 32-token vocabulary without a
+visually meaningful render tail.
+
+**Method.** Derive both width vocabularies deterministically from all 30,222 stroked
+contours in the hash-pinned 4,006-row hybrid census. Select a 35-icon render fixture as
+the union of each candidate's 12 worst relative and 12 worst absolute width-error
+icons, every dashed icon, and every icon containing the three near-10 miter literals.
+Hold q289 endpoints, q417 controls over [-8,96], P96/S384, opacity, palette, route, and
+renderer fixed. Compare each candidate against an `exact-observed` style control so
+the candidate-to-control metric isolates style approximation. Repeat the complete run
+and require byte-identical artifacts.
+
+**Observation.** All 105 exact/K32/K48 programs round-trip stably without structural
+loss or coordinate projection. K48 reduces the full-corpus worst relative width error
+from 22.55% to 9.09%, affected contours from 1,004 to 839, and the fixture's maximum
+18 px style-only RGBA MAE from 0.01264 to 0.001698. Its median 18 px style-only MAE is
+0.00000908. The all-six dash vocabulary is exact; mapping the eight near-10 miter
+contours to 10 produces no leading visual tail.
+
+The negligible-tail hypothesis is nevertheless false at 72 px. `1F4AF` contains five
+4.1-width contours, but frequency-weighted K48 maps 4.1 to 4.0. Its style-only RGBA MAE
+is 0.01348 at 72 px despite falling to 0.001698 at 18 px. Thus aggregate frequency and
+relative-width error alone miss a rare but render-sensitive category. The complete run
+reproduced the fixture, metrics, summary, Markdown, and contact-sheet hashes exactly.
+
+**Decision.** Reject unaugmented K48 as the final style vocabulary, while retaining it
+as the leading statistical base and K32 as a compact ablation. Test the smallest
+render-aware correction next: add exact 4.1 as one explicit sentinel to form K48+1,
+using the unchanged fixture and exact-style control. Do not silently tune away this
+negative result.

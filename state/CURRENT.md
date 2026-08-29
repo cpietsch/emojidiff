@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-29T17:46:00Z
+Updated: 2026-08-29T18:00:00Z
 
 ## Current hypothesis and evidence
 
@@ -62,6 +62,15 @@ semantic/outlined programs strictly with zero projection, and every output SVG e
 matches the prior unclamped quarter-grid counterfactual. The two catastrophic clamp
 tails recover. This is the leading coordinate codec; model and corruption masks must
 retain the endpoint/control distinction.
+
+The first categorical style study derived exact weighted-relative-L1 K32 and K48 width
+vocabularies from all 30,222 stroked contours, then rendered a pinned 35-icon worst-tail
+fixture against an exact-style control. K48 strongly improves K32: full-corpus maximum
+relative width error falls from 22.55% to 9.09%, and maximum 18 px style-only MAE falls
+from 0.01264 to 0.001698. But the hypothesis of a negligible tail is false at 72 px:
+K48 maps rare width 4.1 to 4.0, producing 0.01348 style-only MAE on `1F4AF`. K48 is the
+statistical base, not yet the final vocabulary; the next falsifiable correction is one
+exact 4.1 render-tail sentinel.
 
 ## Last completed action and verification
 
@@ -125,6 +134,14 @@ invocation reproduced every artifact. The full suite passes 59/59; Ruff and stri
 mypy pass. The compact result and recovery state are checkpointed locally at `d2b4a1c`.
 No GPU work was performed.
 
+Implemented the deterministic corpus/style-tail harness at `7925022`, then ran
+`style-vocabulary-v1-7925022-778e6dc5-9b9b1699`. All 105 exact/K32/K48 programs are
+stable with no structural loss or coordinate projection. Full-corpus analytics and the
+35-icon exact-style-controlled render fixture falsify unaugmented K48 only in the rare
+4.1-width 72 px tail described above. A second invocation reproduced all artifact
+hashes. The full suite passes 61/61; Ruff and strict mypy pass. No GPU work was
+performed.
+
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
@@ -144,6 +161,10 @@ The 152 KB role-typed coordinate report is versioned at `d2b4a1c`; its 500 KB de
 SVGs are reproducible and local-only. No external artifact sink is
 configured or verified, so bulk artifacts are not durable against loss of the
 control-plane volume and meaningful GPU work remains blocked.
+
+The 264 KB style-vocabulary v1 compact report is local and pending a Git checkpoint;
+its 628 KB derived SVGs are reproducible and ignored. The complete run is recorded in
+the append-only registry. Nothing was pushed.
 
 ## Current blockers and missing authorization
 
@@ -171,7 +192,8 @@ control-plane volume and meaningful GPU work remains blocked.
 
 ## Next smallest evidence-producing action
 
-Checkpoint the role-typed coordinate evidence, then build a pinned style-tail fixture
-from the 347 hybrid programs outside the current style vocabulary. Measure a compact,
-principled stroke-width/miter/dash categorical policy before revisiting sparse capacity.
-Keep the GPU server off during this CPU-only Gate C work.
+Checkpoint the style-vocabulary v1 negative result, then rerun the unchanged 35-icon
+fixture with one additional exact 4.1 width sentinel on top of K48. If that removes the
+only large 72 px style tail without exposing a new one, freeze the style policy and
+move to the sparse-capacity experiment. Keep the GPU server off during this CPU-only
+Gate C work.
