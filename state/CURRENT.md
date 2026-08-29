@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-29T17:44:37Z
+Updated: 2026-08-29T17:46:00Z
 
 ## Current hypothesis and evidence
 
@@ -122,7 +122,8 @@ Implemented and checkpointed role-typed coordinates at `24461b3`, then ran
 strict-lossless and stable; all counterfactual SVG hashes match; semantic median MAE is
 0.002067/0.002752 at 72/18 px and worst 18 px MAE is 0.005159. A second complete
 invocation reproduced every artifact. The full suite passes 59/59; Ruff and strict
-mypy pass. No GPU work was performed.
+mypy pass. The compact result and recovery state are checkpointed locally at `d2b4a1c`.
+No GPU work was performed.
 
 ## Active jobs
 
@@ -139,8 +140,8 @@ versioned at `1063fc7`, the opacity codec at `e31273c`, and the 64 KB opacity ev
 at `86f7d03`; the 32 MB full-primary opacity report is versioned at `88532a5`, and the
 216 KB OOB compact report at `45ca009`. Nothing was pushed. The OOB probe's 812 KB
 derived SVGs and opacity probe's 260 KB derived SVGs are reproducible but local-only.
-The 152 KB role-typed coordinate report is pending its local evidence checkpoint; its
-500 KB derived SVGs are reproducible and local-only. No external artifact sink is
+The 152 KB role-typed coordinate report is versioned at `d2b4a1c`; its 500 KB derived
+SVGs are reproducible and local-only. No external artifact sink is
 configured or verified, so bulk artifacts are not durable against loss of the
 control-plane volume and meaningful GPU work remains blocked.
 
