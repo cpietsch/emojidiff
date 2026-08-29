@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-29T13:06:58Z
+Updated: 2026-08-29T13:10:00Z
 
 ## Current hypothesis and evidence
 
@@ -90,7 +90,8 @@ The full suite passes 55/55; Ruff and strict mypy pass. No GPU work was performe
 Ran `full-primary-structure-v2-opacity-a9f1d5c-57a3ebea-4e7162ec` locally. It completed
 8,012 normalization attempts and 4,006 hybrid selections with verified hashes and
 balanced loss decomposition at all 30 P/S capacities. The regression comparison found
-zero unexplained attempt or hybrid mismatches. No GPU work was performed.
+zero unexplained attempt or hybrid mismatches. Its compact evidence and recovery state
+are checkpointed locally at `88532a5`. No GPU work was performed.
 
 ## Active jobs
 
@@ -104,9 +105,9 @@ Raw source (405 MB), audit renders/tables, and derived fixture SVGs remain on th
 persistent workspace. Curation, representation, typed-codec, and aligned-grid compact
 evidence is versioned locally through `2099f3d`; the 26 MB full-primary report is
 versioned at `1063fc7`, the opacity codec at `e31273c`, and the 64 KB opacity evidence
-at `86f7d03`. Nothing was pushed. The 32 MB full-primary opacity report is pending its
-local evidence checkpoint; the opacity probe's 260 KB derived SVGs are reproducible
-but local-only. No external artifact sink is
+at `86f7d03`; the 32 MB full-primary opacity report is versioned at `88532a5`. Nothing
+was pushed. The opacity probe's 260 KB derived SVGs are reproducible but local-only. No
+external artifact sink is
 configured or verified, so bulk artifacts are not durable against loss of the
 control-plane volume and meaningful GPU work remains blocked.
 
@@ -136,6 +137,6 @@ control-plane volume and meaningful GPU work remains blocked.
 
 ## Next smallest evidence-producing action
 
-Checkpoint the opacity-aware full-primary evidence, then classify the 37 out-of-bounds
-scalars by geometric role and measure the q289 safety projection over all 24 affected
-icons. Keep the GPU server off during this CPU-only Gate C probe.
+Classify the 37 out-of-bounds scalars by geometric role and measure the q289 safety
+projection over all 24 affected icons. Keep the GPU server off during this CPU-only
+Gate C probe.
