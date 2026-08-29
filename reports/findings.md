@@ -242,3 +242,39 @@ failure set, but do not yet prove a 4,006/4,006 full-primary regression. Keep th
 coordinate clamps explicitly labelled as safety projections; opacity must not be used
 to hide the separate OOB-coordinate question. Run an opacity-aware full-primary census
 next before closing normalization coverage or choosing the final capacity policy.
+
+## 2026-08-29 — Full-primary opacity regression
+
+**Hypothesis.** Adding the exact observed per-path opacity categories will route the
+nine former failures through semantic normalization, yielding complete hybrid coverage
+without perturbing any non-opacity result or changing the structural tail conclusion.
+
+**Method.** Rerun both normalizers on the unchanged hash-pinned 4,006-icon primary
+manifest with schema-v2 explicit opacity vocabulary and the unchanged 30-point P/S
+grid. Independently compare all 8,012 attempt rows and all 4,006 hybrid rows with the
+v1 census after removing only newly reported opacity fields and the nine formerly
+unsupported entries. Verify output hashes, exact row cardinalities, deterministic
+ordering, source identity, route coverage, and every capacity loss decomposition.
+
+**Observation.** Semantic normalization now succeeds for 3,946 icons. Its only 60
+failures are the unchanged 26 anisotropic stroke transforms, 33 unsupported
+presentations, and one same-document resource; outlined fallback recovers all 60.
+Hybrid coverage is therefore 4,006/4,006. All 7,994 non-opacity attempt rows and all
+3,997 previously supported hybrid rows match v1 exactly after excluding only the new
+opacity fields; the 18 old opacity failures are now 18 successes. The nine semantic
+opacity icons contain 33 partially opaque layers using only the declared exact
+vocabulary.
+
+The full structural result is unchanged except for those nine added programs.
+P64/S128 still damages eight icons, dropping 35 contours and 493 segments. P96/S384
+is lossless for all 4,006 programs but remains only 0.2403% slot-utilized. The expanded
+hybrid set has 24 icons with 37 coordinate scalars outside 0..72, 347 icons outside the
+fixture style vocabulary, 311 literal stroke widths, and a maximum of 80 contours,
+1,211 total segments, and 283 segments in one path.
+
+**Decision.** Accept opacity-aware semantic normalization plus reason-coded outlined
+fallback as complete structural coverage of the reviewed primary dataset. Gate C
+remains open: complete normalization is not yet a final categorical codec. First
+classify the 37 out-of-bounds scalars by geometric role and measure the q289 safety
+projection on all 24 affected icons. Then address exact style categories and the very
+sparse lossless capacity rectangle before freezing the representation.

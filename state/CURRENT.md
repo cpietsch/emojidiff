@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-29T12:45:47Z
+Updated: 2026-08-29T13:06:58Z
 
 ## Current hypothesis and evidence
 
@@ -30,23 +30,23 @@ and 42.5% at 18 px; outlined improvements are 23.9% and 30.2%. Q145 also beats q
 with a similarly sized vocabulary. Q289 is the leading coordinate vocabulary and q145
 is the compact ablation.
 
-The exact full-primary census attempted semantic and outlined normalization for every
-one of 4,006 icons. Semantic succeeds for 3,937; outlined fallback recovers 60 of its
-69 failures; nine partial-opacity icons remain unsupported, for hybrid coverage of
-3,997/4,006 (99.775%). P64/S128 is falsified as lossless: it drops 35 contours and 493
-segments across eight supported icons. P96/S384 is structurally lossless for all 3,997
-supported programs but only 0.240% slot-utilized. Style vocabulary (344 nonexact icons),
-35 out-of-bounds coordinate scalars in 22 icons, opacity, and sparse-tail handling keep
-Gate C open.
-
 The exact opacity extension recovers all nine formerly unsupported icons under both
 semantic and outlined normalization and q289/P96/S64 typed round trips. All 18 programs
 are stable with no structural loss or style approximation. The observed categorical
 values are exactly `0.25, 0.4, 0.5, 0.502, 0.6, 0.9969, 0.997, 0.999, 1.0`; `0.997` is
 the PicoSVG-rounded outlined form of source `0.9969`. `1F31A` and `1F31D` each retain
 one out-of-bounds scalar in both routes, so 14/18 programs are strict-lossless and four
-use one explicitly recorded clamp. A full-primary regression is still required before
-claiming 4,006/4,006 normalization coverage.
+use one explicitly recorded clamp.
+
+The opacity-aware full-primary regression now proves complete structural coverage:
+semantic normalization succeeds for 3,946 icons and the unchanged reason-coded
+outlined fallback recovers its 60 failures, for 4,006/4,006 hybrid success. All 7,994
+non-opacity attempt rows and 3,997 previously supported hybrid rows match census v1
+after removing only newly reported opacity fields; all 18 prior opacity failures are
+now successes. P64/S128 remains falsified with 35 dropped contours and 493 dropped
+segments across eight icons. P96/S384 is lossless for all 4,006 but only 0.2403%
+slot-utilized. Gate C remains open on 37 OOB scalars in 24 icons, 347 nonexact-style
+icons with 311 literal stroke widths, and the sparse fixed-capacity tail.
 
 ## Last completed action and verification
 
@@ -87,6 +87,11 @@ both routes. Semantic median RGBA MAE is 0.001547 at 72 px and 0.001722 at 18 px
 second complete invocation accepted every exact prior artifact, verifying idempotency.
 The full suite passes 55/55; Ruff and strict mypy pass. No GPU work was performed.
 
+Ran `full-primary-structure-v2-opacity-a9f1d5c-57a3ebea-4e7162ec` locally. It completed
+8,012 normalization attempts and 4,006 hybrid selections with verified hashes and
+balanced loss decomposition at all 30 P/S capacities. The regression comparison found
+zero unexplained attempt or hybrid mismatches. No GPU work was performed.
+
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
@@ -98,9 +103,10 @@ GPU server off until Codex explicitly requests it; no active MojiDiff job exists
 Raw source (405 MB), audit renders/tables, and derived fixture SVGs remain on the
 persistent workspace. Curation, representation, typed-codec, and aligned-grid compact
 evidence is versioned locally through `2099f3d`; the 26 MB full-primary report is
-versioned at `1063fc7`, and the opacity codec is versioned at `e31273c`. Nothing was
-pushed. The 64 KB compact opacity report is pending its local evidence checkpoint; its
-260 KB derived SVGs are reproducible but local-only. No external artifact sink is
+versioned at `1063fc7`, the opacity codec at `e31273c`, and the 64 KB opacity evidence
+at `86f7d03`. Nothing was pushed. The 32 MB full-primary opacity report is pending its
+local evidence checkpoint; the opacity probe's 260 KB derived SVGs are reproducible
+but local-only. No external artifact sink is
 configured or verified, so bulk artifacts are not durable against loss of the
 control-plane volume and meaningful GPU work remains blocked.
 
@@ -130,6 +136,6 @@ control-plane volume and meaningful GPU work remains blocked.
 
 ## Next smallest evidence-producing action
 
-Checkpoint the opacity evidence, then create an opacity-aware full-primary census v2 to
-verify 4,006/4,006 normalization coverage and recompute style/OOB/capacity tails. Keep
-the GPU server off during this CPU-only Gate C regression.
+Checkpoint the opacity-aware full-primary evidence, then classify the 37 out-of-bounds
+scalars by geometric role and measure the q289 safety projection over all 24 affected
+icons. Keep the GPU server off during this CPU-only Gate C probe.
