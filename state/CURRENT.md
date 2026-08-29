@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-23T17:21:47Z
+Updated: 2026-08-29T12:35:18Z
 
 ## Current hypothesis and evidence
 
@@ -39,6 +39,13 @@ supported programs but only 0.240% slot-utilized. Style vocabulary (344 nonexact
 35 out-of-bounds coordinate scalars in 22 icons, opacity, and sparse-tail handling keep
 Gate C open.
 
+The exact opacity extension now recovers all nine formerly unsupported icons under both
+semantic and outlined normalization. The observed categorical values are exactly
+`0.25, 0.4, 0.5, 0.502, 0.6, 0.9969, 0.997, 0.999, 1.0`; `0.997` is the PicoSVG-rounded
+outlined form of source `0.9969`. This is normalization evidence, not yet q289 render
+fidelity. `1F31A` and `1F31D` each retain one out-of-bounds scalar and therefore still
+require an explicitly measured clamp or a coordinate-vocabulary extension.
+
 ## Last completed action and verification
 
 Pinned OpenMoji 17.0.0 at commit
@@ -60,23 +67,31 @@ identity fields and deterministic ordering validate; all three routes contain th
 complete 30-point P/S grid; and every loss decomposition balances. Adapter verification
 passes the full 49-test suite, Ruff, strict mypy, a local idempotent stage, and a
 pre-import tamper regression. GPU smoke has not run because `gtc` has no CUDA and the
-Vast worker is not authorized.
+Vast worker is not authorized. The completed full-primary evidence and recovery state
+are checkpointed locally at `1063fc7`; nothing was pushed.
+
+Implemented exact per-path element, fill, and stroke opacity tokens at `e31273c`, with
+compound-layer style equality, canonical PAD/NONE invariants, safe serialization, a
+schema-v2 explicit-opacity config path, and an opacity-bearing Vast tiny smoke fixture.
+Focused codec tests pass 22/22; the full suite passes 53/53; Ruff and strict mypy pass.
+An unregistered read-only nine-icon diagnostic confirmed semantic and outlined
+normalization recovery and identified the two one-scalar OOB cases above.
 
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
-and no authenticated remote command has been issued. The operator reports a running
-Vast RTX 5090 instance with a 100 GB attached volume, but it remains disabled in the
-authorization record and has no active MojiDiff job.
+and no authenticated remote command has been issued. The operator is keeping the Vast
+GPU server off until Codex explicitly requests it; no active MojiDiff job exists.
 
 ## Artifact durability
 
 Raw source (405 MB), audit renders/tables, and derived fixture SVGs remain on the
 persistent workspace. Curation, representation, typed-codec, and aligned-grid compact
-evidence is versioned locally through `2099f3d`. The new full-primary report is 26 MB
-and is pending its local evidence checkpoint. Nothing was pushed. No external artifact
-sink is configured or verified, so bulk artifacts are not durable against loss of the
-control-plane volume and meaningful GPU work remains blocked.
+evidence is versioned locally through `2099f3d`; the 26 MB full-primary report is
+versioned at `1063fc7`, and the opacity codec is versioned at `e31273c`. Nothing was
+pushed. No external artifact sink is configured or verified, so bulk artifacts are not
+durable against loss of the control-plane volume and meaningful GPU work remains
+blocked.
 
 ## Current blockers and missing authorization
 
@@ -88,11 +103,11 @@ control-plane volume and meaningful GPU work remains blocked.
   `artifact_store.credentials_source` are unset.
 - `vast_5090` is disabled; `resource_cap.max_steps`, `max_spend_usd`, and
   `max_storage_gb` are null.
-- The operator supplied a public endpoint but two distinct Vast port references and no
-  SSH username. The exact username and one exact SSH port are still required. Under the
-  current contract, per-alias `StrictHostKeyChecking accept-new` is sufficient for first
-  use; no out-of-band fingerprint is required. No host key has been trusted and no login
-  has been attempted.
+- The prior Vast endpoint may be stale after shutdown. Once the next server exists, the
+  exact current SSH username, public host, and one exact SSH port are required. Under
+  the current contract, per-alias `StrictHostKeyChecking accept-new` is sufficient for
+  first use; no out-of-band fingerprint is required. No host key has been trusted and
+  no login has been attempted.
 - The reported 100 GB attached volume has no recorded mount path or persistence
   guarantee and therefore is not yet treated as the configured durable artifact sink.
 - `owned_gpu` is disabled; `resource_cap.max_steps` and `max_storage_gb` are null.
@@ -104,7 +119,7 @@ control-plane volume and meaningful GPU work remains blocked.
 
 ## Next smallest evidence-producing action
 
-Checkpoint the completed full-primary evidence, then add exact per-path `opacity`,
-`fill-opacity`, and `stroke-opacity` categorical fields and run the nine-icon recovery
-test. Follow with q289 render/round-trip evidence on the opacity set and selected
-style/OOB/structural tails before choosing a fixed, ragged, or overflow capacity policy.
+Create and register a deterministic nine-icon q289 opacity recovery probe. Measure
+semantic and outlined round-trip renders, strict versus explicit clamp behavior for the
+two OOB moons, exact style vocabulary, and P/S structure before choosing the next
+style/OOB/structural-tail experiment. Keep the GPU server off during this CPU-only gate.
