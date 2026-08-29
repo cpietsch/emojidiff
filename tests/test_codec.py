@@ -12,16 +12,19 @@ from mojidiff.representation.codec_study import load_codec_study_config
 from mojidiff.representation.normalizer import NormalizationError, normalize_svg
 from mojidiff.representation.program import (
     NONE,
+    OPACITY_VOCABULARY,
     PAD,
     VIEWBOX_SIZE,
     BudgetExceeded,
     CodecConfig,
+    CodecError,
     FloatContour,
     FloatProgram,
     FloatSegment,
     ProgramValidationError,
     SegmentType,
     TensorProgram,
+    decode_program,
     dequantize_coordinate,
     encode_program,
     quantize_coordinate,
@@ -44,6 +47,7 @@ def _config(
         stroke_widths=(1.0, 2.0),
         dash_patterns=((2.0, 2.0), (2.0, 3.0, 4.0, 2.0, 3.0, 4.0)),
         miter_limits=(4.0, 10.0),
+        opacities=OPACITY_VOCABULARY,
         max_serialized_bytes=20_000,
     )
 
@@ -78,6 +82,9 @@ def _contour(
         miter_limit=4.0,
         dash_pattern=(),
         fill_rule="nonzero",
+        opacity=1.0,
+        fill_opacity=None if fill is None else 1.0,
+        stroke_opacity=None if stroke is None else 1.0,
         start=start,
         segments=segments,
     )
@@ -117,8 +124,11 @@ def test_encode_validate_and_inactive_padding_are_canonical() -> None:
     assert tensor.stroke[0] == NONE
     for field in (
         "layer",
+        "opacity",
         "fill",
+        "fill_opacity",
         "stroke",
+        "stroke_opacity",
         "stroke_width",
         "linecap",
         "linejoin",
@@ -227,8 +237,11 @@ def test_serializer_is_deterministic_and_uses_only_allowed_xml() -> None:
     allowed = {
         "d",
         "fill",
+        "fill-opacity",
         "fill-rule",
+        "opacity",
         "stroke",
+        "stroke-opacity",
         "stroke-width",
         "stroke-linecap",
         "stroke-linejoin",
@@ -276,6 +289,9 @@ def test_normalizer_flattens_primitives_and_inherited_styles() -> None:
         assert contour.linecap == "round"
         assert contour.linejoin == "bevel"
         assert contour.fill_rule == "evenodd"
+        assert contour.opacity == 1.0
+        assert contour.fill_opacity == (None if contour.fill is None else 1.0)
+        assert contour.stroke_opacity == 1.0
         assert contour.dash_pattern == (2.0, 3.0, 4.0, 2.0, 3.0, 4.0)
         assert all(segment.kind != SegmentType.PAD for segment in contour.segments)
         if SegmentType.CLOSE in {segment.kind for segment in contour.segments}:
@@ -322,10 +338,6 @@ def test_normalizer_converts_arcs_to_supported_cubics() -> None:
             'stroke="#000" stroke-width="2"/>',
             "anisotropic_stroke_transform",
         ),
-        (
-            '<rect x="1" y="1" width="10" height="10" fill="#fff" fill-opacity=".5"/>',
-            "partial_opacity",
-        ),
     ),
 )
 def test_normalizer_classifies_unrepresentable_semantics(shape: str, code: str) -> None:
@@ -341,6 +353,7 @@ def test_normalizer_classifies_unrepresentable_semantics(shape: str, code: str) 
     ("attribute", "code"),
     (
         ('transform="translate(1 1)"', "root_transform"),
+        ('opacity=".5"', "group_opacity"),
         ('visibility="hidden"', "unsupported_presentation"),
         ('style="fill:#fff"', "unsupported_style"),
     ),
@@ -355,3 +368,74 @@ def test_normalizer_rejects_silently_lossy_root_semantics(attribute: str, code: 
         normalize_svg(source)
 
     assert raised.value.code == code
+
+
+def test_partial_opacity_roundtrips_as_typed_compound_path_style() -> None:
+    source = b"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72">
+    <path fill="#fff" fill-opacity=".6" stroke="#000" stroke-opacity=".4"
+      stroke-width="2" opacity=".5"
+      d="M1 1L10 1L10 10Z M20 20L30 20L30 30Z"/>
+    </svg>"""
+    normalized = normalize_svg(source)
+
+    assert normalized.report.partially_opaque_layers == 1
+    assert len(normalized.program.contours) == 2
+    for contour in normalized.program.contours:
+        assert contour.opacity == 0.5
+        assert contour.fill_opacity == 0.6
+        assert contour.stroke_opacity == 0.4
+
+    config = _config()
+    tensor, report = encode_program(normalized.program, config)
+    assert report.lossless
+    assert np.all(tensor.opacity[:2] == OPACITY_VOCABULARY.index(0.5) + 2)
+    assert np.all(tensor.fill_opacity[:2] == OPACITY_VOCABULARY.index(0.6) + 2)
+    assert np.all(tensor.stroke_opacity[:2] == OPACITY_VOCABULARY.index(0.4) + 2)
+    decoded = decode_program(tensor, config)
+    assert decoded.contours[0].opacity == 0.5
+    assert decoded.contours[0].fill_opacity == 0.6
+    assert decoded.contours[0].stroke_opacity == 0.4
+
+    root = ElementTree.fromstring(serialize_svg(tensor, config))
+    assert len(root) == 1
+    assert root[0].attrib["opacity"] == "0.5"
+    assert root[0].attrib["fill-opacity"] == "0.6"
+    assert root[0].attrib["stroke-opacity"] == "0.4"
+    assert root[0].attrib["d"].count("M") == 2
+
+
+def test_zero_paint_opacity_removes_only_that_paint() -> None:
+    source = b"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72">
+    <rect x="1" y="1" width="10" height="10" fill="#fff" fill-opacity="0"
+      stroke="#000" stroke-width="2"/>
+    </svg>"""
+    contour = normalize_svg(source).program.contours[0]
+
+    assert contour.fill is None
+    assert contour.fill_opacity is None
+    assert contour.stroke == "#000000"
+    assert contour.stroke_opacity == 1.0
+    tensor, report = encode_program(FloatProgram((contour,)), _config())
+    assert report.lossless
+    assert tensor.fill[0] == NONE
+    assert tensor.fill_opacity[0] == NONE
+
+
+def test_encoder_rejects_opacity_outside_configured_vocabulary() -> None:
+    source = b"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72">
+    <rect x="1" y="1" width="10" height="10" fill="#fff" fill-opacity=".3"/>
+    </svg>"""
+    program = normalize_svg(source).program
+
+    with pytest.raises(CodecError, match="fill_opacity value is outside"):
+        encode_program(program, _config())
+
+
+def test_validator_rejects_noncanonical_opacity_none_token() -> None:
+    config = _config()
+    encoded, _report = encode_program(FloatProgram((_contour(),)), config)
+    tensor = copy.deepcopy(encoded)
+    tensor.fill_opacity[0] = NONE
+
+    with pytest.raises(ProgramValidationError, match="fill_opacity"):
+        validate_tensor_program(tensor, config)

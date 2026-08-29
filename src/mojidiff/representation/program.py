@@ -17,6 +17,7 @@ _HEX_COLOR = re.compile(r"#[0-9a-f]{6}\Z")
 _CAPS = ("butt", "round", "square")
 _JOINS = ("miter", "round", "bevel")
 _FILL_RULES = ("nonzero", "evenodd")
+OPACITY_VOCABULARY = (0.25, 0.4, 0.5, 0.502, 0.6, 0.9969, 0.997, 0.999, 1.0)
 
 
 class CodecError(ValueError):
@@ -60,6 +61,7 @@ class CodecConfig:
     stroke_widths: tuple[float, ...]
     dash_patterns: tuple[tuple[float, ...], ...]
     miter_limits: tuple[float, ...]
+    opacities: tuple[float, ...]
     max_serialized_bytes: int = 2_000_000
 
     def __post_init__(self) -> None:
@@ -89,6 +91,16 @@ class CodecConfig:
             raise CodecError("palette entries must be lowercase #rrggbb colors")
         _validate_positive_vocabulary("stroke_widths", self.stroke_widths)
         _validate_positive_vocabulary("miter_limits", self.miter_limits)
+        if (
+            not self.opacities
+            or len(set(self.opacities)) != len(self.opacities)
+            or tuple(sorted(self.opacities)) != self.opacities
+        ):
+            raise CodecError("opacities must contain unique increasing values")
+        if not all(math.isfinite(value) and 0 < value <= 1 for value in self.opacities):
+            raise CodecError("opacities must contain finite values within (0, 1]")
+        if 1.0 not in self.opacities:
+            raise CodecError("opacities must contain the fully opaque value 1.0")
         if len(set(self.dash_patterns)) != len(self.dash_patterns):
             raise CodecError("dash_patterns must be unique")
         for pattern in self.dash_patterns:
@@ -128,6 +140,9 @@ class FloatContour:
     miter_limit: float
     dash_pattern: tuple[float, ...]
     fill_rule: str
+    opacity: float
+    fill_opacity: float | None
+    stroke_opacity: float | None
     start: tuple[float, float]
     segments: tuple[FloatSegment, ...]
 
@@ -148,8 +163,11 @@ class TensorProgram:
 
     path_length: IntArray
     layer: IntArray
+    opacity: IntArray
     fill: IntArray
+    fill_opacity: IntArray
     stroke: IntArray
+    stroke_opacity: IntArray
     stroke_width: IntArray
     linecap: IntArray
     linejoin: IntArray
@@ -247,8 +265,15 @@ def encode_program(
         segments = contour.segments[: config.max_segments]
         arrays.path_length[path_index] = len(segments)
         arrays.layer[path_index] = contour.layer
+        arrays.opacity[path_index] = _categorical(contour.opacity, config.opacities, "opacity")
         arrays.fill[path_index] = _categorical(contour.fill, config.palette, "fill")
+        arrays.fill_opacity[path_index] = _categorical(
+            contour.fill_opacity, config.opacities, "fill_opacity"
+        )
         arrays.stroke[path_index] = _categorical(contour.stroke, config.palette, "stroke")
+        arrays.stroke_opacity[path_index] = _categorical(
+            contour.stroke_opacity, config.opacities, "stroke_opacity"
+        )
         arrays.fill_rule[path_index] = (
             NONE if contour.fill is None else _FILL_RULES.index(contour.fill_rule) + 2
         )
@@ -307,8 +332,11 @@ def encode_program(
 class _MutableTensor:
     path_length: IntArray
     layer: IntArray
+    opacity: IntArray
     fill: IntArray
+    fill_opacity: IntArray
     stroke: IntArray
+    stroke_opacity: IntArray
     stroke_width: IntArray
     linecap: IntArray
     linejoin: IntArray
@@ -330,8 +358,11 @@ def _empty_tensor(config: CodecConfig) -> _MutableTensor:
     return _MutableTensor(
         path_length=vector(),
         layer=vector(),
+        opacity=vector(),
         fill=vector(),
+        fill_opacity=vector(),
         stroke=vector(),
+        stroke_opacity=vector(),
         stroke_width=vector(),
         linecap=vector(),
         linejoin=vector(),
@@ -385,6 +416,15 @@ def _validate_float_program(program: FloatProgram) -> None:
         previous_layer = contour.layer
         if contour.fill is None and contour.stroke is None:
             raise CodecError("active contours must have a fill or stroke")
+        _validate_opacity(contour.opacity, "opacity")
+        if (contour.fill is None) != (contour.fill_opacity is None):
+            raise CodecError("fill_opacity must be present exactly when fill is painted")
+        if contour.fill_opacity is not None:
+            _validate_opacity(contour.fill_opacity, "fill_opacity")
+        if (contour.stroke is None) != (contour.stroke_opacity is None):
+            raise CodecError("stroke_opacity must be present exactly when stroke is painted")
+        if contour.stroke_opacity is not None:
+            _validate_opacity(contour.stroke_opacity, "stroke_opacity")
         if contour.linecap not in _CAPS or contour.linejoin not in _JOINS:
             raise CodecError("unsupported line cap or join")
         if contour.fill_rule not in _FILL_RULES:
@@ -410,14 +450,22 @@ def _validate_float_program(program: FloatProgram) -> None:
                 raise CodecError("close must be the final segment in a contour")
 
 
+def _validate_opacity(value: float, field: str) -> None:
+    if not math.isfinite(value) or value <= 0 or value > 1:
+        raise CodecError(f"{field} must be finite within (0, 1]")
+
+
 def validate_tensor_program(program: TensorProgram, config: CodecConfig) -> None:
     """Raise with the first hard grammar violation in a fixed tensor program."""
 
     vector_names = (
         "path_length",
         "layer",
+        "opacity",
         "fill",
+        "fill_opacity",
         "stroke",
+        "stroke_opacity",
         "stroke_width",
         "linecap",
         "linejoin",
@@ -448,8 +496,11 @@ def validate_tensor_program(program: TensorProgram, config: CodecConfig) -> None
             inactive_seen = True
             fields = (
                 program.layer[path_index],
+                program.opacity[path_index],
                 program.fill[path_index],
+                program.fill_opacity[path_index],
                 program.stroke[path_index],
+                program.stroke_opacity[path_index],
                 program.stroke_width[path_index],
                 program.linecap[path_index],
                 program.linejoin[path_index],
@@ -472,6 +523,7 @@ def validate_tensor_program(program: TensorProgram, config: CodecConfig) -> None
         if layer <= 0 or layer > config.max_paths or layer < previous_layer:
             raise ProgramValidationError("active layers must be in range and nondecreasing")
         previous_layer = layer
+        _token_range(int(program.opacity[path_index]), len(config.opacities) + 1, "opacity")
         fill = int(program.fill[path_index])
         stroke = int(program.stroke[path_index])
         _token_range(fill, len(config.palette) + 1, "fill", allow_none=True)
@@ -480,16 +532,24 @@ def validate_tensor_program(program: TensorProgram, config: CodecConfig) -> None
             raise ProgramValidationError("active path must paint fill or stroke")
         fill_rule = int(program.fill_rule[path_index])
         if fill == NONE:
-            if fill_rule != NONE:
-                raise ProgramValidationError("fill-none path must use NONE fill_rule")
+            if fill_rule != NONE or int(program.fill_opacity[path_index]) != NONE:
+                raise ProgramValidationError(
+                    "fill-none path must use NONE fill_rule and fill_opacity"
+                )
         else:
             _token_range(fill_rule, len(_FILL_RULES) + 1, "fill_rule")
+            _token_range(
+                int(program.fill_opacity[path_index]),
+                len(config.opacities) + 1,
+                "fill_opacity",
+            )
         _coordinate_tokens(program.start[path_index], config)
 
         if stroke == NONE:
             if any(
                 int(field[path_index]) != NONE
                 for field in (
+                    program.stroke_opacity,
                     program.stroke_width,
                     program.linecap,
                     program.linejoin,
@@ -499,6 +559,11 @@ def validate_tensor_program(program: TensorProgram, config: CodecConfig) -> None
             ):
                 raise ProgramValidationError("stroke-none style fields must be NONE")
         else:
+            _token_range(
+                int(program.stroke_opacity[path_index]),
+                len(config.opacities) + 1,
+                "stroke_opacity",
+            )
             _token_range(
                 int(program.stroke_width[path_index]),
                 len(config.stroke_widths) + 1,
@@ -521,8 +586,11 @@ def validate_tensor_program(program: TensorProgram, config: CodecConfig) -> None
         style = tuple(
             int(field[path_index])
             for field in (
+                program.opacity,
                 program.fill,
+                program.fill_opacity,
                 program.stroke,
+                program.stroke_opacity,
                 program.stroke_width,
                 program.linecap,
                 program.linejoin,
@@ -597,8 +665,19 @@ def decode_program(program: TensorProgram, config: CodecConfig) -> FloatProgram:
         contours.append(
             FloatContour(
                 layer=int(program.layer[path_index]),
+                opacity=config.opacities[int(program.opacity[path_index]) - 2],
                 fill=_decode_categorical(int(program.fill[path_index]), config.palette),
+                fill_opacity=(
+                    None
+                    if int(program.fill_opacity[path_index]) == NONE
+                    else config.opacities[int(program.fill_opacity[path_index]) - 2]
+                ),
                 stroke=stroke,
+                stroke_opacity=(
+                    None
+                    if int(program.stroke_opacity[path_index]) == NONE
+                    else config.opacities[int(program.stroke_opacity[path_index]) - 2]
+                ),
                 stroke_width=(
                     0.0
                     if stroke is None
@@ -657,10 +736,14 @@ def serialize_svg(program: TensorProgram, config: CodecConfig) -> bytes:
         first = contours[0]
         path_data = " ".join(_contour_path_data(contour) for contour in contours)
         attributes = [f'd="{path_data}"', f'fill="{first.fill or "none"}"']
+        if first.fill_opacity is not None and first.fill_opacity != 1.0:
+            attributes.append(f'fill-opacity="{_number(first.fill_opacity)}"')
         if first.fill_rule != "nonzero":
             attributes.append(f'fill-rule="{first.fill_rule}"')
         attributes.append(f'stroke="{first.stroke or "none"}"')
         if first.stroke is not None:
+            if first.stroke_opacity is not None and first.stroke_opacity != 1.0:
+                attributes.append(f'stroke-opacity="{_number(first.stroke_opacity)}"')
             attributes.extend(
                 (
                     f'stroke-width="{_number(first.stroke_width)}"',
@@ -672,6 +755,8 @@ def serialize_svg(program: TensorProgram, config: CodecConfig) -> bytes:
             if first.dash_pattern:
                 dash = " ".join(_number(value) for value in first.dash_pattern)
                 attributes.append(f'stroke-dasharray="{dash}"')
+        if first.opacity != 1.0:
+            attributes.append(f'opacity="{_number(first.opacity)}"')
         parts.append(f"<path {' '.join(attributes)}/>")
     parts.append("</svg>")
     output = "".join(parts).encode("utf-8")

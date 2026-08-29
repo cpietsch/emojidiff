@@ -283,6 +283,7 @@ def _codec_and_render_smoke() -> tuple[dict[str, Any], list[float]]:
         import numpy as np
 
         from mojidiff.representation.program import (
+            OPACITY_VOCABULARY,
             CodecConfig,
             FloatContour,
             FloatProgram,
@@ -303,6 +304,7 @@ def _codec_and_render_smoke() -> tuple[dict[str, Any], list[float]]:
         stroke_widths=(2.0,),
         dash_patterns=((2.0, 2.0),),
         miter_limits=(4.0,),
+        opacities=OPACITY_VOCABULARY,
         max_serialized_bytes=4096,
     )
     source = FloatProgram(
@@ -310,13 +312,16 @@ def _codec_and_render_smoke() -> tuple[dict[str, Any], list[float]]:
             FloatContour(
                 layer=1,
                 fill="#000000",
-                stroke=None,
-                stroke_width=0.0,
-                linecap="butt",
-                linejoin="miter",
+                stroke="#000000",
+                stroke_width=2.0,
+                linecap="round",
+                linejoin="round",
                 miter_limit=4.0,
                 dash_pattern=(),
                 fill_rule="nonzero",
+                opacity=0.5,
+                fill_opacity=0.6,
+                stroke_opacity=0.4,
                 start=(8.0, 64.0),
                 segments=(
                     FloatSegment(SegmentType.LINE, (36.0, 8.0)),
@@ -344,6 +349,9 @@ def _codec_and_render_smoke() -> tuple[dict[str, Any], list[float]]:
     active = int(tensor.path_length[0])
     model_input = [
         float(tensor.path_length[0]) / codec.max_segments,
+        float(tensor.opacity[0]) / (len(codec.opacities) + 1),
+        float(tensor.fill_opacity[0]) / (len(codec.opacities) + 1),
+        float(tensor.stroke_opacity[0]) / (len(codec.opacities) + 1),
         *(float(value) / codec.coordinate_bins for value in tensor.start[0]),
         *(float(value) / len(SegmentType) for value in tensor.segment_type[0, :active]),
         *(

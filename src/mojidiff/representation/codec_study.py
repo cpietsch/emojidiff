@@ -44,6 +44,7 @@ class CodecBudget:
 
 @dataclass(frozen=True)
 class CodecStudyConfig:
+    schema_version: int
     version: str
     source_revision: str
     raw_root: Path
@@ -56,6 +57,7 @@ class CodecStudyConfig:
     stroke_widths: tuple[float, ...]
     dash_patterns: tuple[tuple[float, ...], ...]
     miter_limits: tuple[float, ...]
+    opacities: tuple[float, ...]
     max_serialized_bytes: int
     render_sizes: tuple[int, ...]
     render_timeout_seconds: int
@@ -66,9 +68,22 @@ def load_codec_study_config(path: Path) -> CodecStudyConfig:
 
     document = yaml.safe_load(path.read_text(encoding="utf-8"))
     root = _mapping(document, "root")
-    if root.get("schema_version") != 1:
-        raise CodecStudyError("codec study schema_version must be 1")
+    raw_schema_version = root.get("schema_version")
+    if (
+        isinstance(raw_schema_version, bool)
+        or not isinstance(raw_schema_version, int)
+        or raw_schema_version not in {1, 2}
+    ):
+        raise CodecStudyError("codec study schema_version must be 1 or 2")
+    schema_version = raw_schema_version
     codec = _mapping(root.get("codec"), "codec")
+    opacities: tuple[float, ...]
+    if schema_version == 1:
+        if "opacities" in codec:
+            raise CodecStudyError("schema_version 1 cannot define codec.opacities")
+        opacities = (1.0,)
+    else:
+        opacities = _float_tuple(codec.get("opacities"), "codec.opacities")
     render = _mapping(root.get("render"), "render")
     raw_budgets = _sequence(codec.get("budgets"), "codec.budgets")
     budgets: list[CodecBudget] = []
@@ -98,6 +113,7 @@ def load_codec_study_config(path: Path) -> CodecStudyConfig:
     if len(bins) != 2 or len(set(bins)) != 2 or tuple(sorted(bins)) != bins:
         raise CodecStudyError("coordinate bins must contain two distinct increasing values")
     return CodecStudyConfig(
+        schema_version=schema_version,
         version=_string(root, "probe_version"),
         source_revision=_string(root, "source_revision"),
         raw_root=Path(_string(root, "raw_root")),
@@ -115,6 +131,7 @@ def load_codec_study_config(path: Path) -> CodecStudyConfig:
             )
         ),
         miter_limits=_float_tuple(codec.get("miter_limits"), "codec.miter_limits"),
+        opacities=opacities,
         max_serialized_bytes=_positive_int(
             codec.get("max_serialized_bytes"), "codec.max_serialized_bytes"
         ),
@@ -189,6 +206,7 @@ def _codec_config(
         stroke_widths=config.stroke_widths,
         dash_patterns=config.dash_patterns,
         miter_limits=config.miter_limits,
+        opacities=config.opacities,
         max_serialized_bytes=config.max_serialized_bytes,
     )
 

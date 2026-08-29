@@ -88,6 +88,7 @@ class NormalizationReport:
     transformed_shapes: int
     compound_layers: int
     dashed_layers: int
+    partially_opaque_layers: int
     out_of_bounds_coordinates: int
 
 
@@ -112,6 +113,7 @@ def normalize_svg(svg_bytes: bytes) -> NormalizedProgram:
     source_shapes = 0
     transformed_shapes = 0
     dashed_layers = 0
+    partially_opaque_layers = 0
     layer = 1
     try:
         contexts = svg.depth_first(resolve_clip_paths=False)
@@ -135,22 +137,12 @@ def normalize_svg(svg_bytes: bytes) -> NormalizedProgram:
             stroke_opacity = _opacity(float(shape.stroke_opacity), "stroke-opacity")
             if opacity == 0:
                 continue
-            if opacity != 1 and (fill is not None or stroke is not None):
-                raise NormalizationError(
-                    "partial_opacity", "partial element opacity is outside the codec"
-                )
             if fill_opacity == 0:
                 fill = None
-            elif fill_opacity != 1 and fill is not None:
-                raise NormalizationError(
-                    "partial_opacity", "partial fill opacity is outside the codec"
-                )
+            encoded_fill_opacity = None if fill is None else fill_opacity
             if stroke_opacity == 0 or float(shape.stroke_width) == 0:
                 stroke = None
-            elif stroke_opacity != 1 and stroke is not None:
-                raise NormalizationError(
-                    "partial_opacity", "partial stroke opacity is outside the codec"
-                )
+            encoded_stroke_opacity = None if stroke is None else stroke_opacity
             if fill is None and stroke is None:
                 continue
 
@@ -178,9 +170,17 @@ def normalize_svg(svg_bytes: bytes) -> NormalizedProgram:
                 miter_limit=float(shape.stroke_miterlimit),
                 dash_pattern=tuple(value * scale for value in dash),
                 fill_rule=shape.fill_rule,
+                opacity=opacity,
+                fill_opacity=encoded_fill_opacity,
+                stroke_opacity=encoded_stroke_opacity,
             )
             if shape_contours:
                 contours.extend(shape_contours)
+                if opacity < 1 or any(
+                    value is not None and value < 1
+                    for value in (encoded_fill_opacity, encoded_stroke_opacity)
+                ):
+                    partially_opaque_layers += 1
                 layer += 1
     except NormalizationError:
         raise
@@ -201,6 +201,7 @@ def normalize_svg(svg_bytes: bytes) -> NormalizedProgram:
         transformed_shapes=transformed_shapes,
         compound_layers=compound,
         dashed_layers=dashed_layers,
+        partially_opaque_layers=partially_opaque_layers,
         out_of_bounds_coordinates=sum(value < 0 or value > VIEWBOX_SIZE for value in coordinates),
     )
     return NormalizedProgram(FloatProgram(tuple(contours)), report)
@@ -359,6 +360,9 @@ def _commands_to_contours(
     miter_limit: float,
     dash_pattern: tuple[float, ...],
     fill_rule: str,
+    opacity: float,
+    fill_opacity: float | None,
+    stroke_opacity: float | None,
 ) -> list[FloatContour]:
     contours: list[FloatContour] = []
     start: tuple[float, float] | None = None
@@ -379,6 +383,9 @@ def _commands_to_contours(
                     miter_limit=miter_limit,
                     dash_pattern=dash_pattern,
                     fill_rule=fill_rule,
+                    opacity=opacity,
+                    fill_opacity=fill_opacity,
+                    stroke_opacity=stroke_opacity,
                     start=start,
                     segments=tuple(segments),
                 )
