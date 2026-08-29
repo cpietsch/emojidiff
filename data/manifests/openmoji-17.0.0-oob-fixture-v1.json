@@ -1,0 +1,254 @@
+{
+  "schema_version": 1,
+  "manifest_version": "openmoji-17.0.0-oob-fixture-v1",
+  "source_revision": "f9fc506a3f913be9897ab0181d611d4c910a4104",
+  "selection": {
+    "parent_summary": "reports/codec/full-primary-structure-v2-opacity/summary.json",
+    "parent_summary_sha256": "515797d18f6778cd561976d260e8f7c070cafa09d6e64b91c5817e9da229c2ac",
+    "parent_hybrid": "reports/codec/full-primary-structure-v2-opacity/hybrid.jsonl",
+    "parent_hybrid_sha256": "9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b",
+    "rule": "all hybrid-selected programs with one or more coordinates outside the fixed 0..72 vocabulary"
+  },
+  "rows": [
+    {
+      "hexcode": "1F31A",
+      "group": "travel-places",
+      "subgroup": "sky-weather",
+      "split": "primary/train",
+      "source_path": "color/svg/1F31A.svg",
+      "source_svg_sha256": "a72d8f8d8b612ddcb841de4af5e9d3c6dac215b08b4568e90183b64095583c68",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 1
+    },
+    {
+      "hexcode": "1F31D",
+      "group": "travel-places",
+      "subgroup": "sky-weather",
+      "split": "primary/train",
+      "source_path": "color/svg/1F31D.svg",
+      "source_svg_sha256": "3260af69036a0c344b481785cc99ac87ec31b24c15ccea09bd1ed8689d9b1335",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 1
+    },
+    {
+      "hexcode": "1F347",
+      "group": "food-drink",
+      "subgroup": "food-fruit",
+      "split": "primary/test",
+      "source_path": "color/svg/1F347.svg",
+      "source_svg_sha256": "e7e987f43f3488270c29e95ff8089391dc450b91b274353e679a565ea08cd698",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 1
+    },
+    {
+      "hexcode": "1F3AE",
+      "group": "activities",
+      "subgroup": "game",
+      "split": "primary/train",
+      "source_path": "color/svg/1F3AE.svg",
+      "source_svg_sha256": "7da34ec5442ae96737cab07519ac7aa1af51e4ff6ab2b0b9d1ab39e06ad262e1",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 4
+    },
+    {
+      "hexcode": "1F3D3",
+      "group": "activities",
+      "subgroup": "sport",
+      "split": "primary/train",
+      "source_path": "color/svg/1F3D3.svg",
+      "source_svg_sha256": "851611411f77b91b16a11fd73cfb2cca87461264b37e778bc2ffd520e8f28593",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 2
+    },
+    {
+      "hexcode": "1F441-FE0F-200D-1F5E8-FE0F",
+      "group": "smileys-emotion",
+      "subgroup": "emotion",
+      "split": "primary/train",
+      "source_path": "color/svg/1F441-FE0F-200D-1F5E8-FE0F.svg",
+      "source_svg_sha256": "4f5a2accaa066b2890073182d401b93df322aa689e965edc1c18204cadc4c3b1",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 2
+    },
+    {
+      "hexcode": "1F454",
+      "group": "objects",
+      "subgroup": "clothing",
+      "split": "primary/test",
+      "source_path": "color/svg/1F454.svg",
+      "source_svg_sha256": "53f9ca53143a55f5633b813b181087000c4ac73098d190324ad2cdba703ff59d",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 1
+    },
+    {
+      "hexcode": "1F460",
+      "group": "objects",
+      "subgroup": "clothing",
+      "split": "primary/train",
+      "source_path": "color/svg/1F460.svg",
+      "source_svg_sha256": "a4247a9a3ce4e9fc75858c9ac2cf336d356de304496930dc0bdb9188c9f8140c",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 4
+    },
+    {
+      "hexcode": "1F4AA-1F3FB",
+      "group": "people-body",
+      "subgroup": "body-parts",
+      "split": "primary/train",
+      "source_path": "color/svg/1F4AA-1F3FB.svg",
+      "source_svg_sha256": "35f6fc35b6cc586265abdb96f3f8c43a45e195070bbc7b18123df440dcebaa53",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 1
+    },
+    {
+      "hexcode": "1F4AA-1F3FC",
+      "group": "people-body",
+      "subgroup": "body-parts",
+      "split": "primary/train",
+      "source_path": "color/svg/1F4AA-1F3FC.svg",
+      "source_svg_sha256": "8235d8444634eac41bf8839ae1a03514aa44f440495958ca2a9d7bd8c8449e95",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 1
+    },
+    {
+      "hexcode": "1F4AA-1F3FD",
+      "group": "people-body",
+      "subgroup": "body-parts",
+      "split": "primary/train",
+      "source_path": "color/svg/1F4AA-1F3FD.svg",
+      "source_svg_sha256": "e58b4122f5e6149bde1d9fe7974194514c26ecf880102376009ea00d56331bec",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 1
+    },
+    {
+      "hexcode": "1F4AA-1F3FE",
+      "group": "people-body",
+      "subgroup": "body-parts",
+      "split": "primary/train",
+      "source_path": "color/svg/1F4AA-1F3FE.svg",
+      "source_svg_sha256": "4d2e6c7dbf9de312cf0b256f5a3634931c6fe189b9c03241a106fac8e4646eaf",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 1
+    },
+    {
+      "hexcode": "1F4AA-1F3FF",
+      "group": "people-body",
+      "subgroup": "body-parts",
+      "split": "primary/train",
+      "source_path": "color/svg/1F4AA-1F3FF.svg",
+      "source_svg_sha256": "94b17936bf0b9ca2507b3fb6f1646809175351a3f69c265286748eb9acb1a372",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 1
+    },
+    {
+      "hexcode": "1F4AA",
+      "group": "people-body",
+      "subgroup": "body-parts",
+      "split": "primary/train",
+      "source_path": "color/svg/1F4AA.svg",
+      "source_svg_sha256": "e0650362ad5a4c834b2c4650776d53fa9fa34d4534f13d09eee1d9f334ca92b1",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 1
+    },
+    {
+      "hexcode": "1F4AB",
+      "group": "smileys-emotion",
+      "subgroup": "emotion",
+      "split": "primary/test",
+      "source_path": "color/svg/1F4AB.svg",
+      "source_svg_sha256": "727c0db7f6e9cf8e89325c5d6f6622072b50c43280a74a0fa684cac972abb7ec",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 5
+    },
+    {
+      "hexcode": "1F981",
+      "group": "animals-nature",
+      "subgroup": "animal-mammal",
+      "split": "primary/validation",
+      "source_path": "color/svg/1F981.svg",
+      "source_svg_sha256": "89f48f2663553b37db9db4f9bac6cef32780ca409a81641fc2867fd6939384d8",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 1
+    },
+    {
+      "hexcode": "1F9BB-1F3FB",
+      "group": "people-body",
+      "subgroup": "body-parts",
+      "split": "primary/train",
+      "source_path": "color/svg/1F9BB-1F3FB.svg",
+      "source_svg_sha256": "98e683b3c739de6560902527f92eff2cc91deb7c00f4f7612eee7bafc925657e",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 1
+    },
+    {
+      "hexcode": "1F9BB-1F3FC",
+      "group": "people-body",
+      "subgroup": "body-parts",
+      "split": "primary/train",
+      "source_path": "color/svg/1F9BB-1F3FC.svg",
+      "source_svg_sha256": "c25f8b67d60c66796115a73149808e73acc0bcc9adef1add52259f639ffd43af",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 1
+    },
+    {
+      "hexcode": "1F9BB-1F3FD",
+      "group": "people-body",
+      "subgroup": "body-parts",
+      "split": "primary/train",
+      "source_path": "color/svg/1F9BB-1F3FD.svg",
+      "source_svg_sha256": "558c026088c4ce0bb7cbb772256ae42fe85bab3be5c6f72df02a697a49897aed",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 1
+    },
+    {
+      "hexcode": "1F9BB-1F3FE",
+      "group": "people-body",
+      "subgroup": "body-parts",
+      "split": "primary/train",
+      "source_path": "color/svg/1F9BB-1F3FE.svg",
+      "source_svg_sha256": "16b1cee210ca352d1970b75612959f2226952a5988130cb7e192866d4207fd10",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 1
+    },
+    {
+      "hexcode": "1F9BB-1F3FF",
+      "group": "people-body",
+      "subgroup": "body-parts",
+      "split": "primary/train",
+      "source_path": "color/svg/1F9BB-1F3FF.svg",
+      "source_svg_sha256": "4fd007df0c2f6a46b3e43c6cdfbae7633e5a65e8da7fcaeaf44036015e027d8e",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 1
+    },
+    {
+      "hexcode": "1F9BB",
+      "group": "people-body",
+      "subgroup": "body-parts",
+      "split": "primary/train",
+      "source_path": "color/svg/1F9BB.svg",
+      "source_svg_sha256": "3287b7e364f4bee2795a8746b169335b526e4ed03feb968da7f3942deb8f9a09",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 1
+    },
+    {
+      "hexcode": "1F9FB",
+      "group": "objects",
+      "subgroup": "household",
+      "split": "primary/train",
+      "source_path": "color/svg/1F9FB.svg",
+      "source_svg_sha256": "fde78bd0901f198757d2606fe96ea01b642ae27ca68c78a829d44a01910106bb",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 1
+    },
+    {
+      "hexcode": "E31E",
+      "group": "extras-openmoji",
+      "subgroup": "healthcare",
+      "split": "primary/train",
+      "source_path": "color/svg/E31E.svg",
+      "source_svg_sha256": "0ccdedb640faf394cba4711f6a22d78236f6b03572e650a6e5214f6fabacaa22",
+      "parent_route": "semantic_native",
+      "parent_out_of_bounds_coordinates": 2
+    }
+  ]
+}

@@ -416,6 +416,9 @@ def _validate_float_program(program: FloatProgram) -> None:
         previous_layer = contour.layer
         if contour.fill is None and contour.stroke is None:
             raise CodecError("active contours must have a fill or stroke")
+        for field, color in (("fill", contour.fill), ("stroke", contour.stroke)):
+            if color is not None and _HEX_COLOR.fullmatch(color) is None:
+                raise CodecError(f"{field} must be a lowercase #rrggbb color")
         _validate_opacity(contour.opacity, "opacity")
         if (contour.fill is None) != (contour.fill_opacity is None):
             raise CodecError("fill_opacity must be present exactly when fill is painted")
@@ -724,8 +727,28 @@ def serialize_svg(program: TensorProgram, config: CodecConfig) -> bytes:
     """Serialize only fixed safe SVG syntax from a validated tensor program."""
 
     decoded = decode_program(program, config)
+    return serialize_float_svg(decoded, max_serialized_bytes=config.max_serialized_bytes)
+
+
+def serialize_float_svg(program: FloatProgram, *, max_serialized_bytes: int) -> bytes:
+    """Serialize validated float geometry for controlled codec analyses.
+
+    Unlike ``serialize_svg``, this analysis-only path does not impose the categorical
+    coordinate vocabulary. It is useful for rendering a counterfactual with finite
+    Bezier control handles outside the viewBox; model-exposed states must still use the
+    validated tensor serializer above.
+    """
+
+    if (
+        isinstance(max_serialized_bytes, bool)
+        or not isinstance(max_serialized_bytes, int)
+        or max_serialized_bytes <= 0
+        or max_serialized_bytes > 4_000_000
+    ):
+        raise CodecError("serialized byte ceiling must be within 1..4000000")
+    _validate_float_program(program)
     layers: list[list[FloatContour]] = []
-    for contour in decoded.contours:
+    for contour in program.contours:
         if not layers or layers[-1][0].layer != contour.layer:
             layers.append([contour])
         else:
@@ -760,7 +783,7 @@ def serialize_svg(program: TensorProgram, config: CodecConfig) -> bytes:
         parts.append(f"<path {' '.join(attributes)}/>")
     parts.append("</svg>")
     output = "".join(parts).encode("utf-8")
-    if len(output) > config.max_serialized_bytes:
+    if len(output) > max_serialized_bytes:
         raise CodecError("serialized SVG exceeds the configured byte ceiling")
     return output
 

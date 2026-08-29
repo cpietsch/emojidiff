@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-29T13:10:00Z
+Updated: 2026-08-29T17:34:49Z
 
 ## Current hypothesis and evidence
 
@@ -48,6 +48,13 @@ segments across eight icons. P96/S384 is lossless for all 4,006 but only 0.2403%
 slot-utilized. Gate C remains open on 37 OOB scalars in 24 icons, 347 nonexact-style
 icons with 311 literal stroke widths, and the sparse fixed-capacity tail.
 
+A complete read-only classification of the 37 OOB scalars found that every one is a
+cubic Bezier control handle; no move, line, quadratic, or cubic endpoint is outside
+0..72. This narrows the question from invalid visible geometry to whether clamping
+legitimate off-canvas curve handles measurably changes the clipped render. The pinned
+24-icon q289 counterfactual harness is implemented but has not yet been registered or
+run, so this classification remains diagnostic rather than completed run evidence.
+
 ## Last completed action and verification
 
 Pinned OpenMoji 17.0.0 at commit
@@ -93,6 +100,13 @@ balanced loss decomposition at all 30 P/S capacities. The regression comparison 
 zero unexplained attempt or hybrid mismatches. Its compact evidence and recovery state
 are checkpointed locally at `88532a5`. No GPU work was performed.
 
+Implemented an OOB-role and render-impact extension for the codec study, plus a pinned
+24-icon fixture selected exactly from the opacity census. It compares the safe q289
+clamp with the same quarter-unit lattice extended outside 0..72 for rendering only;
+P48/S64 covers both representations and exact style vocabularies remove truncation and
+style approximation as confounds. Focused tests pass 26/26, the full suite passes
+57/57, Ruff passes, and strict mypy passes. The implementation is not yet checkpointed.
+
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
@@ -137,6 +151,6 @@ control-plane volume and meaningful GPU work remains blocked.
 
 ## Next smallest evidence-producing action
 
-Classify the 37 out-of-bounds scalars by geometric role and measure the q289 safety
-projection over all 24 affected icons. Keep the GPU server off during this CPU-only
-Gate C probe.
+Checkpoint the OOB probe implementation, register its exact config/fixture identities,
+then measure the q289 safety projection over all 24 affected icons. Keep the GPU server
+off during this CPU-only Gate C probe.

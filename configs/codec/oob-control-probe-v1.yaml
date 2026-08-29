@@ -1,0 +1,38 @@
+schema_version: 2
+probe_version: oob-control-probe-v1
+source_revision: f9fc506a3f913be9897ab0181d611d4c910a4104
+raw_root: data/raw/openmoji/17.0.0
+fixture_manifest: data/manifests/openmoji-17.0.0-oob-fixture-v1.json
+palette_path: data/raw/openmoji/17.0.0/data/color-palette.json
+derived_root: data/processed/oob-control-probe-v1
+report_root: reports/codec/oob-control-probe-v1
+
+codec:
+  # The 24 selected hybrid programs need at most P32/S31; P48/S64 also covers every
+  # outlined comparison and keeps structural loss out of the coordinate experiment.
+  coordinate_bins: [289]
+  budgets:
+    - name: coverage-p48-s64
+      path_slots: 48
+      segments_per_path: 64
+  # Exact values observed over both representations of the pinned fixture.
+  opacities: [0.4, 1.0]
+  stroke_widths: [0.204, 0.25, 1.0, 2.0]
+  dash_patterns:
+    - [5.2132, 5.2132]
+  miter_limits: [4.0, 10.0]
+  max_serialized_bytes: 2000000
+
+projection:
+  allow_truncation: false
+  allow_clamping: true
+
+analysis:
+  # Compare the actual safe q289 clamp with the same quarter-unit lattice extended
+  # outside the viewBox. The latter is a render-only counterfactual, not a proposed
+  # categorical vocabulary or a model-exposed state.
+  compare_unclamped_coordinates: true
+
+render:
+  sizes: [72, 18]
+  timeout_seconds: 5

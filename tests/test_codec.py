@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import json
 from collections.abc import Callable
 from pathlib import Path
 from xml.etree import ElementTree
@@ -10,6 +11,8 @@ import pytest
 
 from mojidiff.representation.codec_study import (
     CodecStudyError,
+    _coordinate_excursions,
+    _quantize_unclamped,
     _write_bytes_artifact,
     load_codec_study_config,
 )
@@ -32,6 +35,7 @@ from mojidiff.representation.program import (
     dequantize_coordinate,
     encode_program,
     quantize_coordinate,
+    serialize_float_svg,
     serialize_svg,
     validate_tensor_program,
 )
@@ -77,6 +81,37 @@ def test_opacity_recovery_probe_has_explicit_schema_v2_projection() -> None:
     assert config.opacities == OPACITY_VOCABULARY
     assert not config.allow_truncation
     assert config.allow_clamping
+
+
+def test_oob_control_probe_is_pinned_and_analysis_only() -> None:
+    root = Path(__file__).resolve().parents[1]
+    config = load_codec_study_config(root / "configs/codec/oob-control-probe-v1.yaml")
+
+    assert config.schema_version == 2
+    assert config.coordinate_bins == (289,)
+    assert config.budgets[0].path_slots == 48
+    assert config.budgets[0].segments_per_path == 64
+    assert not config.allow_truncation
+    assert config.allow_clamping
+    assert config.compare_unclamped_coordinates
+
+    fixture = json.loads(config.fixture_manifest.read_text(encoding="utf-8"))
+    selected = {
+        row["source_path"]: row["parent_out_of_bounds_coordinates"]
+        for row in fixture["rows"]
+    }
+    parent = [
+        json.loads(line)
+        for line in (root / fixture["selection"]["parent_hybrid"]).read_text().splitlines()
+    ]
+    expected = {
+        row["source_path"]: row["out_of_bounds_coordinates"]
+        for row in parent
+        if row["out_of_bounds_coordinates"] > 0
+    }
+    assert selected == expected
+    assert len(selected) == 24
+    assert sum(selected.values()) == 37
 
 
 def test_codec_study_artifacts_are_create_or_identical(tmp_path: Path) -> None:
@@ -249,6 +284,35 @@ def test_multi_move_contours_recombine_into_one_compound_path() -> None:
     paths = list(root)
     assert len(paths) == 1
     assert paths[0].attrib["d"].count("M") == 2
+
+
+def test_oob_analysis_classifies_control_handles_and_preserves_counterfactual() -> None:
+    program = FloatProgram(
+        (
+            _contour(
+                start=(-1.0, 2.0),
+                segments=(
+                    FloatSegment(SegmentType.CUBIC, (10.0, 73.0, 20.0, 30.0, 40.0, 50.0)),
+                ),
+            ),
+        )
+    )
+
+    excursions = _coordinate_excursions(program)
+    assert [(item["segment_type"], item["role"], item["axis"]) for item in excursions] == [
+        ("move", "endpoint", "x"),
+        ("cubic", "control", "y"),
+    ]
+    quantized = _quantize_unclamped(program, 289)
+    assert quantized.contours[0].start == (-1.0, 2.0)
+    assert quantized.contours[0].segments[0].coords[1] == 73.0
+    counterfactual = serialize_float_svg(quantized, max_serialized_bytes=20_000)
+    assert b"M -1.0 2.0" in counterfactual
+    assert b"10.0 73.0" in counterfactual
+
+    tensor, report = encode_program(program, _config(coordinate_bins=289), allow_clamping=True)
+    assert report.clamped_coordinates == 2
+    assert counterfactual != serialize_svg(tensor, _config(coordinate_bins=289))
 
 
 def test_serializer_is_deterministic_and_uses_only_allowed_xml() -> None:

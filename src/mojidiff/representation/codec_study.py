@@ -11,7 +11,7 @@ import subprocess
 import tempfile
 from collections import defaultdict
 from collections.abc import Sequence
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from importlib.metadata import version
 from pathlib import Path
 from typing import Any, cast
@@ -23,13 +23,16 @@ from picosvg.svg import SVG
 from mojidiff.curation.audit import _render
 from mojidiff.representation.normalizer import NormalizationError, normalize_svg
 from mojidiff.representation.program import (
+    VIEWBOX_SIZE,
     CodecConfig,
     CodecError,
     EncodingReport,
     FloatProgram,
+    SegmentType,
     TensorProgram,
     decode_program,
     encode_program,
+    serialize_float_svg,
     serialize_svg,
 )
 from mojidiff.representation.study import _similarity
@@ -67,6 +70,7 @@ class CodecStudyConfig:
     render_timeout_seconds: int
     allow_truncation: bool
     allow_clamping: bool
+    compare_unclamped_coordinates: bool
 
 
 def load_codec_study_config(path: Path) -> CodecStudyConfig:
@@ -95,6 +99,15 @@ def load_codec_study_config(path: Path) -> CodecStudyConfig:
         projection = _mapping(root.get("projection"), "projection")
         allow_truncation = _boolean(projection.get("allow_truncation"), "allow_truncation")
         allow_clamping = _boolean(projection.get("allow_clamping"), "allow_clamping")
+    raw_analysis = root.get("analysis")
+    if raw_analysis is None:
+        compare_unclamped_coordinates = False
+    else:
+        analysis = _mapping(raw_analysis, "analysis")
+        compare_unclamped_coordinates = _boolean(
+            analysis.get("compare_unclamped_coordinates"),
+            "analysis.compare_unclamped_coordinates",
+        )
     render = _mapping(root.get("render"), "render")
     raw_budgets = _sequence(codec.get("budgets"), "codec.budgets")
     budgets: list[CodecBudget] = []
@@ -154,6 +167,7 @@ def load_codec_study_config(path: Path) -> CodecStudyConfig:
         ),
         allow_truncation=allow_truncation,
         allow_clamping=allow_clamping,
+        compare_unclamped_coordinates=compare_unclamped_coordinates,
     )
 
 
@@ -242,12 +256,9 @@ def run_codec_study(config: CodecStudyConfig, config_path: Path) -> dict[str, An
         if fixture.get("source_revision") != config.source_revision:
             raise CodecStudyError("schema_version 2 fixture source_revision mismatch")
         selection = _mapping(fixture.get("selection"), "fixture.selection")
-        parent_summary = Path(_string(selection, "parent_summary"))
-        if parent_summary.is_absolute() or ".." in parent_summary.parts:
-            raise CodecStudyError("fixture parent_summary must be a safe repository path")
-        expected_parent_sha = _string(selection, "parent_summary_sha256")
-        if _file_sha256(parent_summary) != expected_parent_sha:
-            raise CodecStudyError("fixture parent_summary hash mismatch")
+        _verify_fixture_parent(selection, "parent_summary")
+        if "parent_hybrid" in selection or "parent_hybrid_sha256" in selection:
+            _verify_fixture_parent(selection, "parent_hybrid")
     rows = _sequence(fixture.get("rows"), "fixture.rows")
     palette = _palette(config.palette_path)
     normalization_rows: list[dict[str, Any]] = []
@@ -342,6 +353,7 @@ def run_codec_study(config: CodecStudyConfig, config_path: Path) -> dict[str, An
                             if contour.stroke is not None and contour.dash_pattern
                         }
                     ),
+                    "coordinate_excursions": _coordinate_excursions(program),
                 }
             )
             for budget in config.budgets:
@@ -449,6 +461,26 @@ def _round_trip(
             / relative
         )
         _write_bytes_artifact(output_path, svg_bytes)
+        counterfactual_bytes: bytes | None = None
+        counterfactual_renders: dict[int, np.ndarray[Any, Any]] = {}
+        if config.compare_unclamped_coordinates:
+            counterfactual = _quantize_unclamped(program, bins)
+            counterfactual_bytes = serialize_float_svg(
+                counterfactual,
+                max_serialized_bytes=config.max_serialized_bytes,
+            )
+            counterfactual_path = (
+                config.derived_root
+                / "unclamped-counterfactual"
+                / str(identity["representation"])
+                / str(bins)
+                / relative
+            )
+            _write_bytes_artifact(counterfactual_path, counterfactual_bytes)
+            counterfactual_renders = {
+                size: _render(counterfactual_bytes, size, config.render_timeout_seconds)[1]
+                for size in config.render_sizes
+            }
         result.update(
             {
                 "ok": True,
@@ -461,6 +493,14 @@ def _round_trip(
                 "strict_lossless": strict_lossless,
                 "strict_error": strict_error,
                 "safety_projection_applied": not report.lossless,
+                "unclamped_counterfactual_sha256": (
+                    None
+                    if counterfactual_bytes is None
+                    else hashlib.sha256(counterfactual_bytes).hexdigest()
+                ),
+                "unclamped_counterfactual_bytes": (
+                    None if counterfactual_bytes is None else len(counterfactual_bytes)
+                ),
                 **_report_fields(report),
             }
         )
@@ -468,6 +508,12 @@ def _round_trip(
             candidate = _render(svg_bytes, size, config.render_timeout_seconds)[1]
             for field, value in _similarity(baseline, candidate).items():
                 result[f"{field}_{size}"] = value
+            if counterfactual_renders:
+                unclamped = counterfactual_renders[size]
+                for field, value in _similarity(baseline, unclamped).items():
+                    result[f"unclamped_{field}_{size}"] = value
+                for field, value in _similarity(unclamped, candidate).items():
+                    result[f"clamp_increment_{field}_{size}"] = value
     except Exception as exc:
         result.update(
             {
@@ -480,6 +526,95 @@ def _round_trip(
             }
         )
     return result
+
+
+def _coordinate_excursions(program: FloatProgram) -> list[dict[str, Any]]:
+    """Describe every coordinate outside the tensor vocabulary by geometric role."""
+
+    excursions: list[dict[str, Any]] = []
+    for contour_index, contour in enumerate(program.contours):
+        for coordinate_index, value in enumerate(contour.start):
+            if value < 0 or value > VIEWBOX_SIZE:
+                excursions.append(
+                    _excursion(
+                        contour_index=contour_index,
+                        layer=contour.layer,
+                        segment_index=None,
+                        segment_type="move",
+                        role="endpoint",
+                        coordinate_index=coordinate_index,
+                        value=value,
+                    )
+                )
+        for segment_index, segment in enumerate(contour.segments):
+            endpoint_start = {
+                SegmentType.LINE: 0,
+                SegmentType.QUAD: 2,
+                SegmentType.CUBIC: 4,
+                SegmentType.CLOSE: 0,
+            }[segment.kind]
+            for coordinate_index, value in enumerate(segment.coords):
+                if value < 0 or value > VIEWBOX_SIZE:
+                    excursions.append(
+                        _excursion(
+                            contour_index=contour_index,
+                            layer=contour.layer,
+                            segment_index=segment_index,
+                            segment_type=segment.kind.name.lower(),
+                            role="endpoint" if coordinate_index >= endpoint_start else "control",
+                            coordinate_index=coordinate_index,
+                            value=value,
+                        )
+                    )
+    return excursions
+
+
+def _excursion(
+    *,
+    contour_index: int,
+    layer: int,
+    segment_index: int | None,
+    segment_type: str,
+    role: str,
+    coordinate_index: int,
+    value: float,
+) -> dict[str, Any]:
+    bound = 0.0 if value < 0 else VIEWBOX_SIZE
+    return {
+        "contour_index": contour_index,
+        "layer": layer,
+        "segment_index": segment_index,
+        "segment_type": segment_type,
+        "role": role,
+        "coordinate_index": coordinate_index,
+        "axis": "x" if coordinate_index % 2 == 0 else "y",
+        "side": "below" if value < 0 else "above",
+        "value": value,
+        "distance_outside": abs(value - bound),
+    }
+
+
+def _quantize_unclamped(program: FloatProgram, bins: int) -> FloatProgram:
+    """Extend the configured lattice beyond 0..72 for an analysis-only counterfactual."""
+
+    step = VIEWBOX_SIZE / (bins - 1)
+
+    def quantize(values: tuple[float, ...]) -> tuple[float, ...]:
+        return tuple(math.floor(value / step + 0.5) * step for value in values)
+
+    return FloatProgram(
+        tuple(
+            replace(
+                contour,
+                start=cast(tuple[float, float], quantize(contour.start)),
+                segments=tuple(
+                    replace(segment, coords=quantize(segment.coords))
+                    for segment in contour.segments
+                ),
+            )
+            for contour in program.contours
+        )
+    )
 
 
 def _report_fields(report: EncodingReport) -> dict[str, Any]:
@@ -553,6 +688,15 @@ def _file_sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _verify_fixture_parent(selection: dict[str, Any], field: str) -> None:
+    parent = Path(_string(selection, field))
+    if parent.is_absolute() or ".." in parent.parts:
+        raise CodecStudyError(f"fixture {field} must be a safe repository path")
+    expected_sha = _string(selection, f"{field}_sha256")
+    if _file_sha256(parent) != expected_sha:
+        raise CodecStudyError(f"fixture {field} hash mismatch")
+
+
 def _code_identity() -> dict[str, str]:
     repository = Path(__file__).resolve().parents[3]
     try:
@@ -590,6 +734,28 @@ def _summarize(
     comparisons: dict[str, Any] = {}
     for key, rows in sorted(groups.items()):
         successful = [row for row in rows if row.get("ok")]
+        metric_fields = [
+            "rgba_mae_72",
+            "rgba_mae_18",
+            "alpha_iou_72",
+            "alpha_iou_18",
+            "pixel_exact_fraction_72",
+            "pixel_exact_fraction_18",
+            "serialized_bytes",
+        ]
+        if config.compare_unclamped_coordinates:
+            metric_fields.extend(
+                (
+                    "unclamped_rgba_mae_72",
+                    "unclamped_rgba_mae_18",
+                    "clamp_increment_rgba_mae_72",
+                    "clamp_increment_rgba_mae_18",
+                    "clamp_increment_alpha_iou_72",
+                    "clamp_increment_alpha_iou_18",
+                    "clamp_increment_pixel_exact_fraction_72",
+                    "clamp_increment_pixel_exact_fraction_18",
+                )
+            )
         comparisons[key] = {
             "attempted": len(rows),
             "successful": len(successful),
@@ -633,17 +799,14 @@ def _summarize(
             ),
             "metrics": {
                 field: _stats(successful, field)
-                for field in (
-                    "rgba_mae_72",
-                    "rgba_mae_18",
-                    "alpha_iou_72",
-                    "alpha_iou_18",
-                    "pixel_exact_fraction_72",
-                    "pixel_exact_fraction_18",
-                    "serialized_bytes",
-                )
+                for field in metric_fields
             },
             "worst_rgba_mae_18": _worst(successful, "rgba_mae_18", 8),
+            "worst_clamp_increment_rgba_mae_18": (
+                _worst(successful, "clamp_increment_rgba_mae_18", 8)
+                if config.compare_unclamped_coordinates
+                else []
+            ),
             "errors": [
                 {"hexcode": row["hexcode"], "error": row.get("error")}
                 for row in rows
@@ -654,6 +817,11 @@ def _summarize(
     for representation in ("semantic", "outlined"):
         rows = [row for row in normalization if row["representation"] == representation]
         successful = [row for row in rows if row.get("ok")]
+        excursions = [
+            excursion
+            for row in successful
+            for excursion in cast(list[dict[str, Any]], row.get("coordinate_excursions", []))
+        ]
         normalization_summary[representation] = {
             "attempted": len(rows),
             "successful": len(successful),
@@ -675,6 +843,14 @@ def _summarize(
             "icons_with_out_of_bounds_coordinates": sum(
                 row.get("out_of_bounds_coordinates", 0) > 0 for row in successful
             ),
+            "coordinate_excursions": {
+                "count": len(excursions),
+                "by_role": _counts(excursions, "role"),
+                "by_segment_type": _counts(excursions, "segment_type"),
+                "by_axis": _counts(excursions, "axis"),
+                "by_side": _counts(excursions, "side"),
+                "distance_outside": _stats(excursions, "distance_outside"),
+            },
             "icons_with_partial_opacity": sum(
                 row.get("partially_opaque_layers", 0) > 0 for row in successful
             ),
@@ -725,6 +901,15 @@ def _summarize(
             "allow_truncation": config.allow_truncation,
             "allow_clamping": config.allow_clamping,
         },
+        "analysis": {
+            "compare_unclamped_coordinates": config.compare_unclamped_coordinates,
+            "unclamped_counterfactual": (
+                "same coordinate lattice extended beyond 0..72; analysis-only and not a "
+                "model vocabulary"
+                if config.compare_unclamped_coordinates
+                else None
+            ),
+        },
         "codec": {
             "coordinate_bins": list(config.coordinate_bins),
             "budgets": [asdict(budget) for budget in config.budgets],
@@ -755,6 +940,13 @@ def _stats(rows: list[dict[str, Any]], field: str) -> dict[str, float | int | No
         "p95": float(np.quantile(values, 0.95)) if len(values) else None,
         "max": float(values.max()) if len(values) else None,
     }
+
+
+def _counts(rows: list[dict[str, Any]], field: str) -> dict[str, int]:
+    counts: dict[str, int] = defaultdict(int)
+    for row in rows:
+        counts[str(row[field])] += 1
+    return dict(sorted(counts.items()))
 
 
 def _worst(rows: list[dict[str, Any]], field: str, count: int) -> list[dict[str, Any]]:
@@ -805,6 +997,29 @@ def _markdown(summary: dict[str, Any]) -> str:
             "",
         )
     )
+    if summary["analysis"]["compare_unclamped_coordinates"]:
+        lines.extend(
+            (
+                "## Out-of-bounds coordinate projection",
+                "",
+                "The unclamped comparison extends the same coordinate lattice outside 0..72 "
+                "for rendering only. It is not a proposed model vocabulary.",
+                "",
+                "| representation / budget / bins | clamp MAE 72 median/max | "
+                "clamp MAE 18 median/max |",
+                "|---|---:|---:|",
+            )
+        )
+        for key, item in summary["comparisons"].items():
+            metrics = item["metrics"]
+            at_72 = metrics["clamp_increment_rgba_mae_72"]
+            at_18 = metrics["clamp_increment_rgba_mae_18"]
+            lines.append(
+                f"| {key.replace('|', ' / ')} | {_format(at_72['median'])}/"
+                f"{_format(at_72['max'])} | {_format(at_18['median'])}/"
+                f"{_format(at_18['max'])} |"
+            )
+        lines.append("")
     return "\n".join(lines)
 
 
