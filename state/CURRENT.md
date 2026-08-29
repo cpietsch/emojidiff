@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-29T17:34:49Z
+Updated: 2026-08-29T17:37:16Z
 
 ## Current hypothesis and evidence
 
@@ -48,12 +48,13 @@ segments across eight icons. P96/S384 is lossless for all 4,006 but only 0.2403%
 slot-utilized. Gate C remains open on 37 OOB scalars in 24 icons, 347 nonexact-style
 icons with 311 literal stroke widths, and the sparse fixed-capacity tail.
 
-A complete read-only classification of the 37 OOB scalars found that every one is a
-cubic Bezier control handle; no move, line, quadratic, or cubic endpoint is outside
-0..72. This narrows the question from invalid visible geometry to whether clamping
-legitimate off-canvas curve handles measurably changes the clipped render. The pinned
-24-icon q289 counterfactual harness is implemented but has not yet been registered or
-run, so this classification remains diagnostic rather than completed run evidence.
+The complete OOB probe confirms that all 37 hybrid excursions are cubic Bezier control
+handles; no visible endpoint is outside 0..72. Median clamp-only drift is small, but
+the tail falsifies viewBox clamping as a safe primary rule. At 18 px, five semantic
+icons exceed 0.001 RGBA MAE and two exceed 0.01. `1F4AB` is visibly broken (MAE
+0.03812, alpha IoU 0.8641), while clamping the eye/speech-bubble icon removes most of
+its interior (MAE 0.02015). Outlining does not repair those tail cases. Keep endpoints
+on q289, but test a separate bounded control-handle vocabulary before closing Gate C.
 
 ## Last completed action and verification
 
@@ -100,12 +101,13 @@ balanced loss decomposition at all 30 P/S capacities. The regression comparison 
 zero unexplained attempt or hybrid mismatches. Its compact evidence and recovery state
 are checkpointed locally at `88532a5`. No GPU work was performed.
 
-Implemented an OOB-role and render-impact extension for the codec study, plus a pinned
-24-icon fixture selected exactly from the opacity census. It compares the safe q289
-clamp with the same quarter-unit lattice extended outside 0..72 for rendering only;
-P48/S64 covers both representations and exact style vocabularies remove truncation and
-style approximation as confounds. Focused tests pass 26/26, the full suite passes
-57/57, Ruff passes, and strict mypy passes. The implementation is not yet checkpointed.
+Implemented and checkpointed the OOB-role/render-impact harness at `bc6459b`, then ran
+`oob-control-probe-v1-bc6459b-16c43292-8469ae8f`. All 48 semantic/outlined programs
+normalize, encode, decode, serialize, and render stably with no truncation or style
+approximation. A second full invocation reproduced every immutable output exactly.
+Visual inspection confirms catastrophic tail deformation for the two worst icons.
+Focused tests pass 26/26, the full suite passes 57/57, Ruff passes, and strict mypy
+passes. No GPU work was performed.
 
 ## Active jobs
 
@@ -120,8 +122,9 @@ persistent workspace. Curation, representation, typed-codec, and aligned-grid co
 evidence is versioned locally through `2099f3d`; the 26 MB full-primary report is
 versioned at `1063fc7`, the opacity codec at `e31273c`, and the 64 KB opacity evidence
 at `86f7d03`; the 32 MB full-primary opacity report is versioned at `88532a5`. Nothing
-was pushed. The opacity probe's 260 KB derived SVGs are reproducible but local-only. No
-external artifact sink is
+was pushed. The 216 KB OOB compact report is pending its local evidence checkpoint;
+its 812 KB derived SVGs and the opacity probe's 260 KB derived SVGs are reproducible
+but local-only. No external artifact sink is
 configured or verified, so bulk artifacts are not durable against loss of the
 control-plane volume and meaningful GPU work remains blocked.
 
@@ -151,6 +154,7 @@ control-plane volume and meaningful GPU work remains blocked.
 
 ## Next smallest evidence-producing action
 
-Checkpoint the OOB probe implementation, register its exact config/fixture identities,
-then measure the q289 safety projection over all 24 affected icons. Keep the GPU server
-off during this CPU-only Gate C probe.
+Checkpoint the negative OOB result, then implement and test a distinct quarter-unit
+`[-8, 96]` control-handle vocabulary (417 values) while retaining q289 for endpoints.
+Re-run the complete 24-icon slice before addressing style categories or capacity. Keep
+the GPU server off during this CPU-only Gate C experiment.

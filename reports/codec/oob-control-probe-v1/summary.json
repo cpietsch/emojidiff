@@ -1,0 +1,1092 @@
+{
+  "analysis": {
+    "compare_unclamped_coordinates": true,
+    "unclamped_counterfactual": "same coordinate lattice extended beyond 0..72; analysis-only and not a model vocabulary"
+  },
+  "cairosvg_version": "2.9.0",
+  "code_identity": {
+    "codec_study_sha256": "5fda25f873bd5711ec973002bd3bf739f707f31518b390c53d36b5deba53ee20",
+    "git_commit": "bc6459b36aee8775c62c9b1e52a1a02dda56c0bb",
+    "normalizer_sha256": "f65c08aee3e0b9d9e6db6b6a9889761e7144fffd5841e89f926047c7ac497281",
+    "program_sha256": "7c23960339b4277c578fea88a7a9f206a0607fa35fe0d1fc95224fcecf9b1a8b"
+  },
+  "codec": {
+    "budgets": [
+      {
+        "name": "coverage-p48-s64",
+        "path_slots": 48,
+        "segments_per_path": 64
+      }
+    ],
+    "coordinate_bins": [
+      289
+    ],
+    "dash_patterns": [
+      [
+        5.2132,
+        5.2132
+      ]
+    ],
+    "miter_limits": [
+      4.0,
+      10.0
+    ],
+    "opacities": [
+      0.4,
+      1.0
+    ],
+    "stroke_widths": [
+      0.204,
+      0.25,
+      1.0,
+      2.0
+    ]
+  },
+  "comparisons": {
+    "outlined|coverage-p48-s64|q289": {
+      "attempted": 24,
+      "dropped_contours": 0,
+      "dropped_segments": 0,
+      "errors": [],
+      "failures": 0,
+      "icons_with_coordinate_clamping": 22,
+      "icons_with_path_truncation": 0,
+      "icons_with_safety_projection": 22,
+      "icons_with_segment_truncation": 0,
+      "metrics": {
+        "alpha_iou_18": {
+          "count": 24,
+          "max": 1.0,
+          "median": 0.9933906290899572,
+          "min": 0.984375,
+          "p95": 1.0
+        },
+        "alpha_iou_72": {
+          "count": 24,
+          "max": 1.0,
+          "median": 0.9945454545454545,
+          "min": 0.8836307214895268,
+          "p95": 1.0
+        },
+        "clamp_increment_alpha_iou_18": {
+          "count": 24,
+          "max": 1.0,
+          "median": 1.0,
+          "min": 0.9903846153846154,
+          "p95": 1.0
+        },
+        "clamp_increment_alpha_iou_72": {
+          "count": 24,
+          "max": 1.0,
+          "median": 1.0,
+          "min": 0.8895800933125972,
+          "p95": 1.0
+        },
+        "clamp_increment_pixel_exact_fraction_18": {
+          "count": 24,
+          "max": 1.0,
+          "median": 0.9660493827160493,
+          "min": 0.8425925925925926,
+          "p95": 1.0
+        },
+        "clamp_increment_pixel_exact_fraction_72": {
+          "count": 24,
+          "max": 1.0,
+          "median": 0.9984567901234568,
+          "min": 0.9322916666666666,
+          "p95": 1.0
+        },
+        "clamp_increment_rgba_mae_18": {
+          "count": 24,
+          "max": 0.031439118857419505,
+          "median": 0.0002178649237472767,
+          "min": 0.0,
+          "p95": 0.010196078431372529
+        },
+        "clamp_increment_rgba_mae_72": {
+          "count": 24,
+          "max": 0.02820216049382716,
+          "median": 6.051803437424352e-06,
+          "min": 0.0,
+          "p95": 0.006744526900266265
+        },
+        "pixel_exact_fraction_18": {
+          "count": 24,
+          "max": 0.7561728395061729,
+          "median": 0.6527777777777778,
+          "min": 0.5462962962962963,
+          "p95": 0.7345679012345679
+        },
+        "pixel_exact_fraction_72": {
+          "count": 24,
+          "max": 0.9151234567901234,
+          "median": 0.8572530864197532,
+          "min": 0.8177083333333334,
+          "p95": 0.8897858796296296
+        },
+        "rgba_mae_18": {
+          "count": 24,
+          "max": 0.03264645364318566,
+          "median": 0.0037324497700314697,
+          "min": 0.0017762043088840474,
+          "p95": 0.014206608569353648
+        },
+        "rgba_mae_72": {
+          "count": 24,
+          "max": 0.02940136316872428,
+          "median": 0.0027982971738077945,
+          "min": 0.001201282982328734,
+          "p95": 0.008615214990317102
+        },
+        "serialized_bytes": {
+          "count": 24,
+          "max": 8042.0,
+          "median": 4357.0,
+          "min": 1709.0,
+          "p95": 7231.0
+        },
+        "unclamped_rgba_mae_18": {
+          "count": 24,
+          "max": 0.006469377874606633,
+          "median": 0.0033360566448801744,
+          "min": 0.0015190026627935125,
+          "p95": 0.005994765190026627
+        },
+        "unclamped_rgba_mae_72": {
+          "count": 24,
+          "max": 0.003778216533526991,
+          "median": 0.0027087493948196564,
+          "min": 0.0011990135560396998,
+          "p95": 0.003650201978939723
+        }
+      },
+      "segments_dropped_by_path_budget": 0,
+      "segments_dropped_by_segment_budget": 0,
+      "strict_encode_failures": 22,
+      "strict_lossy_encodings": 0,
+      "strict_projection_cases": [
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F31A",
+          "source_path": "color/svg/1F31A.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F31D",
+          "source_path": "color/svg/1F31D.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 2,
+          "hexcode": "1F3AE",
+          "source_path": "color/svg/1F3AE.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F3D3",
+          "source_path": "color/svg/1F3D3.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F441-FE0F-200D-1F5E8-FE0F",
+          "source_path": "color/svg/1F441-FE0F-200D-1F5E8-FE0F.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 2,
+          "hexcode": "1F460",
+          "source_path": "color/svg/1F460.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F4AA-1F3FB",
+          "source_path": "color/svg/1F4AA-1F3FB.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F4AA-1F3FC",
+          "source_path": "color/svg/1F4AA-1F3FC.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F4AA-1F3FD",
+          "source_path": "color/svg/1F4AA-1F3FD.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F4AA-1F3FE",
+          "source_path": "color/svg/1F4AA-1F3FE.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F4AA-1F3FF",
+          "source_path": "color/svg/1F4AA-1F3FF.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F4AA",
+          "source_path": "color/svg/1F4AA.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 4,
+          "hexcode": "1F4AB",
+          "source_path": "color/svg/1F4AB.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F981",
+          "source_path": "color/svg/1F981.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F9BB-1F3FB",
+          "source_path": "color/svg/1F9BB-1F3FB.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F9BB-1F3FC",
+          "source_path": "color/svg/1F9BB-1F3FC.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F9BB-1F3FD",
+          "source_path": "color/svg/1F9BB-1F3FD.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F9BB-1F3FE",
+          "source_path": "color/svg/1F9BB-1F3FE.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F9BB-1F3FF",
+          "source_path": "color/svg/1F9BB-1F3FF.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F9BB",
+          "source_path": "color/svg/1F9BB.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F9FB",
+          "source_path": "color/svg/1F9FB.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "E31E",
+          "source_path": "color/svg/E31E.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        }
+      ],
+      "successful": 24,
+      "worst_clamp_increment_rgba_mae_18": [
+        {
+          "clamp_increment_rgba_mae_18": 0.031439118857419505,
+          "clamped_coordinates": 4,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F4AB",
+          "source_path": "color/svg/1F4AB.svg"
+        },
+        {
+          "clamp_increment_rgba_mae_18": 0.011628540305010893,
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F441-FE0F-200D-1F5E8-FE0F",
+          "source_path": "color/svg/1F441-FE0F-200D-1F5E8-FE0F.svg"
+        },
+        {
+          "clamp_increment_rgba_mae_18": 0.002078794480755265,
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "E31E",
+          "source_path": "color/svg/E31E.svg"
+        },
+        {
+          "clamp_increment_rgba_mae_18": 0.000720164609053498,
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F3D3",
+          "source_path": "color/svg/1F3D3.svg"
+        },
+        {
+          "clamp_increment_rgba_mae_18": 0.0006082062454611474,
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F9BB-1F3FB",
+          "source_path": "color/svg/1F9BB-1F3FB.svg"
+        },
+        {
+          "clamp_increment_rgba_mae_18": 0.00058399903171145,
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F9BB",
+          "source_path": "color/svg/1F9BB.svg"
+        },
+        {
+          "clamp_increment_rgba_mae_18": 0.0005658436213991769,
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F9BB-1F3FC",
+          "source_path": "color/svg/1F9BB-1F3FC.svg"
+        },
+        {
+          "clamp_increment_rgba_mae_18": 0.00045993706124425077,
+          "clamped_coordinates": 2,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F460",
+          "source_path": "color/svg/1F460.svg"
+        }
+      ],
+      "worst_rgba_mae_18": [
+        {
+          "clamped_coordinates": 4,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F4AB",
+          "rgba_mae_18": 0.03264645364318566,
+          "source_path": "color/svg/1F4AB.svg"
+        },
+        {
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F441-FE0F-200D-1F5E8-FE0F",
+          "rgba_mae_18": 0.015577342047930284,
+          "source_path": "color/svg/1F441-FE0F-200D-1F5E8-FE0F.svg"
+        },
+        {
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F31D",
+          "rgba_mae_18": 0.006439118857419511,
+          "source_path": "color/svg/1F31D.svg"
+        },
+        {
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F9BB-1F3FB",
+          "rgba_mae_18": 0.005864197530864198,
+          "source_path": "color/svg/1F9BB-1F3FB.svg"
+        },
+        {
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F9BB-1F3FC",
+          "rgba_mae_18": 0.005552529653836843,
+          "source_path": "color/svg/1F9BB-1F3FC.svg"
+        },
+        {
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F4AA-1F3FB",
+          "rgba_mae_18": 0.00506233357540547,
+          "source_path": "color/svg/1F4AA-1F3FB.svg"
+        },
+        {
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "E31E",
+          "rgba_mae_18": 0.004750665698378116,
+          "source_path": "color/svg/E31E.svg"
+        },
+        {
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F9BB",
+          "rgba_mae_18": 0.004696199467441297,
+          "source_path": "color/svg/1F9BB.svg"
+        }
+      ]
+    },
+    "semantic|coverage-p48-s64|q289": {
+      "attempted": 24,
+      "dropped_contours": 0,
+      "dropped_segments": 0,
+      "errors": [],
+      "failures": 0,
+      "icons_with_coordinate_clamping": 24,
+      "icons_with_path_truncation": 0,
+      "icons_with_safety_projection": 24,
+      "icons_with_segment_truncation": 0,
+      "metrics": {
+        "alpha_iou_18": {
+          "count": 24,
+          "max": 1.0,
+          "median": 0.9961240310077519,
+          "min": 0.8557692307692307,
+          "p95": 1.0
+        },
+        "alpha_iou_72": {
+          "count": 24,
+          "max": 1.0,
+          "median": 0.994987468411468,
+          "min": 0.8400621118012422,
+          "p95": 0.999896978021978
+        },
+        "clamp_increment_alpha_iou_18": {
+          "count": 24,
+          "max": 1.0,
+          "median": 1.0,
+          "min": 0.8640776699029126,
+          "p95": 1.0
+        },
+        "clamp_increment_alpha_iou_72": {
+          "count": 24,
+          "max": 1.0,
+          "median": 1.0,
+          "min": 0.8410852713178295,
+          "p95": 1.0
+        },
+        "clamp_increment_pixel_exact_fraction_18": {
+          "count": 24,
+          "max": 1.0,
+          "median": 0.9660493827160493,
+          "min": 0.8333333333333334,
+          "p95": 1.0
+        },
+        "clamp_increment_pixel_exact_fraction_72": {
+          "count": 24,
+          "max": 1.0,
+          "median": 0.9949845679012346,
+          "min": 0.9103009259259259,
+          "p95": 1.0
+        },
+        "clamp_increment_rgba_mae_18": {
+          "count": 24,
+          "max": 0.03811728395061728,
+          "median": 0.00027687000726216415,
+          "min": 0.0,
+          "p95": 0.017631626724763944
+        },
+        "clamp_increment_rgba_mae_72": {
+          "count": 24,
+          "max": 0.03132432371096587,
+          "median": 0.00011422778988138465,
+          "min": 0.0,
+          "p95": 0.017793124773057337
+        },
+        "pixel_exact_fraction_18": {
+          "count": 24,
+          "max": 0.7808641975308642,
+          "median": 0.6589506172839507,
+          "min": 0.5648148148148148,
+          "p95": 0.7688271604938272
+        },
+        "pixel_exact_fraction_72": {
+          "count": 24,
+          "max": 0.9097222222222222,
+          "median": 0.857445987654321,
+          "min": 0.8198302469135802,
+          "p95": 0.9069058641975308
+        },
+        "rgba_mae_18": {
+          "count": 24,
+          "max": 0.03908557250060518,
+          "median": 0.0029199951585572505,
+          "min": 0.0016188574195110143,
+          "p95": 0.02133442265795203
+        },
+        "rgba_mae_72": {
+          "count": 24,
+          "max": 0.03205110748002905,
+          "median": 0.0024339596949891065,
+          "min": 0.0008109416606148632,
+          "p95": 0.019335058097312965
+        },
+        "serialized_bytes": {
+          "count": 24,
+          "max": 6477.0,
+          "median": 2874.0,
+          "min": 1013.0,
+          "p95": 5980.599999999995
+        },
+        "unclamped_rgba_mae_18": {
+          "count": 24,
+          "max": 0.00515916243040426,
+          "median": 0.0027520576131687246,
+          "min": 0.0010076252723311546,
+          "p95": 0.004789397240377631
+        },
+        "unclamped_rgba_mae_72": {
+          "count": 24,
+          "max": 0.0039102214960058095,
+          "median": 0.0020674473493100943,
+          "min": 0.0008014857177438877,
+          "p95": 0.0031300494734931013
+        }
+      },
+      "segments_dropped_by_path_budget": 0,
+      "segments_dropped_by_segment_budget": 0,
+      "strict_encode_failures": 24,
+      "strict_lossy_encodings": 0,
+      "strict_projection_cases": [
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F31A",
+          "source_path": "color/svg/1F31A.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F31D",
+          "source_path": "color/svg/1F31D.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F347",
+          "source_path": "color/svg/1F347.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 4,
+          "hexcode": "1F3AE",
+          "source_path": "color/svg/1F3AE.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 2,
+          "hexcode": "1F3D3",
+          "source_path": "color/svg/1F3D3.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 2,
+          "hexcode": "1F441-FE0F-200D-1F5E8-FE0F",
+          "source_path": "color/svg/1F441-FE0F-200D-1F5E8-FE0F.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F454",
+          "source_path": "color/svg/1F454.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 4,
+          "hexcode": "1F460",
+          "source_path": "color/svg/1F460.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F4AA-1F3FB",
+          "source_path": "color/svg/1F4AA-1F3FB.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F4AA-1F3FC",
+          "source_path": "color/svg/1F4AA-1F3FC.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F4AA-1F3FD",
+          "source_path": "color/svg/1F4AA-1F3FD.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F4AA-1F3FE",
+          "source_path": "color/svg/1F4AA-1F3FE.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F4AA-1F3FF",
+          "source_path": "color/svg/1F4AA-1F3FF.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F4AA",
+          "source_path": "color/svg/1F4AA.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 5,
+          "hexcode": "1F4AB",
+          "source_path": "color/svg/1F4AB.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F981",
+          "source_path": "color/svg/1F981.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F9BB-1F3FB",
+          "source_path": "color/svg/1F9BB-1F3FB.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F9BB-1F3FC",
+          "source_path": "color/svg/1F9BB-1F3FC.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F9BB-1F3FD",
+          "source_path": "color/svg/1F9BB-1F3FD.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F9BB-1F3FE",
+          "source_path": "color/svg/1F9BB-1F3FE.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F9BB-1F3FF",
+          "source_path": "color/svg/1F9BB-1F3FF.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F9BB",
+          "source_path": "color/svg/1F9BB.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 1,
+          "hexcode": "1F9FB",
+          "source_path": "color/svg/1F9FB.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        },
+        {
+          "approximated_miter_limits": 0,
+          "approximated_stroke_widths": 0,
+          "clamped_coordinates": 2,
+          "hexcode": "E31E",
+          "source_path": "color/svg/E31E.svg",
+          "strict_error": "CodecError:coordinate is outside 0..72 and clamping is disabled"
+        }
+      ],
+      "successful": 24,
+      "worst_clamp_increment_rgba_mae_18": [
+        {
+          "clamp_increment_rgba_mae_18": 0.03811728395061728,
+          "clamped_coordinates": 5,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F4AB",
+          "source_path": "color/svg/1F4AB.svg"
+        },
+        {
+          "clamp_increment_rgba_mae_18": 0.020152505446623094,
+          "clamped_coordinates": 2,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F441-FE0F-200D-1F5E8-FE0F",
+          "source_path": "color/svg/1F441-FE0F-200D-1F5E8-FE0F.svg"
+        },
+        {
+          "clamp_increment_rgba_mae_18": 0.003346647300895667,
+          "clamped_coordinates": 2,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "E31E",
+          "source_path": "color/svg/E31E.svg"
+        },
+        {
+          "clamp_increment_rgba_mae_18": 0.0018094892277898814,
+          "clamped_coordinates": 4,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F460",
+          "source_path": "color/svg/1F460.svg"
+        },
+        {
+          "clamp_increment_rgba_mae_18": 0.001358629871701767,
+          "clamped_coordinates": 2,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F3D3",
+          "source_path": "color/svg/1F3D3.svg"
+        },
+        {
+          "clamp_increment_rgba_mae_18": 0.0007141128056160736,
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F9BB-1F3FB",
+          "source_path": "color/svg/1F9BB-1F3FB.svg"
+        },
+        {
+          "clamp_increment_rgba_mae_18": 0.0006233357540547084,
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F9BB-1F3FC",
+          "source_path": "color/svg/1F9BB-1F3FC.svg"
+        },
+        {
+          "clamp_increment_rgba_mae_18": 0.0006233357540547084,
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F9BB",
+          "source_path": "color/svg/1F9BB.svg"
+        }
+      ],
+      "worst_rgba_mae_18": [
+        {
+          "clamped_coordinates": 5,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F4AB",
+          "rgba_mae_18": 0.03908557250060518,
+          "source_path": "color/svg/1F4AB.svg"
+        },
+        {
+          "clamped_coordinates": 2,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F441-FE0F-200D-1F5E8-FE0F",
+          "rgba_mae_18": 0.02408315177923021,
+          "source_path": "color/svg/1F441-FE0F-200D-1F5E8-FE0F.svg"
+        },
+        {
+          "clamped_coordinates": 2,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "E31E",
+          "rgba_mae_18": 0.005758290970709271,
+          "source_path": "color/svg/E31E.svg"
+        },
+        {
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F9BB-1F3FB",
+          "rgba_mae_18": 0.004681069958847737,
+          "source_path": "color/svg/1F9BB-1F3FB.svg"
+        },
+        {
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F9BB-1F3FC",
+          "rgba_mae_18": 0.004529774872912127,
+          "source_path": "color/svg/1F9BB-1F3FC.svg"
+        },
+        {
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F31D",
+          "rgba_mae_18": 0.0043330912611958365,
+          "source_path": "color/svg/1F31D.svg"
+        },
+        {
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F4AA-1F3FB",
+          "rgba_mae_18": 0.0036855482933914304,
+          "source_path": "color/svg/1F4AA-1F3FB.svg"
+        },
+        {
+          "clamped_coordinates": 1,
+          "dropped_contours": 0,
+          "dropped_segments": 0,
+          "hexcode": "1F9BB",
+          "rgba_mae_18": 0.0036099007504236265,
+          "source_path": "color/svg/1F9BB.svg"
+        }
+      ]
+    }
+  },
+  "config_sha256": "16c43292f87858f12e432849066740a8adcb6de29d8d8ef56a8b354bd5722df9",
+  "fixture_count": 24,
+  "fixture_manifest": "data/manifests/openmoji-17.0.0-oob-fixture-v1.json",
+  "fixture_manifest_sha256": "8469ae8f003616fff2c535d389adc3c66314f62248d00a8eaef32431bbdf3df4",
+  "metrics_sha256": "8b9e6929da50ea186578a51dcb6bb58b3d3891420183352c25fb0b8dde8ab966",
+  "normalization": {
+    "outlined": {
+      "attempted": 24,
+      "contours": {
+        "count": 24,
+        "max": 33.0,
+        "median": 15.0,
+        "min": 6.0,
+        "p95": 28.699999999999996
+      },
+      "coordinate_excursions": {
+        "by_axis": {
+          "x": 14,
+          "y": 13
+        },
+        "by_role": {
+          "control": 27
+        },
+        "by_segment_type": {
+          "cubic": 27
+        },
+        "by_side": {
+          "above": 17,
+          "below": 10
+        },
+        "count": 27,
+        "distance_outside": {
+          "count": 27,
+          "max": 23.022003173828125,
+          "median": 0.240997314453125,
+          "min": 0.03400000184774399,
+          "p95": 7.9137021541595445
+        }
+      },
+      "failures": [],
+      "icons_with_compound_layers": 21,
+      "icons_with_out_of_bounds_coordinates": 22,
+      "icons_with_partial_opacity": 2,
+      "max_segments_per_contour": {
+        "count": 24,
+        "max": 50.0,
+        "median": 25.0,
+        "min": 14.0,
+        "p95": 50.0
+      },
+      "observed_miter_limits": [],
+      "observed_opacity_values": {
+        "fill_opacity_values": [
+          1.0
+        ],
+        "opacity_values": [
+          0.4,
+          1.0
+        ],
+        "stroke_opacity_values": []
+      },
+      "observed_stroke_widths": [],
+      "partially_opaque_layers": 3,
+      "segments": {
+        "count": 24,
+        "max": 323.0,
+        "median": 168.5,
+        "min": 75.0,
+        "p95": 289.0
+      },
+      "successful": 24
+    },
+    "semantic": {
+      "attempted": 24,
+      "contours": {
+        "count": 24,
+        "max": 32.0,
+        "median": 13.0,
+        "min": 5.0,
+        "p95": 20.949999999999985
+      },
+      "coordinate_excursions": {
+        "by_axis": {
+          "x": 19,
+          "y": 18
+        },
+        "by_role": {
+          "control": 37
+        },
+        "by_segment_type": {
+          "cubic": 37
+        },
+        "by_side": {
+          "above": 22,
+          "below": 15
+        },
+        "count": 37,
+        "distance_outside": {
+          "count": 37,
+          "max": 23.02239990234375,
+          "median": 0.6100000143051147,
+          "min": 0.03400000184774399,
+          "p95": 9.915600585937469
+        }
+      },
+      "failures": [],
+      "icons_with_compound_layers": 0,
+      "icons_with_out_of_bounds_coordinates": 24,
+      "icons_with_partial_opacity": 2,
+      "max_segments_per_contour": {
+        "count": 24,
+        "max": 31.0,
+        "median": 8.5,
+        "min": 5.0,
+        "p95": 23.0
+      },
+      "observed_miter_limits": [
+        4.0,
+        10.0
+      ],
+      "observed_opacity_values": {
+        "fill_opacity_values": [
+          1.0
+        ],
+        "opacity_values": [
+          0.4,
+          1.0
+        ],
+        "stroke_opacity_values": [
+          1.0
+        ]
+      },
+      "observed_stroke_widths": [
+        0.204,
+        0.25,
+        1.0,
+        2.0
+      ],
+      "partially_opaque_layers": 2,
+      "segments": {
+        "count": 24,
+        "max": 170.0,
+        "median": 55.0,
+        "min": 31.0,
+        "p95": 90.64999999999998
+      },
+      "successful": 24
+    }
+  },
+  "normalization_sha256": "9d05566e87a031ec417b0afcb06617cdc72bff6a8b97e3897452ccd8677e92c9",
+  "palette": {
+    "configured_entries": 28,
+    "outliers": [],
+    "used_entries": 20
+  },
+  "picosvg_version": "0.23.0",
+  "probe_version": "oob-control-probe-v1",
+  "projection_policy": {
+    "allow_clamping": true,
+    "allow_truncation": false
+  },
+  "schema_version": 2,
+  "source_revision": "f9fc506a3f913be9897ab0181d611d4c910a4104"
+}

@@ -278,3 +278,40 @@ remains open: complete normalization is not yet a final categorical codec. First
 classify the 37 out-of-bounds scalars by geometric role and measure the q289 safety
 projection on all 24 affected icons. Then address exact style categories and the very
 sparse lossless capacity rectangle before freezing the representation.
+
+## 2026-08-29 — Out-of-bounds control-handle projection probe
+
+**Hypothesis.** The 37 hybrid coordinates outside 0..72 are off-canvas Bezier control
+handles rather than visible endpoints, and clamping them to the viewBox has negligible
+render impact relative to the same q289 lattice extended outside the canvas.
+
+**Method.** Select the complete 24-icon OOB set from the hash-pinned opacity census.
+Normalize both semantic and outlined forms, classify every excursion by segment type,
+coordinate role, axis, side, and distance, then encode at q289 and P48/S64 with exact
+fixture styles and no truncation. Compare the actual safe clamped tensor render against
+an analysis-only counterfactual using the same quarter-unit lattice without clamping.
+The counterfactual is not a model vocabulary. All artifacts are create-or-identical;
+a second full invocation reproduced every report hash.
+
+**Observation.** All 37 semantic excursions are cubic control handles: 19 x and 18 y,
+22 above and 15 below the viewBox. There are no out-of-range moves or line, quadratic,
+or cubic endpoints. The outlined forms contain 27 excursions over 22 icons, also all
+cubic controls. Both routes complete all 24 typed round trips with no P/S truncation,
+style approximation, palette outlier, or unstable identity.
+
+The negligible-clamp hypothesis is false in the tail. Semantic clamp-only RGBA MAE is
+small at the median—0.000114 at 72 px and 0.000277 at 18 px—and seven icons are pixel
+identical at 18 px. Five icons exceed 0.001 clamp-only MAE at 18 px, however, and two
+exceed 0.01. Clamping `1F4AB` changes the crescent/star silhouette drastically
+(18 px MAE 0.03812, alpha IoU 0.8641); clamping the two control handles in
+`1F441-FE0F-200D-1F5E8-FE0F` removes most of the eye/speech-bubble interior
+(18 px MAE 0.02015). Outlining does not solve the problem: the same two icons remain
+the worst outlined clamp cases.
+
+**Decision.** Reject viewBox clamping for Bezier control handles as the primary codec
+policy. Keep endpoint coordinates on the 0..72 q289 lattice, but evaluate a distinct
+bounded control-coordinate vocabulary before freezing Gate C. The next smallest
+candidate is a quarter-unit `[-8, 96]` control lattice (417 values), which covers the
+observed -6.6875..95.0224 range while preventing model-generated endpoints from leaving
+the canvas. Retain the current clamp as an explicitly labelled fallback projection,
+not a lossless normalization rule.
