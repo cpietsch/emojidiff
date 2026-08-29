@@ -6,6 +6,9 @@ import argparse
 import hashlib
 import json
 import math
+import os
+import subprocess
+import tempfile
 from collections import defaultdict
 from collections.abc import Sequence
 from dataclasses import asdict, dataclass
@@ -21,6 +24,7 @@ from mojidiff.curation.audit import _render
 from mojidiff.representation.normalizer import NormalizationError, normalize_svg
 from mojidiff.representation.program import (
     CodecConfig,
+    CodecError,
     EncodingReport,
     FloatProgram,
     TensorProgram,
@@ -61,6 +65,8 @@ class CodecStudyConfig:
     max_serialized_bytes: int
     render_sizes: tuple[int, ...]
     render_timeout_seconds: int
+    allow_truncation: bool
+    allow_clamping: bool
 
 
 def load_codec_study_config(path: Path) -> CodecStudyConfig:
@@ -82,8 +88,13 @@ def load_codec_study_config(path: Path) -> CodecStudyConfig:
         if "opacities" in codec:
             raise CodecStudyError("schema_version 1 cannot define codec.opacities")
         opacities = (1.0,)
+        allow_truncation = True
+        allow_clamping = True
     else:
         opacities = _float_tuple(codec.get("opacities"), "codec.opacities")
+        projection = _mapping(root.get("projection"), "projection")
+        allow_truncation = _boolean(projection.get("allow_truncation"), "allow_truncation")
+        allow_clamping = _boolean(projection.get("allow_clamping"), "allow_clamping")
     render = _mapping(root.get("render"), "render")
     raw_budgets = _sequence(codec.get("budgets"), "codec.budgets")
     budgets: list[CodecBudget] = []
@@ -110,8 +121,10 @@ def load_codec_study_config(path: Path) -> CodecStudyConfig:
         _positive_int(value, "codec.coordinate_bins")
         for value in _sequence(codec.get("coordinate_bins"), "codec.coordinate_bins")
     )
-    if len(bins) != 2 or len(set(bins)) != 2 or tuple(sorted(bins)) != bins:
-        raise CodecStudyError("coordinate bins must contain two distinct increasing values")
+    if not bins or len(set(bins)) != len(bins) or tuple(sorted(bins)) != bins:
+        raise CodecStudyError("coordinate bins must contain unique increasing values")
+    if schema_version == 1 and len(bins) != 2:
+        raise CodecStudyError("schema_version 1 requires exactly two coordinate bins")
     return CodecStudyConfig(
         schema_version=schema_version,
         version=_string(root, "probe_version"),
@@ -139,6 +152,8 @@ def load_codec_study_config(path: Path) -> CodecStudyConfig:
         render_timeout_seconds=_positive_int(
             render.get("timeout_seconds"), "render.timeout_seconds"
         ),
+        allow_truncation=allow_truncation,
+        allow_clamping=allow_clamping,
     )
 
 
@@ -164,6 +179,12 @@ def _string(mapping: dict[str, Any], field: str) -> str:
 def _positive_int(value: object, field: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value <= 0:
         raise CodecStudyError(f"{field} must be a positive integer")
+    return value
+
+
+def _boolean(value: object, field: str) -> bool:
+    if not isinstance(value, bool):
+        raise CodecStudyError(f"{field} must be a boolean")
     return value
 
 
@@ -214,7 +235,19 @@ def _codec_config(
 def run_codec_study(config: CodecStudyConfig, config_path: Path) -> dict[str, Any]:
     """Execute the fixed CPU fixture study and write compact reproducible evidence."""
 
-    fixture = _mapping(json.loads(config.fixture_manifest.read_text(encoding="utf-8")), "fixture")
+    code_identity = _code_identity()
+    fixture_bytes = config.fixture_manifest.read_bytes()
+    fixture = _mapping(json.loads(fixture_bytes), "fixture")
+    if config.schema_version == 2:
+        if fixture.get("source_revision") != config.source_revision:
+            raise CodecStudyError("schema_version 2 fixture source_revision mismatch")
+        selection = _mapping(fixture.get("selection"), "fixture.selection")
+        parent_summary = Path(_string(selection, "parent_summary"))
+        if parent_summary.is_absolute() or ".." in parent_summary.parts:
+            raise CodecStudyError("fixture parent_summary must be a safe repository path")
+        expected_parent_sha = _string(selection, "parent_summary_sha256")
+        if _file_sha256(parent_summary) != expected_parent_sha:
+            raise CodecStudyError("fixture parent_summary hash mismatch")
     rows = _sequence(fixture.get("rows"), "fixture.rows")
     palette = _palette(config.palette_path)
     normalization_rows: list[dict[str, Any]] = []
@@ -237,8 +270,7 @@ def run_codec_study(config: CodecStudyConfig, config_path: Path) -> dict[str, An
         }
         outlined = _outline(source_bytes)
         outline_path = config.derived_root / "outlined" / relative
-        outline_path.parent.mkdir(parents=True, exist_ok=True)
-        outline_path.write_bytes(outlined)
+        _write_bytes_artifact(outline_path, outlined)
 
         for representation, candidate_source in (
             ("semantic", source_bytes),
@@ -274,6 +306,42 @@ def run_codec_study(config: CodecStudyConfig, config_path: Path) -> dict[str, An
                     "max_segments_per_contour": max(
                         (len(contour.segments) for contour in program.contours), default=0
                     ),
+                    "opacity_values": sorted({contour.opacity for contour in program.contours}),
+                    "fill_opacity_values": sorted(
+                        {
+                            contour.fill_opacity
+                            for contour in program.contours
+                            if contour.fill_opacity is not None
+                        }
+                    ),
+                    "stroke_opacity_values": sorted(
+                        {
+                            contour.stroke_opacity
+                            for contour in program.contours
+                            if contour.stroke_opacity is not None
+                        }
+                    ),
+                    "stroke_width_values": sorted(
+                        {
+                            contour.stroke_width
+                            for contour in program.contours
+                            if contour.stroke is not None
+                        }
+                    ),
+                    "miter_limit_values": sorted(
+                        {
+                            contour.miter_limit
+                            for contour in program.contours
+                            if contour.stroke is not None
+                        }
+                    ),
+                    "dash_patterns": sorted(
+                        {
+                            contour.dash_pattern
+                            for contour in program.contours
+                            if contour.stroke is not None and contour.dash_pattern
+                        }
+                    ),
                 }
             )
             for budget in config.budgets:
@@ -292,6 +360,8 @@ def run_codec_study(config: CodecStudyConfig, config_path: Path) -> dict[str, An
                         )
                     )
 
+    normalization_payload = _jsonl_bytes(normalization_rows)
+    metrics_payload = _jsonl_bytes(metric_rows)
     summary = _summarize(
         normalization_rows,
         metric_rows,
@@ -299,15 +369,19 @@ def run_codec_study(config: CodecStudyConfig, config_path: Path) -> dict[str, An
         config_path,
         palette,
         used_colors,
+        code_identity,
     )
-    config.report_root.mkdir(parents=True, exist_ok=True)
-    _write_jsonl(config.report_root / "normalization.jsonl", normalization_rows)
-    _write_jsonl(config.report_root / "metrics.jsonl", metric_rows)
-    (config.report_root / "summary.json").write_text(
-        json.dumps(summary, indent=2, sort_keys=True, allow_nan=False) + "\n",
-        encoding="utf-8",
+    summary["normalization_sha256"] = hashlib.sha256(normalization_payload).hexdigest()
+    summary["metrics_sha256"] = hashlib.sha256(metrics_payload).hexdigest()
+    if _code_identity() != code_identity:
+        raise CodecStudyError("codec study source identity changed during the run")
+    _write_bytes_artifact(config.report_root / "normalization.jsonl", normalization_payload)
+    _write_bytes_artifact(config.report_root / "metrics.jsonl", metrics_payload)
+    _write_bytes_artifact(
+        config.report_root / "summary.json",
+        (json.dumps(summary, indent=2, sort_keys=True, allow_nan=False) + "\n").encode(),
     )
-    (config.report_root / "README.md").write_text(_markdown(summary), encoding="utf-8")
+    _write_bytes_artifact(config.report_root / "README.md", _markdown(summary).encode())
     return summary
 
 
@@ -335,6 +409,8 @@ def _round_trip(
         "path_slots": budget.path_slots,
         "segments_per_path": budget.segments_per_path,
         "coordinate_bins": bins,
+        "allow_truncation": config.allow_truncation,
+        "allow_clamping": config.allow_clamping,
         "segments_dropped_by_path_budget": sum(
             len(contour.segments) for contour in program.contours[budget.path_slots :]
         ),
@@ -343,8 +419,22 @@ def _round_trip(
             for contour in program.contours[: budget.path_slots]
         ),
     }
+    strict_encode_ok = True
+    strict_lossless = False
+    strict_error: str | None = None
     try:
-        tensor, report = encode_program(program, codec, allow_truncation=True, allow_clamping=True)
+        _strict_tensor, strict_report = encode_program(program, codec)
+        strict_lossless = strict_report.lossless
+    except CodecError as exc:
+        strict_encode_ok = False
+        strict_error = f"{type(exc).__name__}:{exc}"[:500]
+    try:
+        tensor, report = encode_program(
+            program,
+            codec,
+            allow_truncation=config.allow_truncation,
+            allow_clamping=config.allow_clamping,
+        )
         svg_bytes = serialize_svg(tensor, codec)
         decoded = decode_program(tensor, codec)
         reencoded, _reencode_report = encode_program(decoded, codec)
@@ -358,8 +448,7 @@ def _round_trip(
             / str(bins)
             / relative
         )
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_bytes(svg_bytes)
+        _write_bytes_artifact(output_path, svg_bytes)
         result.update(
             {
                 "ok": True,
@@ -368,6 +457,10 @@ def _round_trip(
                 "svg_sha256": hashlib.sha256(svg_bytes).hexdigest(),
                 "serialized_bytes": len(svg_bytes),
                 "stable_round_trip": stable,
+                "strict_encode_ok": strict_encode_ok,
+                "strict_lossless": strict_lossless,
+                "strict_error": strict_error,
+                "safety_projection_applied": not report.lossless,
                 **_report_fields(report),
             }
         )
@@ -381,6 +474,9 @@ def _round_trip(
                 "ok": False,
                 "error": f"{type(exc).__name__}:{exc}"[:500],
                 "stable_round_trip": False,
+                "strict_encode_ok": strict_encode_ok,
+                "strict_lossless": strict_lossless,
+                "strict_error": strict_error,
             }
         )
     return result
@@ -389,6 +485,7 @@ def _round_trip(
 def _report_fields(report: EncodingReport) -> dict[str, Any]:
     fields = asdict(report)
     fields["partial_layers"] = list(report.partial_layers)
+    fields["encoding_lossless"] = report.lossless
     return fields
 
 
@@ -402,10 +499,79 @@ def _tensor_hash(program: TensorProgram) -> str:
     return digest.hexdigest()
 
 
-def _write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
-    with path.open("w", encoding="utf-8") as handle:
-        for row in rows:
-            handle.write(json.dumps(row, sort_keys=True, allow_nan=False) + "\n")
+def _jsonl_bytes(rows: list[dict[str, Any]]) -> bytes:
+    return "".join(json.dumps(row, sort_keys=True, allow_nan=False) + "\n" for row in rows).encode()
+
+
+def _write_bytes_artifact(path: Path, payload: bytes) -> None:
+    """Atomically create an artifact, accepting only an exact prior copy."""
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if path.is_symlink():
+        raise CodecStudyError(f"refusing to replace symlink artifact: {path}")
+    if path.exists() and not path.is_file():
+        raise CodecStudyError(f"artifact target is not a regular file: {path}")
+    descriptor, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(descriptor, "wb") as handle:
+            handle.write(payload)
+            handle.flush()
+            os.fsync(handle.fileno())
+        temporary.chmod(0o644)
+        try:
+            os.link(temporary, path)
+        except FileExistsError:
+            if path.is_symlink() or not path.is_file():
+                raise CodecStudyError(f"artifact target is not a regular file: {path}") from None
+            if not _files_equal(temporary, path):
+                raise CodecStudyError(f"refusing to replace differing artifact: {path}") from None
+        except OSError as exc:
+            raise CodecStudyError(f"artifact could not be installed: {path}: {exc}") from exc
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def _files_equal(left: Path, right: Path) -> bool:
+    if left.stat().st_size != right.stat().st_size:
+        return False
+    with left.open("rb") as left_handle, right.open("rb") as right_handle:
+        while True:
+            left_chunk = left_handle.read(1 << 20)
+            right_chunk = right_handle.read(1 << 20)
+            if left_chunk != right_chunk:
+                return False
+            if not left_chunk:
+                return True
+
+
+def _file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        while chunk := handle.read(1 << 20):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _code_identity() -> dict[str, str]:
+    repository = Path(__file__).resolve().parents[3]
+    try:
+        commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=repository,
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        ).stdout.strip()
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise CodecStudyError(f"could not identify Git commit: {exc}") from exc
+    sources = {
+        "codec_study_sha256": repository / "src/mojidiff/representation/codec_study.py",
+        "normalizer_sha256": repository / "src/mojidiff/representation/normalizer.py",
+        "program_sha256": repository / "src/mojidiff/representation/program.py",
+    }
+    return {"git_commit": commit, **{name: _file_sha256(path) for name, path in sources.items()}}
 
 
 def _summarize(
@@ -415,6 +581,7 @@ def _summarize(
     config_path: Path,
     palette: tuple[str, ...],
     used_colors: set[str],
+    code_identity: dict[str, str],
 ) -> dict[str, Any]:
     groups: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in metrics:
@@ -427,6 +594,26 @@ def _summarize(
             "attempted": len(rows),
             "successful": len(successful),
             "failures": len(rows) - len(successful),
+            "strict_encode_failures": sum(not bool(row.get("strict_encode_ok")) for row in rows),
+            "strict_lossy_encodings": sum(
+                bool(row.get("strict_encode_ok")) and not bool(row.get("strict_lossless"))
+                for row in rows
+            ),
+            "icons_with_safety_projection": sum(
+                bool(row.get("safety_projection_applied")) for row in successful
+            ),
+            "strict_projection_cases": [
+                {
+                    "hexcode": row["hexcode"],
+                    "source_path": row["source_path"],
+                    "strict_error": row.get("strict_error"),
+                    "clamped_coordinates": row.get("clamped_coordinates"),
+                    "approximated_stroke_widths": row.get("approximated_stroke_widths"),
+                    "approximated_miter_limits": row.get("approximated_miter_limits"),
+                }
+                for row in successful
+                if not bool(row.get("strict_lossless"))
+            ],
             "icons_with_path_truncation": sum(
                 row.get("dropped_contours", 0) > 0 for row in successful
             ),
@@ -488,10 +675,45 @@ def _summarize(
             "icons_with_out_of_bounds_coordinates": sum(
                 row.get("out_of_bounds_coordinates", 0) > 0 for row in successful
             ),
+            "icons_with_partial_opacity": sum(
+                row.get("partially_opaque_layers", 0) > 0 for row in successful
+            ),
+            "partially_opaque_layers": sum(
+                int(row.get("partially_opaque_layers", 0)) for row in successful
+            ),
+            "observed_opacity_values": {
+                field: sorted(
+                    {
+                        float(value)
+                        for row in successful
+                        for value in cast(list[float], row.get(field, []))
+                    }
+                )
+                for field in (
+                    "opacity_values",
+                    "fill_opacity_values",
+                    "stroke_opacity_values",
+                )
+            },
+            "observed_stroke_widths": sorted(
+                {
+                    float(value)
+                    for row in successful
+                    for value in cast(list[float], row.get("stroke_width_values", []))
+                }
+            ),
+            "observed_miter_limits": sorted(
+                {
+                    float(value)
+                    for row in successful
+                    for value in cast(list[float], row.get("miter_limit_values", []))
+                }
+            ),
         }
     return {
-        "schema_version": 1,
+        "schema_version": config.schema_version,
         "probe_version": config.version,
+        "code_identity": code_identity,
         "source_revision": config.source_revision,
         "fixture_manifest": str(config.fixture_manifest),
         "fixture_manifest_sha256": hashlib.sha256(config.fixture_manifest.read_bytes()).hexdigest(),
@@ -499,6 +721,18 @@ def _summarize(
         "picosvg_version": version("picosvg"),
         "cairosvg_version": version("CairoSVG"),
         "fixture_count": len({row["source_path"] for row in normalization}),
+        "projection_policy": {
+            "allow_truncation": config.allow_truncation,
+            "allow_clamping": config.allow_clamping,
+        },
+        "codec": {
+            "coordinate_bins": list(config.coordinate_bins),
+            "budgets": [asdict(budget) for budget in config.budgets],
+            "opacities": list(config.opacities),
+            "stroke_widths": list(config.stroke_widths),
+            "dash_patterns": [list(pattern) for pattern in config.dash_patterns],
+            "miter_limits": list(config.miter_limits),
+        },
         "palette": {
             "configured_entries": len(palette),
             "used_entries": len(used_colors),
@@ -549,8 +783,8 @@ def _markdown(summary: dict[str, Any]) -> str:
         f"CairoSVG {summary['cairosvg_version']}.",
         "",
         "| representation / budget / bins | ok | MAE 72 median | MAE 18 median | "
-        "alpha IoU 18 median | truncated icons (P/S) |",
-        "|---|---:|---:|---:|---:|---:|",
+        "alpha IoU 18 median | truncated icons (P/S) | projected icons |",
+        "|---|---:|---:|---:|---:|---:|---:|",
     ]
     for key, item in summary["comparisons"].items():
         metrics = item["metrics"]
@@ -561,6 +795,7 @@ def _markdown(summary: dict[str, Any]) -> str:
             f"{_format(metrics['rgba_mae_18']['median'])} | "
             f"{_format(metrics['alpha_iou_18']['median'])} | "
             f"{item['icons_with_path_truncation']}/{item['icons_with_segment_truncation']} |"
+            f" {item['icons_with_safety_projection']} |"
         )
     lines.extend(
         (

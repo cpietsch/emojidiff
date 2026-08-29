@@ -1,0 +1,33 @@
+schema_version: 2
+probe_version: opacity-recovery-v1
+source_revision: f9fc506a3f913be9897ab0181d611d4c910a4104
+raw_root: data/raw/openmoji/17.0.0
+fixture_manifest: data/manifests/openmoji-17.0.0-opacity-fixture-v1.json
+palette_path: data/raw/openmoji/17.0.0/data/color-palette.json
+derived_root: data/processed/opacity-recovery-v1
+report_root: reports/codec/opacity-recovery-v1
+
+codec:
+  # The leading quarter-unit lattice is the only coordinate factor in this recovery
+  # probe. P96/S64 is structurally lossless for both routes on the pinned nine icons.
+  coordinate_bins: [289]
+  budgets:
+    - name: coverage-p96-s64
+      path_slots: 96
+      segments_per_path: 64
+  # Exact values observed in the pinned semantic and PicoSVG-outlined candidates.
+  opacities: [0.25, 0.4, 0.5, 0.502, 0.6, 0.9969, 0.997, 0.999, 1.0]
+  stroke_widths: [0.204, 0.25, 1.0, 1.961, 2.0]
+  dash_patterns: []
+  miter_limits: [4.0, 10.0]
+  max_serialized_bytes: 2000000
+
+projection:
+  # Truncation is forbidden. The two known one-scalar OOB cases are measured with an
+  # explicit clamp after the strict encoding result is recorded separately.
+  allow_truncation: false
+  allow_clamping: true
+
+render:
+  sizes: [72, 18]
+  timeout_seconds: 5

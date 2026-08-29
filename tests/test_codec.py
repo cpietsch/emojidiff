@@ -8,7 +8,11 @@ from xml.etree import ElementTree
 import numpy as np
 import pytest
 
-from mojidiff.representation.codec_study import load_codec_study_config
+from mojidiff.representation.codec_study import (
+    CodecStudyError,
+    _write_bytes_artifact,
+    load_codec_study_config,
+)
 from mojidiff.representation.normalizer import NormalizationError, normalize_svg
 from mojidiff.representation.program import (
     NONE,
@@ -57,8 +61,37 @@ def test_aligned_coordinate_probe_has_exact_half_and_quarter_unit_lattices() -> 
     config = load_codec_study_config(root / "configs/codec/aligned-coordinate-probe-v1.yaml")
 
     assert config.coordinate_bins == (145, 289)
+    assert config.opacities == (1.0,)
+    assert config.allow_truncation
+    assert config.allow_clamping
     assert dequantize_coordinate(8, 145) == 4.0
     assert dequantize_coordinate(16, 289) == 4.0
+
+
+def test_opacity_recovery_probe_has_explicit_schema_v2_projection() -> None:
+    root = Path(__file__).resolve().parents[1]
+    config = load_codec_study_config(root / "configs/codec/opacity-recovery-v1.yaml")
+
+    assert config.schema_version == 2
+    assert config.coordinate_bins == (289,)
+    assert config.opacities == OPACITY_VOCABULARY
+    assert not config.allow_truncation
+    assert config.allow_clamping
+
+
+def test_codec_study_artifacts_are_create_or_identical(tmp_path: Path) -> None:
+    artifact = tmp_path / "report" / "evidence.json"
+    _write_bytes_artifact(artifact, b"first")
+    _write_bytes_artifact(artifact, b"first")
+
+    with pytest.raises(CodecStudyError, match="differing artifact"):
+        _write_bytes_artifact(artifact, b"second")
+
+    assert artifact.read_bytes() == b"first"
+    symlink = tmp_path / "report" / "linked.json"
+    symlink.symlink_to(artifact)
+    with pytest.raises(CodecStudyError, match="symlink"):
+        _write_bytes_artifact(symlink, b"first")
 
 
 def _contour(

@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "manifest_version": "openmoji-17.0.0-opacity-fixture-v1",
+  "source_revision": "f9fc506a3f913be9897ab0181d611d4c910a4104",
+  "selection": {
+    "parent_summary": "reports/codec/full-primary-structure-v1/summary.json",
+    "parent_summary_sha256": "90ec5f0fbe5ae3f4229736d73f81802e5aacf0942e108ea3860606342e3d0b76",
+    "rule": "hybrid route unsupported_both with partial_opacity on both semantic and outlined attempts"
+  },
+  "rows": [
+    {
+      "hexcode": "1F31A",
+      "group": "travel-places",
+      "subgroup": "sky-weather",
+      "split": "primary/train",
+      "source_path": "color/svg/1F31A.svg",
+      "source_svg_sha256": "a72d8f8d8b612ddcb841de4af5e9d3c6dac215b08b4568e90183b64095583c68"
+    },
+    {
+      "hexcode": "1F31D",
+      "group": "travel-places",
+      "subgroup": "sky-weather",
+      "split": "primary/train",
+      "source_path": "color/svg/1F31D.svg",
+      "source_svg_sha256": "3260af69036a0c344b481785cc99ac87ec31b24c15ccea09bd1ed8689d9b1335"
+    },
+    {
+      "hexcode": "1F3B1",
+      "group": "activities",
+      "subgroup": "game",
+      "split": "primary/train",
+      "source_path": "color/svg/1F3B1.svg",
+      "source_svg_sha256": "d22a2b067268facc2332f2b648578bc1362b0897546cc3152269d9714b31923f"
+    },
+    {
+      "hexcode": "2328",
+      "group": "objects",
+      "subgroup": "computer",
+      "split": "primary/train",
+      "source_path": "color/svg/2328.svg",
+      "source_svg_sha256": "f9b4c287ecb256d2784d53f63aeee4f0db98d96340bbd330117f90520291fa90"
+    },
+    {
+      "hexcode": "2654",
+      "group": "extras-unicode",
+      "subgroup": "symbol-other",
+      "split": "primary/train",
+      "source_path": "color/svg/2654.svg",
+      "source_svg_sha256": "7d866ac625e18639c1e1cbb7b6480710ea0c8ae206eca563c40ce9b98b42f6cc"
+    },
+    {
+      "hexcode": "265A",
+      "group": "extras-unicode",
+      "subgroup": "symbol-other",
+      "split": "primary/train",
+      "source_path": "color/svg/265A.svg",
+      "source_svg_sha256": "2c857cc35b674fab61f206bd5e90f90284f71aa206b5565e51522212fd112f4a"
+    },
+    {
+      "hexcode": "26F1",
+      "group": "travel-places",
+      "subgroup": "sky-weather",
+      "split": "primary/train",
+      "source_path": "color/svg/26F1.svg",
+      "source_svg_sha256": "bea7742c565a55c20b71ccec9be95e73c683f0c021f196b3c91939a4690f0237"
+    },
+    {
+      "hexcode": "E0C4",
+      "group": "extras-openmoji",
+      "subgroup": "food-drink",
+      "split": "primary/train",
+      "source_path": "color/svg/E0C4.svg",
+      "source_svg_sha256": "cb6f5803428e527b19a53d85966cc63b19dbfc1c19babfa392d1f81c6dd63784"
+    },
+    {
+      "hexcode": "E149",
+      "group": "extras-openmoji",
+      "subgroup": "objects",
+      "split": "primary/test",
+      "source_path": "color/svg/E149.svg",
+      "source_svg_sha256": "2381240e56067b31e4cf47b874e7f22bfa6fc36d10b02bd3b0ca07141883b647"
+    }
+  ]
+}
