@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-29T18:00:00Z
+Updated: 2026-08-29T18:04:00Z
 
 ## Current hypothesis and evidence
 
@@ -72,6 +72,13 @@ K48 maps rare width 4.1 to 4.0, producing 0.01348 style-only MAE on `1F4AF`. K48
 statistical base, not yet the final vocabulary; the next falsifiable correction is one
 exact 4.1 render-tail sentinel.
 
+The sentinel follow-up supports the smallest correction. On the unchanged 35-icon
+fixture, K48+exact-4.1 cuts maximum style-only MAE from 0.01348 to 0.002077 at 72 px and
+from 0.001698 to 0.001510 at 18 px, with no new tail and byte-identical rerun artifacts.
+The leading style policy is now K48+1 widths, all six observed dash patterns exact, and
+five semantic miter values with near-10 literals mapped to 10. K32 remains the compact
+ablation. Gate C is open only on the extremely sparse fixed-capacity policy.
+
 ## Last completed action and verification
 
 Pinned OpenMoji 17.0.0 at commit
@@ -142,6 +149,12 @@ stable with no structural loss or coordinate projection. Full-corpus analytics a
 hashes. The full suite passes 61/61; Ruff and strict mypy pass. No GPU work was
 performed.
 
+Implemented pinned-fixture and explicit width-sentinel support at `ecba341`, then ran
+`style-vocabulary-v2-render-sentinel-ecba341-858e7513-b13fecb6`. All 105 programs are
+stable and the exact 4.1 token removes the falsified 72 px tail without exposing a new
+one. A second invocation reproduced all artifact hashes. The full suite remains 61/61;
+Ruff and strict mypy pass. No GPU work was performed.
+
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
@@ -165,6 +178,9 @@ control-plane volume and meaningful GPU work remains blocked.
 The 264 KB style-vocabulary v1 compact report is local and pending a Git checkpoint;
 its 628 KB derived SVGs are reproducible and ignored. The complete run is recorded in
 the append-only registry. Nothing was pushed.
+
+The style-vocabulary v2 compact report is local and pending a Git checkpoint; its
+derived SVGs are reproducible and ignored. No external artifact sink is configured.
 
 ## Current blockers and missing authorization
 
@@ -192,8 +208,8 @@ the append-only registry. Nothing was pushed.
 
 ## Next smallest evidence-producing action
 
-Checkpoint the style-vocabulary v1 negative result, then rerun the unchanged 35-icon
-fixture with one additional exact 4.1 width sentinel on top of K48. If that removes the
-only large 72 px style tail without exposing a new one, freeze the style policy and
-move to the sparse-capacity experiment. Keep the GPU server off during this CPU-only
-Gate C work.
+Checkpoint the style-vocabulary v2 evidence, then evaluate a compact capacity policy
+against the known 4,006-program structural distribution. The smallest useful comparison
+is the current dense P96/S384 upper bound versus a packed/ragged segment budget that
+preserves every contour and segment without allocating 36,864 segment slots per icon.
+Keep the GPU server off during this CPU-only Gate C work.

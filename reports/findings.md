@@ -381,3 +381,29 @@ as the leading statistical base and K32 as a compact ablation. Test the smallest
 render-aware correction next: add exact 4.1 as one explicit sentinel to form K48+1,
 using the unchanged fixture and exact-style control. Do not silently tune away this
 negative result.
+
+## 2026-08-29 — Render-tail width sentinel
+
+**Hypothesis.** Adding exact width 4.1 as one explicit token to the unchanged K48 base
+will remove the only large 72 px style tail without merely moving the error to another
+fixture icon.
+
+**Method.** Reuse the hash-pinned 35-icon v1 fixture, exact-style control, hybrid routes,
+role-typed coordinates, P96/S384 capacity, palette, opacity, dash, miter, and renderer.
+Compare the unmodified 48-token candidate directly with its 49-token union containing
+4.1. Repeat the full run and require byte-identical compact and visual artifacts.
+
+**Observation.** All 105 exact/K48/K48+1 programs are stable with no structural loss or
+coordinate projection. The sentinel makes `1F4AF` style-exact and reduces the fixture's
+maximum style-only RGBA MAE from 0.01348 to 0.002077 at 72 px and from 0.001698 to
+0.001510 at 18 px. Median 18 px style-only MAE falls from 0.00000908 to 0.00000303.
+No replacement tail appears: the remaining maxima come from different width
+approximations, are visually indistinguishable in the inspected contact sheet, and are
+more than 6.4x smaller at 72 px than the falsified case. The second invocation
+reproduced all report hashes.
+
+**Decision.** Accept K48+1 as the leading stroke-width vocabulary, retain K32 as the
+compact ablation, keep all six observed dash patterns exact, and map the three near-10
+miter literals to the semantic value 10. This resolves the measured style blocker for
+Gate C. The remaining representation question is how to avoid the extremely sparse
+P96/S384 dense rectangle while preserving the complete structural tail.
