@@ -1,0 +1,45 @@
+schema_version: 1
+study_version: capacity-layout-v1
+source_revision: f9fc506a3f913be9897ab0181d611d4c910a4104
+report_root: reports/codec/capacity-layout-v1
+tail_count: 20
+
+parent:
+  hybrid: reports/codec/full-primary-structure-v2-opacity/hybrid.jsonl
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  expected_rows: 4006
+
+candidates:
+  dense:
+    - name: dense-p64-s128
+      path_slots: 64
+      segments_per_path: 128
+    - name: dense-p96-s384
+      path_slots: 96
+      segments_per_path: 384
+  packed:
+    - name: packed-p48-t256
+      path_slots: 48
+      total_segment_slots: 256
+    - name: packed-p64-t512
+      path_slots: 64
+      total_segment_slots: 512
+    - name: packed-p80-t768
+      path_slots: 80
+      total_segment_slots: 768
+    - name: packed-p80-t1216
+      path_slots: 80
+      total_segment_slots: 1216
+  adaptive_buckets:
+    - name: bucket-p32-t128
+      path_slots: 32
+      total_segment_slots: 128
+    - name: bucket-p48-t256
+      path_slots: 48
+      total_segment_slots: 256
+    - name: bucket-p64-t512
+      path_slots: 64
+      total_segment_slots: 512
+    - name: bucket-p80-t1216
+      path_slots: 80
+      total_segment_slots: 1216

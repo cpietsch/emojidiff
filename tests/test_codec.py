@@ -9,6 +9,13 @@ from xml.etree import ElementTree
 import numpy as np
 import pytest
 
+from mojidiff.representation.capacity_study import (
+    DenseCapacity,
+    PackedCapacity,
+    dense_retention,
+    load_capacity_study_config,
+    packed_retention,
+)
 from mojidiff.representation.codec_study import (
     CodecStudyError,
     _coordinate_excursions,
@@ -168,6 +175,16 @@ def test_relative_l1_vocabulary_uses_deterministic_observed_weighted_medians() -
     assert optimal_relative_l1_vocabulary(counts, 1) == (1.0,)
     assert optimal_relative_l1_vocabulary(counts, 2) == (1.0, 10.0)
     assert optimal_relative_l1_vocabulary(counts, 3) == (1.0, 2.0, 10.0)
+
+
+def test_capacity_study_uses_whole_contour_packed_prefixes() -> None:
+    root = Path(__file__).resolve().parents[1]
+    config = load_capacity_study_config(root / "configs/codec/capacity-layout-v1.yaml")
+
+    assert config.packed[-1] == PackedCapacity("packed-p80-t1216", 80, 1216)
+    assert dense_retention((3, 8, 2), DenseCapacity("dense", 2, 4)) == (2, 7)
+    assert packed_retention((3, 8, 2), PackedCapacity("packed", 3, 10)) == (1, 3)
+    assert packed_retention((3, 8, 2), PackedCapacity("packed", 2, 11)) == (2, 11)
 
 
 def test_codec_study_artifacts_are_create_or_identical(tmp_path: Path) -> None:
