@@ -41,6 +41,10 @@ from mojidiff.representation.program import (
     serialize_svg,
     validate_tensor_program,
 )
+from mojidiff.representation.style_study import (
+    load_style_study_config,
+    optimal_relative_l1_vocabulary,
+)
 
 
 def _config(
@@ -134,6 +138,29 @@ def test_control_coordinate_vocabulary_probe_separates_endpoints() -> None:
     assert config.control_coordinate_min == -8.0
     assert config.control_coordinate_max == 96.0
     assert not config.allow_clamping
+
+
+def test_style_vocabulary_probe_is_pinned_and_bounded() -> None:
+    root = Path(__file__).resolve().parents[1]
+    config = load_style_study_config(root / "configs/codec/style-vocabulary-v1.yaml")
+
+    assert [(item.name, item.tokens) for item in config.width_candidates] == [
+        ("compact-k32", 32),
+        ("leading-k48", 48),
+    ]
+    assert config.coordinate_bins == 289
+    assert config.control_coordinate_bins == 417
+    assert (config.max_paths, config.max_segments) == (96, 384)
+    assert len(config.dash_patterns) == 6
+    assert config.max_fixture_icons == 96
+
+
+def test_relative_l1_vocabulary_uses_deterministic_observed_weighted_medians() -> None:
+    counts = {1.0: 1, 2.0: 1, 10.0: 1}
+
+    assert optimal_relative_l1_vocabulary(counts, 1) == (1.0,)
+    assert optimal_relative_l1_vocabulary(counts, 2) == (1.0, 10.0)
+    assert optimal_relative_l1_vocabulary(counts, 3) == (1.0, 2.0, 10.0)
 
 
 def test_codec_study_artifacts_are_create_or_identical(tmp_path: Path) -> None:
