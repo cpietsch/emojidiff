@@ -55,6 +55,12 @@ from mojidiff.representation.program import (
     serialize_svg,
     validate_tensor_program,
 )
+from mojidiff.representation.renderer import (
+    IsolatedRenderError,
+    RenderLimits,
+    render_typed_svg_isolated,
+    validate_typed_svg,
+)
 from mojidiff.representation.style_study import (
     load_style_study_config,
     optimal_relative_l1_vocabulary,
@@ -290,6 +296,72 @@ def test_random_valid_programs_pack_reversibly(seed: int) -> None:
     for field in dense.__dataclass_fields__:
         assert np.array_equal(getattr(dense, field), getattr(recovered, field))
     assert serialize_packed_svg(packed, config, total) == serialize_svg(dense, config)
+
+
+def test_typed_svg_renders_in_resource_limited_subprocess() -> None:
+    config = _config()
+    dense, _ = encode_program(
+        FloatProgram(
+            (
+                _contour(
+                    segments=(
+                        FloatSegment(SegmentType.LINE, (20.0, 2.0)),
+                        FloatSegment(SegmentType.LINE, (10.0, 20.0)),
+                        FloatSegment(SegmentType.CLOSE, ()),
+                    )
+                ),
+            )
+        ),
+        config,
+    )
+    svg = serialize_svg(dense, config)
+
+    png, rgba = render_typed_svg_isolated(svg, 18, RenderLimits(timeout_seconds=3))
+
+    assert png.startswith(b"\x89PNG\r\n\x1a\n")
+    assert rgba.shape == (18, 18, 4)
+    assert np.count_nonzero(rgba[:, :, 3]) > 0
+
+
+@pytest.mark.parametrize(
+    ("source", "code"),
+    (
+        (b"<not-svg/>", "INVALID_TYPED_ROOT"),
+        (
+            b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72">'
+            b'<script d="M0 0"/></svg>',
+            "INVALID_TYPED_CHILD",
+        ),
+        (
+            b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72">'
+            b'<path d="M0 0" href="https://example.invalid/x"/></svg>',
+            "INVALID_TYPED_ATTRIBUTE",
+        ),
+        (
+            b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72">'
+            b'<path d="M0 0" fill="url(https://example.invalid/x)"/></svg>',
+            "UNSAFE_TYPED_VALUE",
+        ),
+    ),
+)
+def test_typed_renderer_rejects_non_serializer_xml(source: bytes, code: str) -> None:
+    with pytest.raises(IsolatedRenderError) as captured:
+        validate_typed_svg(source, RenderLimits())
+    assert captured.value.code == code
+
+
+def test_typed_renderer_enforces_input_and_path_bounds() -> None:
+    with pytest.raises(IsolatedRenderError) as captured:
+        validate_typed_svg(b"x" * 9, RenderLimits(max_svg_bytes=8))
+    assert captured.value.code == "SVG_BYTES_LIMIT"
+
+    source = (
+        b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72">'
+        b'<path d="M0 0"/><path d="M1 1"/></svg>'
+    )
+    with pytest.raises(IsolatedRenderError) as captured:
+        validate_typed_svg(source, RenderLimits(max_paths=1))
+    assert captured.value.code == "PATH_LIMIT"
 
 
 def test_codec_study_artifacts_are_create_or_identical(tmp_path: Path) -> None:
