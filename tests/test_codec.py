@@ -61,6 +61,7 @@ from mojidiff.representation.renderer import (
     render_typed_svg_isolated,
     validate_typed_svg,
 )
+from mojidiff.representation.stress_study import load_stress_study_config
 from mojidiff.representation.style_study import (
     load_style_study_config,
     optimal_relative_l1_vocabulary,
@@ -198,6 +199,10 @@ def test_capacity_study_uses_whole_contour_packed_prefixes() -> None:
     assert dense_retention((3, 8, 2), DenseCapacity("dense", 2, 4)) == (2, 7)
     assert packed_retention((3, 8, 2), PackedCapacity("packed", 3, 10)) == (1, 3)
     assert packed_retention((3, 8, 2), PackedCapacity("packed", 2, 11)) == (2, 11)
+
+    stress = load_stress_study_config(root / "configs/codec/packed-render-stress-v1.yaml")
+    assert (stress.outer_max_paths, stress.outer_total_segment_slots) == (80, 1216)
+    assert stress.mutation_trials == 2000
 
 
 def test_packed_tensor_round_trip_and_serializer_match_dense() -> None:

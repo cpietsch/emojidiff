@@ -1,0 +1,30 @@
+schema_version: 1
+study_version: packed-render-stress-v1
+report_root: reports/codec/packed-render-stress-v1
+
+inputs:
+  palette: data/raw/openmoji/17.0.0/data/color-palette.json
+  palette_sha256: 566f30548fbc0fe4f4aa0c2a563820f0c26e46a89523b174e25a685720058228
+  style_summary: reports/codec/style-vocabulary-v2-render-sentinel/summary.json
+  style_summary_sha256: 005dc6b4f94da48a31e9677a0aaa6ef44649b7e83235ca8a1e74dc69e5693d33
+  style_candidate: leading-k48-plus-4.1
+
+random:
+  seed: 29081926
+  valid_programs: 200
+  mutation_trials: 2000
+  render_programs: 12
+
+fixture_codec:
+  max_paths: 8
+  max_segments: 16
+  total_segment_slots: 128
+
+outer_bound:
+  max_paths: 80
+  max_segments: 384
+  total_segment_slots: 1216
+
+render:
+  sizes: [72, 18]
+  timeout_seconds: 5
