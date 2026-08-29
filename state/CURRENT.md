@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-29T17:37:16Z
+Updated: 2026-08-29T17:38:35Z
 
 ## Current hypothesis and evidence
 
@@ -107,7 +107,8 @@ normalize, encode, decode, serialize, and render stably with no truncation or st
 approximation. A second full invocation reproduced every immutable output exactly.
 Visual inspection confirms catastrophic tail deformation for the two worst icons.
 Focused tests pass 26/26, the full suite passes 57/57, Ruff passes, and strict mypy
-passes. No GPU work was performed.
+passes. The negative result and compact report are checkpointed locally at `45ca009`.
+No GPU work was performed.
 
 ## Active jobs
 
@@ -121,10 +122,10 @@ Raw source (405 MB), audit renders/tables, and derived fixture SVGs remain on th
 persistent workspace. Curation, representation, typed-codec, and aligned-grid compact
 evidence is versioned locally through `2099f3d`; the 26 MB full-primary report is
 versioned at `1063fc7`, the opacity codec at `e31273c`, and the 64 KB opacity evidence
-at `86f7d03`; the 32 MB full-primary opacity report is versioned at `88532a5`. Nothing
-was pushed. The 216 KB OOB compact report is pending its local evidence checkpoint;
-its 812 KB derived SVGs and the opacity probe's 260 KB derived SVGs are reproducible
-but local-only. No external artifact sink is
+at `86f7d03`; the 32 MB full-primary opacity report is versioned at `88532a5`, and the
+216 KB OOB compact report at `45ca009`. Nothing was pushed. The OOB probe's 812 KB
+derived SVGs and opacity probe's 260 KB derived SVGs are reproducible but local-only.
+No external artifact sink is
 configured or verified, so bulk artifacts are not durable against loss of the
 control-plane volume and meaningful GPU work remains blocked.
 
