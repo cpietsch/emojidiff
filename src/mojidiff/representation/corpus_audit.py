@@ -60,6 +60,7 @@ class AuditLimits:
 class CorpusAuditConfig:
     """All inputs and bounds that define one structural census."""
 
+    schema_version: int
     version: str
     source_revision: str
     raw_root: Path
@@ -74,6 +75,7 @@ class CorpusAuditConfig:
     stroke_widths: tuple[float, ...]
     miter_limits: tuple[float, ...]
     dash_patterns: tuple[tuple[float, ...], ...]
+    opacities: tuple[float, ...]
     limits: AuditLimits
 
 
@@ -103,10 +105,23 @@ def load_corpus_audit_config(path: Path) -> CorpusAuditConfig:
     except yaml.YAMLError as exc:
         raise CorpusAuditError(f"invalid YAML config: {exc}") from exc
     root = _mapping(document, "root")
-    if root.get("schema_version") != 1:
-        raise CorpusAuditError("corpus audit schema_version must be 1")
+    raw_schema_version = root.get("schema_version")
+    if (
+        isinstance(raw_schema_version, bool)
+        or not isinstance(raw_schema_version, int)
+        or raw_schema_version not in {1, 2}
+    ):
+        raise CorpusAuditError("corpus audit schema_version must be 1 or 2")
+    schema_version = raw_schema_version
     capacity = _mapping(root.get("capacity"), "capacity")
     style = _mapping(root.get("style_vocabulary"), "style_vocabulary")
+    opacities: tuple[float, ...]
+    if schema_version == 1:
+        if "opacities" in style:
+            raise CorpusAuditError("schema_version 1 cannot define style_vocabulary.opacities")
+        opacities = (1.0,)
+    else:
+        opacities = _unit_floats(style.get("opacities"), "style_vocabulary.opacities")
     raw_limits = _mapping(root.get("limits"), "limits")
     limits = AuditLimits(
         max_manifest_bytes=_positive_int(
@@ -134,6 +149,7 @@ def load_corpus_audit_config(path: Path) -> CorpusAuditConfig:
     if expected_rows > limits.max_manifest_rows:
         raise CorpusAuditError("expected manifest rows exceed the configured row bound")
     config = CorpusAuditConfig(
+        schema_version=schema_version,
         version=_string(root, "audit_version"),
         source_revision=_string(root, "source_revision"),
         raw_root=Path(_string(root, "raw_root")),
@@ -157,6 +173,7 @@ def load_corpus_audit_config(path: Path) -> CorpusAuditConfig:
                 _sequence(style.get("dash_patterns"), "style_vocabulary.dash_patterns")
             )
         ),
+        opacities=opacities,
         limits=limits,
     )
     if len(set(config.stroke_widths)) != len(config.stroke_widths) or len(
@@ -165,6 +182,8 @@ def load_corpus_audit_config(path: Path) -> CorpusAuditConfig:
         raise CorpusAuditError("style vocabulary values must be unique")
     if len(set(config.dash_patterns)) != len(config.dash_patterns):
         raise CorpusAuditError("dash patterns must be unique")
+    if len(set(config.opacities)) != len(config.opacities):
+        raise CorpusAuditError("opacity vocabulary values must be unique")
     if any(
         not item or len(item) % 2 or len(item) > 32 or not any(item)
         for item in config.dash_patterns
@@ -376,6 +395,13 @@ def _program_features(
         for contour in program.contours
         if contour.stroke is not None and contour.dash_pattern
     )
+    opacities = Counter(contour.opacity for contour in program.contours)
+    fill_opacities = Counter(
+        contour.fill_opacity for contour in program.contours if contour.fill_opacity is not None
+    )
+    stroke_opacities = Counter(
+        contour.stroke_opacity for contour in program.contours if contour.stroke_opacity is not None
+    )
     return {
         **report,
         "layers": len(set(layers)),
@@ -417,6 +443,9 @@ def _program_features(
         "dash_pattern_counts": [
             {"value": list(value), "count": count} for value, count in sorted(dashes.items())
         ],
+        "opacity_counts": _numeric_counts(opacities),
+        "fill_opacity_counts": _numeric_counts(fill_opacities),
+        "stroke_opacity_counts": _numeric_counts(stroke_opacities),
         "linecap_counts": dict(
             sorted(
                 Counter(
@@ -444,10 +473,16 @@ def _program_features(
             "dash_patterns_outside": [
                 list(value) for value in sorted(set(dashes) - set(config.dash_patterns))
             ],
+            "opacity": _vocabulary_fit(opacities, config.opacities),
+            "fill_opacity": _vocabulary_fit(fill_opacities, config.opacities),
+            "stroke_opacity": _vocabulary_fit(stroke_opacities, config.opacities),
             "exact": not (
                 set(widths) - set(config.stroke_widths)
                 or set(miters) - set(config.miter_limits)
                 or set(dashes) - set(config.dash_patterns)
+                or set(opacities) - set(config.opacities)
+                or set(fill_opacities) - set(config.opacities)
+                or set(stroke_opacities) - set(config.opacities)
             ),
         },
     }
@@ -589,7 +624,7 @@ def _summarize(
     }
     hybrid_success = [row for row in hybrids if row["selected_representation"] is not None]
     return {
-        "schema_version": 1,
+        "schema_version": config.schema_version,
         "audit_version": config.version,
         "source_revision": config.source_revision,
         "config_sha256": config_sha,
@@ -667,6 +702,7 @@ def _success_summary(
                 "segments",
                 "max_segments_per_contour",
                 "out_of_bounds_coordinates",
+                "partially_opaque_layers",
             )
         },
         "segment_type_counts": {
@@ -706,6 +742,10 @@ def _success_summary(
         "icons_with_nonexact_style_vocabulary": sum(
             not cast(dict[str, Any], row["style_vocabulary"])["exact"] for row in rows
         ),
+        "icons_with_partial_opacity": sum(
+            int(row.get("partially_opaque_layers", 0)) > 0 for row in rows
+        ),
+        "partially_opaque_layers": sum(int(row.get("partially_opaque_layers", 0)) for row in rows),
         "style_counts": {
             "linecaps": dict(sorted(linecaps.items())),
             "linejoins": dict(sorted(linejoins.items())),
@@ -713,6 +753,9 @@ def _success_summary(
             "stroke_widths": _aggregate_value_counts(rows, "stroke_width_counts"),
             "miter_limits": _aggregate_value_counts(rows, "miter_limit_counts"),
             "dash_patterns": _aggregate_value_counts(rows, "dash_pattern_counts"),
+            "opacities": _aggregate_value_counts(rows, "opacity_counts"),
+            "fill_opacities": _aggregate_value_counts(rows, "fill_opacity_counts"),
+            "stroke_opacities": _aggregate_value_counts(rows, "stroke_opacity_counts"),
         },
         "capacity": _capacity_summary(rows, config),
         "tails": {
@@ -1116,6 +1159,15 @@ def _positive_floats(value: object, field: str) -> tuple[float, ...]:
     result = _nonnegative_floats(value, field)
     if not result or any(item <= 0 for item in result):
         raise CorpusAuditError(f"{field} must contain positive values")
+    return result
+
+
+def _unit_floats(value: object, field: str) -> tuple[float, ...]:
+    result = _positive_floats(value, field)
+    if tuple(sorted(result)) != result or any(item > 1 for item in result) or 1.0 not in result:
+        raise CorpusAuditError(
+            f"{field} must contain increasing values within (0, 1] including 1.0"
+        )
     return result
 
 

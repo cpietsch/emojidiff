@@ -25,8 +25,16 @@ def test_versioned_full_primary_config_pins_inputs_and_capacity_grid() -> None:
     assert config.expected_manifest_rows == 4006
     assert config.path_slots == (32, 48, 64, 96, 128)
     assert config.segments_per_path == (64, 128, 192, 256, 384, 512)
+    assert config.schema_version == 1
+    assert config.opacities == (1.0,)
     assert len(config.primary_manifest_sha256) == 64
     assert len(config.palette_sha256) == 64
+
+    opacity_config = load_corpus_audit_config(
+        root / "configs/codec/full-primary-structure-v2-opacity.yaml"
+    )
+    assert opacity_config.schema_version == 2
+    assert opacity_config.opacities == (0.25, 0.4, 0.5, 0.502, 0.6, 0.9969, 0.997, 0.999, 1.0)
 
 
 def test_capacity_loss_separates_path_and_retained_contour_segment_loss() -> None:
@@ -52,7 +60,8 @@ def test_tiny_census_emits_two_attempts_and_one_hybrid_per_manifest_row(
     raw_root = tmp_path / "raw"
     (raw_root / "color/svg").mkdir(parents=True)
     valid = b"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72">
-    <path fill="#ffffff" d="M1 1L10 1L10 10Z M20 20L30 20L30 30Z"/></svg>"""
+    <path fill="#ffffff" fill-opacity="0.5"
+      d="M1 1L10 1L10 10Z M20 20L30 20L30 30Z"/></svg>"""
     fallback = b"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72">
     <path fill="#ffffff" paint-order="stroke" d="M1 1L10 1L10 10Z"/></svg>"""
     sources = {"color/svg/A.svg": valid, "color/svg/B.svg": fallback}
@@ -84,7 +93,7 @@ def test_tiny_census_emits_two_attempts_and_one_hybrid_per_manifest_row(
     pq.write_table(pa.Table.from_pylist(manifest_rows), manifest_path)
     report_root = tmp_path / "report"
     config_document: dict[str, Any] = {
-        "schema_version": 1,
+        "schema_version": 2,
         "audit_version": "tiny-structure-v1",
         "source_revision": revision,
         "raw_root": str(raw_root),
@@ -99,6 +108,7 @@ def test_tiny_census_emits_two_attempts_and_one_hybrid_per_manifest_row(
             "stroke_widths": [2.0],
             "miter_limits": [4.0],
             "dash_patterns": [[2.0, 4.0]],
+            "opacities": [0.5, 1.0],
         },
         "limits": {
             "max_manifest_bytes": 1_000_000,
@@ -129,6 +139,8 @@ def test_tiny_census_emits_two_attempts_and_one_hybrid_per_manifest_row(
         ("color/svg/B.svg", "outlined"),
     ]
     assert attempts[0]["contour_segment_lengths"] == [3, 3]
+    assert attempts[0]["fill_opacity_counts"] == [{"count": 2, "value": 0.5}]
+    assert attempts[0]["style_vocabulary"]["exact"]
     assert attempts[2]["error_stage"] == "normalize"
     assert attempts[2]["error_code"] == "unsupported_presentation"
     assert hybrids[1]["route"] == "outlined_fallback:unsupported_presentation"
