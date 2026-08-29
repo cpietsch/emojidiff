@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-29T18:04:00Z
+Updated: 2026-08-29T18:10:00Z
 
 ## Current hypothesis and evidence
 
@@ -79,6 +79,13 @@ The leading style policy is now K48+1 widths, all six observed dash patterns exa
 five semantic miter values with near-10 literals mapped to 10. K32 remains the compact
 ablation. Gate C is open only on the extremely sparse fixed-capacity policy.
 
+The full-corpus capacity study resolves the last Gate C question. Packed P80/T1216 is
+exact for all 4,006 programs with 1,296 logical slots versus 36,960 for dense P96/S384,
+a 28.52x reduction. Four exact nested buckets place 3,359/553/88/6 icons and achieve
+53.81% aggregate utilization. The selected representation is semantic-stroke with the
+60-case reason-coded outlined fallback, role-typed coordinates, K48+1 styles, and
+packed capacity. Gate C is complete; Gate D packed-codec and renderer stress remains.
+
 ## Last completed action and verification
 
 Pinned OpenMoji 17.0.0 at commit
@@ -155,6 +162,12 @@ stable and the exact 4.1 token removes the falsified 72 px tail without exposing
 one. A second invocation reproduced all artifact hashes. The full suite remains 61/61;
 Ruff and strict mypy pass. No GPU work was performed.
 
+Implemented and checkpointed the capacity audit at `bc52408`, then ran
+`capacity-layout-v1-bc52408-6c86cc30-9b9b1699`. All 4,006 contour-length decompositions
+balance; packed P80/T1216 and all adaptive assignments are exact; detail and assignment
+cardinalities are 24,036 and 4,006. A second invocation reproduced all hashes. The full
+suite passes 62/62; Ruff and strict mypy pass. No GPU work was performed.
+
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
@@ -182,6 +195,9 @@ the append-only registry. Nothing was pushed.
 The style-vocabulary v2 compact report is local and pending a Git checkpoint; its
 derived SVGs are reproducible and ignored. No external artifact sink is configured.
 
+The capacity report is local and pending a Git checkpoint. It contains only compact
+JSONL/Markdown evidence; no bulk artifact was produced.
+
 ## Current blockers and missing authorization
 
 - YOLO checks passed for hostname, persistent repository location, TLS-only isolated
@@ -208,8 +224,8 @@ derived SVGs are reproducible and ignored. No external artifact sink is configur
 
 ## Next smallest evidence-producing action
 
-Checkpoint the style-vocabulary v2 evidence, then evaluate a compact capacity policy
-against the known 4,006-program structural distribution. The smallest useful comparison
-is the current dense P96/S384 upper bound versus a packed/ragged segment budget that
-preserves every contour and segment without allocating 36,864 segment slots per icon.
-Keep the GPU server off during this CPU-only Gate C work.
+Checkpoint the capacity evidence and Gate C decision, then begin Gate D locally by
+implementing reversible dense-to-packed conversion plus tensor invariant/property tests
+for the selected P80/T1216 layout. Keep the GPU server off; worker startup is not useful
+until packed codec and renderer stress tests pass locally and the worker's artifact/cap
+fields are configured.

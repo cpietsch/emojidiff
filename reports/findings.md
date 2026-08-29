@@ -407,3 +407,36 @@ compact ablation, keep all six observed dash patterns exact, and map the three n
 miter literals to the semantic value 10. This resolves the measured style blocker for
 Gate C. The remaining representation question is how to avoid the extremely sparse
 P96/S384 dense rectangle while preserving the complete structural tail.
+
+## 2026-08-29 — Packed capacity layout
+
+**Hypothesis.** Packing each icon's segments contiguously while retaining ordered path
+lengths will cover the complete corpus at P80/T1216 and reduce the exact worst-case
+logical allocation by more than 28x relative to dense P96/S384. Exact nested buckets
+should improve typical utilization further without changing program semantics.
+
+**Method.** Recompute loss on every ordered contour-length vector in the hash-pinned
+4,006-row hybrid census. Compare dense P64/S128 and P96/S384 with four fixed packed
+budgets. Packed truncation retains only a whole-contour prefix so painter order and
+contour validity cannot be broken to fit a total-segment budget. Assign every exact
+program to the smallest of four explicit packed buckets. Verify row counts, input loss
+decomposition, output hashes, and a second create-or-identical invocation.
+
+**Observation.** Corpus maxima are 80 paths, 1,211 total segments, and 283 segments in
+one contour. Dense P96/S384 is exact but allocates 36,960 logical path-plus-segment
+slots and uses 0.278% on average. Packed P80/T1216 is also exact and allocates 1,296
+logical slots, a 28.52x reduction, with 7.92% average utilization. P80/T768 misses only
+`E315`, dropping a 12-contour/480-segment suffix, which confirms the single extreme
+total-length tail rather than a broad need for dense per-path capacity.
+
+The exact adaptive buckets P32/T128, P48/T256, P64/T512, and P80/T1216 contain
+3,359, 553, 88, and 6 icons respectively. They allocate 190.72 logical slots per icon
+on average at 53.81% aggregate utilization. All 4,006 assignments are explicit and
+hashed. The rerun reproduced every report artifact.
+
+**Decision.** Select semantic-stroke programs with the existing 60-case reason-coded
+outlined fallback, role-typed coordinates, K48+1 styles, and packed P80/T1216 capacity.
+Use the four nested exact buckets for training efficiency only; bucket identity is not
+an unrecorded model semantic. This completes the Gate C representation selection with
+explicit tradeoffs. Gate D must implement and fuzz packed conversion, tensor
+invariants, safety serialization, and renderer isolation before learning work begins.
