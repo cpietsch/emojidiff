@@ -154,6 +154,13 @@ def test_style_vocabulary_probe_is_pinned_and_bounded() -> None:
     assert len(config.dash_patterns) == 6
     assert config.max_fixture_icons == 96
 
+    sentinel = load_style_study_config(
+        root / "configs/codec/style-vocabulary-v2-render-sentinel.yaml"
+    )
+    assert sentinel.fixture_manifest == Path("reports/codec/style-vocabulary-v1/fixture.json")
+    assert sentinel.width_candidates[-1].supplemental_values == (4.1,)
+    assert sentinel.max_fixture_icons == 35
+
 
 def test_relative_l1_vocabulary_uses_deterministic_observed_weighted_medians() -> None:
     counts = {1.0: 1, 2.0: 1, 10.0: 1}

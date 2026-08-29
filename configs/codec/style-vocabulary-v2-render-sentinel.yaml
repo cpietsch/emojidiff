@@ -1,0 +1,55 @@
+schema_version: 1
+study_version: style-vocabulary-v2-render-sentinel
+source_revision: f9fc506a3f913be9897ab0181d611d4c910a4104
+raw_root: data/raw/openmoji/17.0.0
+palette_path: data/raw/openmoji/17.0.0/data/color-palette.json
+palette_sha256: 566f30548fbc0fe4f4aa0c2a563820f0c26e46a89523b174e25a685720058228
+derived_root: data/processed/style-vocabulary-v2-render-sentinel
+report_root: reports/codec/style-vocabulary-v2-render-sentinel
+
+parent:
+  summary: reports/codec/full-primary-structure-v2-opacity/summary.json
+  summary_sha256: 515797d18f6778cd561976d260e8f7c070cafa09d6e64b91c5817e9da229c2ac
+  hybrid: reports/codec/full-primary-structure-v2-opacity/hybrid.jsonl
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  expected_rows: 4006
+
+codec:
+  coordinate_bins: 289
+  control_coordinates:
+    bins: 417
+    minimum: -8.0
+    maximum: 96.0
+  max_paths: 96
+  max_segments: 384
+  max_serialized_bytes: 2000000
+
+style_vocabulary:
+  objective: weighted-relative-l1
+  stroke_width_candidates:
+    - name: leading-k48
+      tokens: 48
+    - name: leading-k48-plus-4.1
+      tokens: 48
+      supplemental_values: [4.1]
+  miter_limits: [1.5, 2.0, 4.0, 7.0, 10.0]
+  dash_patterns:
+    - [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 5.1598, 5.1598]
+    - [0.0, 0.0, 3.9396, 3.9396]
+    - [0.0, 6.7346, 0.0, 0.0, 0.0, 0.0]
+    - [2.0, 4.0]
+    - [5.2132, 5.2132]
+    - [6.1156, 4.5867]
+  opacities: [0.25, 0.4, 0.5, 0.502, 0.6, 0.9969, 0.997, 0.999, 1.0]
+
+fixture_selection:
+  # Reuse the exact v1 tail so adding the sentinel is the only primary factor.
+  parent_fixture: reports/codec/style-vocabulary-v1/fixture.json
+  parent_fixture_sha256: b13fecb6df885f2dea25c8a5c521da94d60ac9986184d12963cf5bcb6c1563b2
+  top_relative_per_candidate: 12
+  top_absolute_per_candidate: 12
+  max_icons: 35
+
+render:
+  sizes: [72, 18]
+  timeout_seconds: 5

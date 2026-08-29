@@ -42,6 +42,7 @@ class StyleStudyError(RuntimeError):
 class WidthCandidate:
     name: str
     tokens: int
+    supplemental_values: tuple[float, ...]
 
 
 @dataclass(frozen=True)
@@ -73,6 +74,8 @@ class StyleStudyConfig:
     top_relative_per_candidate: int
     top_absolute_per_candidate: int
     max_fixture_icons: int
+    fixture_manifest: Path | None
+    fixture_manifest_sha256: str | None
     render_sizes: tuple[int, ...]
     render_timeout_seconds: int
 
@@ -89,12 +92,21 @@ def load_style_study_config(path: Path) -> StyleStudyConfig:
     styles = _mapping(root.get("style_vocabulary"), "style_vocabulary")
     selection = _mapping(root.get("fixture_selection"), "fixture_selection")
     render = _mapping(root.get("render"), "render")
+    candidate_items = [
+        _mapping(item, "width candidate")
+        for item in _sequence(styles.get("stroke_width_candidates"), "stroke candidates")
+    ]
     candidates = tuple(
         WidthCandidate(
-            name=_string(_mapping(item, "width candidate"), "name"),
-            tokens=_positive_int(_mapping(item, "width candidate").get("tokens"), "tokens"),
+            name=_string(item, "name"),
+            tokens=_positive_int(item.get("tokens"), "tokens"),
+            supplemental_values=(
+                ()
+                if item.get("supplemental_values") is None
+                else _positive_floats(item.get("supplemental_values"), "supplemental_values")
+            ),
         )
-        for item in _sequence(styles.get("stroke_width_candidates"), "stroke candidates")
+        for item in candidate_items
     )
     if not candidates or len({item.name for item in candidates}) != len(candidates):
         raise StyleStudyError("stroke width candidates must have unique names")
@@ -143,6 +155,18 @@ def load_style_study_config(path: Path) -> StyleStudyConfig:
             selection.get("top_absolute_per_candidate"), "top_absolute_per_candidate"
         ),
         max_fixture_icons=_positive_int(selection.get("max_icons"), "max_icons"),
+        fixture_manifest=(
+            None
+            if selection.get("parent_fixture") is None
+            else Path(_string(selection, "parent_fixture"))
+        ),
+        fixture_manifest_sha256=(
+            None
+            if selection.get("parent_fixture_sha256") is None
+            else _sha256(
+                _string(selection, "parent_fixture_sha256"), "parent_fixture_sha256"
+            )
+        ),
         render_sizes=sizes,
         render_timeout_seconds=_positive_int(
             render.get("timeout_seconds"), "render.timeout_seconds"
@@ -152,6 +176,8 @@ def load_style_study_config(path: Path) -> StyleStudyConfig:
         raise StyleStudyError("control bounds must cover 0..72")
     if any(item.tokens > 128 for item in candidates):
         raise StyleStudyError("stroke width candidate exceeds 128 tokens")
+    if (config.fixture_manifest is None) != (config.fixture_manifest_sha256 is None):
+        raise StyleStudyError("parent fixture and hash must be specified together")
     if len(set(config.miter_limits)) != len(config.miter_limits):
         raise StyleStudyError("miter limits must be unique")
     if len(set(config.dash_patterns)) != len(config.dash_patterns):
@@ -241,15 +267,26 @@ def run_style_study(config: StyleStudyConfig, config_path: Path) -> dict[str, An
     width_counts = _numeric_counts(parent_rows, "stroke_width_counts")
     miter_counts = _numeric_counts(parent_rows, "miter_limit_counts")
     dash_counts = _tuple_counts(parent_rows, "dash_pattern_counts")
-    vocabularies = {
-        candidate.name: optimal_relative_l1_vocabulary(width_counts, candidate.tokens)
-        for candidate in config.width_candidates
-    }
+    vocabularies = {}
+    for candidate in config.width_candidates:
+        optimized = optimal_relative_l1_vocabulary(width_counts, candidate.tokens)
+        vocabularies[candidate.name] = tuple(
+            sorted(set(optimized) | set(candidate.supplemental_values))
+        )
     analytics = {
         name: _vocabulary_metrics(parent_rows, vocabulary)
         for name, vocabulary in vocabularies.items()
     }
-    selected, selection_reasons = _select_fixture(parent_rows, vocabularies, config)
+    if config.fixture_manifest is None:
+        selected, selection_reasons = _select_fixture(parent_rows, vocabularies, config)
+    else:
+        assert config.fixture_manifest_sha256 is not None
+        selected, selection_reasons = _load_parent_fixture(
+            config.fixture_manifest,
+            config.fixture_manifest_sha256,
+            config,
+            parent_rows,
+        )
     if len(selected) > config.max_fixture_icons:
         raise StyleStudyError(
             f"fixture selection produced {len(selected)} icons, exceeding cap "
@@ -413,6 +450,46 @@ def _select_fixture(
     return selected, reasons
 
 
+def _load_parent_fixture(
+    path: Path,
+    expected_sha256: str,
+    config: StyleStudyConfig,
+    parent_rows: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], dict[str, set[str]]]:
+    """Recover an earlier pinned fixture while retaining current parent row evidence."""
+
+    _verify_file(path, expected_sha256, "parent fixture")
+    fixture = _mapping(
+        json.loads(_read_bounded(path, _MAX_INPUT_BYTES, "parent fixture")),
+        "parent fixture",
+    )
+    if fixture.get("source_revision") != config.source_revision:
+        raise StyleStudyError("parent fixture source revision mismatch")
+    selection = _mapping(fixture.get("selection"), "parent fixture selection")
+    if selection.get("parent_hybrid_sha256") != config.parent_hybrid_sha256:
+        raise StyleStudyError("parent fixture hybrid hash mismatch")
+    by_path = {_string(row, "source_path"): row for row in parent_rows}
+    selected: list[dict[str, Any]] = []
+    reasons: dict[str, set[str]] = {}
+    for item in _sequence(fixture.get("rows"), "parent fixture rows"):
+        row = _mapping(item, "parent fixture row")
+        source_path = _string(row, "source_path")
+        if source_path not in by_path:
+            raise StyleStudyError(f"parent fixture row missing from hybrid: {source_path}")
+        parent = by_path[source_path]
+        if row.get("source_svg_sha256") != parent.get("source_svg_sha256"):
+            raise StyleStudyError(f"parent fixture source hash mismatch: {source_path}")
+        raw_reasons = _sequence(row.get("selection_reasons"), "selection reasons")
+        parsed_reasons = {
+            str(reason) for reason in raw_reasons if isinstance(reason, str) and reason
+        }
+        if len(parsed_reasons) != len(raw_reasons):
+            raise StyleStudyError("parent fixture selection reasons must be strings")
+        selected.append(parent)
+        reasons[source_path] = {f"parent-fixture:{reason}" for reason in parsed_reasons}
+    return selected, reasons
+
+
 def _vocabulary_metrics(
     rows: list[dict[str, Any]], vocabulary: tuple[float, ...]
 ) -> dict[str, Any]:
@@ -510,6 +587,10 @@ def _summarize(
         "parent_hybrid": str(config.parent_hybrid),
         "parent_hybrid_sha256": config.parent_hybrid_sha256,
         "parent_rows": len(parent_rows),
+        "parent_fixture": (
+            None if config.fixture_manifest is None else str(config.fixture_manifest)
+        ),
+        "parent_fixture_sha256": config.fixture_manifest_sha256,
         "parent_style_tail_icons": sum(
             not bool(_mapping(row.get("style_vocabulary"), "style").get("exact"))
             for row in parent_rows
@@ -529,6 +610,7 @@ def _summarize(
         "width_vocabulary_analytics": analytics,
         "configured_miter_limits": list(config.miter_limits),
         "configured_dash_patterns": [list(item) for item in config.dash_patterns],
+        "width_candidates": [asdict(item) for item in config.width_candidates],
         "codec": {
             "coordinate_bins": config.coordinate_bins,
             "control_coordinate_bins": config.control_coordinate_bins,
