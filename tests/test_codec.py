@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import json
 from collections.abc import Callable
+from dataclasses import replace
 from pathlib import Path
 from xml.etree import ElementTree
 
@@ -24,6 +25,12 @@ from mojidiff.representation.codec_study import (
     load_codec_study_config,
 )
 from mojidiff.representation.normalizer import NormalizationError, normalize_svg
+from mojidiff.representation.packed import (
+    pack_tensor_program,
+    serialize_packed_svg,
+    unpack_tensor_program,
+    validate_packed_tensor_program,
+)
 from mojidiff.representation.program import (
     NONE,
     OPACITY_VOCABULARY,
@@ -185,6 +192,104 @@ def test_capacity_study_uses_whole_contour_packed_prefixes() -> None:
     assert dense_retention((3, 8, 2), DenseCapacity("dense", 2, 4)) == (2, 7)
     assert packed_retention((3, 8, 2), PackedCapacity("packed", 3, 10)) == (1, 3)
     assert packed_retention((3, 8, 2), PackedCapacity("packed", 2, 11)) == (2, 11)
+
+
+def test_packed_tensor_round_trip_and_serializer_match_dense() -> None:
+    config = _config(max_paths=4, max_segments=8)
+    program = FloatProgram(
+        (
+            _contour(layer=1),
+            _contour(
+                layer=2,
+                start=(3.0, 4.0),
+                segments=(
+                    FloatSegment(SegmentType.LINE, (5.0, 6.0)),
+                    FloatSegment(SegmentType.LINE, (7.0, 8.0)),
+                ),
+            ),
+        )
+    )
+    dense, _ = encode_program(program, config)
+
+    packed = pack_tensor_program(dense, config, total_segment_slots=4)
+    recovered = unpack_tensor_program(packed, config, total_segment_slots=4)
+
+    for field in dense.__dataclass_fields__:
+        assert np.array_equal(getattr(dense, field), getattr(recovered, field))
+    assert packed.path_length.tolist() == [2, 2, 0, 0]
+    assert packed.segment_type.tolist() == [
+        int(SegmentType.LINE),
+        int(SegmentType.CLOSE),
+        int(SegmentType.LINE),
+        int(SegmentType.LINE),
+    ]
+    assert serialize_packed_svg(packed, config, 4) == serialize_svg(dense, config)
+
+
+def test_packed_tensor_rejects_capacity_padding_and_grammar_violations() -> None:
+    config = _config(max_paths=4, max_segments=8)
+    dense, _ = encode_program(FloatProgram((_contour(),)), config)
+
+    with pytest.raises(BudgetExceeded, match="needs 2 packed segments"):
+        pack_tensor_program(dense, config, total_segment_slots=1)
+
+    packed = pack_tensor_program(dense, config, total_segment_slots=4)
+    bad_tail = copy.deepcopy(packed)
+    bad_tail.segment_type[-1] = int(SegmentType.LINE)
+    with pytest.raises(ProgramValidationError, match="inactive packed segment types"):
+        validate_packed_tensor_program(bad_tail, config, 4)
+
+    bad_lengths = copy.deepcopy(packed)
+    bad_lengths.path_length[0] = 5
+    with pytest.raises(ProgramValidationError, match="path lengths exceed"):
+        validate_packed_tensor_program(bad_lengths, config, 4)
+
+    wrong_shape = replace(packed, coordinates=np.zeros((3, 6), dtype=np.int64))
+    with pytest.raises(ProgramValidationError, match="wrong packed shape"):
+        validate_packed_tensor_program(wrong_shape, config, 4)
+
+
+@pytest.mark.parametrize("seed", range(20))
+def test_random_valid_programs_pack_reversibly(seed: int) -> None:
+    rng = np.random.default_rng(seed)
+    config = _config(
+        max_paths=5,
+        max_segments=7,
+        coordinate_bins=289,
+        control_coordinate_bins=417,
+        control_coordinate_min=-8.0,
+        control_coordinate_max=96.0,
+    )
+    contours: list[FloatContour] = []
+    for path_index in range(int(rng.integers(1, config.max_paths + 1))):
+        segments: list[FloatSegment] = []
+        geometry_count = int(rng.integers(1, config.max_segments + 1))
+        for _ in range(geometry_count):
+            kind = (SegmentType.LINE, SegmentType.QUAD, SegmentType.CUBIC)[
+                int(rng.integers(0, 3))
+            ]
+            control_count = {SegmentType.LINE: 0, SegmentType.QUAD: 2, SegmentType.CUBIC: 4}[
+                kind
+            ]
+            control = tuple(float(rng.integers(-32, 385)) / 4 for _ in range(control_count))
+            endpoint = tuple(float(rng.integers(0, 289)) / 4 for _ in range(2))
+            segments.append(FloatSegment(kind, control + endpoint))
+        contours.append(
+            _contour(
+                layer=path_index + 1,
+                start=tuple(float(rng.integers(0, 289)) / 4 for _ in range(2)),  # type: ignore[arg-type]
+                segments=tuple(segments),
+            )
+        )
+    dense, _ = encode_program(FloatProgram(tuple(contours)), config)
+    total = sum(int(value) for value in dense.path_length)
+
+    packed = pack_tensor_program(dense, config, total)
+    recovered = unpack_tensor_program(packed, config, total)
+
+    for field in dense.__dataclass_fields__:
+        assert np.array_equal(getattr(dense, field), getattr(recovered, field))
+    assert serialize_packed_svg(packed, config, total) == serialize_svg(dense, config)
 
 
 def test_codec_study_artifacts_are_create_or_identical(tmp_path: Path) -> None:
