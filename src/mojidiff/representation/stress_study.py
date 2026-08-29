@@ -272,7 +272,7 @@ def _mutate(
         value.coordinates[0, used] = 1
     elif mutation == "endpoint-token":
         value.segment_type[0] = int(SegmentType.LINE)
-        value.coordinates[0, 0] = codec.coordinate_bins
+        value.coordinates[0, 0] = codec.coordinate_bins + 1
         value.coordinates[0, 2:] = PAD
     elif mutation == "path-style-token":
         value.fill[0] = len(codec.palette) + 2

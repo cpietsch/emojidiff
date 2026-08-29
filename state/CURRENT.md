@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-29T18:10:00Z
+Updated: 2026-08-29T18:19:00Z
 
 ## Current hypothesis and evidence
 
@@ -168,6 +168,14 @@ balance; packed P80/T1216 and all adaptive assignments are exact; detail and ass
 cardinalities are 24,036 and 4,006. A second invocation reproduced all hashes. The full
 suite passes 62/62; Ruff and strict mypy pass. No GPU work was performed.
 
+Implemented reversible packed conversion at `f8b1601`, isolated typed-SVG rendering at
+`82c48ec`, and a deterministic Gate D stress harness at `e6c100b`. The unit suite passes
+90/90 with 20 seeded random packed round trips and real subprocess rendering. Registered
+stress run `packed-render-stress-v1-e6c100b-df13aed7-005dc6b4` failed before artifacts:
+the harness used token 289 as an invalid q289 endpoint, but valid coordinate tokens are
+1..289. The failure is preserved in the registry; the mutator is corrected to 290 for
+a new run identity. No GPU work was performed.
+
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
@@ -224,8 +232,7 @@ JSONL/Markdown evidence; no bulk artifact was produced.
 
 ## Next smallest evidence-producing action
 
-Checkpoint the capacity evidence and Gate C decision, then begin Gate D locally by
-implementing reversible dense-to-packed conversion plus tensor invariant/property tests
-for the selected P80/T1216 layout. Keep the GPU server off; worker startup is not useful
-until packed codec and renderer stress tests pass locally and the worker's artifact/cap
-fields are configured.
+Commit the endpoint-mutator boundary correction, rerun the registered Gate D stress
+study under the new code identity, and preserve both outcomes. Keep the GPU server off;
+worker startup is not useful until the local packed/renderer stress gate passes and the
+worker's artifact/cap fields are configured.
