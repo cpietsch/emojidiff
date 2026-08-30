@@ -33,6 +33,7 @@ class FixtureConfig:
     report_root: Path
     fixture_path: Path
     max_paths: int
+    max_segments_per_path: int
     max_total_segments: int
     icon_count: int
     per_group_candidates: int
@@ -56,6 +57,7 @@ def load_fixture_config(path: Path) -> FixtureConfig:
         report_root=Path(_string(root, "report_root")),
         fixture_path=Path(_string(root, "fixture_path")),
         max_paths=_positive_int(selection.get("max_paths")),
+        max_segments_per_path=_positive_int(selection.get("max_segments_per_path")),
         max_total_segments=_positive_int(selection.get("max_total_segments")),
         icon_count=_positive_int(selection.get("icon_count")),
         per_group_candidates=_positive_int(selection.get("per_group_candidates")),
@@ -154,7 +156,11 @@ def _candidate(row: dict[str, Any], config: FixtureConfig) -> dict[str, Any] | N
         paths.append(
             (signature, 2 + sum(_coordinate_count(SegmentType(kind)) for kind in signature))
         )
-    if len(paths) > config.max_paths or segments > config.max_total_segments:
+    if (
+        len(paths) > config.max_paths
+        or segments > config.max_total_segments
+        or any(len(signature) > config.max_segments_per_path for signature, _ in paths)
+    ):
         return None
     return {
         "hexcode": _string(row, "hexcode"),

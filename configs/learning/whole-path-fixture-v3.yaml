@@ -1,0 +1,15 @@
+schema_version: 1
+source_revision: f9fc506a3f913be9897ab0181d611d4c910a4104
+raw_root: data/raw/openmoji/17.0.0
+hybrid_manifest: reports/codec/full-primary-structure-v2-opacity/hybrid.jsonl
+hybrid_manifest_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+expected_rows: 4006
+report_root: reports/corruption/whole-path-fixture-v3
+fixture_path: data/manifests/openmoji-17.0.0-whole-path-fixture-v3.json
+selection:
+  max_paths: 16
+  max_segments_per_path: 32
+  max_total_segments: 128
+  icon_count: 4
+  per_group_candidates: 30
+  min_eligible_fraction: 0.50
