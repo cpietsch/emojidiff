@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-29T18:21:00Z
+Updated: 2026-08-30T05:35:24Z
 
 ## Current hypothesis and evidence
 
@@ -92,6 +92,14 @@ implemented. The corrected registered stress run completed 200 stable random pac
 round trips, rejected 2,000/2,000 invalid mutations across ten families, classified
 three malformed typed-XML cases, and completed 25 isolated renders including an actual
 80-path/1,216-segment boundary program. The first mutator-boundary failure is preserved.
+
+Gate E implementation is checkpointed but has not yet been run. The local CPU harness
+uses the selected packed codec, a fixed-topology geometry-only bidirectional transformer,
+role-aware q289/q417 corruption, four hash-pinned diverse icons, multiple disjoint
+training and held-out corruptions, predeclared accuracy/loss criteria, isolated paired
+renders, and exact continuous-versus-checkpoint-resumed comparison. This is explicitly a
+diagnostic for geometry learnability, not evidence for topology generation or a final
+diffusion process.
 
 ## Last completed action and verification
 
@@ -189,6 +197,14 @@ is at `f8b1601`, renderer isolation at `82c48ec`, the stress harness at `e6c100b
 the boundary correction at `d5ca696`. The full suite passes 90/90; Ruff and strict mypy
 pass. Gate D is complete. No GPU work was performed.
 
+Installed pinned CPU-only PyTorch 2.8.0+cpu in the local `.venv`, recorded the explicit
+CPU package index and lockfile, and checkpointed the Gate E harness at `49e6e6a`. Its
+fixture hash is `32a80ab576a6d5a435e859d38c1ba25e302070e92caae2971b517fe42c4b0d79`
+and config hash is `bf71ca62d7f3e3a3a07aa0a6caeb78039785badf2ca63d0884ccf030909769c3`.
+All four fixtures load without truncation or projection. The focused learning tests pass
+2/2, the full suite passes 92/92, Ruff passes, and strict mypy passes. No registered
+learning run or GPU work has occurred yet.
+
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
@@ -209,18 +225,10 @@ SVGs are reproducible and local-only. No external artifact sink is
 configured or verified, so bulk artifacts are not durable against loss of the
 control-plane volume and meaningful GPU work remains blocked.
 
-The 264 KB style-vocabulary v1 compact report is local and pending a Git checkpoint;
-its 628 KB derived SVGs are reproducible and ignored. The complete run is recorded in
-the append-only registry. Nothing was pushed.
-
-The style-vocabulary v2 compact report is local and pending a Git checkpoint; its
-derived SVGs are reproducible and ignored. No external artifact sink is configured.
-
-The capacity report is local and pending a Git checkpoint. It contains only compact
-JSONL/Markdown evidence; no bulk artifact was produced.
-
-The packed/render stress report is local and pending a Git checkpoint. It contains
-only compact JSONL/Markdown evidence; no checkpoint or bulk artifact was produced.
+The compact style-vocabulary, capacity, and packed/render stress evidence is versioned
+locally through `791af1f`; their reproducible bulk SVG/raster derivatives remain ignored.
+The Gate E implementation, fixture, config, and CPU dependency lock are versioned at
+`49e6e6a`. No learning report or checkpoint exists yet. Nothing was pushed.
 
 ## Current blockers and missing authorization
 
@@ -248,7 +256,8 @@ only compact JSONL/Markdown evidence; no checkpoint or bulk artifact was produce
 
 ## Next smallest evidence-producing action
 
-Checkpoint the corrected Gate D evidence, then implement the smallest deterministic
-Gate E learning proof locally: one packed fixture, one forward/backward step, bounded
-overfit, and exact checkpoint-resume continuation. Keep the GPU server off until that
-pipeline passes on CPU and the worker's artifact/cap fields are configured.
+Register and run `tiny-geometry-v1` locally on deterministic CPU, preserve whether its
+predeclared one-icon and diverse-fixture criteria pass or fail, rerun to verify artifact
+identity, inspect the paired render sheet, and record the finding. Keep the GPU server
+off until this CPU evidence is complete and the worker's artifact/cap fields are
+configured.
