@@ -10,11 +10,13 @@ from mojidiff.learning.geometry import (
     corrupt_factorized_geometry,
     corrupt_geometry,
     corrupt_path_correlated_geometry,
+    corrupt_whole_path_geometry_from_pool,
     corrupt_whole_path_geometry_replacement,
     geometry_accuracy_by_corruption,
     geometry_loss_and_accuracy,
     packed_batch,
     predict_clean_geometry,
+    whole_path_pool_support,
 )
 from mojidiff.learning.tiny_study import (
     TinyLearningConfig,
@@ -182,6 +184,26 @@ def test_whole_path_replacement_copies_only_compatible_legal_geometry() -> None:
     assert np.array_equal(replaced.coordinates, donor.coordinates)
     assert np.array_equal(replaced.path_length, clean.path_length)
     assert np.array_equal(replaced.segment_type, clean.segment_type)
+    validate_packed_tensor_program(replaced, codec, 16)
+
+
+def test_whole_path_pool_uses_compatible_paths_across_different_slots() -> None:
+    codec = _codec()
+    dense, _ = encode_program(_program(), codec)
+    clean = pack_tensor_program(dense, codec, total_segment_slots=16)
+    donor = corrupt_factorized_geometry(clean, codec, 1.0, np.random.default_rng(43))
+    replaced = corrupt_whole_path_geometry_from_pool(
+        clean, [clean, donor], codec, 1.0, np.random.default_rng(44)
+    )
+
+    assert np.array_equal(replaced.start, donor.start)
+    assert np.array_equal(replaced.coordinates, donor.coordinates)
+    assert whole_path_pool_support([clean, donor]) == {
+        "active_paths": 2,
+        "eligible_paths": 2,
+        "geometry_fields": 24,
+        "eligible_geometry_fields": 24,
+    }
     validate_packed_tensor_program(replaced, codec, 16)
 
 

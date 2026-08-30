@@ -1,0 +1,6 @@
+schema_version: 1
+study_version: whole-path-support-audit-v1
+learning_config: configs/learning/tiny-geometry-f1-factorized.yaml
+learning_config_sha256: e57646b7f70d51e411f57203fd8674f8894743e49e3f23de20ee95e51cf3ba1f
+report_root: reports/corruption/whole-path-support-audit-v1
+target_marginal_probability: 0.35

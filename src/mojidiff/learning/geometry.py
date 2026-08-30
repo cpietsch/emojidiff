@@ -8,6 +8,7 @@ not a claim to model topology or a mathematically specified D3PM transition.
 from __future__ import annotations
 
 import copy
+from collections.abc import Sequence
 from dataclasses import fields
 
 import numpy as np
@@ -244,6 +245,94 @@ def corrupt_whole_path_geometry_replacement(
         donor_offset += donor_length
     validate_packed_tensor_program(noisy, codec, len(noisy.segment_type))
     return noisy
+
+
+def corrupt_whole_path_geometry_from_pool(
+    clean: PackedTensorProgram,
+    donor_pool: Sequence[PackedTensorProgram],
+    codec: CodecConfig,
+    probability: float,
+    rng: np.random.Generator,
+) -> PackedTensorProgram:
+    """Replace each eligible path from a compatible path in another pooled program.
+
+    Compatibility is exact segment-kind sequence equality, irrespective of the donor's
+    path slot.  Programs that are object-identical to ``clean`` are excluded, so a
+    whole-path replacement always draws its geometry from another training example.
+    A path without a compatible external donor remains untouched; callers must audit
+    that support before comparing this operator at a claimed marginal noise level.
+    """
+
+    _require_probability(probability)
+    candidates = _path_pool(donor_pool, exclude=clean)
+    noisy = copy.deepcopy(clean)
+    offset = 0
+    for path_index, raw_length in enumerate(clean.path_length):
+        length = int(raw_length)
+        if not length:
+            break
+        signature = tuple(int(value) for value in clean.segment_type[offset : offset + length])
+        compatible = candidates.get(signature, ())
+        if compatible and rng.random() < probability:
+            donor_start, donor_coordinates = compatible[int(rng.integers(0, len(compatible)))]
+            noisy.start[path_index] = donor_start
+            noisy.coordinates[offset : offset + length] = donor_coordinates
+        offset += length
+    validate_packed_tensor_program(noisy, codec, len(noisy.segment_type))
+    return noisy
+
+
+def whole_path_pool_support(
+    programs: Sequence[PackedTensorProgram],
+) -> dict[str, int]:
+    """Return exact-path donor support without sampling or changing any program."""
+
+    active_paths = 0
+    eligible_paths = 0
+    geometry_fields = 0
+    eligible_geometry_fields = 0
+    for clean in programs:
+        candidates = _path_pool(programs, exclude=clean)
+        offset = 0
+        for raw_length in clean.path_length:
+            length = int(raw_length)
+            if not length:
+                break
+            signature = tuple(int(value) for value in clean.segment_type[offset : offset + length])
+            fields = 2 + sum(_coordinate_counts(SegmentType(kind))[1] for kind in signature)
+            active_paths += 1
+            geometry_fields += fields
+            if candidates.get(signature):
+                eligible_paths += 1
+                eligible_geometry_fields += fields
+            offset += length
+    return {
+        "active_paths": active_paths,
+        "eligible_paths": eligible_paths,
+        "geometry_fields": geometry_fields,
+        "eligible_geometry_fields": eligible_geometry_fields,
+    }
+
+
+def _path_pool(
+    programs: Sequence[PackedTensorProgram], *, exclude: PackedTensorProgram
+) -> dict[tuple[int, ...], list[tuple[np.ndarray, np.ndarray]]]:
+    result: dict[tuple[int, ...], list[tuple[np.ndarray, np.ndarray]]] = {}
+    for program in programs:
+        if program is exclude:
+            continue
+        offset = 0
+        for path_index, raw_length in enumerate(program.path_length):
+            length = int(raw_length)
+            if not length:
+                break
+            segment_types = program.segment_type[offset : offset + length]
+            signature = tuple(int(value) for value in segment_types)
+            result.setdefault(signature, []).append(
+                (program.start[path_index], program.coordinates[offset : offset + length])
+            )
+            offset += length
+    return result
 
 
 def _different_token(original: int, bins: int, rng: np.random.Generator) -> int:
