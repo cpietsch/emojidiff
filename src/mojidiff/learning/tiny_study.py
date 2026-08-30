@@ -19,7 +19,8 @@ from PIL import Image, ImageDraw
 
 from mojidiff.learning.geometry import (
     GeometryDenoiser,
-    corrupt_geometry,
+    corrupt_factorized_geometry,
+    corrupt_path_correlated_geometry,
     geometry_accuracy_by_corruption,
     geometry_loss_and_accuracy,
     packed_batch,
@@ -55,6 +56,7 @@ class TrainCase:
     min_heldout_accuracy: float
     max_loss_ratio: float
     resample_each_step: bool
+    corruption_kind: str = "factorized_geometry"
 
 
 @dataclass(frozen=True)
@@ -121,6 +123,9 @@ def load_tiny_learning_config(path: Path) -> TinyLearningConfig:
             max_loss_ratio=_probability(item.get("max_loss_ratio"), "max_loss_ratio"),
             resample_each_step=_boolean(
                 item.get("resample_each_step", False), "resample_each_step"
+            ),
+            corruption_kind=_corruption_kind(
+                item.get("corruption_kind", "factorized_geometry")
             ),
         )
         for item in (
@@ -209,6 +214,7 @@ def run_tiny_learning(config: TinyLearningConfig, config_path: Path) -> dict[str
             config.corruption_probability,
             case.corruptions_per_icon,
             case.seed,
+            case.corruption_kind,
         )
         heldout, heldout_clean = _corruption_set(
             clean,
@@ -216,6 +222,7 @@ def run_tiny_learning(config: TinyLearningConfig, config_path: Path) -> dict[str
             config.corruption_probability,
             case.heldout_corruptions_per_icon,
             case.seed + 1_000_000,
+            case.corruption_kind,
         )
         heldout_sets[case.name] = heldout
         initial_model, initial_optimizer = _new_training(config, codec, case.seed)
@@ -411,6 +418,7 @@ def _train(
                 corruption_probability,
                 case.corruptions_per_icon,
                 case.seed + 2_000_000 + step * 100_000,
+                case.corruption_kind,
             )
             noisy_batch = packed_batch(step_noisy, device)
             clean_batch = packed_batch(step_clean, device)
@@ -483,15 +491,32 @@ def _corruption_set(
     probability: float,
     repetitions: int,
     seed: int,
+    corruption_kind: str,
 ) -> tuple[list[PackedTensorProgram], list[PackedTensorProgram]]:
     noisy: list[PackedTensorProgram] = []
     targets: list[PackedTensorProgram] = []
     for icon_index, program in enumerate(clean):
         for corruption_index in range(repetitions):
             rng = np.random.default_rng(seed + icon_index * 10_000 + corruption_index)
-            noisy.append(corrupt_geometry(program, codec, probability, rng))
+            noisy.append(_corrupt(program, codec, probability, rng, corruption_kind))
             targets.append(program)
     return noisy, targets
+
+
+def _corrupt(
+    program: PackedTensorProgram,
+    codec: CodecConfig,
+    probability: float,
+    rng: np.random.Generator,
+    corruption_kind: str,
+) -> PackedTensorProgram:
+    """Apply one predeclared fixed-topology geometry corruption contract."""
+
+    if corruption_kind == "factorized_geometry":
+        return corrupt_factorized_geometry(program, codec, probability, rng)
+    if corruption_kind == "path_correlated_geometry":
+        return corrupt_path_correlated_geometry(program, codec, probability, rng)
+    raise TinyLearningError(f"unsupported corruption kind: {corruption_kind}")
 
 
 def _load_program(
@@ -923,6 +948,12 @@ def _probability(value: object, field: str) -> float:
 def _boolean(value: object, field: str) -> bool:
     if not isinstance(value, bool):
         raise TinyLearningError(f"{field} must be a boolean")
+    return value
+
+
+def _corruption_kind(value: object) -> str:
+    if value not in {"factorized_geometry", "path_correlated_geometry"}:
+        raise TinyLearningError("corruption_kind must name a supported fixed-topology contract")
     return value
 
 

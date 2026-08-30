@@ -7,7 +7,10 @@ import torch
 
 from mojidiff.learning.geometry import (
     GeometryDenoiser,
+    corrupt_factorized_geometry,
     corrupt_geometry,
+    corrupt_path_correlated_geometry,
+    corrupt_whole_path_geometry_replacement,
     geometry_accuracy_by_corruption,
     geometry_loss_and_accuracy,
     packed_batch,
@@ -123,6 +126,63 @@ def test_fixed_topology_corruption_is_seeded_and_preserves_typed_padding() -> No
     assert np.all(first.segment_type[4:] == 0)
     assert np.all(first.coordinates[4:] == 0)
     validate_packed_tensor_program(first, codec, 16)
+
+
+def test_factorized_and_path_correlated_contracts_preserve_grammar() -> None:
+    codec = _codec()
+    dense, _ = encode_program(_program(), codec)
+    clean = pack_tensor_program(dense, codec, total_segment_slots=16)
+    factorized = corrupt_factorized_geometry(clean, codec, 1.0, np.random.default_rng(31))
+    correlated = corrupt_path_correlated_geometry(clean, codec, 1.0, np.random.default_rng(31))
+
+    for noisy in (factorized, correlated):
+        assert np.array_equal(noisy.path_length, clean.path_length)
+        assert np.array_equal(noisy.segment_type, clean.segment_type)
+        assert np.all(noisy.start[0] != clean.start[0])
+        for index, kind in enumerate(clean.segment_type[:4]):
+            coordinate_count = {1: 2, 2: 4, 3: 6, 4: 0}[int(kind)]
+            assert np.all(
+                noisy.coordinates[index, :coordinate_count]
+                != clean.coordinates[index, :coordinate_count]
+            )
+        assert np.all(noisy.segment_type[4:] == 0)
+        assert np.all(noisy.coordinates[4:] == 0)
+        validate_packed_tensor_program(noisy, codec, 16)
+
+
+def test_path_correlated_gate_changes_complete_paths_or_none() -> None:
+    codec = _codec()
+    dense, _ = encode_program(_program(), codec)
+    clean = pack_tensor_program(dense, codec, total_segment_slots=16)
+
+    retained = corrupt_path_correlated_geometry(clean, codec, 0.0, np.random.default_rng(13))
+    changed = corrupt_path_correlated_geometry(clean, codec, 1.0, np.random.default_rng(13))
+
+    assert np.array_equal(retained.start, clean.start)
+    assert np.array_equal(retained.coordinates, clean.coordinates)
+    assert np.all(changed.start[0] != clean.start[0])
+    for index, kind in enumerate(clean.segment_type[:4]):
+        coordinate_count = {1: 2, 2: 4, 3: 6, 4: 0}[int(kind)]
+        assert np.all(
+            changed.coordinates[index, :coordinate_count]
+            != clean.coordinates[index, :coordinate_count]
+        )
+
+
+def test_whole_path_replacement_copies_only_compatible_legal_geometry() -> None:
+    codec = _codec()
+    dense, _ = encode_program(_program(), codec)
+    clean = pack_tensor_program(dense, codec, total_segment_slots=16)
+    donor = corrupt_factorized_geometry(clean, codec, 1.0, np.random.default_rng(41))
+    replaced = corrupt_whole_path_geometry_replacement(
+        clean, donor, codec, 1.0, np.random.default_rng(42)
+    )
+
+    assert np.array_equal(replaced.start, donor.start)
+    assert np.array_equal(replaced.coordinates, donor.coordinates)
+    assert np.array_equal(replaced.path_length, clean.path_length)
+    assert np.array_equal(replaced.segment_type, clean.segment_type)
+    validate_packed_tensor_program(replaced, codec, 16)
 
 
 def test_checkpoint_is_byte_stable_and_restores_training_state() -> None:

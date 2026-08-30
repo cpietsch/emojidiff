@@ -1,4 +1,9 @@
-"""Small fixed-topology geometry denoiser for the Gate E learning proof."""
+"""Typed, fixed-topology corruption and denoising utilities.
+
+The Gate F operators here deliberately keep path lengths, segment kinds, styles, and
+typed padding fixed.  They therefore isolate geometry corruption correlation; they are
+not a claim to model topology or a mathematically specified D3PM transition.
+"""
 
 from __future__ import annotations
 
@@ -9,7 +14,7 @@ import numpy as np
 import torch
 from torch import Tensor, nn
 
-from mojidiff.representation.packed import PackedTensorProgram
+from mojidiff.representation.packed import PackedTensorProgram, validate_packed_tensor_program
 from mojidiff.representation.program import CodecConfig, SegmentType
 
 _PATH_FIELDS = (
@@ -109,7 +114,18 @@ def corrupt_geometry(
     probability: float,
     rng: np.random.Generator,
 ) -> PackedTensorProgram:
-    """Apply fixed-topology, role-aware uniform coordinate corruption."""
+    """Backward-compatible name for factorized fixed-topology corruption."""
+
+    return corrupt_factorized_geometry(clean, codec, probability, rng)
+
+
+def corrupt_factorized_geometry(
+    clean: PackedTensorProgram,
+    codec: CodecConfig,
+    probability: float,
+    rng: np.random.Generator,
+) -> PackedTensorProgram:
+    """Independently replace each legal geometry token with a different legal token."""
 
     if not 0 <= probability <= 1:
         raise ValueError("corruption probability must be within 0..1")
@@ -119,8 +135,8 @@ def corrupt_geometry(
             break
         for coordinate_index in range(2):
             if rng.random() < probability:
-                noisy.start[path_index, coordinate_index] = int(
-                    rng.integers(1, codec.coordinate_bins + 1)
+                noisy.start[path_index, coordinate_index] = _different_token(
+                    int(clean.start[path_index, coordinate_index]), codec.coordinate_bins, rng
                 )
     offset = 0
     for raw_length in clean.path_length:
@@ -138,11 +154,110 @@ def corrupt_geometry(
                     if coordinate_index < control_count
                     else codec.coordinate_bins
                 )
-                noisy.coordinates[segment_index, coordinate_index] = int(
-                    rng.integers(1, bins + 1)
+                noisy.coordinates[segment_index, coordinate_index] = _different_token(
+                    int(clean.coordinates[segment_index, coordinate_index]), bins, rng
                 )
         offset += length
     return noisy
+
+
+def corrupt_path_correlated_geometry(
+    clean: PackedTensorProgram,
+    codec: CodecConfig,
+    probability: float,
+    rng: np.random.Generator,
+) -> PackedTensorProgram:
+    """Corrupt complete active geometry blocks behind one independently sampled path gate.
+
+    Once a path gate opens, every legal start/coordinate token in that path is replaced
+    by a different value in its role-specific vocabulary.  This preserves the packed
+    grammar exactly while making corruption correlation, rather than token rate, the
+    treatment factor against :func:`corrupt_factorized_geometry`.
+    """
+
+    _require_probability(probability)
+    noisy = copy.deepcopy(clean)
+    offset = 0
+    for path_index, raw_length in enumerate(clean.path_length):
+        length = int(raw_length)
+        if not length:
+            break
+        if rng.random() < probability:
+            for coordinate_index in range(2):
+                noisy.start[path_index, coordinate_index] = _different_token(
+                    int(clean.start[path_index, coordinate_index]), codec.coordinate_bins, rng
+                )
+            for segment_index in range(offset, offset + length):
+                kind = SegmentType(int(clean.segment_type[segment_index]))
+                control_count, coordinate_count = _coordinate_counts(kind)
+                for coordinate_index in range(coordinate_count):
+                    bins = (
+                        codec.effective_control_coordinate_bins
+                        if coordinate_index < control_count
+                        else codec.coordinate_bins
+                    )
+                    noisy.coordinates[segment_index, coordinate_index] = _different_token(
+                        int(clean.coordinates[segment_index, coordinate_index]), bins, rng
+                    )
+        offset += length
+    return noisy
+
+
+def corrupt_whole_path_geometry_replacement(
+    clean: PackedTensorProgram,
+    donor: PackedTensorProgram,
+    codec: CodecConfig,
+    probability: float,
+    rng: np.random.Generator,
+) -> PackedTensorProgram:
+    """Replace compatible whole geometry paths from a donor under locked topology.
+
+    A path is eligible only when its length and segment-kind sequence match the donor.
+    This is the safe fixed-topology form of whole-path replacement: it copies every
+    legal geometry token, preserves destination styles/topology, and never synthesizes
+    an invalid field.  Incompatible paths are retained and are reported by callers via
+    token differences rather than silently projected.
+    """
+
+    _require_probability(probability)
+    noisy = copy.deepcopy(clean)
+    clean_offset = 0
+    donor_offset = 0
+    for path_index, raw_length in enumerate(clean.path_length):
+        length = int(raw_length)
+        donor_length = int(donor.path_length[path_index])
+        if not length:
+            break
+        compatible = (
+            length == donor_length
+            and np.array_equal(
+                clean.segment_type[clean_offset : clean_offset + length],
+                donor.segment_type[donor_offset : donor_offset + donor_length],
+            )
+        )
+        if compatible and rng.random() < probability:
+            noisy.start[path_index] = donor.start[path_index]
+            noisy.coordinates[clean_offset : clean_offset + length] = donor.coordinates[
+                donor_offset : donor_offset + donor_length
+            ]
+        clean_offset += length
+        donor_offset += donor_length
+    validate_packed_tensor_program(noisy, codec, len(noisy.segment_type))
+    return noisy
+
+
+def _different_token(original: int, bins: int, rng: np.random.Generator) -> int:
+    """Sample uniformly from 1..bins excluding ``original``."""
+
+    if bins < 2 or not 1 <= original <= bins:
+        raise ValueError("token replacement requires a valid vocabulary of at least two values")
+    replacement = int(rng.integers(1, bins))
+    return replacement + 1 if replacement >= original else replacement
+
+
+def _require_probability(probability: float) -> None:
+    if not 0 <= probability <= 1:
+        raise ValueError("corruption probability must be within 0..1")
 
 
 def packed_batch(programs: list[PackedTensorProgram], device: torch.device) -> dict[str, Tensor]:
