@@ -7,6 +7,7 @@ import hashlib
 import io
 import json
 import subprocess
+import zipfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, cast
@@ -249,7 +250,9 @@ def run_tiny_learning(config: TinyLearningConfig, config_path: Path) -> dict[str
             )
             checkpoint = _save_checkpoint(split_model, split_optimizer, case.resume_step)
             checkpoint_hash = hashlib.sha256(checkpoint).hexdigest()
-            checkpoint_path = config.derived_root / case.name / f"checkpoint-{case.resume_step}.pt"
+            checkpoint_path = (
+                config.derived_root / case.name / f"checkpoint-{case.resume_step}.zip"
+            )
             _write_bytes_artifact(checkpoint_path, checkpoint)
             resumed_model, resumed_optimizer, loaded_step = _load_checkpoint(
                 checkpoint, config, codec
@@ -554,29 +557,178 @@ def _contact_sheet(
 def _save_checkpoint(
     model: GeometryDenoiser, optimizer: torch.optim.Optimizer, step: int
 ) -> bytes:
+    document = {
+        "step": step,
+        "model": model.state_dict(),
+        "optimizer": optimizer.state_dict(),
+        "torch_rng_state": torch.get_rng_state(),
+    }
+    tensors: list[tuple[str, bytes]] = []
+    tree = _encode_checkpoint_value(document, tensors)
+    manifest = _json({"schema_version": 1, "tree": tree})
     payload = io.BytesIO()
-    torch.save(
-        {
-            "step": step,
-            "model": model.state_dict(),
-            "optimizer": optimizer.state_dict(),
-            "torch_rng_state": torch.get_rng_state(),
-        },
-        payload,
-        _use_new_zipfile_serialization=False,
-    )
+    with zipfile.ZipFile(payload, mode="w", compression=zipfile.ZIP_STORED) as archive:
+        _write_checkpoint_member(archive, "manifest.json", manifest)
+        for name, tensor_payload in tensors:
+            _write_checkpoint_member(archive, name, tensor_payload)
     return payload.getvalue()
 
 
 def _load_checkpoint(
     payload: bytes, config: TinyLearningConfig, codec: CodecConfig
 ) -> tuple[GeometryDenoiser, torch.optim.Optimizer, int]:
-    document = torch.load(io.BytesIO(payload), map_location="cpu", weights_only=True)
+    document = _decode_checkpoint(payload)
     model, optimizer = _new_training(config, codec, seed=0)
     model.load_state_dict(document["model"])
     optimizer.load_state_dict(document["optimizer"])
     torch.set_rng_state(document["torch_rng_state"])
     return model, optimizer, int(document["step"])
+
+
+def _encode_checkpoint_value(
+    value: object, tensors: list[tuple[str, bytes]]
+) -> dict[str, Any]:
+    if isinstance(value, torch.Tensor):
+        name = f"tensors/{len(tensors):06d}.npy"
+        payload = io.BytesIO()
+        np.save(payload, value.detach().cpu().numpy(), allow_pickle=False)
+        tensors.append((name, payload.getvalue()))
+        return {"kind": "tensor", "member": name}
+    if isinstance(value, dict):
+        items = []
+        for key in sorted(value, key=_checkpoint_key_sort):
+            items.append(
+                {
+                    "key": _encode_checkpoint_key(key),
+                    "value": _encode_checkpoint_value(value[key], tensors),
+                }
+            )
+        return {"kind": "dict", "items": items}
+    if isinstance(value, list):
+        return {
+            "kind": "list",
+            "items": [_encode_checkpoint_value(item, tensors) for item in value],
+        }
+    if isinstance(value, tuple):
+        return {
+            "kind": "tuple",
+            "items": [_encode_checkpoint_value(item, tensors) for item in value],
+        }
+    if value is None or isinstance(value, (bool, int, float, str)):
+        return {"kind": "scalar", "value": value}
+    raise TinyLearningError(f"unsupported checkpoint value: {type(value).__name__}")
+
+
+def _encode_checkpoint_key(value: object) -> dict[str, int | str]:
+    if isinstance(value, bool):
+        raise TinyLearningError("boolean checkpoint mapping keys are unsupported")
+    if isinstance(value, int):
+        return {"kind": "int", "value": value}
+    if isinstance(value, str):
+        return {"kind": "str", "value": value}
+    raise TinyLearningError(f"unsupported checkpoint mapping key: {type(value).__name__}")
+
+
+def _checkpoint_key_sort(value: object) -> tuple[str, str]:
+    encoded = _encode_checkpoint_key(value)
+    return str(encoded["kind"]), str(encoded["value"])
+
+
+def _write_checkpoint_member(archive: zipfile.ZipFile, name: str, payload: bytes) -> None:
+    info = zipfile.ZipInfo(name, date_time=(1980, 1, 1, 0, 0, 0))
+    info.compress_type = zipfile.ZIP_STORED
+    info.create_system = 3
+    info.external_attr = 0o600 << 16
+    archive.writestr(info, payload)
+
+
+def _decode_checkpoint(payload: bytes) -> dict[str, Any]:
+    if len(payload) > 100_000_000:
+        raise TinyLearningError("checkpoint archive exceeds 100 MB")
+    try:
+        with zipfile.ZipFile(io.BytesIO(payload), mode="r") as archive:
+            infos = archive.infolist()
+            names = [info.filename for info in infos]
+            if len(names) != len(set(names)) or "manifest.json" not in names:
+                raise TinyLearningError("checkpoint member names are invalid")
+            if any(
+                info.compress_type != zipfile.ZIP_STORED
+                or info.file_size > 50_000_000
+                or not (
+                    info.filename == "manifest.json"
+                    or (
+                        info.filename.startswith("tensors/")
+                        and info.filename.endswith(".npy")
+                        and info.filename.count("/") == 1
+                    )
+                )
+                for info in infos
+            ):
+                raise TinyLearningError("checkpoint member violates archive limits")
+            if sum(info.file_size for info in infos) > 100_000_000:
+                raise TinyLearningError("checkpoint contents exceed 100 MB")
+            manifest = _mapping(json.loads(archive.read("manifest.json")), "checkpoint")
+            if manifest.get("schema_version") != 1:
+                raise TinyLearningError("checkpoint schema_version must be 1")
+            document = _decode_checkpoint_value(
+                _mapping(manifest.get("tree"), "checkpoint tree"), archive
+            )
+    except (json.JSONDecodeError, KeyError, ValueError, zipfile.BadZipFile) as error:
+        raise TinyLearningError("invalid checkpoint archive") from error
+    if not isinstance(document, dict):
+        raise TinyLearningError("checkpoint root must be a mapping")
+    required = {"step", "model", "optimizer", "torch_rng_state"}
+    if set(document) != required:
+        raise TinyLearningError("checkpoint root fields are invalid")
+    return cast(dict[str, Any], document)
+
+
+def _decode_checkpoint_value(value: dict[str, Any], archive: zipfile.ZipFile) -> Any:
+    kind = value.get("kind")
+    if kind == "tensor":
+        member = value.get("member")
+        if not isinstance(member, str) or member not in archive.namelist():
+            raise TinyLearningError("checkpoint tensor member is invalid")
+        array = np.load(io.BytesIO(archive.read(member)), allow_pickle=False)
+        if not isinstance(array, np.ndarray):
+            raise TinyLearningError("checkpoint tensor is not an array")
+        return torch.from_numpy(array.copy())
+    if kind in {"list", "tuple"}:
+        items = _sequence(value.get("items"), "checkpoint sequence")
+        decoded = [
+            _decode_checkpoint_value(_mapping(item, "checkpoint item"), archive)
+            for item in items
+        ]
+        return tuple(decoded) if kind == "tuple" else decoded
+    if kind == "dict":
+        items = _sequence(value.get("items"), "checkpoint mapping")
+        result: dict[int | str, Any] = {}
+        for item in items:
+            entry = _mapping(item, "checkpoint mapping item")
+            key = _decode_checkpoint_key(
+                _mapping(entry.get("key"), "checkpoint mapping key")
+            )
+            if key in result:
+                raise TinyLearningError("duplicate checkpoint mapping key")
+            result[key] = _decode_checkpoint_value(
+                _mapping(entry.get("value"), "checkpoint mapping value"), archive
+            )
+        return result
+    if kind == "scalar":
+        scalar = value.get("value")
+        if scalar is None or isinstance(scalar, (bool, int, float, str)):
+            return scalar
+    raise TinyLearningError("checkpoint value is invalid")
+
+
+def _decode_checkpoint_key(value: dict[str, Any]) -> int | str:
+    kind = value.get("kind")
+    result = value.get("value")
+    if kind == "int" and isinstance(result, int) and not isinstance(result, bool):
+        return result
+    if kind == "str" and isinstance(result, str):
+        return result
+    raise TinyLearningError("checkpoint mapping key is invalid")
 
 
 def _model_hash(model: GeometryDenoiser) -> str:

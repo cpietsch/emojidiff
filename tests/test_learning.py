@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import torch
 
@@ -9,6 +11,13 @@ from mojidiff.learning.geometry import (
     geometry_loss_and_accuracy,
     packed_batch,
     predict_clean_geometry,
+)
+from mojidiff.learning.tiny_study import (
+    TinyLearningConfig,
+    _load_checkpoint,
+    _model_hash,
+    _new_training,
+    _save_checkpoint,
 )
 from mojidiff.representation.packed import pack_tensor_program, validate_packed_tensor_program
 from mojidiff.representation.program import (
@@ -111,3 +120,50 @@ def test_fixed_topology_corruption_is_seeded_and_preserves_typed_padding() -> No
     assert np.all(first.segment_type[4:] == 0)
     assert np.all(first.coordinates[4:] == 0)
     validate_packed_tensor_program(first, codec, 16)
+
+
+def test_checkpoint_is_byte_stable_and_restores_training_state() -> None:
+    codec = _codec()
+    config = TinyLearningConfig(
+        version="test",
+        source_revision="revision",
+        raw_root=Path("raw"),
+        fixture=Path("fixture"),
+        fixture_sha256="0" * 64,
+        palette_path=Path("palette"),
+        palette_sha256="0" * 64,
+        style_summary=Path("style"),
+        style_summary_sha256="0" * 64,
+        style_candidate="candidate",
+        report_root=Path("report"),
+        derived_root=Path("derived"),
+        max_paths=codec.max_paths,
+        max_segments=codec.max_segments,
+        total_segment_slots=16,
+        d_model=32,
+        heads=4,
+        layers=1,
+        feedforward=64,
+        learning_rate=0.001,
+        corruption_probability=0.5,
+        cases=(),
+        render_sizes=(18,),
+        render_timeout_seconds=1,
+    )
+    model, optimizer = _new_training(config, codec, seed=19)
+    dense, _ = encode_program(_program(), codec)
+    clean = pack_tensor_program(dense, codec, total_segment_slots=16)
+    batch = packed_batch([clean], torch.device("cpu"))
+    loss, _ = geometry_loss_and_accuracy(model(batch), batch, codec)
+    loss.backward()  # type: ignore[no-untyped-call]
+    optimizer.step()
+
+    first = _save_checkpoint(model, optimizer, step=1)
+    second = _save_checkpoint(model, optimizer, step=1)
+    restored_model, restored_optimizer, step = _load_checkpoint(first, config, codec)
+
+    assert first == second
+    assert first.startswith(b"PK")
+    assert step == 1
+    assert _model_hash(restored_model) == _model_hash(model)
+    assert _save_checkpoint(restored_model, restored_optimizer, step) == first

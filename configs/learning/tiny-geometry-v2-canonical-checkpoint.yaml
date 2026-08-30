@@ -1,0 +1,55 @@
+schema_version: 1
+study_version: tiny-geometry-v2-canonical-checkpoint
+source_revision: f9fc506a3f913be9897ab0181d611d4c910a4104
+report_root: reports/learning/tiny-geometry-v2-canonical-checkpoint
+derived_root: data/processed/tiny-geometry-v2-canonical-checkpoint
+
+inputs:
+  raw_root: data/raw/openmoji/17.0.0
+  fixture: data/manifests/openmoji-17.0.0-tiny-learning-fixture-v1.json
+  fixture_sha256: 32a80ab576a6d5a435e859d38c1ba25e302070e92caae2971b517fe42c4b0d79
+  palette: data/raw/openmoji/17.0.0/data/color-palette.json
+  palette_sha256: 566f30548fbc0fe4f4aa0c2a563820f0c26e46a89523b174e25a685720058228
+  style_summary: reports/codec/style-vocabulary-v2-render-sentinel/summary.json
+  style_summary_sha256: 005dc6b4f94da48a31e9677a0aaa6ef44649b7e83235ca8a1e74dc69e5693d33
+  style_candidate: leading-k48-plus-4.1
+
+codec:
+  max_paths: 16
+  max_segments: 32
+  total_segment_slots: 128
+
+model:
+  d_model: 48
+  heads: 4
+  layers: 2
+  feedforward: 96
+
+training:
+  learning_rate: 0.003
+  corruption_probability: 0.35
+  cases:
+    - name: one-icon
+      icon_count: 1
+      corruptions_per_icon: 8
+      heldout_corruptions_per_icon: 8
+      steps: 160
+      resume_step: null
+      seed: 1701
+      min_train_accuracy: 0.99
+      min_heldout_accuracy: 0.95
+      max_loss_ratio: 0.10
+    - name: diverse-four
+      icon_count: 4
+      corruptions_per_icon: 4
+      heldout_corruptions_per_icon: 4
+      steps: 320
+      resume_step: 160
+      seed: 1702
+      min_train_accuracy: 0.98
+      min_heldout_accuracy: 0.85
+      max_loss_ratio: 0.20
+
+render:
+  sizes: [72, 18]
+  timeout_seconds: 5
