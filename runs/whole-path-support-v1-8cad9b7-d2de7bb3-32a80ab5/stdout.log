@@ -1,0 +1,20 @@
+{
+  "can_match_target_marginal_probability": false,
+  "eligible_geometry_field_fraction": 0.24738675958188153,
+  "eligible_path_fraction": 0.34146341463414637,
+  "fixture": "data/manifests/openmoji-17.0.0-tiny-learning-fixture-v1.json",
+  "fixture_sha256": "32a80ab576a6d5a435e859d38c1ba25e302070e92caae2971b517fe42c4b0d79",
+  "icons": 4,
+  "learning_config": "configs/learning/tiny-geometry-f1-factorized.yaml",
+  "learning_config_sha256": "e57646b7f70d51e411f57203fd8674f8894743e49e3f23de20ee95e51cf3ba1f",
+  "maximum_expected_changed_field_fraction": 0.24738675958188153,
+  "schema_version": 1,
+  "study_version": "whole-path-support-audit-v1",
+  "support": {
+    "active_paths": 41,
+    "eligible_geometry_fields": 284,
+    "eligible_paths": 14,
+    "geometry_fields": 1148
+  },
+  "target_marginal_probability": 0.35
+}

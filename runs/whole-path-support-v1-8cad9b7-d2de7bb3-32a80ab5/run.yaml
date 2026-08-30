@@ -1,0 +1,37 @@
+schema_version: 1
+run_id: whole-path-support-v1-8cad9b7-d2de7bb3-32a80ab5
+state: completed
+hypothesis: >-
+  The existing four-icon fixture has enough exact segment-signature-compatible external
+  paths to support a whole-path donor replacement ablation at marginal probability 0.35.
+expected_information_gain: >-
+  Determines whether the predeclared whole-path Gate F ablation can be matched on the
+  current fixture or requires a separate pinned compatible-path fixture.
+parent_run: tiny-geometry-f1-path-correlated-b0983dd-c0acb759-32a80ab5
+git_commit: 8cad9b7ba66a931296058cd7a7a9c3ea9b6ee869
+dirty_patch_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+config: configs/learning/whole-path-support-audit-v1.yaml
+config_sha256: d2de7bb31c75b84cf65a72daeb2730e55ee35e760cfcc5d17fea54a485e88bc9
+dataset_manifest: data/manifests/openmoji-17.0.0-tiny-learning-fixture-v1.json
+dataset_manifest_sha256: 32a80ab576a6d5a435e859d38c1ba25e302070e92caae2971b517fe42c4b0d79
+worker: gtc-local-cpu
+resource_cap:
+  external_spend_usd: 0
+  fixture_icons: 4
+  max_local_storage_gb: 0.01
+command: >-
+  .venv/bin/python -m mojidiff.learning.corruption_audit --config
+  configs/learning/whole-path-support-audit-v1.yaml
+outputs:
+  report: reports/corruption/whole-path-support-audit-v1
+  run_record: runs/whole-path-support-v1-8cad9b7-d2de7bb3-32a80ab5
+artifact_durability: compact-report-pending-local-git
+result:
+  artifact_identity_rerun: true
+  active_paths: 41
+  compatible_paths: 14
+  compatible_geometry_fields: 284
+  geometry_fields: 1148
+  eligible_geometry_field_fraction: 0.24738675958188153
+  target_marginal_probability: 0.35
+  can_match_target_marginal_probability: false

@@ -670,3 +670,24 @@ and does not show a trajectory-quality advantage. Do not yet choose a final proc
 generalize to topology/style learning. First measure compatible-path availability for
 the predeclared whole-path donor ablation; if sparse, create a pinned fixture where that
 ablation has real support rather than interpreting mostly retained paths.
+
+## 2026-08-30 — Whole-path donor support audit
+
+**Hypothesis.** The four-icon Gate F fixture contains enough exact segment-signature
+matches across different icons to apply external whole-path donor replacement at the
+same 35% marginal legal-geometry corruption level as the other arms.
+
+**Method.** Enumerate every active packed path, derive its exact sequence of segment
+kinds, and count a path only when an identically typed path occurs in another fixture
+icon. Count its start plus legal coordinate fields as eligible. No corruption, model,
+or source asset is altered. Repeat the bounded audit and require byte-identical output.
+
+**Observation.** The fixture contains 41 active paths and 1,148 legal geometry fields.
+Only 14 paths (34.15%) and 284 fields (24.74%) have an external exact-signature donor.
+Thus even a gate probability of 1.0 can change at most 24.74% of fields before accounting
+for a donor token that happens to equal the clean token. The repeat is byte-identical.
+
+**Decision.** Falsify feasibility of a matched 35% whole-path ablation on this fixture;
+do not lower the control corruption level or interpret a sparsely active treatment as a
+comparison. Build a bounded full-primary path-signature census and select a separate
+pinned compatible-path fixture before testing whole-path replacement.

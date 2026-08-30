@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-30T06:47:00Z
+Updated: 2026-08-30T07:02:00Z
 
 ## Current hypothesis and evidence
 
@@ -128,6 +128,11 @@ also reproduces exactly and remains render-safe, but trails the factorized contr
 changed-token recovery: one-icon 83.56% versus 98.73%, diverse-four 93.86% versus
 96.96%. This is a small fixed-topology result, not yet a final corruption choice; it
 does falsify an expectation of an obvious path-correlation advantage on this fixture.
+
+The whole-path support audit completes the third planned family check for this fixture:
+only 14/41 paths and 284/1,148 legal geometry fields (24.74%) have an exact compatible
+external donor. Even a path gate of 1.0 cannot match the 35% field corruption control,
+so a whole-path training comparison here would be confounded and is deliberately not run.
 
 ## Last completed action and verification
 
@@ -357,7 +362,6 @@ is byte-identical to v4 because the diverse branch is unchanged; it remains loca
 
 ## Next smallest evidence-producing action
 
-Checkpoint the two-arm Gate F evidence, then inspect whether the whole-path donor
-ablation has enough compatible paths in this fixture to be informative. If it does not,
-build a larger pinned compatible-path fixture before claiming a three-way choice. Keep
-the GPU off until remote artifact authorization is complete.
+Build a bounded full-primary path-signature census to deterministically select a larger,
+compatible donor fixture for the whole-path ablation. Keep the GPU off until remote
+artifact authorization is complete.
