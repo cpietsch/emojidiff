@@ -1,0 +1,152 @@
+{
+  "cases": {
+    "diverse-four": {
+      "checkpoint_sha256": "504e0880889449b1233d8580bb664770697d013908f30f9b32c70d158603d19a",
+      "config": {
+        "corruption_kind": "factorized_geometry",
+        "corruptions_per_icon": 4,
+        "heldout_corruptions_per_icon": 4,
+        "icon_count": 4,
+        "max_loss_ratio": 0.2,
+        "min_heldout_accuracy": 0.85,
+        "min_train_accuracy": 0.98,
+        "name": "diverse-four",
+        "resample_each_step": true,
+        "resume_step": 160,
+        "seed": 1702,
+        "steps": 320
+      },
+      "continuous_loss_sha256": "83d82ab6c855a8151d5421f1bab16efd5f3c369a4c91979121759ae4c230b5d0",
+      "final": {
+        "accuracy": 0.9875871080139372,
+        "changed_accuracy": 0.9695863746958637,
+        "changed_correct": 1594,
+        "changed_total": 1644,
+        "correct": 4535,
+        "loss": 0.04504280601395294,
+        "retained_accuracy": 0.9976255088195387,
+        "retained_correct": 2941,
+        "retained_total": 2948,
+        "total": 4592
+      },
+      "final_model_sha256": "505579f99c46b8273622246639bc01cc36f4e376a50e3e37c7268a008f9251c1",
+      "heldout_examples": 16,
+      "initial": {
+        "accuracy": 0.002395470383275261,
+        "changed_accuracy": 0.0030413625304136255,
+        "changed_correct": 5,
+        "changed_total": 1644,
+        "correct": 11,
+        "loss": 14.920220911502838,
+        "retained_accuracy": 0.0020352781546811396,
+        "retained_correct": 6,
+        "retained_total": 2948,
+        "total": 4592
+      },
+      "loss_ratio": 0.0031178024965364862,
+      "passes_predeclared_criteria": true,
+      "resume_exact": true,
+      "resumed_loss_sha256": "83d82ab6c855a8151d5421f1bab16efd5f3c369a4c91979121759ae4c230b5d0",
+      "train_examples": 16,
+      "train_final": {
+        "accuracy": 0.9878048780487805,
+        "changed_accuracy": 0.9704978488014752,
+        "changed_correct": 1579,
+        "changed_total": 1627,
+        "correct": 4536,
+        "loss": 0.042252493440173566,
+        "retained_accuracy": 0.9973018549747049,
+        "retained_correct": 2957,
+        "retained_total": 2965,
+        "total": 4592
+      }
+    },
+    "one-icon": {
+      "checkpoint_sha256": null,
+      "config": {
+        "corruption_kind": "factorized_geometry",
+        "corruptions_per_icon": 8,
+        "heldout_corruptions_per_icon": 8,
+        "icon_count": 1,
+        "max_loss_ratio": 0.1,
+        "min_heldout_accuracy": 0.95,
+        "min_train_accuracy": 0.99,
+        "name": "one-icon",
+        "resample_each_step": true,
+        "resume_step": null,
+        "seed": 1701,
+        "steps": 160
+      },
+      "continuous_loss_sha256": null,
+      "final": {
+        "accuracy": 0.9932598039215687,
+        "changed_accuracy": 0.9873188405797102,
+        "changed_correct": 545,
+        "changed_total": 552,
+        "correct": 1621,
+        "loss": 0.028571574424859136,
+        "retained_accuracy": 0.9962962962962963,
+        "retained_correct": 1076,
+        "retained_total": 1080,
+        "total": 1632
+      },
+      "final_model_sha256": "626cd212c55ba27b94d7f5f98720048888d8bf9b9caa0f5c8986babb97ea2c94",
+      "heldout_examples": 8,
+      "initial": {
+        "accuracy": 0.001838235294117647,
+        "changed_accuracy": 0.0036231884057971015,
+        "changed_correct": 2,
+        "changed_total": 552,
+        "correct": 3,
+        "loss": 15.33237636089325,
+        "retained_accuracy": 0.000925925925925926,
+        "retained_correct": 1,
+        "retained_total": 1080,
+        "total": 1632
+      },
+      "loss_ratio": 0.002342729000340221,
+      "passes_predeclared_criteria": false,
+      "resume_exact": null,
+      "resumed_loss_sha256": null,
+      "train_examples": 8,
+      "train_final": {
+        "accuracy": 0.9797794117647058,
+        "changed_accuracy": 0.9601328903654485,
+        "changed_correct": 578,
+        "changed_total": 602,
+        "correct": 1599,
+        "loss": 0.06699059216771275,
+        "retained_accuracy": 0.9912621359223301,
+        "retained_correct": 1021,
+        "retained_total": 1030,
+        "total": 1632
+      }
+    }
+  },
+  "code_identity": {
+    "geometry_sha256": "1ce82851e51941e47e583ba46468fd3daa9dd771d66a07cfd12590b3bd1dd03b",
+    "git_commit": "333e1492e94dfc87df23a907e72c9ca941515342",
+    "packed_sha256": "9b12879ba3a182367b0c52b8c3937f3dc4eed2850c72f8298c641b402802315c",
+    "program_sha256": "0d02b532b1dbe573d772e11054bea0e781bded3a26217de87eeb8bbd6ab9c2f7",
+    "tiny_study_sha256": "e1dd8c00e3aa0398a1342b44a41afaf03ecbd58b7b9db0c11a2ad5d3c01f00b0"
+  },
+  "config_sha256": "e57646b7f70d51e411f57203fd8674f8894743e49e3f23de20ee95e51cf3ba1f",
+  "deterministic_algorithms": true,
+  "device": "cpu",
+  "fixture": "data/manifests/openmoji-17.0.0-tiny-learning-fixture-v1.json",
+  "fixture_sha256": "32a80ab576a6d5a435e859d38c1ba25e302070e92caae2971b517fe42c4b0d79",
+  "metrics_sha256": "c9b85e5582d0947eca986112d974464e3d9f5dc5278eeeea99075ecae5cbdbab",
+  "model": {
+    "d_model": 48,
+    "feedforward": 96,
+    "heads": 4,
+    "layers": 2,
+    "parameters": 241072,
+    "scope": "fixed-topology geometry-only diagnostic"
+  },
+  "passes_predeclared_gate_candidate": false,
+  "render_metrics_sha256": "6db25d963f173bd89115530b4296ba7a6b0fe96f655c41b987d7e2182f1ac510",
+  "schema_version": 1,
+  "study_version": "tiny-geometry-f1-factorized",
+  "torch_version": "2.8.0+cpu"
+}

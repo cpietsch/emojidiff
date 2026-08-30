@@ -617,3 +617,30 @@ memorization and poor recovery, while deterministic online coverage solved the t
 geometry task without more capacity or steps. This remains fixed-topology geometry-only
 evidence, not support for topology generation or a final diffusion formulation. Begin
 Gate F with matched corruption-family definitions and tiny comparisons.
+
+## 2026-08-30 — Gate F factorized fixed-topology control
+
+**Hypothesis.** Exact role-uniform factorized geometry corruption, with every opened
+gate forced to a different legal token, provides a reproducible fixed-topology baseline
+for a matched path-correlated comparison.
+
+**Method.** Hold the four-icon fixture, packed codec, 241,072-parameter bidirectional
+model, optimizer, seeds, 0.35 marginal corruption probability, online resampling,
+320/160-step budgets, checkpoint boundary, held-out draws, and rendering protocol fixed.
+Independently gate each legal endpoint/control token and sample from its q289/q417
+vocabulary excluding the clean token. Paths, segment types, styles, and padding remain
+unchanged. Repeat the complete local CPU run through byte-identity guards.
+
+**Observation.** Both executions are byte-identical, including the canonical diverse
+checkpoint and every compact report artifact. Held-out one-icon/diverse-four aggregate
+accuracy is 99.33%/98.76%; changed-token accuracy is 98.73%/96.96% and retained-token
+accuracy is 99.63%/99.76%. The checkpoint continuation is exact. Paired 72 and 18 px
+renders are safe and recognizable for face, apple, cat, and car; the raw factorized
+`x_t` states are visibly static-like as expected. The one-icon online training probe is
+97.98%, below its inherited 99% threshold because online resampling makes that probe an
+unseen batch; this literal threshold miss is retained.
+
+**Decision.** Accept this as the matched factorized control, not as a Gate F choice. Run
+the path-correlated geometry treatment next with the same marginal path-field change
+rate, data, model, optimizer, steps, and evaluation protocol. The current evidence is
+still fixed-topology geometry-only and is not a topology-generation or D3PM result.

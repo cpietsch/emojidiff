@@ -1,0 +1,55 @@
+schema_version: 1
+run_id: tiny-geometry-f1-factorized-333e149-e57646b7-32a80ab5
+state: completed
+hypothesis: >-
+  Under the Gate E fixed-topology setup, the exact factorized role-uniform control
+  provides a reproducible baseline for comparing within-path corruption correlation.
+expected_information_gain: >-
+  Establishes matched learning curves, changed-token recovery, valid paired trajectories,
+  checkpoint continuation, and artifact identity before interpreting the correlated arm.
+parent_run: tiny-geometry-v5-44ce3de-a34456a8-32a80ab5
+git_commit: 333e1492e94dfc87df23a907e72c9ca941515342
+dirty_patch_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+config: configs/learning/tiny-geometry-f1-factorized.yaml
+config_sha256: e57646b7f70d51e411f57203fd8674f8894743e49e3f23de20ee95e51cf3ba1f
+dataset_manifest: data/manifests/openmoji-17.0.0-tiny-learning-fixture-v1.json
+dataset_manifest_sha256: 32a80ab576a6d5a435e859d38c1ba25e302070e92caae2971b517fe42c4b0d79
+worker: gtc-local-cpu
+environment:
+  device: cpu
+  torch: 2.8.0+cpu
+  deterministic_algorithms: true
+  training_threads: 2
+controlled_factor: independent legal geometry-token gates
+held_constant:
+  - fixed topology, styles, and typed padding
+  - fixture, model, initialization, optimizer, and step budgets
+  - corruption probability, per-step resampling, held-out draws, and render protocol
+  - checkpoint boundary and canonical checkpoint format
+resource_cap:
+  external_spend_usd: 0
+  optimizer_steps: 800
+  heldout_examples: 24
+  isolated_renders: 24
+  max_local_storage_gb: 0.1
+command: >-
+  .venv/bin/python -m mojidiff.learning.tiny_study --config
+  configs/learning/tiny-geometry-f1-factorized.yaml
+outputs:
+  report: reports/corruption/tiny-geometry-f1-factorized
+  derived: data/processed/tiny-geometry-f1-factorized
+  run_record: runs/tiny-geometry-f1-factorized-333e149-e57646b7-32a80ab5
+artifact_durability: compact-report-pending-local-git;checkpoint-local-only
+result:
+  artifact_identity_rerun: true
+  checkpoint_resume_exact: true
+  one_icon:
+    heldout_accuracy: 0.9932598039215687
+    changed_accuracy: 0.9873188405797102
+    retained_accuracy: 0.9962962962962963
+    online_train_probe_accuracy: 0.9797794117647058
+  diverse_four:
+    heldout_accuracy: 0.9875871080139372
+    changed_accuracy: 0.9695863746958637
+    retained_accuracy: 0.9976255088195387
+    online_train_probe_accuracy: 0.9878048780487805

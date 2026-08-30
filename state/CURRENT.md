@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-30T06:19:09Z
+Updated: 2026-08-30T06:36:00Z
 
 ## Current hypothesis and evidence
 
@@ -108,6 +108,20 @@ accuracy, but one-icon held-out accuracy was 93.57% versus 95%, and diverse-four
 loss sequence and final model tensors exactly. An identical full rerun then failed the
 artifact contract because legacy `torch.save` container bytes changed, so v1 is retained
 as failed rather than silently accepted or tuned.
+
+Gate F is now active. Commit `333e149` defines render-safe fixed-topology contracts for
+independent role-uniform geometry corruption, path-correlated geometry blocks, and
+compatible whole-path donor replacement; the contracts retain paths, segment types,
+styles, and typed padding. The first registered local run is the matched factorized
+control. It is a custom iterative-denoiser curriculum, not an exact D3PM claim.
+
+The first matched factorized control, `tiny-geometry-f1-factorized-333e149-e57646b7-32a80ab5`,
+completed twice with byte-identical compact artifacts and exact checkpoint continuation.
+Held-out one-icon/diverse-four accuracy is 99.33%/98.76%; changed-token recovery is
+98.73%/96.96%. Its paired trajectory renders remain valid and recognizable at 72 and
+18 px, while raw factorized `x_t` is expectedly static-like. The online training probe
+is 97.98% for one icon because it is an unseen resampled batch; retain the literal
+threshold miss rather than treating it as an overfit failure.
 
 ## Last completed action and verification
 
@@ -276,9 +290,9 @@ fixed-topology geometry; topology and corruption-family questions remain open.
 
 ## Active jobs
 
-None. Every worker is disabled, the isolated Docker daemon has no running container,
-and no authenticated remote command has been issued. The operator is keeping the Vast
-GPU server off until Codex explicitly requests it; no active MojiDiff job exists.
+None. The factorized CPU control completed twice and has no remote job identity or
+external cost. Every worker remains disabled, the isolated Docker daemon has no running
+container, and no authenticated remote command has been issued. Keep the Vast GPU off.
 
 ## Artifact durability
 
@@ -337,7 +351,7 @@ is byte-identical to v4 because the diverse branch is unchanged; it remains loca
 
 ## Next smallest evidence-producing action
 
-Begin Gate F locally by specifying matched, render-safe corruption-family contracts and
-tests for factorized uniform, path-correlated, fixed-topology, and whole-path replacement.
-Use the v5 online-coverage result as the fixed-topology reference. Keep the GPU server
-off until the next bounded pipeline and remote artifact authorization are ready.
+Checkpoint the factorized evidence, then register and run the otherwise matched
+path-correlated arm twice. Compare curves, changed-token recovery, validity, and paired
+trajectories before deciding whether a whole-path donor arm is informative. Keep the GPU
+server off until remote artifact authorization is complete.
