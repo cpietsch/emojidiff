@@ -1,0 +1,68 @@
+schema_version: 1
+run_id: tiny-geometry-v4-ede1009-7ccbc64e-32a80ab5
+state: completed
+hypothesis: >-
+  Deterministic per-step corruption resampling for diverse-four will raise held-out
+  changed-token accuracy to at least 0.75 and retained-token accuracy to at least 0.90
+  without increasing model size, batch size, corruption probability, or optimizer steps.
+expected_information_gain: >-
+  Tests whether v3 is limited primarily by seeing only four fixed corruptions per icon,
+  before spending evidence budget on more capacity or longer training.
+parent_run: tiny-geometry-v3-93ed354-ff42f4dd-32a80ab5
+git_commit: ede100987cb4b9dc8a179f36122abf319da9340c
+dirty_patch_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+config: configs/learning/tiny-geometry-v4-resampled-corruption.yaml
+config_sha256: 7ccbc64e51a0f009178c06b262fd6bc10bab3deb2c013fcdc825e29618e465c8
+dataset_manifest: data/manifests/openmoji-17.0.0-tiny-learning-fixture-v1.json
+dataset_manifest_sha256: 32a80ab576a6d5a435e859d38c1ba25e302070e92caae2971b517fe42c4b0d79
+worker: gtc-local-cpu
+environment:
+  hostname: gtc
+  architecture: x86_64
+  python: 3.12.3
+  torch: 2.8.0+cpu
+  numpy: 2.5.2
+  device: cpu
+  training_threads: 2
+  gpu: null
+precision: float32
+seeds: [1701, 1702]
+controlled_factor: diverse-four corruption draw coverage
+held_constant:
+  - one-icon control
+  - fixture and held-out draws
+  - model and initialization
+  - batch size and corruption probability
+  - optimizer and 320-step diverse budget
+  - checkpoint boundary
+predeclared_criteria:
+  diverse_four_changed_accuracy_minimum: 0.75
+  diverse_four_retained_accuracy_minimum: 0.90
+  checkpoint_resume_exact: true
+  artifact_identity_rerun: true
+resource_cap:
+  external_spend_usd: 0
+  optimizer_steps: 800
+  batch_size_diverse: 16
+  distinct_corruptions_per_icon_continuous: 1280
+  heldout_examples: 24
+  isolated_renders: 24
+  max_local_storage_gb: 0.1
+command: >-
+  .venv/bin/python -m mojidiff.learning.tiny_study --config
+  configs/learning/tiny-geometry-v4-resampled-corruption.yaml
+outputs:
+  report: reports/learning/tiny-geometry-v4-resampled-corruption
+  derived: data/processed/tiny-geometry-v4-resampled-corruption
+  run_record: runs/tiny-geometry-v4-ede1009-7ccbc64e-32a80ab5
+artifact_durability: compact-report-pending-local-git;checkpoint-local-only
+result:
+  treatment_hypothesis_passed: true
+  artifact_identity_rerun: true
+  checkpoint_resume_exact: true
+  diverse_four:
+    aggregate_accuracy: 0.9856271777003485
+    changed_accuracy: 0.9664634146341463
+    retained_accuracy: 0.9962737127371274
+  one_icon_control_aggregate_accuracy: 0.9356617647058824
+  generic_combined_gate_flag: false

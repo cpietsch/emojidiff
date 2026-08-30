@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-30T06:04:43Z
+Updated: 2026-08-30T06:11:11Z
 
 ## Current hypothesis and evidence
 
@@ -253,6 +253,13 @@ size, 320-step budget, held-out draws, and resume boundary are unchanged. Config
 `7ccbc64e51a0f009178c06b262fd6bc10bab3deb2c013fcdc825e29618e465c8`.
 The full suite passes 93/93; Ruff and strict mypy pass.
 
+Registered and completed `tiny-geometry-v4-ede1009-7ccbc64e-32a80ab5` twice with exact
+artifact identity. Diverse-four aggregate/changed/retained held-out accuracy improves to
+98.56%/96.65%/99.63% without increasing the model, batch, probability, or step budget.
+Checkpoint continuation is exact, and visual inspection finds all four reconstructions
+recognizable at 72 and 18 px. The treatment hypothesis passes. The unchanged one-icon
+control remains 93.57% held-out, leaving the generic combined flag false.
+
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
@@ -283,8 +290,9 @@ legacy PyTorch container and remains local-only. Nothing was pushed.
 The v2 compact report is versioned locally at `2d75672`. Its canonical 3.0 MB checkpoint
 is verified byte-stable but remains local-only because no external artifact sink exists.
 
-The v3 compact diagnostic is pending a local Git checkpoint; its canonical 3.0 MB
-checkpoint is byte-stable and remains local-only.
+The v3 compact diagnostic is versioned locally at `99106ed`; its canonical 3.0 MB
+checkpoint is byte-stable and remains local-only. The v4 compact report is pending a
+local Git checkpoint; its 3.0 MB canonical checkpoint is also byte-stable and local-only.
 
 ## Current blockers and missing authorization
 
@@ -312,6 +320,6 @@ checkpoint is byte-stable and remains local-only.
 
 ## Next smallest evidence-producing action
 
-Register and run v4 under a new identity. Require diverse-four changed-token accuracy
-of at least 0.75 and retained-token accuracy of at least 0.90, then rerun for artifact
-identity. Keep the GPU server off.
+Create a final controlled config that enables the already-supported per-step resampling
+for one-icon as well as diverse-four. Require both existing case criteria and exact
+resume/artifact identity before closing Gate E. Keep the GPU server off.

@@ -560,3 +560,29 @@ fixture, not an inability to memorize geometry or resume training. Test determin
 per-step corruption resampling next while holding batch size, model, corruption
 probability, optimizer steps, and held-out draws fixed. This is a smaller and more
 diagnostic factor change than increasing model capacity or training duration.
+
+## 2026-08-30 — Per-step corruption coverage treatment
+
+**Hypothesis.** At the same model, batch size, corruption probability, and 320 optimizer
+steps, deterministic per-step corruption resampling will raise diverse-four held-out
+changed-token accuracy to at least 75% and retained-token accuracy to at least 90%.
+
+**Method.** Keep the one-icon case as the unchanged static control. For diverse-four,
+derive each 16-example batch from the global optimizer step, exposing 1,280 deterministic
+corruptions per icon over the continuous run without changing compute shape. Use the
+same global-step mapping before and after the step-160 resume boundary. Hold held-out
+draws and every other learning/render parameter fixed. Repeat the complete run.
+
+**Observation.** The treatment strongly passes. Diverse-four aggregate accuracy rises
+from 73.82% to 98.56%, changed-token accuracy from 58.17% to 96.65%, and retained-token
+accuracy from 82.52% to 99.63%. Training-probe accuracy is 98.52%. The complete loss
+sequence and model are exact across checkpoint continuation, and all artifacts reproduce
+byte-for-byte. Visual inspection shows immediately recognizable face, apple, cat, and
+car reconstructions at both 72 and 18 px, whereas v3 retained conspicuous geometry
+damage. The unchanged one-icon held-out control remains 93.57% against its 95% threshold.
+
+**Decision.** Corruption coverage, not capacity or step count, caused the diverse v3
+failure. Accept deterministic per-step resampling for this fixed-topology diagnostic.
+Do not close Gate E yet because the generic combined flag retains the one-icon held-out
+miss; apply the same factor to one-icon under a final controlled config. This does not
+yet answer topology learning or choose the final corruption family.
