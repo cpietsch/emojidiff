@@ -644,3 +644,29 @@ unseen batch; this literal threshold miss is retained.
 the path-correlated geometry treatment next with the same marginal path-field change
 rate, data, model, optimizer, steps, and evaluation protocol. The current evidence is
 still fixed-topology geometry-only and is not a topology-generation or D3PM result.
+
+## 2026-08-30 — Gate F path-correlated fixed-topology treatment
+
+**Hypothesis.** Sharing one corruption gate across each active path, while preserving
+the same 0.35 marginal legal-token corruption rate as the factorized control, learns
+faster or recovers changed geometry more effectively.
+
+**Method.** Change only the geometry corruption contract. For each active path, open one
+Bernoulli gate and, when open, replace all legal start/control/endpoint tokens uniformly
+excluding their clean value. Preserve topology, styles, padding, fixture, model,
+optimizer, seeds, online resampling, steps, held-out draws, checkpoint boundary, and
+rendering. Repeat the entire local CPU run under canonical artifact guards.
+
+**Observation.** The rerun is byte-identical and checkpoint continuation is exact. The
+treatment retains safe recognizable reconstructions, but it does not improve the
+factorized control: one-icon held-out/changed accuracy is 95.53%/83.56% versus
+99.33%/98.73%; diverse-four is 98.11%/93.86% versus 98.76%/96.96%. Retained-token
+accuracy is 100% in both treatment cases, consistent with most paths being entirely
+retained, not evidence of stronger restoration.
+
+**Decision.** On this tiny fixed-topology fixture, the path-correlated treatment is a
+reproducible negative result: it trails factorized corruption in changed-token recovery
+and does not show a trajectory-quality advantage. Do not yet choose a final process or
+generalize to topology/style learning. First measure compatible-path availability for
+the predeclared whole-path donor ablation; if sparse, create a pinned fixture where that
+ablation has real support rather than interpreting mostly retained paths.

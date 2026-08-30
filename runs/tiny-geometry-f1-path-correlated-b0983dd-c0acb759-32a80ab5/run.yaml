@@ -1,0 +1,53 @@
+schema_version: 1
+run_id: tiny-geometry-f1-path-correlated-b0983dd-c0acb759-32a80ab5
+state: completed
+hypothesis: >-
+  Path-block-correlated geometry corruption, at the same marginal legal-token change
+  probability as the factorized control, changes learning or trajectory quality.
+expected_information_gain: >-
+  Isolates within-path corruption correlation from model, data, optimizer, marginal
+  token rate, topology, styles, and render protocol.
+parent_run: tiny-geometry-f1-factorized-333e149-e57646b7-32a80ab5
+git_commit: b0983dd00edfce9bb9c5045671edbf767dae6bea
+dirty_patch_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+config: configs/learning/tiny-geometry-f1-path-correlated.yaml
+config_sha256: c0acb759be32561d17d0e9001ea9c1f0e6655dbd6189bc928e63e63a6c0ffd98
+dataset_manifest: data/manifests/openmoji-17.0.0-tiny-learning-fixture-v1.json
+dataset_manifest_sha256: 32a80ab576a6d5a435e859d38c1ba25e302070e92caae2971b517fe42c4b0d79
+worker: gtc-local-cpu
+environment:
+  device: cpu
+  torch: 2.8.0+cpu
+  deterministic_algorithms: true
+  training_threads: 2
+controlled_factor: one shared corruption gate per active path geometry block
+held_constant:
+  - fixed topology, styles, and typed padding
+  - fixture, model, initialization, optimizer, and step budgets
+  - marginal corruption probability, per-step resampling, held-out draws, and render protocol
+  - checkpoint boundary and canonical checkpoint format
+resource_cap:
+  external_spend_usd: 0
+  optimizer_steps: 800
+  heldout_examples: 24
+  isolated_renders: 24
+  max_local_storage_gb: 0.1
+command: >-
+  .venv/bin/python -m mojidiff.learning.tiny_study --config
+  configs/learning/tiny-geometry-f1-path-correlated.yaml
+outputs:
+  report: reports/corruption/tiny-geometry-f1-path-correlated
+  derived: data/processed/tiny-geometry-f1-path-correlated
+  run_record: runs/tiny-geometry-f1-path-correlated-b0983dd-c0acb759-32a80ab5
+artifact_durability: compact-report-pending-local-git;checkpoint-local-only
+result:
+  artifact_identity_rerun: true
+  checkpoint_resume_exact: true
+  one_icon:
+    heldout_accuracy: 0.9552696078431373
+    changed_accuracy: 0.8355855855855856
+    retained_accuracy: 1.0
+  diverse_four:
+    heldout_accuracy: 0.9810540069686411
+    changed_accuracy: 0.9386459802538787
+    retained_accuracy: 1.0

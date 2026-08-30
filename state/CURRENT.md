@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-30T06:36:00Z
+Updated: 2026-08-30T06:47:00Z
 
 ## Current hypothesis and evidence
 
@@ -122,6 +122,12 @@ Held-out one-icon/diverse-four accuracy is 99.33%/98.76%; changed-token recovery
 18 px, while raw factorized `x_t` is expectedly static-like. The online training probe
 is 97.98% for one icon because it is an unseen resampled batch; retain the literal
 threshold miss rather than treating it as an overfit failure.
+
+The matched path-correlated arm, `tiny-geometry-f1-path-correlated-b0983dd-c0acb759-32a80ab5`,
+also reproduces exactly and remains render-safe, but trails the factorized control on
+changed-token recovery: one-icon 83.56% versus 98.73%, diverse-four 93.86% versus
+96.96%. This is a small fixed-topology result, not yet a final corruption choice; it
+does falsify an expectation of an obvious path-correlation advantage on this fixture.
 
 ## Last completed action and verification
 
@@ -290,9 +296,9 @@ fixed-topology geometry; topology and corruption-family questions remain open.
 
 ## Active jobs
 
-None. The factorized CPU control completed twice and has no remote job identity or
-external cost. Every worker remains disabled, the isolated Docker daemon has no running
-container, and no authenticated remote command has been issued. Keep the Vast GPU off.
+None. Both first Gate F arms completed twice with no remote job identity or external
+cost. Every worker remains disabled, the isolated Docker daemon has no running container,
+and no authenticated remote command has been issued. Keep the Vast GPU off.
 
 ## Artifact durability
 
@@ -351,7 +357,7 @@ is byte-identical to v4 because the diverse branch is unchanged; it remains loca
 
 ## Next smallest evidence-producing action
 
-Checkpoint the factorized evidence, then register and run the otherwise matched
-path-correlated arm twice. Compare curves, changed-token recovery, validity, and paired
-trajectories before deciding whether a whole-path donor arm is informative. Keep the GPU
-server off until remote artifact authorization is complete.
+Checkpoint the two-arm Gate F evidence, then inspect whether the whole-path donor
+ablation has enough compatible paths in this fixture to be informative. If it does not,
+build a larger pinned compatible-path fixture before claiming a three-way choice. Keep
+the GPU off until remote artifact authorization is complete.

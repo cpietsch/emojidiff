@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "artifact_identity_rerun": true,
+  "report": {
+    "README.md": "3509440620045a15679d4945121a0ce0695aa32217f50f2396db66db1f8a7083",
+    "metrics.jsonl": "c4f97dcd8a5a17be6c259d69150424b895f954202d6cbb414b62cb84963a9b78",
+    "render-metrics.jsonl": "9b41fbcb8870576d8a1470da2be3e841be386b7f4752764953abdfef0011ce63",
+    "summary.json": "34c4e45ca0a51743d2e4cffc98fe97235079d5425520a7d5e76a0fe5a6e93889",
+    "trajectory.png": "7a25d2ff50ab7eea285f09eca8913bc41cdc8bf2bf03e9e71435fd2c4c7c0ce1"
+  },
+  "checkpoint": {
+    "path": "data/processed/tiny-geometry-f1-path-correlated/diverse-four/checkpoint-160.zip",
+    "sha256": "82f5c2a8fb785ddf14bef891cb3b145278fd4fca144d33a9916b63c5515ef45d",
+    "durability": "local-only"
+  }
+}
