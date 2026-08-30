@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-30T06:11:11Z
+Updated: 2026-08-30T06:12:53Z
 
 ## Current hypothesis and evidence
 
@@ -260,6 +260,11 @@ Checkpoint continuation is exact, and visual inspection finds all four reconstru
 recognizable at 72 and 18 px. The treatment hypothesis passes. The unchanged one-icon
 control remains 93.57% held-out, leaving the generic combined flag false.
 
+Added the final all-resampled config at `f33acb7`. It changes only the one-icon
+`resample_each_step` flag from false to true; diverse-four and every other setting are
+identical to v4. Config hash:
+`a34456a8e50877002d339aec9167e77501fb5edab831568626bb995554b3657e`.
+
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
@@ -320,6 +325,6 @@ local Git checkpoint; its 3.0 MB canonical checkpoint is also byte-stable and lo
 
 ## Next smallest evidence-producing action
 
-Create a final controlled config that enables the already-supported per-step resampling
-for one-icon as well as diverse-four. Require both existing case criteria and exact
-resume/artifact identity before closing Gate E. Keep the GPU server off.
+Register and run v5. Require the existing combined case criteria, exact checkpoint
+resume, recognizable paired renders, and exact artifact rerun before closing Gate E.
+Keep the GPU server off.
