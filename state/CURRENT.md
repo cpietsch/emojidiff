@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-29T18:19:00Z
+Updated: 2026-08-29T18:21:00Z
 
 ## Current hypothesis and evidence
 
@@ -85,6 +85,13 @@ a 28.52x reduction. Four exact nested buckets place 3,359/553/88/6 icons and ach
 53.81% aggregate utilization. The selected representation is semantic-stroke with the
 60-case reason-coded outlined fallback, role-typed coordinates, K48+1 styles, and
 packed capacity. Gate C is complete; Gate D packed-codec and renderer stress remains.
+
+Gate D now passes. Reversible packed conversion, canonical expansion validation, a
+serializer-only XML allowlist, and a resource-limited subprocess renderer are
+implemented. The corrected registered stress run completed 200 stable random packed
+round trips, rejected 2,000/2,000 invalid mutations across ten families, classified
+three malformed typed-XML cases, and completed 25 isolated renders including an actual
+80-path/1,216-segment boundary program. The first mutator-boundary failure is preserved.
 
 ## Last completed action and verification
 
@@ -176,6 +183,12 @@ the harness used token 289 as an invalid q289 endpoint, but valid coordinate tok
 1..289. The failure is preserved in the registry; the mutator is corrected to 290 for
 a new run identity. No GPU work was performed.
 
+Corrected stress run `packed-render-stress-v1-d5ca696-df13aed7-005dc6b4` passes all
+checks above and reproduced every report hash on a second invocation. Packed conversion
+is at `f8b1601`, renderer isolation at `82c48ec`, the stress harness at `e6c100b`, and
+the boundary correction at `d5ca696`. The full suite passes 90/90; Ruff and strict mypy
+pass. Gate D is complete. No GPU work was performed.
+
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
@@ -206,6 +219,9 @@ derived SVGs are reproducible and ignored. No external artifact sink is configur
 The capacity report is local and pending a Git checkpoint. It contains only compact
 JSONL/Markdown evidence; no bulk artifact was produced.
 
+The packed/render stress report is local and pending a Git checkpoint. It contains
+only compact JSONL/Markdown evidence; no checkpoint or bulk artifact was produced.
+
 ## Current blockers and missing authorization
 
 - YOLO checks passed for hostname, persistent repository location, TLS-only isolated
@@ -232,7 +248,7 @@ JSONL/Markdown evidence; no bulk artifact was produced.
 
 ## Next smallest evidence-producing action
 
-Commit the endpoint-mutator boundary correction, rerun the registered Gate D stress
-study under the new code identity, and preserve both outcomes. Keep the GPU server off;
-worker startup is not useful until the local packed/renderer stress gate passes and the
-worker's artifact/cap fields are configured.
+Checkpoint the corrected Gate D evidence, then implement the smallest deterministic
+Gate E learning proof locally: one packed fixture, one forward/backward step, bounded
+overfit, and exact checkpoint-resume continuation. Keep the GPU server off until that
+pipeline passes on CPU and the worker's artifact/cap fields are configured.

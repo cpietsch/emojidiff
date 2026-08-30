@@ -1,0 +1,58 @@
+{
+  "code_identity": {
+    "git_commit": "d5ca6962a14cf29aaea6befd12db5d7e04a75deb",
+    "packed_sha256": "9b12879ba3a182367b0c52b8c3937f3dc4eed2850c72f8298c641b402802315c",
+    "program_sha256": "0d02b532b1dbe573d772e11054bea0e781bded3a26217de87eeb8bbd6ab9c2f7",
+    "render_worker_sha256": "2ab7612834e71136790e49ed87eaace1fa8501f45a61e259598f15e114074c34",
+    "renderer_sha256": "d584d7f1ec65f8a5335804110c5a90be86c99b40e76749158ce85203fcb289be",
+    "stress_study_sha256": "d00d6e4bb8fd9058c35fe45c5dcbfd9aa93e9fed2e5ed0affc00e7de56221a49"
+  },
+  "config_sha256": "df13aed7146c45459e78c3143be92fcc6acd48dcf342a865904d31b8b6419b20",
+  "isolated_renders": 25,
+  "malformed_input_classes": {
+    "parse": "PARSE_ERROR:ParseError",
+    "unsafe": "UNSAFE_TYPED_VALUE",
+    "wrong-root": "INVALID_TYPED_ROOT"
+  },
+  "mutation_counts": {
+    "endpoint-token": 200,
+    "inactive-coordinate-tail": 200,
+    "inactive-path-style": 200,
+    "inactive-segment-tail": 200,
+    "invalid-layer": 200,
+    "path-length-overflow": 200,
+    "path-style-token": 200,
+    "unknown-segment": 200,
+    "unused-coordinate": 200,
+    "wrong-coordinate-shape": 200
+  },
+  "mutation_trials": 2000,
+  "outer_boundary": {
+    "packed_slots": 1216,
+    "paths": 80,
+    "png_sha256": "7d05e79905b5be116d5244b276d189ec9695ee39ee023f711a3ec9349b57cac1",
+    "segments": 1216,
+    "svg_bytes": 15906,
+    "svg_sha256": "94a6fe9185761f37b8a8ea4066b779f85c268c4db7dcca0d9205602443da7c6e"
+  },
+  "random_seed": 29081926,
+  "rejected_mutations": 2000,
+  "rejection_classes": {
+    "active endpoint coordinate token is outside its vocabulary": 220,
+    "active layers must be in range and nondecreasing": 200,
+    "coordinates has the wrong packed shape": 200,
+    "fill token is outside its vocabulary": 200,
+    "inactive packed coordinates must be PAD": 200,
+    "inactive packed segment types must be PAD": 210,
+    "inactive path style fields must be PAD": 190,
+    "path lengths exceed packed segment capacity": 200,
+    "unknown segment type": 200,
+    "unused segment coordinates must be PAD": 180
+  },
+  "render_metrics_sha256": "3991a774b5e51c57bc50bcd2f38d70ac6c30fec805156f5fb28e7e65a3d92b48",
+  "schema_version": 1,
+  "stable_packed_round_trips": 200,
+  "study_version": "packed-render-stress-v1",
+  "valid_programs": 200,
+  "valid_programs_sha256": "504af5901cb4fa000bd1816c87dfbbe8c09024012a4a700e59204588c54b43b6"
+}

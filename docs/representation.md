@@ -1,6 +1,6 @@
 # Selected MojiDiff representation
 
-Status: Gate C selection, 2026-08-29. Implementation stress testing remains Gate D.
+Status: Gate C selected and Gate D stress-tested, 2026-08-29.
 
 ## Primary representation and fallback
 
@@ -51,6 +51,8 @@ remain valid at the outer P80/T1216 bound or use an explicitly modeled length po
 
 The selection is supported by the representation, typed-codec, aligned-coordinate,
 opacity, full-corpus, OOB-control, style-vocabulary, and capacity-layout reports under
-`reports/codec/`. Gate D must implement packed tensor conversion and stress it with
-round-trip properties, legal/illegal random tensors, malformed inputs, resource caps,
-and isolated renderer failures before any serious model training.
+`reports/codec/`. Gate D implemented packed tensor conversion and exercised it with
+random round-trip properties, 2,000 illegal mutations, malformed inputs, resource caps,
+and isolated subprocess rendering. See `reports/codec/packed-render-stress-v1/`.
+Serious learning work still begins with the deterministic Gate E tiny proof, not a
+large run.

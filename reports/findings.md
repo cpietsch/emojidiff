@@ -440,3 +440,35 @@ Use the four nested exact buckets for training efficiency only; bucket identity 
 an unrecorded model semantic. This completes the Gate C representation selection with
 explicit tradeoffs. Gate D must implement and fuzz packed conversion, tensor
 invariants, safety serialization, and renderer isolation before learning work begins.
+
+## 2026-08-29 — Packed invariant and isolated-render stress
+
+**Hypothesis.** The selected packed layout can reversibly represent diverse legal
+programs, reject malformed/corrupted tensors before serialization, and render only the
+serializer's bounded XML surface in a resource-limited subprocess, including the full
+P80/T1216 outer envelope.
+
+**Method.** Implement reversible dense/packed conversion with path lengths as the sole
+segment offsets, validate by expanding through the canonical tensor grammar, and route
+serialization through that validator. Add a typed-SVG allowlist followed by a child
+renderer with input/output byte ceilings, 512 px size ceiling, CPU/address-space/file/
+descriptor limits, a wall timeout, and sanitized exit classification. Generate 200
+seeded valid programs; mutate 2,000 packed tensors across ten shape, padding, token,
+length, layer, and segment-grammar families; render 12 valid programs at 72/18 px; and
+render one synthetic 80-path/1,216-segment outer-bound program.
+
+**Observation.** The first registered invocation failed before artifacts because its
+endpoint mutator used token 289 as invalid, although q289 tokens are 1..289. The failed
+run is retained. After correcting the mutator to 290 under a new commit/run identity,
+all 200 valid programs round-tripped exactly and all 2,000 invalid mutations were
+rejected. Rejections span all ten intended violation families. Twenty-four random and
+one outer-bound subprocess renders succeeded; the outer program serialized to 15,906
+bytes. Malformed XML, an unsafe URL value, and a wrong root/viewBox were rejected with
+three explicit classes. The complete corrected run reproduced every artifact hash.
+
+**Decision.** Gate D passes for the selected exposed representation: packed states are
+canonical and reversible, invalid states fail closed before XML, serializer output has
+a strict allowlist, and rendering is process/resource bounded. Preserve the mutator
+failure as a harness-boundary lesson. Begin Gate E with a deterministic CPU tiny-model
+proof before requesting billed GPU time; the GPU worker still requires recorded caps
+and a verified artifact sink.
