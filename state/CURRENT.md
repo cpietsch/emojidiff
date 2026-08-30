@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-30T05:42:45Z
+Updated: 2026-08-30T05:46:57Z
 
 ## Current hypothesis and evidence
 
@@ -219,6 +219,14 @@ learning result above. Its idempotency rerun failed closed on differing checkpoi
 container bytes. Compact metrics, renders, summary, run record, and the original 2.9 MB
 checkpoint are preserved; no remote action or external spend occurred.
 
+Replaced only the v1 checkpoint container under commit `0b8535b`: v2 stores a
+canonically ordered JSON tree and bounded pickle-free `.npy` tensors in a ZIP with fixed
+metadata, then restores model, optimizer, RNG, and step. A focused round trip proves
+independent saves and load-resave are byte-identical. The full suite passes 93/93;
+Ruff and strict mypy pass. The learning fixture, architecture, seeds, corruption,
+steps, and predeclared scientific thresholds are unchanged in the v2 config, whose hash
+is `75d558c97c106c127f026a229613afcde35da13cf7668c2c950c4b1c5d955ebb`.
+
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
@@ -272,7 +280,7 @@ PyTorch container and remains local-only. Nothing was pushed.
 
 ## Next smallest evidence-producing action
 
-Replace only the nondeterministic checkpoint container with a canonical, safe,
-byte-stable archive under a new code/config/run identity; unit-test exact save/load,
-then rerun the unchanged v1 learning settings. Preserve the missed held-out thresholds
-as the expected scientific result rather than tuning. Keep the GPU server off.
+Register v2 under the clean `0b8535b` code checkpoint, run the unchanged learning
+settings, and invoke it a second time through create-or-identical guards. Preserve the
+missed held-out thresholds as the expected scientific result rather than tuning. Keep
+the GPU server off.
