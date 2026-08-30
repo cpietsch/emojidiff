@@ -21,6 +21,7 @@ from mojidiff.learning.geometry import (
     GeometryDenoiser,
     corrupt_factorized_geometry,
     corrupt_path_correlated_geometry,
+    corrupt_whole_path_geometry_from_pool,
     geometry_accuracy_by_corruption,
     geometry_loss_and_accuracy,
     packed_batch,
@@ -114,9 +115,7 @@ def load_tiny_learning_config(path: Path) -> TinyLearningConfig:
                 else _positive_int(item.get("resume_step"), "resume_step")
             ),
             seed=_nonnegative_int(item.get("seed"), "seed"),
-            min_train_accuracy=_probability(
-                item.get("min_train_accuracy"), "min_train_accuracy"
-            ),
+            min_train_accuracy=_probability(item.get("min_train_accuracy"), "min_train_accuracy"),
             min_heldout_accuracy=_probability(
                 item.get("min_heldout_accuracy"), "min_heldout_accuracy"
             ),
@@ -124,9 +123,7 @@ def load_tiny_learning_config(path: Path) -> TinyLearningConfig:
             resample_each_step=_boolean(
                 item.get("resample_each_step", False), "resample_each_step"
             ),
-            corruption_kind=_corruption_kind(
-                item.get("corruption_kind", "factorized_geometry")
-            ),
+            corruption_kind=_corruption_kind(item.get("corruption_kind", "factorized_geometry")),
         )
         for item in (
             _mapping(value, "training case")
@@ -156,9 +153,7 @@ def load_tiny_learning_config(path: Path) -> TinyLearningConfig:
         derived_root=Path(_string(root, "derived_root")),
         max_paths=_positive_int(codec.get("max_paths"), "max_paths"),
         max_segments=_positive_int(codec.get("max_segments"), "max_segments"),
-        total_segment_slots=_positive_int(
-            codec.get("total_segment_slots"), "total_segment_slots"
-        ),
+        total_segment_slots=_positive_int(codec.get("total_segment_slots"), "total_segment_slots"),
         d_model=_positive_int(model.get("d_model"), "d_model"),
         heads=_positive_int(model.get("heads"), "heads"),
         layers=_positive_int(model.get("layers"), "layers"),
@@ -169,9 +164,7 @@ def load_tiny_learning_config(path: Path) -> TinyLearningConfig:
         ),
         cases=cases,
         render_sizes=sizes,
-        render_timeout_seconds=_positive_int(
-            render.get("timeout_seconds"), "timeout_seconds"
-        ),
+        render_timeout_seconds=_positive_int(render.get("timeout_seconds"), "timeout_seconds"),
     )
     if result.d_model % result.heads:
         raise TinyLearningError("model.d_model must be divisible by model.heads")
@@ -215,6 +208,7 @@ def run_tiny_learning(config: TinyLearningConfig, config_path: Path) -> dict[str
             case.corruptions_per_icon,
             case.seed,
             case.corruption_kind,
+            clean,
         )
         heldout, heldout_clean = _corruption_set(
             clean,
@@ -223,6 +217,7 @@ def run_tiny_learning(config: TinyLearningConfig, config_path: Path) -> dict[str
             case.heldout_corruptions_per_icon,
             case.seed + 1_000_000,
             case.corruption_kind,
+            clean,
         )
         heldout_sets[case.name] = heldout
         initial_model, initial_optimizer = _new_training(config, codec, case.seed)
@@ -267,9 +262,7 @@ def run_tiny_learning(config: TinyLearningConfig, config_path: Path) -> dict[str
             )
             checkpoint = _save_checkpoint(split_model, split_optimizer, case.resume_step)
             checkpoint_hash = hashlib.sha256(checkpoint).hexdigest()
-            checkpoint_path = (
-                config.derived_root / case.name / f"checkpoint-{case.resume_step}.zip"
-            )
+            checkpoint_path = config.derived_root / case.name / f"checkpoint-{case.resume_step}.zip"
             _write_bytes_artifact(checkpoint_path, checkpoint)
             resumed_model, resumed_optimizer, loaded_step = _load_checkpoint(
                 checkpoint, config, codec
@@ -353,8 +346,7 @@ def run_tiny_learning(config: TinyLearningConfig, config_path: Path) -> dict[str
             "layers": config.layers,
             "feedforward": config.feedforward,
             "parameters": sum(
-                parameter.numel()
-                for parameter in final_models[config.cases[-1].name].parameters()
+                parameter.numel() for parameter in final_models[config.cases[-1].name].parameters()
             ),
             "scope": "fixed-topology geometry-only diagnostic",
         },
@@ -419,6 +411,7 @@ def _train(
                 case.corruptions_per_icon,
                 case.seed + 2_000_000 + step * 100_000,
                 case.corruption_kind,
+                clean_icons,
             )
             noisy_batch = packed_batch(step_noisy, device)
             clean_batch = packed_batch(step_clean, device)
@@ -460,9 +453,7 @@ def _evaluate(
             noisy_batch = packed_batch([item], device)
             clean_batch = packed_batch([target], device)
             logits = model(noisy_batch)
-            loss, counts = geometry_loss_and_accuracy(
-                logits, clean_batch, codec
-            )
+            loss, counts = geometry_loss_and_accuracy(logits, clean_batch, codec)
             split = geometry_accuracy_by_corruption(logits, noisy_batch, clean_batch, codec)
             losses.append(float(loss))
             correct += counts["correct"]
@@ -492,13 +483,14 @@ def _corruption_set(
     repetitions: int,
     seed: int,
     corruption_kind: str,
+    donor_pool: list[PackedTensorProgram],
 ) -> tuple[list[PackedTensorProgram], list[PackedTensorProgram]]:
     noisy: list[PackedTensorProgram] = []
     targets: list[PackedTensorProgram] = []
     for icon_index, program in enumerate(clean):
         for corruption_index in range(repetitions):
             rng = np.random.default_rng(seed + icon_index * 10_000 + corruption_index)
-            noisy.append(_corrupt(program, codec, probability, rng, corruption_kind))
+            noisy.append(_corrupt(program, codec, probability, rng, corruption_kind, donor_pool))
             targets.append(program)
     return noisy, targets
 
@@ -509,6 +501,7 @@ def _corrupt(
     probability: float,
     rng: np.random.Generator,
     corruption_kind: str,
+    donor_pool: list[PackedTensorProgram],
 ) -> PackedTensorProgram:
     """Apply one predeclared fixed-topology geometry corruption contract."""
 
@@ -516,6 +509,8 @@ def _corrupt(
         return corrupt_factorized_geometry(program, codec, probability, rng)
     if corruption_kind == "path_correlated_geometry":
         return corrupt_path_correlated_geometry(program, codec, probability, rng)
+    if corruption_kind == "whole_path_geometry":
+        return corrupt_whole_path_geometry_from_pool(program, donor_pool, codec, probability, rng)
     raise TinyLearningError(f"unsupported corruption kind: {corruption_kind}")
 
 
@@ -552,8 +547,7 @@ def _render_evidence(
     )
     model.eval()
     render_noisy = [
-        noisy[index * case.heldout_corruptions_per_icon]
-        for index in range(case.icon_count)
+        noisy[index * case.heldout_corruptions_per_icon] for index in range(case.icon_count)
     ]
     for row, clean_program, noisy_program in zip(
         rows[: case.icon_count], clean[: case.icon_count], render_noisy, strict=True
@@ -622,9 +616,7 @@ def _contact_sheet(
     return payload.getvalue()
 
 
-def _save_checkpoint(
-    model: GeometryDenoiser, optimizer: torch.optim.Optimizer, step: int
-) -> bytes:
+def _save_checkpoint(model: GeometryDenoiser, optimizer: torch.optim.Optimizer, step: int) -> bytes:
     document = {
         "step": step,
         "model": model.state_dict(),
@@ -653,9 +645,7 @@ def _load_checkpoint(
     return model, optimizer, int(document["step"])
 
 
-def _encode_checkpoint_value(
-    value: object, tensors: list[tuple[str, bytes]]
-) -> dict[str, Any]:
+def _encode_checkpoint_value(value: object, tensors: list[tuple[str, bytes]]) -> dict[str, Any]:
     if isinstance(value, torch.Tensor):
         name = f"tensors/{len(tensors):06d}.npy"
         payload = io.BytesIO()
@@ -764,8 +754,7 @@ def _decode_checkpoint_value(value: dict[str, Any], archive: zipfile.ZipFile) ->
     if kind in {"list", "tuple"}:
         items = _sequence(value.get("items"), "checkpoint sequence")
         decoded = [
-            _decode_checkpoint_value(_mapping(item, "checkpoint item"), archive)
-            for item in items
+            _decode_checkpoint_value(_mapping(item, "checkpoint item"), archive) for item in items
         ]
         return tuple(decoded) if kind == "tuple" else decoded
     if kind == "dict":
@@ -773,9 +762,7 @@ def _decode_checkpoint_value(value: dict[str, Any], archive: zipfile.ZipFile) ->
         result: dict[int | str, Any] = {}
         for item in items:
             entry = _mapping(item, "checkpoint mapping item")
-            key = _decode_checkpoint_key(
-                _mapping(entry.get("key"), "checkpoint mapping key")
-            )
+            key = _decode_checkpoint_key(_mapping(entry.get("key"), "checkpoint mapping key"))
             if key in result:
                 raise TinyLearningError("duplicate checkpoint mapping key")
             result[key] = _decode_checkpoint_value(
@@ -952,7 +939,7 @@ def _boolean(value: object, field: str) -> bool:
 
 
 def _corruption_kind(value: object) -> str:
-    if value not in {"factorized_geometry", "path_correlated_geometry"}:
+    if value not in {"factorized_geometry", "path_correlated_geometry", "whole_path_geometry"}:
         raise TinyLearningError("corruption_kind must name a supported fixed-topology contract")
     return value
 

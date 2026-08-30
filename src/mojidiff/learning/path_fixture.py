@@ -102,6 +102,7 @@ def run_fixture_selection(config: FixtureConfig) -> dict[str, Any]:
         raise PathFixtureError("no selection satisfies count and donor coverage constraints")
     manifest = {
         "schema_version": 1,
+        "source_revision": config.source_revision,
         "rows": [
             {
                 key: item[key]
