@@ -1,0 +1,12 @@
+schema_version: 1
+run_id: whole-path-fixture-v3-affb7ac-2037b0aa-9b9b1699
+state: planned
+hypothesis: capacity-safe family-distinct donor fixture exists under P16/S32/T128
+git_commit: affb7ac
+config: configs/learning/whole-path-fixture-v3.yaml
+config_sha256: 2037b0aa0519f85987c411e0813a1faa56afef8921b948c28c4724754124a415
+dataset_manifest: reports/codec/full-primary-structure-v2-opacity/hybrid.jsonl
+dataset_manifest_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+worker: gtc-local-cpu
+resource_cap: {external_spend_usd: 0, source_icons: 4006}
+command: .venv/bin/python -m mojidiff.learning.path_fixture --config configs/learning/whole-path-fixture-v3.yaml

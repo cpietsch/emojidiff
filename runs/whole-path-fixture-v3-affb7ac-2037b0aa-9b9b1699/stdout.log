@@ -1,0 +1,45 @@
+{
+  "candidate_count": 2483,
+  "fixture_sha256": "bd6c4bbc3440aeec7096b2084a8bdf4ae1b13997c83b962536ac30784753f969",
+  "icons": [
+    {
+      "active_paths": 9,
+      "eligible_fraction": 1.0,
+      "eligible_geometry_fields": 540,
+      "geometry_fields": 540,
+      "group": "activities",
+      "hexcode": "2728",
+      "variant_family_id": "f31a89c53be6847d"
+    },
+    {
+      "active_paths": 13,
+      "eligible_fraction": 1.0,
+      "eligible_geometry_fields": 652,
+      "geometry_fields": 652,
+      "group": "smileys-emotion",
+      "hexcode": "1F92F",
+      "variant_family_id": "bf6bf4a22828b6f6"
+    },
+    {
+      "active_paths": 7,
+      "eligible_fraction": 0.9537366548042705,
+      "eligible_geometry_fields": 536,
+      "geometry_fields": 562,
+      "group": "food-drink",
+      "hexcode": "1F953",
+      "variant_family_id": "c0c595a848399017"
+    },
+    {
+      "active_paths": 16,
+      "eligible_fraction": 0.7275747508305648,
+      "eligible_geometry_fields": 438,
+      "geometry_fields": 602,
+      "group": "extras-openmoji",
+      "hexcode": "E0C3",
+      "variant_family_id": "a1b32e1fd49898e9"
+    }
+  ],
+  "schema_version": 1,
+  "selected_score": 2166,
+  "shortlist_count": 309
+}

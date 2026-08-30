@@ -1,0 +1,16 @@
+{"alpha_iou": 1.0, "case": "diverse-four", "hexcode": "2728", "pixel_exact_fraction": 1.0, "psnr_db": null, "rgba_mae": 0.0, "rgba_mse": 0.0, "size": 72, "state": "x_t"}
+{"alpha_iou": 1.0, "case": "diverse-four", "hexcode": "2728", "pixel_exact_fraction": 1.0, "psnr_db": null, "rgba_mae": 0.0, "rgba_mse": 0.0, "size": 72, "state": "x_hat_0"}
+{"alpha_iou": 1.0, "case": "diverse-four", "hexcode": "2728", "pixel_exact_fraction": 1.0, "psnr_db": null, "rgba_mae": 0.0, "rgba_mse": 0.0, "size": 18, "state": "x_t"}
+{"alpha_iou": 1.0, "case": "diverse-four", "hexcode": "2728", "pixel_exact_fraction": 1.0, "psnr_db": null, "rgba_mae": 0.0, "rgba_mse": 0.0, "size": 18, "state": "x_hat_0"}
+{"alpha_iou": 0.9929511278195489, "case": "diverse-four", "hexcode": "1F92F", "pixel_exact_fraction": 0.988233024691358, "psnr_db": 26.644922540453585, "rgba_mae": 0.003305986746550472, "rgba_mse": 0.0021652484977287938, "size": 72, "state": "x_t"}
+{"alpha_iou": 1.0, "case": "diverse-four", "hexcode": "1F92F", "pixel_exact_fraction": 1.0, "psnr_db": null, "rgba_mae": 0.0, "rgba_mse": 0.0, "size": 72, "state": "x_hat_0"}
+{"alpha_iou": 1.0, "case": "diverse-four", "hexcode": "1F92F", "pixel_exact_fraction": 0.9166666666666666, "psnr_db": 27.809866437593598, "rgba_mae": 0.0057492132655531355, "rgba_mse": 0.001655820885604302, "size": 18, "state": "x_t"}
+{"alpha_iou": 1.0, "case": "diverse-four", "hexcode": "1F92F", "pixel_exact_fraction": 1.0, "psnr_db": null, "rgba_mae": 0.0, "rgba_mse": 0.0, "size": 18, "state": "x_hat_0"}
+{"alpha_iou": 1.0, "case": "diverse-four", "hexcode": "1F953", "pixel_exact_fraction": 1.0, "psnr_db": null, "rgba_mae": 0.0, "rgba_mse": 0.0, "size": 72, "state": "x_t"}
+{"alpha_iou": 1.0, "case": "diverse-four", "hexcode": "1F953", "pixel_exact_fraction": 1.0, "psnr_db": null, "rgba_mae": 0.0, "rgba_mse": 0.0, "size": 72, "state": "x_hat_0"}
+{"alpha_iou": 1.0, "case": "diverse-four", "hexcode": "1F953", "pixel_exact_fraction": 1.0, "psnr_db": null, "rgba_mae": 0.0, "rgba_mse": 0.0, "size": 18, "state": "x_t"}
+{"alpha_iou": 1.0, "case": "diverse-four", "hexcode": "1F953", "pixel_exact_fraction": 1.0, "psnr_db": null, "rgba_mae": 0.0, "rgba_mse": 0.0, "size": 18, "state": "x_hat_0"}
+{"alpha_iou": 0.9094125973106865, "case": "diverse-four", "hexcode": "E0C3", "pixel_exact_fraction": 0.8387345679012346, "psnr_db": 15.032760852676969, "rgba_mae": 0.053617843742435244, "rgba_mse": 0.031385128761017844, "size": 72, "state": "x_t"}
+{"alpha_iou": 1.0, "case": "diverse-four", "hexcode": "E0C3", "pixel_exact_fraction": 1.0, "psnr_db": null, "rgba_mae": 0.0, "rgba_mse": 0.0, "size": 72, "state": "x_hat_0"}
+{"alpha_iou": 1.0, "case": "diverse-four", "hexcode": "E0C3", "pixel_exact_fraction": 0.7191358024691358, "psnr_db": 18.44095767148788, "rgba_mae": 0.04371520213023481, "rgba_mse": 0.014318721194602266, "size": 18, "state": "x_t"}
+{"alpha_iou": 1.0, "case": "diverse-four", "hexcode": "E0C3", "pixel_exact_fraction": 1.0, "psnr_db": null, "rgba_mae": 0.0, "rgba_mse": 0.0, "size": 18, "state": "x_hat_0"}

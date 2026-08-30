@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-30T07:16:00Z
+Updated: 2026-08-30T07:22:00Z
 
 ## Current hypothesis and evidence
 
@@ -136,8 +136,19 @@ so a whole-path training comparison here would be confounded and is deliberately
 
 The full-primary signature census resolves the corpus-level feasibility question: 1,488,688
 of 1,641,526 legal geometry fields (90.69%) have an exact external path-signature donor.
-Its candidate rankings need a family-distinct, P16/T128-bounded selection pass before a
-new learning fixture can be pinned.
+Its candidate rankings needed a family-distinct, P16/T128-bounded selection pass before
+a new learning fixture could be pinned. That selection has now completed: the pinned v3
+fixture is `2728`, `1F92F`, `1F953`, and `E0C3`, with P16/S32/T128-safe paths and
+72.76–100% per-icon external donor coverage. The first selection attempt is retained as
+a pre-training capacity failure because it admitted a 39-segment path under S32.
+
+The corrected whole-path arm
+`tiny-geometry-f1-whole-path-e13259f-cf59a64e-bd6c4bbc` completed locally. Its
+distinct v3 fixture achieves 100% aggregate, changed-token, and retained-token held-out
+recovery (550 changed fields) with exact checkpoint continuation and safe paired
+renders. This establishes local feasibility only: the earlier factorized and
+path-correlated controls use the original fixture, so direct numerical comparison would
+be confounded until controls are rerun on v3.
 
 ## Last completed action and verification
 
@@ -306,9 +317,10 @@ fixed-topology geometry; topology and corruption-family questions remain open.
 
 ## Active jobs
 
-None. Both first Gate F arms completed twice with no remote job identity or external
-cost. Every worker remains disabled, the isolated Docker daemon has no running container,
-and no authenticated remote command has been issued. Keep the Vast GPU off.
+None. The first corrected whole-path execution completed; its exact identity rerun is
+the next local action. Every worker remains disabled, the isolated Docker daemon has no
+running container, and no authenticated remote command has been issued. Keep the Vast
+GPU off.
 
 ## Artifact durability
 
@@ -367,6 +379,7 @@ is byte-identical to v4 because the diverse branch is unchanged; it remains loca
 
 ## Next smallest evidence-producing action
 
-Extend the census with capacity-bounded, family-aware candidate export, then generate a
-pinned compatible donor fixture for the whole-path ablation. Keep the GPU off until
-remote artifact authorization is complete.
+No local or remote job is active. Repeat the completed v3 whole-path run exactly to
+verify compact artifact identity, then run matched factorized and path-correlated
+controls on this same v3 fixture. Keep the GPU off until remote artifact authorization
+is complete.

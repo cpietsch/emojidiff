@@ -1,0 +1,42 @@
+{
+  "rows": [
+    {
+      "group": "activities",
+      "hexcode": "2728",
+      "selected_representation": "semantic",
+      "source_path": "color/svg/2728.svg",
+      "source_svg_sha256": "76228cbcc43f550920f5913a32efd87356abb454c904f272d13bc0f317228cbd",
+      "subgroup": "event",
+      "variant_family_id": "f31a89c53be6847d"
+    },
+    {
+      "group": "smileys-emotion",
+      "hexcode": "1F92F",
+      "selected_representation": "semantic",
+      "source_path": "color/svg/1F92F.svg",
+      "source_svg_sha256": "09d01e78499daf0a441bf1e24a16c102436df9ef9aee6f344b1ed11cded9f7c2",
+      "subgroup": "face-unwell",
+      "variant_family_id": "bf6bf4a22828b6f6"
+    },
+    {
+      "group": "food-drink",
+      "hexcode": "1F953",
+      "selected_representation": "semantic",
+      "source_path": "color/svg/1F953.svg",
+      "source_svg_sha256": "1d1b0ca1e40a08a7e60888c089f579cc11c4ef1f40296d3f98b27e8f2b8c121a",
+      "subgroup": "food-prepared",
+      "variant_family_id": "c0c595a848399017"
+    },
+    {
+      "group": "extras-openmoji",
+      "hexcode": "E0C3",
+      "selected_representation": "semantic",
+      "source_path": "color/svg/E0C3.svg",
+      "source_svg_sha256": "4e31719792c16a2005612ce099182c95c715cec2e9b694dd80b698aeeb4ed6e1",
+      "subgroup": "food-drink",
+      "variant_family_id": "a1b32e1fd49898e9"
+    }
+  ],
+  "schema_version": 1,
+  "source_revision": "f9fc506a3f913be9897ab0181d611d4c910a4104"
+}

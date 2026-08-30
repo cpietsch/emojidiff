@@ -1,0 +1,15 @@
+schema_version: 1
+run_id: tiny-geometry-f1-whole-path-e13259f-cf59a64e-bd6c4bbc
+state: completed
+hypothesis: whole-path donor replacement recovers held-out geometry under matched fixed-topology training
+git_commit: e13259f
+config: configs/learning/tiny-geometry-f1-whole-path.yaml
+config_sha256: cf59a64e05549fd673c110c04333d938a964106520bf0d9101e120e3ff849266
+dataset_manifest: data/manifests/openmoji-17.0.0-whole-path-fixture-v3.json
+dataset_manifest_sha256: bd6c4bbc3440aeec7096b2084a8bdf4ae1b13997c83b962536ac30784753f969
+worker: gtc-local-cpu
+resource_cap: {external_spend_usd: 0, optimizer_steps: 320}
+command: .venv/bin/python -m mojidiff.learning.tiny_study --config configs/learning/tiny-geometry-f1-whole-path.yaml
+completed_at: 2026-08-30T19:58:37Z
+result: heldout and changed-token recovery both reached 1.0; checkpoint continuation exact
+summary_sha256: a28390b79901cfd044d913ea104e87e16be3c183d42c9f8506f2668c85ce2e18

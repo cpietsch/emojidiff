@@ -1,0 +1,13 @@
+schema_version: 1
+run_id: tiny-geometry-f1-whole-path-8a1bc39-4b8a5155-82164830
+state: failed
+hypothesis: whole-path donor replacement is learnable under the matched fixed-topology setup
+git_commit: 8a1bc39
+config: configs/learning/tiny-geometry-f1-whole-path.yaml
+config_sha256: 4b8a5155b3f9e888bc4eb890d42493992e96cc320ece7ff72cafc52e13df20cf
+dataset_manifest: data/manifests/openmoji-17.0.0-whole-path-fixture-v2.json
+dataset_manifest_sha256: 821648303fc64242da0014a2194c2b4914dc45083c919aab5e6dfc4c18975c37
+worker: gtc-local-cpu
+resource_cap: {external_spend_usd: 0, optimizer_steps: 320}
+command: .venv/bin/python -m mojidiff.learning.tiny_study --config configs/learning/tiny-geometry-f1-whole-path.yaml
+failure_reason: selected fixture included a 39-segment path, exceeding the configured S32 codec capacity before training began

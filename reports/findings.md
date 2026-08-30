@@ -715,3 +715,26 @@ capacity.
 from raw coverage rankings. Extend the census/selection output with capacity and
 family-aware constraints, then pin a diverse compatible fixture before training. This
 retains the small-fixture feasibility failure and avoids family leakage.
+
+## 2026-08-30 — Capacity-safe whole-path treatment
+
+**Hypothesis.** Exact compatible external whole-path donor replacement is learnable in
+a family-distinct, P16/S32/T128-bounded fixed-topology fixture.
+
+**Method.** The first selected fixture is retained as a harness-boundary failure: its
+39-segment path cannot be encoded by the declared S32 diagnostic. The selector was then
+restricted by per-path segment capacity and repinned four semantic, family-distinct
+icons (`2728`, `1F92F`, `1F953`, `E0C3`), with 72.76–100% per-icon eligible geometry
+coverage. Train only the predeclared diverse-four arm with the same model, optimizer,
+0.35 path gate, online resampling, 320/160-step checkpoint schedule, and safe render
+checks. This fixture is distinct from the earlier factorized/path-correlated fixture.
+
+**Observation.** The corrected local CPU run passes its criteria: held-out aggregate,
+changed-token, and retained-token accuracy are all 1.0 (550 changed legal fields over
+16 held-out examples); final loss is 0.001014. Checkpoint continuation is exact and the
+paired render artifacts pass their safety checks.
+
+**Decision.** Preserve the successful feasibility result and the capacity-selection
+failure. Do not compare this 1.0 result numerically with the earlier factorized or
+path-correlated arms because their fixtures differ. Run matched controls on this exact
+v3 fixture before drawing a corruption-family conclusion.
