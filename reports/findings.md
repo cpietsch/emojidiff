@@ -535,3 +535,28 @@ is memorized but does not meet held-out recovery criteria. Before changing capac
 steps, or corruption, report accuracy separately on actually changed and retained
 coordinates; aggregate accuracy may be inflated by coordinates that `x_t` already
 reveals unchanged.
+
+## 2026-08-30 — Changed-versus-retained coordinate diagnostic
+
+**Hypothesis.** The diverse-four aggregate held-out score overstates genuine denoising:
+accuracy on coordinate tokens actually changed in `x_t` will trail aggregate accuracy
+by at least 0.15. No learning input or update is changed from v2.
+
+**Method.** Partition every legal endpoint and control prediction by exact token
+comparison between `x_t` and `x_0`. Count replacements that randomly reproduce the clean
+token as retained, not changed. Verify that changed and retained counts sum exactly to
+the prior aggregate count. Rerun the unchanged 800-step experiment twice through the
+canonical artifact guards.
+
+**Observation.** The hypothesis passes narrowly but materially. Diverse-four changed
+accuracy is 58.17% (954/1,640), 15.65 percentage points below its 73.82% aggregate.
+Retained accuracy is only 82.52% (2,436/2,952), showing that the model also overwrites
+many coordinates already correct in `x_t`. The one-icon model generalizes much better:
+88.59% changed and 96.11% retained accuracy. All training partitions remain 100%, and
+the second full invocation reproduced every compact artifact and checkpoint byte.
+
+**Decision.** The immediate bottleneck is corruption-pattern coverage on the diverse
+fixture, not an inability to memorize geometry or resume training. Test deterministic
+per-step corruption resampling next while holding batch size, model, corruption
+probability, optimizer steps, and held-out draws fixed. This is a smaller and more
+diagnostic factor change than increasing model capacity or training duration.

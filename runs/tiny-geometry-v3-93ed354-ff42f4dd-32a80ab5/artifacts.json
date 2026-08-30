@@ -1,0 +1,11 @@
+{
+  "artifact_durability": "compact-report-pending-local-git;checkpoint-local-only",
+  "artifacts": [
+    {"path": "reports/learning/tiny-geometry-v3-corruption-split/README.md", "sha256": "8fd4264513091434a7f1ebd2bbeee301a356501ee2d2d536fad8c00be4fb7602", "size": 580},
+    {"path": "reports/learning/tiny-geometry-v3-corruption-split/metrics.jsonl", "sha256": "c4e0d9a8c78734667942c832ea166b2c378887337e48c30d324e54630598b797", "size": 4973},
+    {"path": "reports/learning/tiny-geometry-v3-corruption-split/render-metrics.jsonl", "sha256": "d4c36c75381689fb6301ad5ca0a93fbaa47c99a4d0eb5f9742d2f9e0673e480d", "size": 3971},
+    {"path": "reports/learning/tiny-geometry-v3-corruption-split/summary.json", "sha256": "5d624b213a11d862fdc02652b98659dc92daa4f5c7adfc9575ef116017625f4e", "size": 5112},
+    {"path": "reports/learning/tiny-geometry-v3-corruption-split/trajectory.png", "sha256": "79f729d6b31291e4ce6ff3cad04e4e23f5652a3a46c83393a8a8a52bd9cb707d", "size": 128646},
+    {"path": "data/processed/tiny-geometry-v3-corruption-split/diverse-four/checkpoint-160.zip", "sha256": "52aee590c65f81f52d49be2626a2398373fe5639c30a3346b1ee30ad5270bcb8", "size": 3031890, "durability": "local-only"}
+  ]
+}

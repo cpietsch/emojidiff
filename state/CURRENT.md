@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-30T05:55:33Z
+Updated: 2026-08-30T06:01:12Z
 
 ## Current hypothesis and evidence
 
@@ -239,6 +239,12 @@ from `x_0`. The partition sums back to the existing total in tests. Its config h
 `ff42f4dd0b8915f00d8deea020b46e6891a588751e651d50c1e75bced3135a30`.
 The full suite remains 93/93; Ruff and strict mypy pass.
 
+Registered and completed `tiny-geometry-v3-93ed354-ff42f4dd-32a80ab5` twice with exact
+artifact identity. Diverse-four changed-token accuracy is 58.17%, 15.65 points below
+aggregate, while retained-token accuracy is 82.52%. One-icon changed/retained accuracy
+is 88.59%/96.11%. The diagnostic hypothesis passes and localizes the next question to
+corruption-pattern coverage rather than basic memorization or checkpointing.
+
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
@@ -269,6 +275,9 @@ legacy PyTorch container and remains local-only. Nothing was pushed.
 The v2 compact report is versioned locally at `2d75672`. Its canonical 3.0 MB checkpoint
 is verified byte-stable but remains local-only because no external artifact sink exists.
 
+The v3 compact diagnostic is pending a local Git checkpoint; its canonical 3.0 MB
+checkpoint is byte-stable and remains local-only.
+
 ## Current blockers and missing authorization
 
 - YOLO checks passed for hostname, persistent repository location, TLS-only isolated
@@ -295,7 +304,6 @@ is verified byte-stable but remains local-only because no external artifact sink
 
 ## Next smallest evidence-producing action
 
-Register and run v3 under a new identity without changing model, training, or corruption;
-require the predeclared check that diverse-four changed-token accuracy trails aggregate
-accuracy by at least 0.15. Rerun for artifact identity, then choose the smallest Gate E
-ablation. Keep the GPU server off.
+Implement deterministic per-step corruption resampling with the same batch size,
+probability, model, held-out draws, optimizer steps, and exact resume boundary. Compare
+against v3 changed/retained accuracy under a new run identity. Keep the GPU server off.

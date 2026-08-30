@@ -1,0 +1,66 @@
+schema_version: 1
+run_id: tiny-geometry-v3-93ed354-ff42f4dd-32a80ab5
+state: completed
+hypothesis: >-
+  The diverse-four aggregate held-out accuracy materially overstates genuine denoising:
+  accuracy on actually changed coordinate tokens will trail aggregate accuracy by at
+  least 0.15, while all v2 learning outputs remain otherwise unchanged.
+expected_information_gain: >-
+  Determines whether the next Gate E experiment should target corrupted-token recovery
+  rather than model capacity, additional optimization steps, or topology.
+parent_run: tiny-geometry-v2-47811d0-75d558c9-32a80ab5
+git_commit: 93ed3542a69f1697c4d3ca13ba1982cc2cda5828
+dirty_patch_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+config: configs/learning/tiny-geometry-v3-corruption-split.yaml
+config_sha256: ff42f4dd0b8915f00d8deea020b46e6891a588751e651d50c1e75bced3135a30
+dataset_manifest: data/manifests/openmoji-17.0.0-tiny-learning-fixture-v1.json
+dataset_manifest_sha256: 32a80ab576a6d5a435e859d38c1ba25e302070e92caae2971b517fe42c4b0d79
+worker: gtc-local-cpu
+environment:
+  hostname: gtc
+  architecture: x86_64
+  python: 3.12.3
+  torch: 2.8.0+cpu
+  numpy: 2.5.2
+  device: cpu
+  training_threads: 2
+  gpu: null
+precision: float32
+seeds: [1701, 1702]
+controlled_factor: evaluation metric partition only
+held_constant:
+  - fixture
+  - model and initialization
+  - corruption draws
+  - optimizer and batches
+  - training steps
+  - aggregate acceptance thresholds
+predeclared_diagnostic:
+  diverse_four_changed_accuracy_gap_minimum: 0.15
+resource_cap:
+  external_spend_usd: 0
+  optimizer_steps: 800
+  train_examples: 24
+  heldout_examples: 24
+  isolated_renders: 24
+  max_local_storage_gb: 0.1
+command: >-
+  .venv/bin/python -m mojidiff.learning.tiny_study --config
+  configs/learning/tiny-geometry-v3-corruption-split.yaml
+outputs:
+  report: reports/learning/tiny-geometry-v3-corruption-split
+  derived: data/processed/tiny-geometry-v3-corruption-split
+  run_record: runs/tiny-geometry-v3-93ed354-ff42f4dd-32a80ab5
+artifact_durability: compact-report-pending-local-git;checkpoint-local-only
+result:
+  diagnostic_hypothesis_passed: true
+  artifact_identity_rerun: true
+  diverse_four:
+    aggregate_accuracy: 0.7382404181184669
+    changed_accuracy: 0.5817073170731707
+    retained_accuracy: 0.8252032520325203
+    aggregate_minus_changed: 0.1565331010452962
+  one_icon:
+    aggregate_accuracy: 0.9356617647058824
+    changed_accuracy: 0.8858695652173914
+    retained_accuracy: 0.9611111111111111
