@@ -5,8 +5,8 @@ report_root: reports/corruption/tiny-geometry-f1-whole-path
 derived_root: data/processed/tiny-geometry-f1-whole-path
 inputs:
   raw_root: data/raw/openmoji/17.0.0
-  fixture: data/manifests/openmoji-17.0.0-whole-path-fixture-v2.json
-  fixture_sha256: 821648303fc64242da0014a2194c2b4914dc45083c919aab5e6dfc4c18975c37
+  fixture: data/manifests/openmoji-17.0.0-whole-path-fixture-v3.json
+  fixture_sha256: bd6c4bbc3440aeec7096b2084a8bdf4ae1b13997c83b962536ac30784753f969
   palette: data/raw/openmoji/17.0.0/data/color-palette.json
   palette_sha256: 566f30548fbc0fe4f4aa0c2a563820f0c26e46a89523b174e25a685720058228
   style_summary: reports/codec/style-vocabulary-v2-render-sentinel/summary.json
