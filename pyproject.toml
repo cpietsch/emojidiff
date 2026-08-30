@@ -26,6 +26,9 @@ dev = [
   "types-defusedxml>=0.7.0.20250822",
   "types-PyYAML>=6.0.12",
 ]
+model-cpu = [
+  "torch==2.8.0",
+]
 
 [project.scripts]
 mojidiff-curate = "mojidiff.curation.cli:main"
@@ -33,6 +36,7 @@ mojidiff-codec-study = "mojidiff.representation.codec_study:main"
 mojidiff-capacity-study = "mojidiff.representation.capacity_study:main"
 mojidiff-style-study = "mojidiff.representation.style_study:main"
 mojidiff-stress-study = "mojidiff.representation.stress_study:main"
+mojidiff-tiny-learning = "mojidiff.learning.tiny_study:main"
 mojidiff-representation = "mojidiff.representation.cli:main"
 mojidiff-worker = "mojidiff.orchestration.cli:main"
 
@@ -54,6 +58,14 @@ select = ["B", "E", "F", "I", "UP"]
 python_version = "3.12"
 strict = true
 files = ["src", "tests"]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
 
 [[tool.mypy.overrides]]
 module = ["cairosvg", "pyarrow", "pyarrow.*"]

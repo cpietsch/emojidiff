@@ -1,0 +1,36 @@
+{
+  "schema_version": 1,
+  "manifest_version": "openmoji-17.0.0-tiny-learning-fixture-v1",
+  "source_revision": "f9fc506a3f913be9897ab0181d611d4c910a4104",
+  "selection": {
+    "parent_hybrid": "reports/codec/full-primary-structure-v2-opacity/hybrid.jsonl",
+    "parent_hybrid_sha256": "9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b",
+    "rule": "four semantic-native, in-bounds, non-flag icons from distinct groups that fit P16/T128; first row is the one-icon overfit target"
+  },
+  "rows": [
+    {
+      "hexcode": "1F600",
+      "group": "smileys-emotion",
+      "source_path": "color/svg/1F600.svg",
+      "source_svg_sha256": "8cc1ef3952c6405b178e191a74e4498312acef6cc56455fabf087471f0bc9812"
+    },
+    {
+      "hexcode": "1F34E",
+      "group": "food-drink",
+      "source_path": "color/svg/1F34E.svg",
+      "source_svg_sha256": "b4db458333fa917a803c8d36865ae57ae5ea54d2aa0e1f906518d3f0c9bf2bcb"
+    },
+    {
+      "hexcode": "1F431",
+      "group": "animals-nature",
+      "source_path": "color/svg/1F431.svg",
+      "source_svg_sha256": "c0524dc19297fb8cdc521f8f09e2ea777717bb4a85fead116aeab5fd957e9fdc"
+    },
+    {
+      "hexcode": "1F697",
+      "group": "travel-places",
+      "source_path": "color/svg/1F697.svg",
+      "source_svg_sha256": "f2bc314639afba633ef21e802c022fa64b6a3fe0e3d3739e5826a816f1895286"
+    }
+  ]
+}
