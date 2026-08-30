@@ -586,3 +586,34 @@ failure. Accept deterministic per-step resampling for this fixed-topology diagno
 Do not close Gate E yet because the generic combined flag retains the one-icon held-out
 miss; apply the same factor to one-icon under a final controlled config. This does not
 yet answer topology learning or choose the final corruption family.
+
+## 2026-08-30 — All-resampled control and Gate E synthesis
+
+**Hypothesis.** Enabling the already validated per-step resampling treatment for
+one-icon will make both v1 predeclared case criteria pass in the same run while
+preserving diverse recovery, exact resume, renders, and artifact identity.
+
+**Method.** Change only one-icon `resample_each_step` from false to true. Keep its eight
+example batch, 160 steps, seed, held-out draws, and thresholds fixed; keep the entire
+diverse v4 branch unchanged. Repeat the full run and inspect the existing paired render
+sheet, whose diverse branch should remain byte-identical.
+
+**Observation.** One-icon held-out accuracy rises from 93.57% to 99.26%, with 98.37%
+accuracy on changed tokens and 99.72% on retained tokens. Diverse-four remains exactly
+98.56% aggregate, 96.65% changed, and 99.63% retained. The render sheet is byte-identical
+to v4 and remains recognizable at both sizes. Resume and all artifacts reproduce.
+
+The literal v5 hypothesis is nevertheless false: the fixed one-icon probe scores
+97.73%, below the inherited 99% `min_train_accuracy`. Under resampling this probe is an
+unseen corruption batch, not a training batch, so it no longer measures memorization.
+The threshold result is retained as false rather than renamed after inspection.
+
+**Decision.** Close Gate E from the controlled evidence sequence, not by overriding the
+v5 flag. V1 demonstrates exact one-icon memorization at 100%; v5 demonstrates 99.26%
+one-icon held-out recovery; v4/v5 demonstrate 98.56% diverse held-out recovery and
+recognizable renders; v2-v5 demonstrate exact checkpoint continuation and byte-stable
+artifacts. The decisive learning lesson is that fixed corruption examples caused
+memorization and poor recovery, while deterministic online coverage solved the tiny
+geometry task without more capacity or steps. This remains fixed-topology geometry-only
+evidence, not support for topology generation or a final diffusion formulation. Begin
+Gate F with matched corruption-family definitions and tiny comparisons.

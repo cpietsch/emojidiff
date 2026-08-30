@@ -1,0 +1,11 @@
+{
+  "artifact_durability": "compact-report-pending-local-git;checkpoint-local-only",
+  "artifacts": [
+    {"path": "reports/learning/tiny-geometry-v5-all-resampled/README.md", "sha256": "f863ce075740c4899b2d95d56e24210aee8837d524a788bebf3e672efff5b445", "size": 579},
+    {"path": "reports/learning/tiny-geometry-v5-all-resampled/metrics.jsonl", "sha256": "2805101702954e39aeeb9cf46d8a020590268bc9f15a651d5e041334e8aecaf9", "size": 5448},
+    {"path": "reports/learning/tiny-geometry-v5-all-resampled/render-metrics.jsonl", "sha256": "8eafdf8ce49f84c2f16a65ef1180f4f03561f4634e394486a27dc709f6a9d1fc", "size": 3921},
+    {"path": "reports/learning/tiny-geometry-v5-all-resampled/summary.json", "sha256": "9227aabbb9fc237ee0128024880146d5c74970d33c07690858bff260a640da70", "size": 5266},
+    {"path": "reports/learning/tiny-geometry-v5-all-resampled/trajectory.png", "sha256": "a9fa91d1d0d5ccad490b57c4a053ecd930a2a508c21cd9f93d2276481c09ee3d", "size": 103664},
+    {"path": "data/processed/tiny-geometry-v5-all-resampled/diverse-four/checkpoint-160.zip", "sha256": "e975f17c1549726051178da0b1c2d7ce2a5538facc19b3684d95abaafd2e7389", "size": 3031890, "durability": "local-only"}
+  ]
+}

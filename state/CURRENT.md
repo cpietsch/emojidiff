@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-30T06:12:53Z
+Updated: 2026-08-30T06:19:09Z
 
 ## Current hypothesis and evidence
 
@@ -265,6 +265,15 @@ Added the final all-resampled config at `f33acb7`. It changes only the one-icon
 identical to v4. Config hash:
 `a34456a8e50877002d339aec9167e77501fb5edab831568626bb995554b3657e`.
 
+Registered and completed `tiny-geometry-v5-44ce3de-a34456a8-32a80ab5` twice with exact
+artifact identity. One-icon held-out accuracy rises to 99.26% and diverse remains
+98.56%. The literal v5 combined flag stays false because its now-unseen fixed probe is
+97.73% versus the inherited 99% memorization threshold. Gate E nevertheless closes from
+the controlled sequence: v1 supplies 100% actual one-icon overfit, v5 supplies one-icon
+held-out recovery, v4/v5 supply diverse recovery and recognizable renders, and v2-v5
+supply exact resume and byte-stable artifacts. The representation is learnable for
+fixed-topology geometry; topology and corruption-family questions remain open.
+
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
@@ -296,8 +305,11 @@ The v2 compact report is versioned locally at `2d75672`. Its canonical 3.0 MB ch
 is verified byte-stable but remains local-only because no external artifact sink exists.
 
 The v3 compact diagnostic is versioned locally at `99106ed`; its canonical 3.0 MB
-checkpoint is byte-stable and remains local-only. The v4 compact report is pending a
-local Git checkpoint; its 3.0 MB canonical checkpoint is also byte-stable and local-only.
+checkpoint is byte-stable and remains local-only. The v4 compact report is versioned
+locally at `fecc4c0`; its 3.0 MB canonical checkpoint is also byte-stable and local-only.
+
+The v5 compact report is pending a local Git checkpoint. Its canonical 3.0 MB checkpoint
+is byte-identical to v4 because the diverse branch is unchanged; it remains local-only.
 
 ## Current blockers and missing authorization
 
@@ -325,6 +337,7 @@ local Git checkpoint; its 3.0 MB canonical checkpoint is also byte-stable and lo
 
 ## Next smallest evidence-producing action
 
-Register and run v5. Require the existing combined case criteria, exact checkpoint
-resume, recognizable paired renders, and exact artifact rerun before closing Gate E.
-Keep the GPU server off.
+Begin Gate F locally by specifying matched, render-safe corruption-family contracts and
+tests for factorized uniform, path-correlated, fixed-topology, and whole-path replacement.
+Use the v5 online-coverage result as the fixed-topology reference. Keep the GPU server
+off until the next bounded pipeline and remote artifact authorization are ready.

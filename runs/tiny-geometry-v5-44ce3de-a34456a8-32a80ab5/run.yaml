@@ -1,0 +1,78 @@
+schema_version: 1
+run_id: tiny-geometry-v5-44ce3de-a34456a8-32a80ab5
+state: completed
+hypothesis: >-
+  Applying the v4 deterministic per-step coverage treatment to one-icon as well will
+  make both predeclared cases pass while preserving diverse recovery, exact checkpoint
+  continuation, recognizable renders, and byte-identical artifacts.
+expected_information_gain: >-
+  Final controlled check for Gate E's one-icon overfit, tiny-diverse recovery, resume,
+  and rendering exit evidence before beginning corruption-family comparisons.
+parent_run: tiny-geometry-v4-ede1009-7ccbc64e-32a80ab5
+git_commit: 44ce3de6f0f76c5815cf82c5b6d3dda0d28a8ae0
+dirty_patch_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+config: configs/learning/tiny-geometry-v5-all-resampled.yaml
+config_sha256: a34456a8e50877002d339aec9167e77501fb5edab831568626bb995554b3657e
+dataset_manifest: data/manifests/openmoji-17.0.0-tiny-learning-fixture-v1.json
+dataset_manifest_sha256: 32a80ab576a6d5a435e859d38c1ba25e302070e92caae2971b517fe42c4b0d79
+worker: gtc-local-cpu
+environment:
+  hostname: gtc
+  architecture: x86_64
+  python: 3.12.3
+  torch: 2.8.0+cpu
+  numpy: 2.5.2
+  device: cpu
+  training_threads: 2
+  gpu: null
+precision: float32
+seeds: [1701, 1702]
+controlled_factor: one-icon corruption draw coverage
+held_constant:
+  - fixture and held-out draws
+  - model and initialization
+  - batch sizes and corruption probability
+  - optimizer and step budgets
+  - diverse-four v4 treatment
+  - checkpoint boundary
+predeclared_criteria:
+  one_icon_train_accuracy_minimum: 0.99
+  one_icon_heldout_accuracy_minimum: 0.95
+  one_icon_loss_ratio_maximum: 0.10
+  diverse_four_train_accuracy_minimum: 0.98
+  diverse_four_heldout_accuracy_minimum: 0.85
+  diverse_four_loss_ratio_maximum: 0.20
+  checkpoint_resume_exact: true
+  artifact_identity_rerun: true
+resource_cap:
+  external_spend_usd: 0
+  optimizer_steps: 800
+  batch_size_one_icon: 8
+  batch_size_diverse: 16
+  distinct_corruptions_per_icon_continuous: 1280
+  heldout_examples: 24
+  isolated_renders: 24
+  max_local_storage_gb: 0.1
+command: >-
+  .venv/bin/python -m mojidiff.learning.tiny_study --config
+  configs/learning/tiny-geometry-v5-all-resampled.yaml
+outputs:
+  report: reports/learning/tiny-geometry-v5-all-resampled
+  derived: data/processed/tiny-geometry-v5-all-resampled
+  run_record: runs/tiny-geometry-v5-44ce3de-a34456a8-32a80ab5
+artifact_durability: compact-report-pending-local-git;checkpoint-local-only
+result:
+  run_hypothesis_passed: false
+  gate_e_exit_evidence_complete_cumulatively: true
+  artifact_identity_rerun: true
+  checkpoint_resume_exact: true
+  one_icon:
+    fixed_probe_accuracy: 0.977328431372549
+    heldout_accuracy: 0.9926470588235294
+    changed_accuracy: 0.9836956521739131
+    retained_accuracy: 0.9972222222222222
+  diverse_four:
+    fixed_probe_accuracy: 0.985191637630662
+    heldout_accuracy: 0.9856271777003485
+    changed_accuracy: 0.9664634146341463
+    retained_accuracy: 0.9962737127371274
