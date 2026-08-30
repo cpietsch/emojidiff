@@ -8,6 +8,7 @@ import torch
 from mojidiff.learning.geometry import (
     GeometryDenoiser,
     corrupt_geometry,
+    geometry_accuracy_by_corruption,
     geometry_loss_and_accuracy,
     packed_batch,
     predict_clean_geometry,
@@ -94,6 +95,7 @@ def test_geometry_denoiser_forward_backward_and_legal_prediction() -> None:
 
     logits = model(noisy_batch)
     loss, counts = geometry_loss_and_accuracy(logits, clean_batch, codec)
+    split_counts = geometry_accuracy_by_corruption(logits, noisy_batch, clean_batch, codec)
     loss.backward()  # type: ignore[no-untyped-call]
     prediction = predict_clean_geometry(noisy, logits, codec)
 
@@ -101,6 +103,7 @@ def test_geometry_denoiser_forward_backward_and_legal_prediction() -> None:
     assert logits[1].shape == (1, 16, 6, 418)
     assert torch.isfinite(loss)
     assert counts["total"] == 12
+    assert split_counts["changed"]["total"] + split_counts["retained"]["total"] == 12
     assert any(parameter.grad is not None for parameter in model.parameters())
     validate_packed_tensor_program(prediction, codec, 16)
 

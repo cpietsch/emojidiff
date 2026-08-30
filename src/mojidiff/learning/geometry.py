@@ -204,6 +204,65 @@ def geometry_loss_and_accuracy(
     }
 
 
+def geometry_accuracy_by_corruption(
+    logits: tuple[Tensor, Tensor],
+    noisy: dict[str, Tensor],
+    clean: dict[str, Tensor],
+    codec: CodecConfig,
+) -> dict[str, dict[str, int]]:
+    """Split legal-field accuracy by whether corruption actually changed the token."""
+
+    result = {
+        "changed": {"correct": 0, "total": 0},
+        "retained": {"correct": 0, "total": 0},
+    }
+
+    def accumulate(predictions: Tensor, targets: Tensor, changed: Tensor) -> None:
+        matches = predictions == targets
+        for name, mask in (("changed", changed), ("retained", ~changed)):
+            result[name]["correct"] += int((matches & mask).sum().item())
+            result[name]["total"] += int(mask.sum().item())
+
+    start_logits, coordinate_logits = logits
+    active_paths = clean["path_length"] > 0
+    start_mask = active_paths[:, :, None].expand(-1, -1, 2)
+    start_targets = clean["start"][start_mask]
+    start_predictions = (
+        start_logits[start_mask][:, 1 : codec.coordinate_bins + 1].argmax(dim=-1) + 1
+    )
+    accumulate(
+        start_predictions,
+        start_targets,
+        noisy["start"][start_mask] != start_targets,
+    )
+
+    segment_types = clean["segment_type"]
+    for kind in (SegmentType.LINE, SegmentType.QUAD, SegmentType.CUBIC):
+        control_count, coordinate_count = _coordinate_counts(kind)
+        kind_mask = segment_types == int(kind)
+        for coordinate_index in range(coordinate_count):
+            targets = clean["coordinates"][:, :, coordinate_index][kind_mask]
+            if not targets.numel():
+                continue
+            bins = (
+                codec.effective_control_coordinate_bins
+                if coordinate_index < control_count
+                else codec.coordinate_bins
+            )
+            predictions = (
+                coordinate_logits[:, :, coordinate_index][kind_mask][:, 1 : bins + 1].argmax(
+                    dim=-1
+                )
+                + 1
+            )
+            accumulate(
+                predictions,
+                targets,
+                noisy["coordinates"][:, :, coordinate_index][kind_mask] != targets,
+            )
+    return result
+
+
 def predict_clean_geometry(
     noisy: PackedTensorProgram,
     logits: tuple[Tensor, Tensor],

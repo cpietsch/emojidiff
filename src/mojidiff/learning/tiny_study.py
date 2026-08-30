@@ -20,6 +20,7 @@ from PIL import Image, ImageDraw
 from mojidiff.learning.geometry import (
     GeometryDenoiser,
     corrupt_geometry,
+    geometry_accuracy_by_corruption,
     geometry_loss_and_accuracy,
     packed_batch,
     predict_clean_geometry,
@@ -412,25 +413,42 @@ def _evaluate(
     clean: list[PackedTensorProgram],
     codec: CodecConfig,
     device: torch.device,
-) -> dict[str, float | int]:
+) -> dict[str, Any]:
     model.eval()
     correct = 0
     total = 0
+    changed_correct = 0
+    changed_total = 0
+    retained_correct = 0
+    retained_total = 0
     losses: list[float] = []
     with torch.no_grad():
         for item, target in zip(noisy, clean, strict=True):
-            logits = model(packed_batch([item], device))
+            noisy_batch = packed_batch([item], device)
+            clean_batch = packed_batch([target], device)
+            logits = model(noisy_batch)
             loss, counts = geometry_loss_and_accuracy(
-                logits, packed_batch([target], device), codec
+                logits, clean_batch, codec
             )
+            split = geometry_accuracy_by_corruption(logits, noisy_batch, clean_batch, codec)
             losses.append(float(loss))
             correct += counts["correct"]
             total += counts["total"]
+            changed_correct += split["changed"]["correct"]
+            changed_total += split["changed"]["total"]
+            retained_correct += split["retained"]["correct"]
+            retained_total += split["retained"]["total"]
     return {
         "loss": float(np.mean(losses)),
         "correct": correct,
         "total": total,
         "accuracy": correct / total,
+        "changed_correct": changed_correct,
+        "changed_total": changed_total,
+        "changed_accuracy": changed_correct / changed_total if changed_total else None,
+        "retained_correct": retained_correct,
+        "retained_total": retained_total,
+        "retained_accuracy": retained_correct / retained_total if retained_total else None,
     }
 
 
@@ -797,15 +815,16 @@ def _markdown(summary: dict[str, Any]) -> str:
         f"PyTorch {summary['torch_version']} on deterministic CPU; "
         f"{summary['model']['parameters']} parameters.",
         "",
-        "| case | icons | steps | train accuracy | held-out accuracy | loss ratio | "
+        "| case | train accuracy | held-out accuracy | changed accuracy | retained accuracy | "
         "resume exact | passes |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|",
+        "|---|---:|---:|---:|---:|---:|---:|",
     ]
     for name, item in summary["cases"].items():
         lines.append(
-            f"| {name} | {item['config']['icon_count']} | {item['config']['steps']} | "
-            f"{item['train_final']['accuracy']:.4f} | {item['final']['accuracy']:.4f} | "
-            f"{item['loss_ratio']:.6f} | {item['resume_exact']} | "
+            f"| {name} | {item['train_final']['accuracy']:.4f} | "
+            f"{item['final']['accuracy']:.4f} | "
+            f"{item['final']['changed_accuracy']:.4f} | "
+            f"{item['final']['retained_accuracy']:.4f} | {item['resume_exact']} | "
             f"{item['passes_predeclared_criteria']} |"
         )
     lines.extend(
