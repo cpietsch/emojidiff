@@ -1,0 +1,62 @@
+schema_version: 1
+run_id: tiny-geometry-v2-47811d0-75d558c9-32a80ab5
+state: completed
+hypothesis: >-
+  With only the checkpoint container corrected, the unchanged v1 learning results will
+  reproduce and the canonical checkpoint will be byte-identical across full reruns.
+expected_information_gain: >-
+  Distinguishes checkpoint-container nondeterminism from learning nondeterminism while
+  preserving the v1 held-out recovery failure for the next scientific decision.
+parent_run: tiny-geometry-v1-3493eff-bf71ca62-32a80ab5
+git_commit: 47811d0616cf329f6c516623ae35ada0e9270b9d
+dirty_patch_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+config: configs/learning/tiny-geometry-v2-canonical-checkpoint.yaml
+config_sha256: 75d558c97c106c127f026a229613afcde35da13cf7668c2c950c4b1c5d955ebb
+dataset_manifest: data/manifests/openmoji-17.0.0-tiny-learning-fixture-v1.json
+dataset_manifest_sha256: 32a80ab576a6d5a435e859d38c1ba25e302070e92caae2971b517fe42c4b0d79
+source_revision: f9fc506a3f913be9897ab0181d611d4c910a4104
+worker: gtc-local-cpu
+environment:
+  hostname: gtc
+  architecture: x86_64
+  python: 3.12.3
+  torch: 2.8.0+cpu
+  numpy: 2.5.2
+  device: cpu
+  training_threads: 2
+  gpu: null
+precision: float32
+seeds: [1701, 1702]
+determinism:
+  deterministic_algorithms: true
+  dropout: 0.0
+  fixed_full_batch_order: true
+  canonical_checkpoint_archive: true
+predeclared_criteria:
+  scientific: unchanged from tiny-geometry-v1
+  artifact: exact metrics, renders, summary, and checkpoint bytes on a full rerun
+resource_cap:
+  external_spend_usd: 0
+  optimizer_steps: 800
+  train_examples: 24
+  heldout_examples: 24
+  isolated_renders: 24
+  max_local_storage_gb: 0.1
+checkpoint_policy: >-
+  Keep one compact canonical resume archive under ignored reproducible processed data;
+  require exact hash identity on the second full invocation.
+command: >-
+  .venv/bin/python -m mojidiff.learning.tiny_study --config
+  configs/learning/tiny-geometry-v2-canonical-checkpoint.yaml
+outputs:
+  report: reports/learning/tiny-geometry-v2-canonical-checkpoint
+  derived: data/processed/tiny-geometry-v2-canonical-checkpoint
+  run_record: runs/tiny-geometry-v2-47811d0-75d558c9-32a80ab5
+artifact_durability: compact-report-pending-local-git;checkpoint-local-only
+result:
+  artifact_hypothesis_passed: true
+  scientific_hypothesis_passed: false
+  checkpoint_resume_exact: true
+  checkpoint_rerun_byte_exact: true
+  one_icon_heldout_accuracy: 0.9356617647058824
+  diverse_four_heldout_accuracy: 0.7382404181184669

@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-30T05:46:57Z
+Updated: 2026-08-30T05:52:29Z
 
 ## Current hypothesis and evidence
 
@@ -227,6 +227,12 @@ Ruff and strict mypy pass. The learning fixture, architecture, seeds, corruption
 steps, and predeclared scientific thresholds are unchanged in the v2 config, whose hash
 is `75d558c97c106c127f026a229613afcde35da13cf7668c2c950c4b1c5d955ebb`.
 
+Registered and completed `tiny-geometry-v2-47811d0-75d558c9-32a80ab5`. Both complete
+invocations reproduced every learning metric and final model hash from v1. The canonical
+checkpoint, summary, metrics, render metrics, Markdown, and trajectory are byte-identical
+across reruns. V2 therefore resolves artifact idempotency but intentionally preserves
+the missed held-out thresholds; Gate E remains open.
+
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
@@ -250,9 +256,12 @@ control-plane volume and meaningful GPU work remains blocked.
 The compact style-vocabulary, capacity, and packed/render stress evidence is versioned
 locally through `791af1f`; their reproducible bulk SVG/raster derivatives remain ignored.
 The Gate E implementation, fixture, config, and CPU dependency lock are versioned at
-`49e6e6a`. The v1 compact report is pending a local Git checkpoint; its 2.9 MB resume
-checkpoint is reproducible in model/optimizer content but not byte-stable in the legacy
-PyTorch container and remains local-only. Nothing was pushed.
+`49e6e6a`, and the v1 negative compact report is versioned at `471899a`. Its 2.9 MB
+resume checkpoint is reproducible in model/optimizer content but not byte-stable in the
+legacy PyTorch container and remains local-only. Nothing was pushed.
+
+The v2 compact report is pending a local Git checkpoint. Its canonical 3.0 MB checkpoint
+is verified byte-stable but remains local-only because no external artifact sink exists.
 
 ## Current blockers and missing authorization
 
@@ -280,7 +289,7 @@ PyTorch container and remains local-only. Nothing was pushed.
 
 ## Next smallest evidence-producing action
 
-Register v2 under the clean `0b8535b` code checkpoint, run the unchanged learning
-settings, and invoke it a second time through create-or-identical guards. Preserve the
-missed held-out thresholds as the expected scientific result rather than tuning. Keep
-the GPU server off.
+Add a metric-only fixed-topology diagnostic that reports recovery separately for
+coordinates actually changed by corruption and those retained in `x_t`. Rerun under a
+new identity without changing model, training, or corruption. Use that result to choose
+the smallest Gate E ablation. Keep the GPU server off.

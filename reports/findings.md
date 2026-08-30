@@ -508,3 +508,30 @@ byte-stable artifact contract. Do not tune the learning thresholds after seeing 
 result. Correct only the checkpoint container under a new identity, rerun the unchanged
 learning experiment to establish reproducibility, then use the held-out failure to
 choose the next smallest scientific ablation.
+
+## 2026-08-30 — Canonical checkpoint correction v2
+
+**Hypothesis.** Replacing only legacy PyTorch checkpoint packaging with a canonical,
+pickle-free tensor archive will make the full tiny-learning run byte-reproducible while
+leaving every v1 learning result unchanged.
+
+**Method.** Hold the fixture, model, initialization, corruptions, batches, optimizer,
+steps, thresholds, renderer, and metrics fixed. Encode model, AdamW, RNG, and step as a
+canonically sorted typed JSON tree plus uncompressed `.npy` tensor members in a bounded
+ZIP with fixed timestamps and permissions. Reject duplicate, compressed, oversized, or
+unexpected members. Run the complete experiment twice through create-or-identical
+guards.
+
+**Observation.** Every learning metric, loss-sequence hash, and final model hash exactly
+matches v1. The new 3.0 MB checkpoint hash is
+`52aee590c65f81f52d49be2626a2398373fe5639c30a3346b1ee30ad5270bcb8`.
+Checkpoint continuation is exact, and the second full invocation accepted identical
+checkpoint, metrics, render metrics, summary, Markdown, and trajectory bytes. The
+artifact correction succeeds without changing the scientific negative result.
+
+**Decision.** Accept the canonical checkpoint format for subsequent local proofs, but
+keep Gate E open. V2 is a completed reproducible negative run: fixed-topology geometry
+is memorized but does not meet held-out recovery criteria. Before changing capacity,
+steps, or corruption, report accuracy separately on actually changed and retained
+coordinates; aggregate accuracy may be inflated by coordinates that `x_t` already
+reveals unchanged.

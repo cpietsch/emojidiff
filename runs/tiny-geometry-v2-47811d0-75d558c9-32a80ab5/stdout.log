@@ -1,0 +1,112 @@
+{
+  "cases": {
+    "diverse-four": {
+      "checkpoint_sha256": "52aee590c65f81f52d49be2626a2398373fe5639c30a3346b1ee30ad5270bcb8",
+      "config": {
+        "corruptions_per_icon": 4,
+        "heldout_corruptions_per_icon": 4,
+        "icon_count": 4,
+        "max_loss_ratio": 0.2,
+        "min_heldout_accuracy": 0.85,
+        "min_train_accuracy": 0.98,
+        "name": "diverse-four",
+        "resume_step": 160,
+        "seed": 1702,
+        "steps": 320
+      },
+      "continuous_loss_sha256": "240bd2ca34fd1b1a0f020dea515162bb5e6bae8d560c1dbb3a2c5531e4490a99",
+      "final": {
+        "accuracy": 0.7382404181184669,
+        "correct": 3390,
+        "loss": 1.3494370430707932,
+        "total": 4592
+      },
+      "final_model_sha256": "bd0b0814a19c7402eaee6588e40f915089bbceca13689cea1166c6e8d7732236",
+      "heldout_examples": 16,
+      "initial": {
+        "accuracy": 0.002395470383275261,
+        "correct": 11,
+        "loss": 14.943475902080536,
+        "total": 4592
+      },
+      "loss_ratio": 5.3330747233888907e-05,
+      "passes_predeclared_criteria": false,
+      "resume_exact": true,
+      "resumed_loss_sha256": "240bd2ca34fd1b1a0f020dea515162bb5e6bae8d560c1dbb3a2c5531e4490a99",
+      "train_examples": 16,
+      "train_final": {
+        "accuracy": 1.0,
+        "correct": 4592,
+        "loss": 0.0007702835428062826,
+        "total": 4592
+      }
+    },
+    "one-icon": {
+      "checkpoint_sha256": null,
+      "config": {
+        "corruptions_per_icon": 8,
+        "heldout_corruptions_per_icon": 8,
+        "icon_count": 1,
+        "max_loss_ratio": 0.1,
+        "min_heldout_accuracy": 0.95,
+        "min_train_accuracy": 0.99,
+        "name": "one-icon",
+        "resume_step": null,
+        "seed": 1701,
+        "steps": 160
+      },
+      "continuous_loss_sha256": null,
+      "final": {
+        "accuracy": 0.9356617647058824,
+        "correct": 1527,
+        "loss": 0.2106002140790224,
+        "total": 1632
+      },
+      "final_model_sha256": "8e0a9878092058a07f8bae7fff627a27176a54075da1a2670545b0365573867f",
+      "heldout_examples": 8,
+      "initial": {
+        "accuracy": 0.001838235294117647,
+        "correct": 3,
+        "loss": 15.358022212982178,
+        "total": 1632
+      },
+      "loss_ratio": 9.539973069621893e-05,
+      "passes_predeclared_criteria": false,
+      "resume_exact": null,
+      "resumed_loss_sha256": null,
+      "train_examples": 8,
+      "train_final": {
+        "accuracy": 1.0,
+        "correct": 1632,
+        "loss": 0.001458597937016748,
+        "total": 1632
+      }
+    }
+  },
+  "code_identity": {
+    "geometry_sha256": "537d4e25da7352c8f4a0326824b5e6e566dec3f182909e8bede16df2aaef27d7",
+    "git_commit": "47811d0616cf329f6c516623ae35ada0e9270b9d",
+    "packed_sha256": "9b12879ba3a182367b0c52b8c3937f3dc4eed2850c72f8298c641b402802315c",
+    "program_sha256": "0d02b532b1dbe573d772e11054bea0e781bded3a26217de87eeb8bbd6ab9c2f7",
+    "tiny_study_sha256": "f47a8474b55045e78317c01064819fd6e39bd82cde528a9037a63dc12c177a2a"
+  },
+  "config_sha256": "75d558c97c106c127f026a229613afcde35da13cf7668c2c950c4b1c5d955ebb",
+  "deterministic_algorithms": true,
+  "device": "cpu",
+  "fixture": "data/manifests/openmoji-17.0.0-tiny-learning-fixture-v1.json",
+  "fixture_sha256": "32a80ab576a6d5a435e859d38c1ba25e302070e92caae2971b517fe42c4b0d79",
+  "metrics_sha256": "c4e0d9a8c78734667942c832ea166b2c378887337e48c30d324e54630598b797",
+  "model": {
+    "d_model": 48,
+    "feedforward": 96,
+    "heads": 4,
+    "layers": 2,
+    "parameters": 241072,
+    "scope": "fixed-topology geometry-only diagnostic"
+  },
+  "passes_predeclared_gate_candidate": false,
+  "render_metrics_sha256": "d4c36c75381689fb6301ad5ca0a93fbaa47c99a4d0eb5f9742d2f9e0673e480d",
+  "schema_version": 1,
+  "study_version": "tiny-geometry-v2-canonical-checkpoint",
+  "torch_version": "2.8.0+cpu"
+}
