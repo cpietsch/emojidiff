@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-30T05:52:29Z
+Updated: 2026-08-30T05:55:33Z
 
 ## Current hypothesis and evidence
 
@@ -233,6 +233,12 @@ checkpoint, summary, metrics, render metrics, Markdown, and trajectory are byte-
 across reruns. V2 therefore resolves artifact idempotency but intentionally preserves
 the missed held-out thresholds; Gate E remains open.
 
+Implemented the metric-only v3 diagnostic at `a10ef83`. It leaves learning unchanged
+and partitions legal-coordinate accuracy by whether each `x_t` token actually differs
+from `x_0`. The partition sums back to the existing total in tests. Its config hash is
+`ff42f4dd0b8915f00d8deea020b46e6891a588751e651d50c1e75bced3135a30`.
+The full suite remains 93/93; Ruff and strict mypy pass.
+
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
@@ -260,7 +266,7 @@ The Gate E implementation, fixture, config, and CPU dependency lock are versione
 resume checkpoint is reproducible in model/optimizer content but not byte-stable in the
 legacy PyTorch container and remains local-only. Nothing was pushed.
 
-The v2 compact report is pending a local Git checkpoint. Its canonical 3.0 MB checkpoint
+The v2 compact report is versioned locally at `2d75672`. Its canonical 3.0 MB checkpoint
 is verified byte-stable but remains local-only because no external artifact sink exists.
 
 ## Current blockers and missing authorization
@@ -289,7 +295,7 @@ is verified byte-stable but remains local-only because no external artifact sink
 
 ## Next smallest evidence-producing action
 
-Add a metric-only fixed-topology diagnostic that reports recovery separately for
-coordinates actually changed by corruption and those retained in `x_t`. Rerun under a
-new identity without changing model, training, or corruption. Use that result to choose
-the smallest Gate E ablation. Keep the GPU server off.
+Register and run v3 under a new identity without changing model, training, or corruption;
+require the predeclared check that diverse-four changed-token accuracy trails aggregate
+accuracy by at least 0.15. Rerun for artifact identity, then choose the smallest Gate E
+ablation. Keep the GPU server off.
