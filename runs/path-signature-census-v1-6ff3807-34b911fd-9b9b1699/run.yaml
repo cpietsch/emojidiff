@@ -1,0 +1,35 @@
+schema_version: 1
+run_id: path-signature-census-v1-6ff3807-34b911fd-9b9b1699
+state: completed
+hypothesis: >-
+  The full reviewed primary corpus contains enough exact external path-signature support
+  to choose a bounded donor-compatible fixture for a fair whole-path ablation.
+expected_information_gain: >-
+  Quantifies full-corpus external whole-path donor support and exposes deterministic
+  high-coverage icon/signature candidates without changing upstream data.
+parent_run: whole-path-support-v1-8cad9b7-d2de7bb3-32a80ab5
+git_commit: 6ff3807cdd393924a75530cf2378fc7b10a2ce2a
+dirty_patch_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+config: configs/learning/path-signature-census-v1.yaml
+config_sha256: 34b911fd662f09c5abfb79168a67b6519111abff7d84a5cffa38739f558e3a28
+dataset_manifest: reports/codec/full-primary-structure-v2-opacity/hybrid.jsonl
+dataset_manifest_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+worker: gtc-local-cpu
+resource_cap:
+  external_spend_usd: 0
+  source_icons: 4006
+  normalization_attempts: 4006
+  max_local_storage_gb: 0.02
+command: >-
+  .venv/bin/python -m mojidiff.learning.path_signature_census --config
+  configs/learning/path-signature-census-v1.yaml
+outputs:
+  report: reports/corruption/path-signature-census-v1
+  run_record: runs/path-signature-census-v1-6ff3807-34b911fd-9b9b1699
+artifact_durability: compact-report-pending-local-git
+result:
+  artifact_identity_rerun: true
+  icons: 4006
+  signature_count: 2532
+  signatures_with_external_donors: 1068
+  externally_compatible_geometry_field_fraction: 0.9068927327377087

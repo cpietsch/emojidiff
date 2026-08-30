@@ -691,3 +691,27 @@ for a donor token that happens to equal the clean token. The repeat is byte-iden
 do not lower the control corruption level or interpret a sparsely active treatment as a
 comparison. Build a bounded full-primary path-signature census and select a separate
 pinned compatible-path fixture before testing whole-path replacement.
+
+## 2026-08-30 — Full-primary path-signature census
+
+**Hypothesis.** The reviewed primary corpus has sufficient exact external donor support
+to form a bounded, fair whole-path replacement fixture after the four-icon fixture
+failed its support audit.
+
+**Method.** Hash-check and normalize every one of the 4,006 hybrid-selected source
+programs using its recorded semantic or outlined route. Enumerate each contour's exact
+segment-kind sequence and count a geometry field as donor-compatible only if an identical
+sequence occurs in another icon. Repeat the full census through create-or-identical
+artifact guards.
+
+**Observation.** The corpus contains 2,532 exact signatures, of which 1,068 occur in at
+least two icons. External donors cover 1,488,688 of 1,641,526 legal geometry fields
+(90.69%), so a matched whole-path process is feasible at corpus scale. The highest
+coverage candidates are not immediately suitable for the tiny comparison: many are
+skin-tone or gender family variants, and several exceed the current P16/T128 diagnostic
+capacity.
+
+**Decision.** Accept corpus-scale donor feasibility but do not choose an ablation fixture
+from raw coverage rankings. Extend the census/selection output with capacity and
+family-aware constraints, then pin a diverse compatible fixture before training. This
+retains the small-fixture feasibility failure and avoids family leakage.

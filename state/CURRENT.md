@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-30T07:02:00Z
+Updated: 2026-08-30T07:16:00Z
 
 ## Current hypothesis and evidence
 
@@ -133,6 +133,11 @@ The whole-path support audit completes the third planned family check for this f
 only 14/41 paths and 284/1,148 legal geometry fields (24.74%) have an exact compatible
 external donor. Even a path gate of 1.0 cannot match the 35% field corruption control,
 so a whole-path training comparison here would be confounded and is deliberately not run.
+
+The full-primary signature census resolves the corpus-level feasibility question: 1,488,688
+of 1,641,526 legal geometry fields (90.69%) have an exact external path-signature donor.
+Its candidate rankings need a family-distinct, P16/T128-bounded selection pass before a
+new learning fixture can be pinned.
 
 ## Last completed action and verification
 
@@ -362,6 +367,6 @@ is byte-identical to v4 because the diverse branch is unchanged; it remains loca
 
 ## Next smallest evidence-producing action
 
-Build a bounded full-primary path-signature census to deterministically select a larger,
-compatible donor fixture for the whole-path ablation. Keep the GPU off until remote
-artifact authorization is complete.
+Extend the census with capacity-bounded, family-aware candidate export, then generate a
+pinned compatible donor fixture for the whole-path ablation. Keep the GPU off until
+remote artifact authorization is complete.
