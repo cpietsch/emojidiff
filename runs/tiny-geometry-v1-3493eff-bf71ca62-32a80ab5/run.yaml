@@ -1,0 +1,76 @@
+schema_version: 1
+run_id: tiny-geometry-v1-3493eff-bf71ca62-32a80ab5
+state: failed
+hypothesis: >-
+  A compact fixed-topology geometry denoiser can overfit one OpenMoji icon, learn a
+  four-icon diverse fixture well enough to recover disjoint held-out corruptions, and
+  continue bit-exactly after a checkpoint reload.
+expected_information_gain: >-
+  Separates basic packed-geometry learnability and checkpoint correctness from the
+  harder unresolved questions of topology generation and the final corruption process.
+parent_run: packed-render-stress-v1-d5ca696-df13aed7-005dc6b4
+git_commit: 3493effb6b860c40be075ef0c546935c0a18d660
+dirty_patch_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+config: configs/learning/tiny-geometry-v1.yaml
+config_sha256: bf71ca62d7f3e3a3a07aa0a6caeb78039785badf2ca63d0884ccf030909769c3
+dataset_manifest: data/manifests/openmoji-17.0.0-tiny-learning-fixture-v1.json
+dataset_manifest_sha256: 32a80ab576a6d5a435e859d38c1ba25e302070e92caae2971b517fe42c4b0d79
+source_revision: f9fc506a3f913be9897ab0181d611d4c910a4104
+worker: gtc-local-cpu
+environment:
+  hostname: gtc
+  architecture: x86_64
+  python: 3.12.3
+  torch: 2.8.0+cpu
+  numpy: 2.5.2
+  device: cpu
+  training_threads: 2
+  gpu: null
+  driver: null
+  cuda: null
+  cudnn: null
+  tensorrt: null
+  container_image: null
+precision: float32
+seeds: [1701, 1702]
+determinism:
+  deterministic_algorithms: true
+  dropout: 0.0
+  fixed_full_batch_order: true
+predeclared_criteria:
+  one-icon:
+    min_train_accuracy: 0.99
+    min_heldout_accuracy: 0.95
+    max_loss_ratio: 0.10
+  diverse-four:
+    min_train_accuracy: 0.98
+    min_heldout_accuracy: 0.85
+    max_loss_ratio: 0.20
+    exact_checkpoint_continuation: true
+resource_cap:
+  external_spend_usd: 0
+  optimizer_steps: 800
+  train_examples: 24
+  heldout_examples: 24
+  isolated_renders: 24
+  max_local_storage_gb: 0.1
+checkpoint_policy: >-
+  Keep the single compact resume checkpoint under ignored reproducible processed data;
+  record and verify its hash in the compact report.
+command: >-
+  .venv/bin/python -m mojidiff.learning.tiny_study --config
+  configs/learning/tiny-geometry-v1.yaml
+outputs:
+  report: reports/learning/tiny-geometry-v1
+  derived: data/processed/tiny-geometry-v1
+  run_record: runs/tiny-geometry-v1-3493eff-bf71ca62-32a80ab5
+artifact_durability: compact-report-pending-local-git;checkpoint-local-only
+failure:
+  stage: reproducibility-rerun
+  reason: >-
+    The first execution completed and produced deterministic learning metrics, but the
+    identical rerun generated a semantically equivalent legacy PyTorch checkpoint with
+    different container bytes. The create-or-identical guard rejected replacement.
+  first_execution_exit_code: 0
+  reproducibility_rerun_exit_code: 1
+  scientific_hypothesis_passed: false

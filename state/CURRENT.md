@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-30T05:35:24Z
+Updated: 2026-08-30T05:42:45Z
 
 ## Current hypothesis and evidence
 
@@ -93,13 +93,21 @@ round trips, rejected 2,000/2,000 invalid mutations across ten families, classif
 three malformed typed-XML cases, and completed 25 isolated renders including an actual
 80-path/1,216-segment boundary program. The first mutator-boundary failure is preserved.
 
-Gate E implementation is checkpointed but has not yet been run. The local CPU harness
+Gate E implementation was checkpointed and has now been run. The local CPU harness
 uses the selected packed codec, a fixed-topology geometry-only bidirectional transformer,
 role-aware q289/q417 corruption, four hash-pinned diverse icons, multiple disjoint
 training and held-out corruptions, predeclared accuracy/loss criteria, isolated paired
 renders, and exact continuous-versus-checkpoint-resumed comparison. This is explicitly a
 diagnostic for geometry learnability, not evidence for topology generation or a final
 diffusion process.
+
+The first Gate E run falsified its predeclared held-out recovery thresholds while
+confirming memorization and exact semantic resume. Both cases reached 100% training
+accuracy, but one-icon held-out accuracy was 93.57% versus 95%, and diverse-four was
+73.82% versus 85%. The 160-step diverse checkpoint reproduced the complete continuation
+loss sequence and final model tensors exactly. An identical full rerun then failed the
+artifact contract because legacy `torch.save` container bytes changed, so v1 is retained
+as failed rather than silently accepted or tuned.
 
 ## Last completed action and verification
 
@@ -205,6 +213,12 @@ All four fixtures load without truncation or projection. The focused learning te
 2/2, the full suite passes 92/92, Ruff passes, and strict mypy passes. No registered
 learning run or GPU work has occurred yet.
 
+Registered and ran `tiny-geometry-v1-3493eff-bf71ca62-32a80ab5` on local CPU. The first
+execution finished within its 800-step and 0.1 GB bounds and produced the negative
+learning result above. Its idempotency rerun failed closed on differing checkpoint
+container bytes. Compact metrics, renders, summary, run record, and the original 2.9 MB
+checkpoint are preserved; no remote action or external spend occurred.
+
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
@@ -228,7 +242,9 @@ control-plane volume and meaningful GPU work remains blocked.
 The compact style-vocabulary, capacity, and packed/render stress evidence is versioned
 locally through `791af1f`; their reproducible bulk SVG/raster derivatives remain ignored.
 The Gate E implementation, fixture, config, and CPU dependency lock are versioned at
-`49e6e6a`. No learning report or checkpoint exists yet. Nothing was pushed.
+`49e6e6a`. The v1 compact report is pending a local Git checkpoint; its 2.9 MB resume
+checkpoint is reproducible in model/optimizer content but not byte-stable in the legacy
+PyTorch container and remains local-only. Nothing was pushed.
 
 ## Current blockers and missing authorization
 
@@ -256,8 +272,7 @@ The Gate E implementation, fixture, config, and CPU dependency lock are versione
 
 ## Next smallest evidence-producing action
 
-Register and run `tiny-geometry-v1` locally on deterministic CPU, preserve whether its
-predeclared one-icon and diverse-fixture criteria pass or fail, rerun to verify artifact
-identity, inspect the paired render sheet, and record the finding. Keep the GPU server
-off until this CPU evidence is complete and the worker's artifact/cap fields are
-configured.
+Replace only the nondeterministic checkpoint container with a canonical, safe,
+byte-stable archive under a new code/config/run identity; unit-test exact save/load,
+then rerun the unchanged v1 learning settings. Preserve the missed held-out thresholds
+as the expected scientific result rather than tuning. Keep the GPU server off.

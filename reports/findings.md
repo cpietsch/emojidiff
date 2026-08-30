@@ -472,3 +472,39 @@ a strict allowlist, and rendering is process/resource bounded. Preserve the muta
 failure as a harness-boundary lesson. Begin Gate E with a deterministic CPU tiny-model
 proof before requesting billed GPU time; the GPU worker still requires recorded caps
 and a verified artifact sink.
+
+## 2026-08-30 — Tiny fixed-topology geometry proof v1
+
+**Hypothesis.** A 241,072-parameter fixed-topology geometry denoiser can overfit one
+icon, recover disjoint held-out corruptions for that icon and a four-icon diverse
+fixture under predeclared accuracy thresholds, and continue exactly after checkpoint
+reload. This is a geometry diagnostic, not a topology or diffusion claim.
+
+**Method.** Pin four semantic-native, in-bounds OpenMoji programs from distinct groups
+that fit P16/T128. Corrupt only legal q289 endpoint and q417 control fields at
+probability 0.35 while preserving topology and styles. Train eight corruptions of one
+icon for 160 full-batch steps and four corruptions each of four icons for 320 steps.
+Evaluate on equally sized disjoint corruption draws. Require 99%/95% train/held-out
+accuracy for one icon, 98%/85% for four icons, loss ratios at most 0.10/0.20, and exact
+160-step checkpoint continuation. Rerun all outputs through create-or-identical guards.
+
+**Observation.** Both cases memorized every training coordinate token and drove the
+training loss ratio below 0.0001. Held-out recovery improved far above the untrained
+models but missed both predeclared thresholds: one-icon accuracy reached 93.57% rather
+than 95%, and diverse-four reached 73.82% rather than 85%. The checkpoint-resumed
+diverse run reproduced all 320 loss values and the final model tensors exactly. Visual
+inspection agrees with the token metrics: `x_hat_0` recovers coarse palette and
+silhouette cues but retains conspicuous misplaced geometry, especially for the apple,
+cat, and car at 18 px.
+
+The identical full rerun exposed a separate artifact failure. Legacy `torch.save`
+produced different container bytes for the otherwise exact 160-step checkpoint, and
+the create-or-identical guard rejected replacement. The first metrics, renders, and
+2.9 MB checkpoint are preserved under the failed v1 run identity.
+
+**Decision.** Reject v1 as Gate E exit evidence. It proves training-set learnability
+and semantic checkpoint continuation, but not the predeclared held-out recovery or
+byte-stable artifact contract. Do not tune the learning thresholds after seeing the
+result. Correct only the checkpoint container under a new identity, rerun the unchanged
+learning experiment to establish reproducibility, then use the held-out failure to
+choose the next smallest scientific ablation.
