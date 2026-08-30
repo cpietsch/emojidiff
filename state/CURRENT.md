@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-30T06:01:12Z
+Updated: 2026-08-30T06:04:43Z
 
 ## Current hypothesis and evidence
 
@@ -245,6 +245,14 @@ aggregate, while retained-token accuracy is 82.52%. One-icon changed/retained ac
 is 88.59%/96.11%. The diagnostic hypothesis passes and localizes the next question to
 corruption-pattern coverage rather than basic memorization or checkpointing.
 
+Implemented the controlled v4 corruption-coverage treatment at `f0c265c`. One-icon
+training remains the fixed v3 control. Diverse-four now derives a fresh deterministic
+16-example corruption batch from the global optimizer step, so continuous and resumed
+training see the same sequence without a hidden data cursor. Model, probability, batch
+size, 320-step budget, held-out draws, and resume boundary are unchanged. Config hash:
+`7ccbc64e51a0f009178c06b262fd6bc10bab3deb2c013fcdc825e29618e465c8`.
+The full suite passes 93/93; Ruff and strict mypy pass.
+
 ## Active jobs
 
 None. Every worker is disabled, the isolated Docker daemon has no running container,
@@ -304,6 +312,6 @@ checkpoint is byte-stable and remains local-only.
 
 ## Next smallest evidence-producing action
 
-Implement deterministic per-step corruption resampling with the same batch size,
-probability, model, held-out draws, optimizer steps, and exact resume boundary. Compare
-against v3 changed/retained accuracy under a new run identity. Keep the GPU server off.
+Register and run v4 under a new identity. Require diverse-four changed-token accuracy
+of at least 0.75 and retained-token accuracy of at least 0.90, then rerun for artifact
+identity. Keep the GPU server off.
