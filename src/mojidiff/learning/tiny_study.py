@@ -54,6 +54,7 @@ class TrainCase:
     min_train_accuracy: float
     min_heldout_accuracy: float
     max_loss_ratio: float
+    resample_each_step: bool
 
 
 @dataclass(frozen=True)
@@ -118,6 +119,9 @@ def load_tiny_learning_config(path: Path) -> TinyLearningConfig:
                 item.get("min_heldout_accuracy"), "min_heldout_accuracy"
             ),
             max_loss_ratio=_probability(item.get("max_loss_ratio"), "max_loss_ratio"),
+            resample_each_step=_boolean(
+                item.get("resample_each_step", False), "resample_each_step"
+            ),
         )
         for item in (
             _mapping(value, "training case")
@@ -224,7 +228,9 @@ def run_tiny_learning(config: TinyLearningConfig, config_path: Path) -> dict[str
             codec,
             device,
             case.steps,
-            case.name,
+            case,
+            clean,
+            config.corruption_probability,
             all_metrics,
         )
         checkpoint_hash: str | None = None
@@ -246,8 +252,11 @@ def run_tiny_learning(config: TinyLearningConfig, config_path: Path) -> dict[str
                 codec,
                 device,
                 case.resume_step,
-                f"{case.name}-resume-prefix",
+                case,
+                clean,
+                config.corruption_probability,
                 split_metrics,
+                metric_name=f"{case.name}-resume-prefix",
             )
             checkpoint = _save_checkpoint(split_model, split_optimizer, case.resume_step)
             checkpoint_hash = hashlib.sha256(checkpoint).hexdigest()
@@ -268,9 +277,12 @@ def run_tiny_learning(config: TinyLearningConfig, config_path: Path) -> dict[str
                 codec,
                 device,
                 case.steps - case.resume_step,
-                f"{case.name}-resume-suffix",
+                case,
+                clean,
+                config.corruption_probability,
                 split_metrics,
                 step_offset=case.resume_step,
+                metric_name=f"{case.name}-resume-suffix",
             )
             resume_exact = (
                 continuous_hash == _model_hash(resumed_model)
@@ -378,27 +390,40 @@ def _train(
     codec: CodecConfig,
     device: torch.device,
     steps: int,
-    case_name: str,
+    case: TrainCase,
+    clean_icons: list[PackedTensorProgram],
+    corruption_probability: float,
     metrics: list[dict[str, Any]],
     *,
     step_offset: int = 0,
+    metric_name: str | None = None,
 ) -> list[float]:
     noisy_batch = packed_batch(noisy, device)
     clean_batch = packed_batch(clean, device)
     losses: list[float] = []
     model.train()
     for local_step in range(1, steps + 1):
+        step = step_offset + local_step
+        if case.resample_each_step:
+            step_noisy, step_clean = _corruption_set(
+                clean_icons,
+                codec,
+                corruption_probability,
+                case.corruptions_per_icon,
+                case.seed + 2_000_000 + step * 100_000,
+            )
+            noisy_batch = packed_batch(step_noisy, device)
+            clean_batch = packed_batch(step_clean, device)
         optimizer.zero_grad(set_to_none=True)
         loss, counts = geometry_loss_and_accuracy(model(noisy_batch), clean_batch, codec)
         loss.backward()  # type: ignore[no-untyped-call]
         optimizer.step()
         value = float(loss.detach())
         losses.append(value)
-        step = step_offset + local_step
         if step == 1 or step == step_offset + steps or step % 10 == 0:
             metrics.append(
                 {
-                    "case": case_name,
+                    "case": metric_name or case.name,
                     "step": step,
                     "loss": value,
                     "train_token_accuracy": counts["correct"] / counts["total"],
@@ -893,6 +918,12 @@ def _probability(value: object, field: str) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 <= value <= 1:
         raise TinyLearningError(f"{field} must be within 0..1")
     return float(value)
+
+
+def _boolean(value: object, field: str) -> bool:
+    if not isinstance(value, bool):
+        raise TinyLearningError(f"{field} must be a boolean")
+    return value
 
 
 def _sha256(value: str) -> str:
