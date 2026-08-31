@@ -1,0 +1,14 @@
+schema_version: 1
+run_id: tiny-geometry-f1-v3-factorized-e7b8e4a-fbf49d65-bd6c4bbc
+state: completed
+hypothesis: factorized geometry corruption provides the fixture-matched control for whole-path donor replacement
+git_commit: e7b8e4a9de7579f55e2ec90644aeca6bbd35353d
+config: configs/learning/tiny-geometry-f1-v3-factorized.yaml
+config_sha256: fbf49d65a8762cd6b9d002856d1ab54fc4b233221b9d4d851317b50bbb30952f
+dataset_manifest: data/manifests/openmoji-17.0.0-whole-path-fixture-v3.json
+dataset_manifest_sha256: bd6c4bbc3440aeec7096b2084a8bdf4ae1b13997c83b962536ac30784753f969
+worker: gtc-local-cpu
+resource_cap: {external_spend_usd: 0, optimizer_steps: 320, max_local_storage_gb: 0.1}
+command: .venv/bin/python -m mojidiff.learning.tiny_study --config configs/learning/tiny-geometry-f1-v3-factorized.yaml
+result: heldout accuracy 0.9677419355; changed-token accuracy 0.9261584454; exact checkpoint continuation
+summary_sha256: 6f2d527041698972aaaade461fc3947cbcc5ee59e53d4f6c71a1fedfb6439165

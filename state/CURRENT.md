@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-30T07:22:00Z
+Updated: 2026-08-31T15:43:06Z
 
 ## Current hypothesis and evidence
 
@@ -149,6 +149,13 @@ recovery (550 changed fields) with exact checkpoint continuation and safe paired
 renders. This establishes local feasibility only: the earlier factorized and
 path-correlated controls use the original fixture, so direct numerical comparison would
 be confounded until controls are rerun on v3.
+
+The v3 fixture-matched path-correlated control now completes and reproduces
+byte-identically. Its held-out aggregate/changed/retained recovery is
+92.30%/80.55%/100% across 3,732 changed fields, versus the matched factorized control's
+96.77%/92.62%/99.06% across 3,345. Both meet their predeclared thresholds and have
+exact checkpoint continuation. The perfect whole-path result has only 550 changed
+fields, so it demonstrates feasibility but cannot establish a corruption-family win.
 
 ## Last completed action and verification
 
@@ -317,8 +324,8 @@ fixed-topology geometry; topology and corruption-family questions remain open.
 
 ## Active jobs
 
-None. The first corrected whole-path execution completed; its exact identity rerun is
-the next local action. Every worker remains disabled, the isolated Docker daemon has no
+None. The fixture-matched factorized and path-correlated controls both completed twice
+byte-identically. Every worker remains disabled, the isolated Docker daemon has no
 running container, and no authenticated remote command has been issued. Keep the Vast
 GPU off.
 
@@ -379,7 +386,7 @@ is byte-identical to v4 because the diverse branch is unchanged; it remains loca
 
 ## Next smallest evidence-producing action
 
-No local or remote job is active. Repeat the completed v3 whole-path run exactly to
-verify compact artifact identity, then run matched factorized and path-correlated
-controls on this same v3 fixture. Keep the GPU off until remote artifact authorization
+Commit the compact v3 matched-control evidence, then run one predeclared additional
+seed across the three corruption families to measure whether the observed factorized
+advantage survives seed variation. Keep the GPU off until remote artifact authorization
 is complete.

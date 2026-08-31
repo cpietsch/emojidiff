@@ -738,3 +738,32 @@ paired render artifacts pass their safety checks.
 failure. Do not compare this 1.0 result numerically with the earlier factorized or
 path-correlated arms because their fixtures differ. Run matched controls on this exact
 v3 fixture before drawing a corruption-family conclusion.
+
+## 2026-08-31 — Gate F v3 matched path-correlated control
+
+**Hypothesis.** On the capacity-safe v3 fixture, path-correlated geometry corruption
+will match or exceed the factorized control's changed-token recovery while retaining
+safe fixed-topology renders.
+
+**Method.** Hold the four v3 icons, P16/S32/T128 packed codec, 241,072-parameter
+bidirectional model, optimizer, seed 1702, online resampling, 0.35 corruption
+probability, 320/160-step schedule, held-out protocol, and renderer fixed. Change only
+the geometry corruption family to one gate shared by every legal field in each active
+path. Run locally on CPU and repeat through create-or-identical artifact guards.
+
+**Observation.** The two authoritative executions are byte-identical: summary,
+metrics, render metrics, and checkpoint SHA-256 values all match. The path-correlated
+arm passes its predeclared gate and exact checkpoint continuation, with held-out
+aggregate/changed/retained recovery of 92.30%/80.55%/100% over 3,732 changed fields.
+The fixture-matched factorized control reaches 96.77%/92.62%/99.06% over 3,345 changed
+fields. Thus path-correlated recovery trails factorized by 12.07 percentage points on
+the changed-token metric in this single-seed comparison. The whole-path arm reaches
+100%, but with only 550 changed fields, so its score demonstrates a feasible, much
+lighter corruption task rather than a comparable win.
+
+**Decision.** Retain this negative result: path correlation does not show the expected
+advantage on this tiny fixed-topology v3 fixture. Do not select a primary family from
+one seed. Commit the compact evidence and add a predeclared additional-seed replication
+across all three arms before deciding whether the observed factorized advantage is
+robust. This remains a custom iterative denoiser result, not an exact D3PM claim or
+evidence for topology generation.

@@ -1,0 +1,91 @@
+{
+  "cases": {
+    "diverse-four": {
+      "checkpoint_sha256": "4a09d1472ae7d9518355385168b2b4639f6fcefc775a0364445934fa588771d7",
+      "config": {
+        "corruption_kind": "factorized_geometry",
+        "corruptions_per_icon": 4,
+        "heldout_corruptions_per_icon": 4,
+        "icon_count": 4,
+        "max_loss_ratio": 0.3,
+        "min_heldout_accuracy": 0.75,
+        "min_train_accuracy": 0.9,
+        "name": "diverse-four",
+        "resample_each_step": true,
+        "resume_step": 160,
+        "seed": 1702,
+        "steps": 320
+      },
+      "continuous_loss_sha256": "de48cd2f2ec0ea68595a02fdf12e8c17b4508726d16871f8ea0595312ed5ba9f",
+      "final": {
+        "accuracy": 0.967741935483871,
+        "changed_accuracy": 0.9261584454409566,
+        "changed_correct": 3098,
+        "changed_total": 3345,
+        "correct": 9120,
+        "loss": 0.09451680933125317,
+        "retained_accuracy": 0.9906234578055602,
+        "retained_correct": 6022,
+        "retained_total": 6079,
+        "total": 9424
+      },
+      "final_model_sha256": "cb030e12e0a08412f6d01c0071591c048771520adbe20a7a47e14db4efca22a8",
+      "heldout_examples": 16,
+      "initial": {
+        "accuracy": 0.0022283531409168084,
+        "changed_accuracy": 0.002391629297458894,
+        "changed_correct": 8,
+        "changed_total": 3345,
+        "correct": 21,
+        "loss": 14.896120250225067,
+        "retained_accuracy": 0.002138509623293305,
+        "retained_correct": 13,
+        "retained_total": 6079,
+        "total": 9424
+      },
+      "loss_ratio": 0.0068632939900276175,
+      "passes_predeclared_criteria": true,
+      "resume_exact": true,
+      "resumed_loss_sha256": "de48cd2f2ec0ea68595a02fdf12e8c17b4508726d16871f8ea0595312ed5ba9f",
+      "train_examples": 16,
+      "train_final": {
+        "accuracy": 0.9712436332767402,
+        "changed_accuracy": 0.9327628361858191,
+        "changed_correct": 3052,
+        "changed_total": 3272,
+        "correct": 9153,
+        "loss": 0.08605125034227967,
+        "retained_accuracy": 0.9917100130039012,
+        "retained_correct": 6101,
+        "retained_total": 6152,
+        "total": 9424
+      }
+    }
+  },
+  "code_identity": {
+    "geometry_sha256": "2d61f4c07725b827c3f38d5d7e115a324825792cee9bb2e34fa132cf522b44c9",
+    "git_commit": "e7b8e4a9de7579f55e2ec90644aeca6bbd35353d",
+    "packed_sha256": "9b12879ba3a182367b0c52b8c3937f3dc4eed2850c72f8298c641b402802315c",
+    "program_sha256": "0d02b532b1dbe573d772e11054bea0e781bded3a26217de87eeb8bbd6ab9c2f7",
+    "tiny_study_sha256": "a108fc4f7043beb3d1b17559916aa4dbab2641598bd07b450a2a71900fd4dad8"
+  },
+  "config_sha256": "fbf49d65a8762cd6b9d002856d1ab54fc4b233221b9d4d851317b50bbb30952f",
+  "deterministic_algorithms": true,
+  "device": "cpu",
+  "fixture": "data/manifests/openmoji-17.0.0-whole-path-fixture-v3.json",
+  "fixture_sha256": "bd6c4bbc3440aeec7096b2084a8bdf4ae1b13997c83b962536ac30784753f969",
+  "metrics_sha256": "8ebb71c1915c3f66507c67364270b06fb54f4f9c8214f9f0f223401ab030b113",
+  "model": {
+    "d_model": 48,
+    "feedforward": 96,
+    "heads": 4,
+    "layers": 2,
+    "parameters": 241072,
+    "scope": "fixed-topology geometry-only diagnostic"
+  },
+  "passes_predeclared_gate_candidate": true,
+  "render_metrics_sha256": "41eab792f882358bd080e562da89620e1d0c3a00cd6cc470cfb347c52ada4f95",
+  "schema_version": 1,
+  "study_version": "tiny-geometry-f1-v3-factorized",
+  "torch_version": "2.8.0+cpu"
+}

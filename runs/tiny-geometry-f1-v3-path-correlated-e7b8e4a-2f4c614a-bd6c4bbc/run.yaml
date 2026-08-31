@@ -1,0 +1,21 @@
+schema_version: 1
+run_id: tiny-geometry-f1-v3-path-correlated-e7b8e4a-2f4c614a-bd6c4bbc
+state: completed
+hypothesis: path-correlated geometry corruption is the fixture-matched treatment for factorized and whole-path comparisons
+parent_runs:
+  - tiny-geometry-f1-v3-factorized-e7b8e4a-fbf49d65-bd6c4bbc
+  - tiny-geometry-f1-whole-path-e13259f-cf59a64e-bd6c4bbc
+git_commit: e7b8e4a9de7579f55e2ec90644aeca6bbd35353d
+config: configs/learning/tiny-geometry-f1-v3-path-correlated.yaml
+config_sha256: 2f4c614a0caf4eb7841542740dd10c4e60fdb0a1001c3a3bb08780ff31197231
+dataset_manifest: data/manifests/openmoji-17.0.0-whole-path-fixture-v3.json
+dataset_manifest_sha256: bd6c4bbc3440aeec7096b2084a8bdf4ae1b13997c83b962536ac30784753f969
+worker: gtc-local-cpu
+resource_cap: {external_spend_usd: 0, optimizer_steps: 320, max_local_storage_gb: 0.1}
+command: .venv/bin/python -m mojidiff.learning.tiny_study --config configs/learning/tiny-geometry-f1-v3-path-correlated.yaml
+active_job_id: null
+launch_note: initial nohup wrapper exited without invoking Python or creating an artifact; foreground attempt is the authoritative execution
+artifact_durability: compact-report-pending-local-git;checkpoint-local-only
+result: heldout accuracy 0.9229626486; changed-token accuracy 0.8054662379; retained-token accuracy 1.0; exact checkpoint continuation
+summary_sha256: a225ca46b0301ef029a24c11dec790f90460c7430d17932c14bb146b0608bccf
+artifact_identity_rerun: true

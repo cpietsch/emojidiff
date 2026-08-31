@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "checkpoint": {
+    "path": "data/processed/tiny-geometry-f1-v3-path-correlated/diverse-four/checkpoint-160.zip",
+    "sha256": "499b9bc9f008ad64b19ecc3c28a48255147f79dc08b0ea1cd807081f5a842e3a"
+  },
+  "reports": {
+    "summary": {"path": "reports/corruption/tiny-geometry-f1-v3-path-correlated/summary.json", "sha256": "a225ca46b0301ef029a24c11dec790f90460c7430d17932c14bb146b0608bccf"},
+    "metrics": {"path": "reports/corruption/tiny-geometry-f1-v3-path-correlated/metrics.jsonl", "sha256": "a4cc37589332f305c470c85c8356661d60f5add0a4ecafb7be3f367fe3197ef0"},
+    "render_metrics": {"path": "reports/corruption/tiny-geometry-f1-v3-path-correlated/render-metrics.jsonl", "sha256": "b8a19f535ad044b93acb5c28f0c064e5efbc8b6a90dd425e3c70673dede6f046"},
+    "trajectory": {"path": "reports/corruption/tiny-geometry-f1-v3-path-correlated/trajectory.png"}
+  }
+}
