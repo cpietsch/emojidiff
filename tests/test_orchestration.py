@@ -52,6 +52,20 @@ def _authorized_vast(workspace_root: str = "/workspace/mojidiff-runs") -> Worker
     )
 
 
+def _authorized_owned(workspace_root: str = "/home/hans/mojidiff-runs") -> WorkerSpec:
+    return WorkerSpec(
+        name="owned_fixture",
+        enabled=True,
+        ssh_alias="owned-fixture",
+        kind="owned-persistent",
+        execution="docker",
+        workspace_root=workspace_root,
+        image="nvcr.io/nvidia/pytorch:25.06-py3",
+        resource_cap={"max_steps": 2, "max_storage_gb": 1},
+        raw={},
+    )
+
+
 def _artifact_store(path: str = "/durable/mojidiff") -> ArtifactStore:
     return ArtifactStore(
         type="worker-filesystem",
@@ -315,6 +329,43 @@ def test_vast_smoke_rejects_unimplemented_or_ephemeral_sink() -> None:
         adapter_for(_authorized_vast(), nested).smoke(request)
     with pytest.raises(AdapterError, match="must be disjoint"):
         adapter_for(_authorized_vast(), ancestor).smoke(request)
+
+
+def test_owned_smoke_plan_uses_a_redacted_docker_launcher() -> None:
+    request = _stage_request()
+    identity = snapshot_identity(request)
+    plan = adapter_for(_authorized_owned(), _artifact_store("/home/hans/mojidiff-artifacts")).smoke(
+        SmokeRequest(request.run_id, identity)
+    )
+    description = plan.safe_description()
+    config = _decoded_remote_config(plan.argv[-1])
+
+    assert plan.operation == "smoke"
+    assert plan.timeout_seconds == 600
+    assert description["argv"][-1].startswith("<redacted:")
+    assert config["workspace_root"] == "/home/hans/mojidiff-runs"
+    assert config["artifact_root"] == "/home/hans/mojidiff-artifacts"
+    assert config["image"] == "nvcr.io/nvidia/pytorch:25.06-py3"
+    assert config["run_id"] == request.run_id
+
+
+def test_owned_smoke_requires_docker_execution() -> None:
+    worker = _authorized_owned()
+    invalid = WorkerSpec(
+        name=worker.name,
+        enabled=worker.enabled,
+        ssh_alias=worker.ssh_alias,
+        kind=worker.kind,
+        execution="container-shell",
+        workspace_root=worker.workspace_root,
+        image=worker.image,
+        resource_cap=worker.resource_cap,
+        raw=worker.raw,
+    )
+    with pytest.raises(AdapterError, match="execution=docker"):
+        adapter_for(invalid, _artifact_store()).smoke(
+            SmokeRequest("fixture-run", snapshot_identity(_stage_request()))
+        )
 
 
 def test_vast_dynamic_identifiers_are_validated_before_command_planning() -> None:

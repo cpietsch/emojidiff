@@ -35,6 +35,7 @@ _MAX_SNAPSHOT_BYTES = 512 * 1024 * 1024
 _MAX_SNAPSHOT_MEMBERS = 50_000
 _STAGE_MANIFEST = ".mojidiff-stage.json"
 _FILESYSTEM_SINK = "worker-filesystem"
+_CONTAINER_IMAGE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/@:+-]{0,511}\Z")
 
 SSH_OPTIONS = (
     "-o",
@@ -382,6 +383,74 @@ stage(configuration, snapshot)
 """
 
 
+REMOTE_OWNED_DOCKER_SMOKE = r"""import base64
+import json
+import os
+import subprocess
+import sys
+
+
+def fail(message):
+    raise SystemExit(message)
+
+
+if len(sys.argv) != 2:
+    fail("owned smoke expects one encoded configuration argument")
+try:
+    encoded = sys.argv[1]
+    padding = "=" * (-len(encoded) % 4)
+    config = json.loads(base64.urlsafe_b64decode(encoded + padding))
+except (ValueError, UnicodeError, json.JSONDecodeError) as exc:
+    fail("invalid owned smoke configuration: " + type(exc).__name__)
+
+required = {
+    "artifact_root", "archive_sha256", "config_sha256", "git_revision", "image",
+    "max_steps", "max_storage_bytes", "run_id", "smoke_id", "tree_sha256",
+    "workspace_root",
+}
+if not isinstance(config, dict) or set(config) != required:
+    fail("invalid owned smoke configuration fields")
+
+workspace_host = config["workspace_root"]
+artifact_host = config["artifact_root"]
+if not all(
+    isinstance(value, str) and value.startswith("/") and "\x00" not in value and "\n" not in value
+    for value in (workspace_host, artifact_host)
+):
+    fail("invalid owned smoke path")
+if not isinstance(config["image"], str) or "\x00" in config["image"] or "\n" in config["image"]:
+    fail("invalid owned smoke image")
+workspace_container = "/mojidiff/workspace"
+artifact_container = "/mojidiff/artifacts"
+source_root = workspace_container + "/" + config["run_id"] + "/source"
+inner = {
+    "artifact_root": artifact_container,
+    "archive_sha256": config["archive_sha256"],
+    "config_sha256": config["config_sha256"],
+    "git_revision": config["git_revision"],
+    "max_steps": config["max_steps"],
+    "max_storage_bytes": config["max_storage_bytes"],
+    "run_id": config["run_id"],
+    "smoke_id": config["smoke_id"],
+    "source_root": source_root,
+    "tree_sha256": config["tree_sha256"],
+    "workspace_root": workspace_container,
+}
+inner_payload = json.dumps(inner, sort_keys=True, separators=(",", ":")).encode()
+inner_encoded = base64.urlsafe_b64encode(inner_payload).decode().rstrip("=")
+command = [
+    "docker", "run", "--rm", "--pull=never", "--network=none", "--read-only",
+    "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m", "--cap-drop", "ALL", "--gpus", "all",
+    "--user", str(os.getuid()) + ":" + str(os.getgid()),
+    "--mount", "type=bind,src=" + workspace_host + ",dst=" + workspace_container + ",rw",
+    "--mount", "type=bind,src=" + artifact_host + ",dst=" + artifact_container + ",rw",
+    config["image"], "python3", "-I", "-B",
+    source_root + "/scripts/remote/vast_tiny_smoke.py", "--config", inner_encoded,
+]
+raise SystemExit(subprocess.run(command, check=False, shell=False).returncode)
+"""
+
+
 @dataclass(frozen=True)
 class StageRequest:
     """An exact code/config snapshot to install under one immutable run identity."""
@@ -613,11 +682,51 @@ class VastSshAdapter(ProbeOnlySshAdapter):
         return root
 
 
+class OwnedDockerAdapter(VastSshAdapter):
+    """Owned-host adapter that runs the tiny smoke inside a GPU Docker container."""
+
+    def smoke(self, request: SmokeRequest) -> CommandPlan:
+        self._require_mutation_authorized("smoke")
+        if self.worker.execution != "docker":
+            raise AdapterError("owned worker smoke requires execution=docker")
+        _validate_run_id(request.run_id)
+        _validate_run_id(request.smoke_id, field="smoke_id")
+        _validate_snapshot_identity(request.snapshot)
+        workspace_root = _workspace_root(self.worker)
+        artifact_root = self._filesystem_artifact_root(workspace_root)
+        image = _container_image(self.worker.image)
+        cap = self.worker.resource_cap
+        config = {
+            "artifact_root": artifact_root,
+            "archive_sha256": request.snapshot.archive_sha256,
+            "config_sha256": request.snapshot.config_sha256,
+            "git_revision": request.snapshot.git_revision,
+            "image": image,
+            "max_steps": int(cap["max_steps"]),
+            "max_storage_bytes": self._storage_cap_bytes(),
+            "run_id": request.run_id,
+            "smoke_id": request.smoke_id,
+            "tree_sha256": request.snapshot.tree_sha256,
+            "workspace_root": workspace_root,
+        }
+        command = _remote_python_command(REMOTE_OWNED_DOCKER_SMOKE, config)
+        argv = ("ssh", *SSH_OPTIONS, "--", self._alias(), command)
+        return CommandPlan(
+            operation="smoke",
+            worker=self.worker.name,
+            argv=argv,
+            timeout_seconds=600,
+            redact_argv=(len(argv) - 1,),
+        )
+
+
 def adapter_for(worker: WorkerSpec, artifact_store: ArtifactStore | None = None) -> WorkerAdapter:
     if worker.kind not in {"vast-ephemeral", "owned-persistent", "cluster"}:
         raise AdapterError(f"unsupported worker kind: {worker.kind}")
     if worker.kind == "vast-ephemeral":
         return VastSshAdapter(worker, artifact_store)
+    if worker.kind == "owned-persistent":
+        return OwnedDockerAdapter(worker, artifact_store)
     return ProbeOnlySshAdapter(worker, artifact_store)
 
 
@@ -673,6 +782,12 @@ def _absolute_posix_path(value: str, field: str) -> str:
     if not path.is_absolute() or ".." in path.parts or path.as_posix() != value.rstrip("/"):
         raise AdapterError(f"{field} must be a normalized absolute POSIX path")
     return path.as_posix()
+
+
+def _container_image(value: str | None) -> str:
+    if not isinstance(value, str) or _CONTAINER_IMAGE.fullmatch(value) is None:
+        raise AdapterError("worker image must be a safe container image reference")
+    return value
 
 
 def _remote_python_command(program: str, config: dict[str, object]) -> str:
