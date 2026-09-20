@@ -1,0 +1,91 @@
+schema_version: 1
+run_id: openmoji-g1-metric-coordinates-v10-abec130-d7044dc2-9b9b1699
+state: planned
+parent_run: openmoji-g1-marginal-corruption-v9-74dc5fd-0ef00ff4-9b9b1699
+hypothesis: >-
+  v9, under leak-free corruption and sound optimisation, reached 1.506 precision lift
+  while a zero-parameter local-continuity statistic reaches 1.893 on the identical
+  inputs. That statistic works by subtracting decoded view-unit values, and the encoder
+  has no such operand: coordinates enter as an nn.Embedding over 418 unordered
+  categories, and the trained table carries no order at all - Spearman -0.136 between
+  embedding distance and bin distance, adjacent bins at 0.989 of the all-pairs mean,
+  while the output head, which gets a direct gradient from the corpus marginal, reaches
+  +0.143 and 0.882. Decoding each token to its view-unit value and projecting Fourier
+  features of it should let the model compute the difference it currently cannot, and it
+  should then beat the statistic rather than trail it.
+expected_information_gain: >-
+  This is the one remaining measured candidate after data volume, capacity, the
+  corruption level, noise conditioning, objective balance and the density leak have all
+  been addressed or eliminated. If a metric input lets the model pass a trivial
+  geometric heuristic, Gate G has a working denoiser to build on for the first time. If
+  it does not, the failure is not about how the operands are presented, and the honest
+  reading is that this model class does not learn the relation.
+scope_limits: >-
+  Detection-only, so it reconstructs nothing. Single seed, probability 0.35,
+  marginal-respecting corruption. Beating the continuity statistic on detection is not
+  the same as producing a usable icon; no run in this project has yet produced one.
+changed_factors:
+  primary: >-
+    model.metric_coordinates 0 -> 8, which replaces the categorical coordinate and
+    endpoint tables with a projection of Fourier features of the decoded view-unit
+    value, using the role-correct affine map selected by segment kind.
+  secondary: >-
+    model.slot_binding true -> false, disclosed rather than hidden. Slot binding existed
+    to break the permutation symmetry of six summed embeddings; concatenating per-slot
+    features already distinguishes the slots, so leaving it on would be carrying a
+    mechanism that no longer does anything. It is not expected to matter either way.
+  parameters: >-
+    579,872 -> 525,152, a strict REDUCTION, because the categorical tables are not
+    allocated at all. This cannot be confounded with the capacity arm.
+  held_fixed: >-
+    v9 exactly otherwise: marginal corruption, pooled loss, padding mask, detection
+    only, edit-mask heads, the full 2,681-icon split, the 128-icon validation draw and
+    its corruption seeds, seed 3101, probability 0.35, batch 16, lr 0.001, eval_every
+    60, the 6,300-step cap, held-out-loss selection with patience 8.
+code:
+  git_commit: abec130f668d108cdddc4f9a3fdad3e410c4fe71
+  execution_mode: native-local
+config:
+  path: configs/learning/openmoji-g1-metric-coordinates-v10.yaml
+  sha256: d7044dc2e280b142924806ba189bff4d699b927c2ea58b638df6e0e6f3116049
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  bucket: bucket-p32-t128
+  train_samples: 2681
+  validation_samples: 128
+baselines_under_marginal_corruption:
+  note: all at the matched 8.573% flag rate, on the same 128 held-out icons
+  local_continuity_statistic: 1.893
+  marginal_density_detector: 0.771
+  v9_trained_categorical: 1.506
+predeclared_criteria:
+  evaluated_at: the checkpoint selected by held-out loss
+  primary:
+    - id: beats_the_free_geometric_detector
+      statement: >-
+        Precision lift exceeds 1.893, the local-continuity statistic under this same
+        corruption. No trained model in this project has ever beaten a free detector on
+        a leak-free task, so this is the first real bar.
+    - id: improves_on_categorical_input
+      statement: Precision lift exceeds v9's 1.506.
+    - id: structural_safety
+      statement: Locked-path exactness holds and the canonical checkpoint round-trips.
+    - id: reproducibility
+      statement: A second complete invocation returns an identical JSON result.
+  reported_not_gated:
+    - recall and precision at the model's own threshold and at the base flag rate
+    - the selected step and whether early stopping or the cap ended the run
+  falsification_meaning: >-
+    If a metric input does not move the detector, then how the operands are presented is
+    not the constraint, and the measured input-side defect - real as it is - was not
+    load-bearing. The remaining structural candidate is the architecture lens's
+    field-level tokenisation, giving every coordinate its own sequence position rather
+    than packing six into one slot at about 16 dimensions each. If that also fails, the
+    honest reading is that this model class does not learn the relation and
+    PROJECT_PLAN.md section 12's branch 4 - the cached autoregressive model on the same
+    codec, which is Gate I - becomes the live branch.
+outputs:
+  local_metadata: runs/openmoji-g1-metric-coordinates-v10-abec130-d7044dc2-9b9b1699
+  report_root: reports/learning/openmoji-g1-metric-coordinates-v10
+  durable_artifacts: /home/dev/.cache/openmoji-g1-metric-coordinates-v10-abec130-d7044dc2-9b9b1699
+planned_at: 2026-09-21T01:20:00Z
