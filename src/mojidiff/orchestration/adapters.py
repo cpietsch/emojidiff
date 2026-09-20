@@ -488,7 +488,7 @@ command = [
     "--mount", "type=volume,src=" + config["artifact_volume"]
     + ",dst=" + artifact_container + "/" + run_id
     + ",volume-subpath=" + artifact_subpath + "/" + run_id + ",volume-nocopy",
-    config["image"], "python3", "-I", "-B",
+    "--entrypoint", "python3", config["image"], "-I", "-B",
     source_root + "/scripts/remote/vast_tiny_smoke.py", "--config", inner_encoded,
 ]
 raise SystemExit(subprocess.run(command, check=False, shell=False).returncode)

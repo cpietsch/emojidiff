@@ -451,6 +451,14 @@ def test_owned_smoke_remote_launcher_uses_valid_scoped_volume_mounts(tmp_path: P
         "type=volume,src=artifact-volume,dst=/mojidiff/artifacts/fixture-run,"
         "volume-subpath=.cache/fixture-run,volume-nocopy",
     ]
+    entrypoint = run_argv.index("--entrypoint")
+    assert run_argv[entrypoint : entrypoint + 4] == [
+        "--entrypoint",
+        "python3",
+        "example.invalid/pytorch:fixed",
+        "-I",
+    ]
+    assert "python3" not in run_argv[entrypoint + 3 :]
 
 
 def test_owned_smoke_requires_docker_execution() -> None:
