@@ -540,3 +540,26 @@ def test_local_probe_is_sanitized() -> None:
     assert "environment" not in probe
     assert "DOCKER_CERT_PATH" not in serialized
     assert "token" not in serialized.lower()
+
+
+def test_the_run_registry_and_run_records_agree() -> None:
+    """The run registry is the project's reproducibility backbone; drift is a defect.
+
+    It is maintained by hand across many sessions, and an audit found four real gaps:
+    a blank line in the append-only log, and three fixture-selection runs whose state
+    transitions were never recorded even though they had written hashed reports. This
+    keeps it consistent from here.
+    """
+
+    import subprocess
+    import sys
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parent.parent
+    completed = subprocess.run(
+        [sys.executable, str(repo_root / "scripts" / "audit_run_records.py")],
+        capture_output=True,
+        text=True,
+        cwd=repo_root,
+    )
+    assert completed.returncode == 0, completed.stdout + completed.stderr
