@@ -1832,3 +1832,39 @@ training it was measuring.
 worse while training loss keeps falling, which reads either as too little data or as a
 constraint more data will not lift — and those point at entirely different months of
 work. Arm 4 measures it with three nested training sets rather than guessing.
+
+## 2026-09-21 — Data scaling: the criterion passed and pointed the wrong way
+
+**Hypothesis.** Two arms had landed in the same place, both peaking within two to four
+epochs and then getting worse while training loss kept falling. That signature reads
+either as too little data — 2,681 sequences of 1,376 tokens is very little — or as a
+constraint more data will not lift, and those point at different months of work. Three
+nested training sets, quarter, half and all, everything else fixed.
+
+**Observation.** Both predeclared checks pass. Held-out likelihood improves at every
+doubling, **3.6724 → 3.6585 → 3.6480 nats**, and the second doubling still buys **76%**
+of what the first did, against a declared floor of 25%. By the criterion as written, the
+model is data-limited.
+
+**And the criterion was the wrong instrument.** Quadrupling the data moved the ratio to
+the floor from **0.9340 to 0.9285**. At roughly 0.011 nats per doubling, closing the
+1.66 nats between here and the standing 0.5 criterion would take on the order of **150
+doublings**. There is no corpus of that size and there will not be one.
+
+The criterion asked whether returns had *stopped*. They have not. It never asked whether
+they were large enough to matter, and they are not. This is Gate G's failure mode
+exactly — a metric that reads well while pointing away from the goal — and it is the
+second time in this project that a predeclared criterion has passed without supporting
+the decision it existed to inform. A direction without a magnitude does not identify a
+lever. The sweep now carries a magnitude check alongside the direction, and arm 5 is the
+first study to use it.
+
+Two log-linear points are weak evidence for a 150-doubling extrapolation, and the
+extrapolation is not what carries the finding. What carries it is the measured fact that
+**4× the data bought 0.0055 of ratio** while the gap to the floor stayed at about 0.28
+nats — the same 0.28 that survived changing the coordinate representation.
+
+**Decision.** Data volume is not the lever at any corpus size this project can reach, so
+Gate H is not the answer to Gate I's question. Capacity is the one factor left
+unmeasured for this model, and it runs next at 9× the parameters — not to succeed, but
+to find out whether it behaves like a lever at all.
