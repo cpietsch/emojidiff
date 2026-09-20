@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T04:25:00Z
+Updated: 2026-09-21T05:05:00Z
 
 ## Current hypothesis and evidence
 
@@ -435,6 +435,28 @@ Exact-token accuracy is therefore anti-correlated with what the project is tryin
 produce, as the task-formulation lens argued before any of it ran. From here mean
 absolute view-unit error and paired render recovery are the primary reported metrics and
 exact-token accuracy is secondary, so nothing already published is withdrawn.
+
+Correcting the decode gate the same way doubles it again. v15 localised better yet gated
+itself MORE tightly, 0.8604 against v14's 0.8183, because the break-even rule credits
+only exact tokens. v16 picks the threshold by absolute view-unit error saved on the
+withheld calibration icons: it falls to 0.6800, saving 2.9843 view units per field, and
+paired render recovery rises from +0.1246 to +0.2511 at 72 px and +0.1306 to +0.2745 at
+18 px, helping 11 of 12 icons with both intervals excluding zero. The trained weights are
+byte-identical to v15's, so that is the decode rule alone - 5.6x v14 and 2x v15. The two
+corrections compound because they are the same correction applied twice: train for
+closeness, then gate on closeness.
+
+v16's held-out aggregate token accuracy is 0.6354 against identity's 0.6515, which its
+record anticipated before the run. Between v15 and v16 the metric question is settled:
+v16 is simultaneously worse than the identity policy on exact tokens and the best
+geometric denoiser this project has produced. Both are true, and that is a statement
+about the metric.
+
+The sequence, from a model that actively destroyed its input to one that recovers a
+quarter of the render gap: identity 0.0000, v14 +0.0447, v15 +0.1246, v16 +0.2511. Seven
+verified defects and corrections, and the model shrank from 579,872 parameters to
+525,152. No render is a recognizable icon; at 35% corruption the input is already
+scribble and recovering a quarter of that gap leaves scribble.
 
 Every plateau the sequence had declared - data volume, capacity, the corruption regime,
 noise conditioning - was measured under the broken loss and is no longer admissible as
@@ -900,22 +922,26 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Derive the decode gate from expected geometric gain rather than expected exact-token
-gain. It is the one step the last run made unavoidable and every term in it is measured.
+Re-run the four eliminations under the corrected setup, on the corrected metrics. They
+are the cheapest remaining evidence and all four are currently inadmissible.
 
-The break-even rule `p > 1/(1+q)` treats a field as recovered only when the predicted
-token is exact, so a value head that is closer but not exacter raises its own threshold -
-v15's went to 0.8604 from v14's 0.8183 - and edits less of what it could improve. That is
-backwards: v15 localises 27% better in view units and recovers nearly three times as much
-render error, while its gate makes it act on fewer fields than the worse-localising v14.
+Data volume (v2), model capacity (v3), the corruption regime (the sweep) and noise-level
+conditioning (v4) were each declared a plateau on a held-out scalar that was roughly 31%
+four individual fields, on runs stopped at 6 to 24% of their step cap, under a corruption
+process that leaked a density shortcut, with coordinates encoded as unordered categories,
+and graded on exact-token accuracy which is now known to point the wrong way. Every one of
+those is fixed. None of the four conclusions has been retested, and each is cheap now
+that a run uses its whole budget - v16's recipe trains in minutes.
 
-Concretely: replace the scalar `q` with the expected change in absolute view-unit error
-from editing, estimated on the withheld calibration icons, and flag a field when that
-expectation is favourable. The estimator already exists in
-`scripts/frozen_encoder_probe.py`'s pattern and the withheld slice is already carved out.
-Hold v15 fixed otherwise and predeclare against v15's paired render recovery of +0.1246
-at 72 px and its mean view-unit error of 6.0282 - not against exact-token accuracy, which
-this run showed points the wrong way.
+Take v16 as the base, change one factor per run, and predeclare against paired render
+recovery of +0.2511 at 72 px and mean absolute view-unit error, not against exact-token
+accuracy. Capacity is the most interesting of the four: v3 concluded that 3.53x
+parameters does nothing, on a setup where 768 parameters of slot binding later beat it
+outright, so that conclusion is the least trustworthy of the set.
+
+Then the registered corruption-process comparison, which is ready to re-register: it was
+deferred because no trained model could learn detection on any process, and v10 through
+v16 have since resolved that.
 
 Standing rules from this session, for every later run:
 
@@ -929,8 +955,5 @@ Standing rules from this session, for every later run:
 - On paired data, compare the pairs. This session made the median-versus-paired mistake
   twice and caught it twice; both times the paired statistic reversed the conclusion.
 - Primary metrics are mean absolute view-unit error and paired render recovery.
-  Exact-token accuracy is secondary and is known to point the wrong way.
-
-The four earlier eliminations - data volume, capacity, the corruption regime, noise
-conditioning - were all measured under the broken loss and should be re-run before any is
-cited again. The registered corruption-process comparison is ready to re-register.
+  Exact-token accuracy is secondary and is known to point the wrong way - v16 is worse
+  than identity on it and the best denoiser here.

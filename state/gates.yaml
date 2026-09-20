@@ -100,7 +100,14 @@ gates:
       then removed: the threshold is derivable as 1/(1+q) in the value head's accuracy,
       and estimating q on 256 icons withheld from training gives 0.6543 against 0.6515
       with nothing fitted on held-out data at all. The margin is +0.0027, about 0.4%
-      relative - not a good model, but one that has stopped being worse than useless. Every earlier plateau in
+      relative - not a good model, but one that has stopped being worse than useless.
+      Two further corrections then compounded: a distance-kernel value target, which cut
+      mean absolute view-unit error 27%, and a decode gate chosen by error saved rather
+      than by exact tokens. Paired per-icon render recovery went 0.0447 to 0.1246 to
+      0.2511 at 72 px, helping 11 of 12 icons with the interval excluding zero, while
+      exact-token accuracy fell below identity - which settles that exact-token accuracy
+      is the wrong primary metric here. No render is a recognizable icon; at 35%
+      corruption the input is already scribble. Every earlier plateau in
       this gate was measured under the broken loss and is no longer admissible as read.
 
   - id: Gate H
