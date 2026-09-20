@@ -1,0 +1,18 @@
+{
+  "0.05": {
+    "threshold": 0.87,
+    "view_units_saved_per_field": 0.46360066253472965
+  },
+  "0.1": {
+    "threshold": 0.815,
+    "view_units_saved_per_field": 0.946402810429579
+  },
+  "0.2": {
+    "threshold": 0.76,
+    "view_units_saved_per_field": 1.9726370485146398
+  },
+  "0.35": {
+    "threshold": 0.68,
+    "view_units_saved_per_field": 3.013264052147895
+  }
+}
