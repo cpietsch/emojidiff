@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T03:45:00Z
+Updated: 2026-09-21T04:25:00Z
 
 ## Current hypothesis and evidence
 
@@ -419,6 +419,22 @@ Nothing in v14 is fitted on held-out data. The project has a denoiser that does 
 than doing nothing, with no caveat about how the number was obtained. It is also +0.0027
 on token accuracy, about 0.4% relative: not a good model, but one that has stopped being
 worse than useless.
+
+The distance-kernel target then falsified its own criteria and succeeded anyway, which is
+a verdict on the criteria. v15 spreads the value target as exp(-|b-t|*0.25/tau) with tau
+one view unit. All three primary criteria - stated in exact-token terms - fail: withheld
+value accuracy 0.1623 against 0.2220, identity margin +0.0014 against +0.0027, derived
+threshold 0.8604 against 0.8183. But mean absolute error on corrupted held-out fields
+falls from 8.2871 to 6.0282 view units, 27%, the median 33% from 3.75 to 2.50, and the
+fraction within one view unit rises from 0.2793 to 0.3169. Paired per-icon render
+recovery nearly triples, +0.0447 to +0.1246 at 72 px and +0.0729 to +0.1306 at 18 px,
+both intervals excluding zero, helping 10 and 11 of 12 icons. Those are the first
+positive render recoveries this project has measured under leak-free corruption.
+
+Exact-token accuracy is therefore anti-correlated with what the project is trying to
+produce, as the task-formulation lens argued before any of it ran. From here mean
+absolute view-unit error and paired render recovery are the primary reported metrics and
+exact-token accuracy is secondary, so nothing already published is withdrawn.
 
 Every plateau the sequence had declared - data volume, capacity, the corruption regime,
 noise conditioning - was measured under the broken loss and is no longer admissible as
@@ -884,42 +900,37 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Give the value head a distance-kernel target. It is the one measured step left, and every
-term in the chain it acts on is now quantified.
+Derive the decode gate from expected geometric gain rather than expected exact-token
+gain. It is the one step the last run made unavoidable and every term in it is measured.
 
-The value head predicts an exact bin on a quarter-unit metric lattice through a
-289/417-way categorical softmax, so being one bin out scores exactly the same as being a
-hundred out. It reaches 0.222 on withheld corrupted fields. That accuracy sets the
-break-even decode threshold at 1/(1+q) = 0.818, which is why the model edits only 4% of
-fields even though its detector runs at 2.569 lift - far above the free continuity
-statistic's 1.893. Lift q and the threshold falls, and the model can act on more of what
-it already detects correctly.
+The break-even rule `p > 1/(1+q)` treats a field as recovered only when the predicted
+token is exact, so a value head that is closer but not exacter raises its own threshold -
+v15's went to 0.8604 from v14's 0.8183 - and edits less of what it could improve. That is
+backwards: v15 localises 27% better in view units and recovers nearly three times as much
+render error, while its gate makes it act on fewer fields than the worse-localising v14.
 
-Concretely: replace the exact-token cross-entropy on the value heads with a soft target
-over bins, mass proportional to exp(-|bin - true| * 0.25 / tau) with tau about one view
-unit. Hold v14 fixed otherwise - metric coordinates, marginal corruption, pooled loss,
-padding mask, entropy-balanced weight, 256 withheld calibration icons - and predeclare
-the withheld value accuracy against 0.222 and the identity margin against +0.0027. The
-task-formulation lens measured that the model is a calibrated localiser being graded
-pass/fail at plus or minus 0.125 units, and recommended reporting mean absolute
-view-unit error alongside exact-token accuracy; do both.
+Concretely: replace the scalar `q` with the expected change in absolute view-unit error
+from editing, estimated on the withheld calibration icons, and flag a field when that
+expectation is favourable. The estimator already exists in
+`scripts/frozen_encoder_probe.py`'s pattern and the withheld slice is already carved out.
+Hold v15 fixed otherwise and predeclare against v15's paired render recovery of +0.1246
+at 72 px and its mean view-unit error of 6.0282 - not against exact-token accuracy, which
+this run showed points the wrong way.
 
-Then render. No run in this project has produced a recognizable icon, and the standing
-rule is that no recovery claim is made without a render beside it. The 128-icon draw has
-a paired-difference interval half-width of 0.0032, so a claimed render improvement above
-roughly 0.0064 is testable and anything smaller should not be claimed.
-
-Three standing rules from this session, for every later run:
+Standing rules from this session, for every later run:
 
 - Report the identity baseline beside every recovery number. v1 through v5 were reported
   against an untrained control, which flattered them.
-- Measure detection under marginal-respecting corruption. Every number measured under
-  uniform corruption is partly a density test, because a zero-parameter marginal detector
-  scores 2.84 there and 0.771 here.
+- Measure detection under marginal-respecting corruption. A zero-parameter marginal
+  detector scores 2.84 under uniform corruption and 0.771 under marginal, so every number
+  measured on the uniform process is partly a density test.
 - Never fit a decode threshold on the data it is reported on. Derive it, or estimate it
   on icons withheld from training.
+- On paired data, compare the pairs. This session made the median-versus-paired mistake
+  twice and caught it twice; both times the paired statistic reversed the conclusion.
+- Primary metrics are mean absolute view-unit error and paired render recovery.
+  Exact-token accuracy is secondary and is known to point the wrong way.
 
 The four earlier eliminations - data volume, capacity, the corruption regime, noise
 conditioning - were all measured under the broken loss and should be re-run before any is
-cited again. They are cheap now that a run uses its whole budget. The registered
-corruption-process comparison is ready to re-register.
+cited again. The registered corruption-process comparison is ready to re-register.
