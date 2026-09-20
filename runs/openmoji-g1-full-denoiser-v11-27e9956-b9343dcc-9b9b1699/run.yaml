@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-full-denoiser-v11-27e9956-b9343dcc-9b9b1699
-state: planned
+state: completed
 parent_run: openmoji-g1-metric-coordinates-v10-abec130-d7044dc2-9b9b1699
 hypothesis: >-
   Every trained model in this project scores below the identity policy - emit the
@@ -100,3 +100,40 @@ outputs:
   report_root: reports/learning/openmoji-g1-full-denoiser-v11
   durable_artifacts: /home/dev/.cache/openmoji-g1-full-denoiser-v11-27e9956-b9343dcc-9b9b1699
 planned_at: 2026-09-21T01:55:00Z
+completed_at: 2026-09-21T02:05:00Z
+result:
+  device: cuda
+  model_parameters: 525152
+  selected_step: 840
+  completed_steps: 1320
+  ended_by: early_stopping
+  identical_rerun: true
+  held_out: {aggregate: 0.5839, changed: 0.0296, retained: 0.8803}
+  identity_baseline: {aggregate: 0.6515, changed: 0.0, retained: 1.0}
+  detector_lift: 1.717
+  detector_lift_detection_only_same_setup: 2.781
+  value_head_exact_accuracy_on_corrupted_fields: 0.1087
+  break_even_detection_confidence: 0.9019
+  threshold_sweep_best: {flag_rate: 0.0, aggregate: 0.6515, note: no flag rate beats identity}
+predeclared_outcome:
+  overall: falsified
+  beats_identity: {passed: false, observed: 0.5839, threshold: 0.6515}
+  recovers_more_than_identity: {passed: true, observed: 0.0296, threshold: 0.0132}
+  preserves_what_identity_preserves: {passed: false, observed: 0.8803, threshold: 0.90}
+  structural_safety: {passed: true}
+  reproducibility: {passed: true}
+  degenerate_pass_watch: {fired: false, flag_fraction: 0.1915, note: the model over-flags rather than collapsing to keep}
+  conclusion: >-
+    Changed-token recovery is 2.24x the best any earlier model managed, but identity is
+    not beaten and the reason is exact: adding the value head costs 1.064 of detector
+    lift, 2.781 down to 1.717, dropping it back below the free continuity statistic. The
+    two heads share one encoder and a 289/417-way exact-token objective against a 2-class
+    decision is not a fair fight. No flag rate rescues it - every threshold loses to
+    identity monotonically - because this degraded detector reaches only about 0.73
+    precision at its most confident 1%, where v10 reached 0.9691.
+  localises: >-
+    Not detection, which v10 solved. Detection and reconstruction cannot currently be
+    learned together, and reconstruction itself is weak at 0.1087 exact-token accuracy.
+    Two separable next steps: weight the two objectives by field count or give them
+    separate encoders, and replace the exact-token value target with a distance kernel
+    over the quarter-unit lattice so being close earns gradient.

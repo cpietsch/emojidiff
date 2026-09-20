@@ -1,0 +1,34 @@
+{
+  "base_rate": 0.34845530893821236,
+  "config": "configs/learning/openmoji-g1-full-denoiser-v11.yaml",
+  "corruption_process": "marginal",
+  "detection_only": false,
+  "evaluation_corruption_probability": 0.35,
+  "fields": 40008,
+  "operating_points": {
+    "flag_base_rate": {
+      "flag_rate": 0.34845530893821236,
+      "flagged": 13941,
+      "lift_over_base_rate": 1.441594489315983,
+      "precision": 0.5023312531382254,
+      "recall": 0.5023312531382254,
+      "true_positive": 7003
+    },
+    "matched_flag_rate": {
+      "flag_rate": 0.08573285342931414,
+      "flagged": 3430,
+      "lift_over_base_rate": 1.7168650140126143,
+      "precision": 0.5982507288629738,
+      "recall": 0.14719173660426083,
+      "true_positive": 2052
+    },
+    "model_own_threshold": {
+      "flag_rate": 0.19146170765846832,
+      "flagged": 7660,
+      "lift_over_base_rate": 1.5858876357525362,
+      "precision": 0.5526109660574412,
+      "recall": 0.3036367548956316,
+      "true_positive": 4233
+    }
+  }
+}

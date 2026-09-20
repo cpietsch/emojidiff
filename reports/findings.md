@@ -1391,3 +1391,54 @@ to remove the leak: draw replacements from the **corpus marginal for that role**
 than uniformly, so that a corrupted token is in-distribution by construction and
 detecting it actually requires the surrounding geometry. Everything measured on the
 uniform process — including v8 — should be re-read against that.
+
+## 2026-09-21 — Detection solved, reconstruction not, and the two cannot yet coexist
+
+**Hypothesis.** With four verified defects fixed — the group-pooled loss, the missing
+attention padding mask, the density leak in the corruption process, and coordinates
+encoded as unordered categories — the full denoising objective should clear the identity
+baseline that every model in this project has failed.
+
+**Observation.** It does not, and the reason is measured precisely.
+
+First the win. Encoding coordinates as magnitudes rather than identities (v10) produced
+the project's first trained model to beat a zero-parameter heuristic on a task with no
+shortcut in it: detector precision lift **2.781** against a local-continuity statistic's
+1.893 and a marginal-density detector's 0.771 — with **54,720 fewer parameters**,
+525,152 against 579,872, because the categorical tables are not allocated at all.
+Capacity is excluded from both directions.
+
+Then the wall. Turning the value head back on (v11) gives changed-token recovery of
+0.0296, **2.24x the best any earlier model managed**, but aggregate accuracy of 0.5839
+against identity's 0.6515. Adding that head costs **1.064 of detector lift** — 2.781
+down to 1.717 — dropping it back below the free statistic. The two heads share one
+encoder, and a 289- or 417-way exact-token objective against a 2-class decision is not a
+fair fight; the encoder is shaped by the harder task, which it performs at 0.1087, and
+the easier one it had solved is collateral damage. The same pattern appeared between v6
+and v7 at 1.234 against 1.365; with a genuinely good detector to lose it is now an order
+of magnitude larger.
+
+No decode threshold rescues it. With the value head at 0.1087 on corrupted fields the
+break-even detection confidence is p > 1/(1+0.1087) = 0.9019, and sweeping the gate
+loses to identity at every flag rate, monotonically: 0.6496 at 1%, 0.6374 at 5%, 0.5839
+at the model's own 19.15%. Working back from the 1% point, this degraded joint detector
+reaches only about 0.73 precision at its most confident percentile, where v10 reached
+0.9691. With v10's detector and v11's value head, flagging the top percentile would have
+paid.
+
+**Decision.** The remaining problem is not detection. v10 solved that. It is that
+detection and reconstruction cannot currently be learned together, and that
+reconstruction itself is weak. Two separable next steps, both measured rather than
+guessed:
+
+1. Stop the objectives competing — weight them by field count rather than letting an
+   exact-token softmax dominate, or give the heads separate encoders. v10 and v11
+   bracket exactly what is at stake on an otherwise identical setup: 2.781 against 1.717.
+2. Make reconstruction learnable — the value head predicts an exact bin on a
+   quarter-unit metric lattice through a categorical softmax, so being close earns
+   nothing. A distance-kernel target spreads mass over nearby bins in proportion to
+   distance. The task-formulation lens measured that the model is a calibrated localiser
+   being graded pass/fail at plus or minus 0.125 units.
+
+Identity is still not beaten, and both ingredients that would beat it have now been
+demonstrated — just never at the same time.
