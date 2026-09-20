@@ -1,0 +1,15 @@
+{
+  "calibration": {
+    "identity": 0.652888050813815,
+    "model": 0.6567586343787217
+  },
+  "calibration_flag_rate": 0.049999999999999996,
+  "evaluation": {
+    "beats_identity": true,
+    "delta": 0.006496776792908943,
+    "identity": 0.6501813053988719,
+    "model_calibrated": 0.6566780821917808,
+    "model_own_gate": 0.6095890410958904
+  },
+  "threshold": 0.9237394541501999
+}

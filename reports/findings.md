@@ -1442,3 +1442,45 @@ guessed:
 
 Identity is still not beaten, and both ingredients that would beat it have now been
 demonstrated — just never at the same time.
+
+## 2026-09-21 — The first model here to beat doing nothing
+
+**Hypothesis.** v10 beat every free detector at 2.781 lift with detection alone; v11
+added the value head and the detector fell to 1.717, below the free continuity statistic,
+leaving aggregate accuracy at 0.5839 against identity's 0.6515. The two heads share an
+encoder and are unequal at chance — log 2 nats for a 2-class keep decision against log
+417 for the value head, a factor of 8.7 — so an unweighted sum lets the value task
+dominate. Scaling the value term by log(2)/log(417) = 0.1149, a derived weight rather
+than a tuned one, should let both survive.
+
+**Observation.** Both do. The detector recovers to **2.569**, nearly v10's
+detection-only 2.781 and well past the free statistic's 1.893, while changed-token
+recovery rises to **0.0738** — 2.5x v11's and 5.6x the best any earlier model managed.
+At the model's own 0.5 gate aggregate accuracy is 0.6086, so the predeclared
+beats-identity criterion is falsified as written.
+
+But the confidence is informative even where the default threshold is not. Sweeping the
+gate and reporting on the same icons would be selection on the evaluation set, so the 128
+held-out icons were split: the threshold was chosen on 64 and reported on the disjoint 64.
+Flagging the most confident 5%, the model reaches **0.6567 against identity's 0.6502** on
+icons that played no part in choosing it. That is the first time anything in this project
+has beaten the trivial policy of emitting its input unchanged.
+
+**Decision.** Record it as a first, and record its two qualifications in the same breath:
+the margin is about 1% relative, and it depends on the calibrated threshold — the model's
+own decode still loses by 0.0406. What has changed is not that the model is good but that
+it is finally better than nothing, and that the remaining gap is a calibration and
+reconstruction problem rather than a representational one.
+
+The arc, five verified defects and a model that shrank from 579,872 parameters to
+525,152 along the way: field-pooled loss and an attention padding mask (1.365 -> 2.806 on
+the leaky task), marginal-respecting corruption to remove the density shortcut (1.506 on
+the honest one), metric coordinate encoding (**2.781**, first trained model to beat a
+zero-parameter heuristic), the value head reinstated (1.717, identity still wins), and an
+entropy-balanced objective (2.569, identity finally beaten).
+
+What remains is measured. The value head is weak at 0.1233 exact-token accuracy on a
+289/417-way vocabulary over a quarter-unit metric lattice, which keeps the break-even
+detection confidence high so only the top few percent of flags pay. The next step is the
+distance-kernel target the task-formulation lens argued for, so that being close earns
+gradient, and calibrating the gate during training rather than after it.

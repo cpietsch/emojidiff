@@ -1,0 +1,8 @@
+{
+  "beats_identity": true,
+  "best_aggregate": 0.6566936612677464,
+  "best_flag_rate": 0.05,
+  "identity": 0.6515446910617877,
+  "model_own_gate": 0.6089282143571286,
+  "value_head_on_corrupted": 0.12330535829567463
+}

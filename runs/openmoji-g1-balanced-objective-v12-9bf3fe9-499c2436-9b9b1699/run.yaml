@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-balanced-objective-v12-9bf3fe9-499c2436-9b9b1699
-state: planned
+state: completed
 parent_run: openmoji-g1-full-denoiser-v11-27e9956-b9343dcc-9b9b1699
 hypothesis: >-
   v10 beat every free detector at 2.781 lift with detection alone. v11 added the value
@@ -79,3 +79,50 @@ outputs:
   report_root: reports/learning/openmoji-g1-balanced-objective-v12
   durable_artifacts: /home/dev/.cache/openmoji-g1-balanced-objective-v12-9bf3fe9-499c2436-9b9b1699
 planned_at: 2026-09-21T02:30:00Z
+completed_at: 2026-09-21T02:50:00Z
+result:
+  device: cuda
+  model_parameters: 525152
+  selected_step: 2160
+  completed_steps: 2640
+  ended_by: early_stopping
+  identical_rerun: true
+  detector_lift: 2.569
+  held_out_own_gate: {aggregate: 0.6086, changed: 0.0738, retained: 0.8947}
+  identity_baseline: {aggregate: 0.6515}
+  value_head_exact_accuracy_on_corrupted_fields: 0.1233
+  honest_split_half_calibration:
+    method: >-
+      The 128 held-out icons were split in half. The decode threshold was chosen on 64
+      and reported on the disjoint 64, which were never used to choose anything, so the
+      figure is not selection on its own evaluation set. The project's primary/test
+      split remains untouched.
+    chosen_flag_rate: 0.05
+    chosen_threshold: 0.9237
+    evaluation_half: {model_calibrated: 0.6567, identity: 0.6502, delta: 0.0065, model_own_gate: 0.6096}
+    beats_identity: true
+predeclared_outcome:
+  overall: partially-falsified
+  restores_the_detector: {passed: true, observed: 2.569, threshold: 1.893}
+  keeps_a_usable_value_head: {passed: true, observed: 0.0738, threshold: 0.0296}
+  beats_identity: {passed: false, observed: 0.6086, threshold: 0.6515, note: at the model's own 0.5 gate, which is how the criterion was written}
+  structural_safety: {passed: true}
+  reproducibility: {passed: true}
+  degenerate_pass_watch: {fired: false}
+  conclusion: >-
+    Both ingredients coexist for the first time: the detector is nearly back to v10's
+    detection-only 2.781, and changed-token recovery is 2.5x v11's and 5.6x the best any
+    earlier model managed, from a single derived weight rather than a tuned one. The
+    predeclared criterion is falsified as written, because at the model's own 0.5 gate it
+    still loses to identity 0.6086 to 0.6515.
+  first_time_result: >-
+    With the decode threshold calibrated on a disjoint half of the held-out icons, the
+    model reaches 0.6567 against identity's 0.6502 on the other half - the first time
+    anything in this project has beaten the trivial policy. The margin is small, about 1%
+    relative, and it depends on the calibration: the model's own decode loses by 0.0406.
+    Both belong in the claim.
+  remains: >-
+    The value head is weak at 0.1233 exact-token accuracy, which keeps the break-even
+    detection confidence high so only the top few percent of flags pay. The measured next
+    step is a distance-kernel target over the quarter-unit lattice, and calibrating the
+    gate during training rather than after it.
