@@ -12,12 +12,12 @@ updated: 2026-09-20
 # the Current hypothesis section of state/CURRENT.md; the weblog falls back to that
 # section's newest paragraph if this is absent.
 headline: >-
-  Gate G has a negative result, and a specific one. Seven explanations were eliminated by
-  predeclared comparison, ending at the decisive one: a coordinate resampled uniformly
-  from a 289-value vocabulary is a plausible coordinate, so a corrupted-field detector
-  reaches only 0.1058 recall at barely-above-chance precision. The corruption is not
-  identifiable, so it is not invertible, and every trained model scores below the trivial
-  policy of emitting its input unchanged. The codec and renderer are unaffected.
+  Gate G has a negative result, and a precise one. Every trained model scores below the
+  trivial policy of emitting its input unchanged, and the 580K-parameter denoiser never
+  learns to spot a corrupted field - yet a parameter-free local-continuity statistic
+  does, at AUC 0.7698 and 73% better precision at the same flag rate. The failure is one
+  of learning, not of information. Path-correlated corruption is markedly more
+  identifiable at 0.9333, which puts Gate F's choice of process back in question.
 gates:
   - id: Gate A
     title: Orchestration and recovery
@@ -87,12 +87,17 @@ gates:
       that a corrupted-field detector reaches only 0.1058 recall at 0.4312 precision
       against a 0.3494 base rate: a coordinate resampled uniformly from a 289-value
       legal vocabulary is a plausible coordinate, so finding it requires already knowing
-      the icon. Factorized role-uniform corruption at p=0.35 therefore produces states
-      that are not identifiable and so not invertible by a model of this class, and
-      every trained model scores below the trivial policy of emitting its input
-      unchanged. Gate F selected this process on four-icon fixtures where 96-99%
-      recovery was memorization; that comparison needs re-running at corpus scale with
-      the identity baseline attached. Fixed-topology and geometry-only throughout.
+      the icon. A training-free check then corrected that inference: a parameter-free
+      local-continuity statistic separates corrupted from retained fields at AUC 0.7698
+      and, at the trained detector's own flag rate, reaches 0.7451 precision against its
+      0.4312. The corruption is identifiable and the failure is one of learning, not of
+      information. What stands is that every trained model scores below the trivial
+      policy of emitting its input unchanged, and that a 580K-parameter transformer does
+      not learn a detector a trivial statistic already provides. Path-correlated
+      corruption is markedly more identifiable, 0.9333, and Gate F chose factorized on
+      four-icon fixtures where 96-99% recovery was memorization, so that comparison
+      needs re-running at corpus scale with the identity baseline attached.
+      Fixed-topology and geometry-only throughout.
 
   - id: Gate H
     title: Broad pretraining question

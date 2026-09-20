@@ -1,0 +1,57 @@
+schema_version: 1
+run_id: openmoji-g1-detectability-877feff-4processes-9b9b1699
+state: completed
+parent_run: openmoji-g1-edit-mask-v6-0228c3b-0f6ce115-9b9b1699
+recorded_retroactively: true
+hypothesis: >-
+  Descriptive, and a check on the conclusion the previous run drew. Gate G was closed on
+  the reading that factorized role-uniform corruption is not identifiable, inferred from
+  a trained detector reaching 0.1058 recall at 1.23x precision lift. The competing
+  reading is that the corruption is identifiable and the model failed to learn it. A
+  parameter-free local-continuity statistic distinguishes the two without training.
+scope_limits: >-
+  48 held-out icons, one corruption draw per icon per process, one fixed statistic. The
+  statistic is a floor on detectability, not a ceiling: it uses no learned parameters,
+  so a result above chance proves identifiability while a result at chance would not
+  prove the converse.
+code:
+  git_commit: 877feffaf4f16d659475f40c74a14b953bac434b
+  execution_mode: native-local-cpu
+  probe: src/mojidiff/learning/detectability.py
+execution:
+  icons: 48
+  statistic: mean absolute distance to the same slot in adjacent segments, view units
+  network: none
+  trains_nothing: true
+result:
+  auc_by_process:
+    path_correlated_p0.35: 0.9333
+    factorized_p0.10: 0.8575
+    factorized_p0.35: 0.7698
+    whole_path_p0.35: 0.5318
+  whole_path_caveat: >-
+    Only 32 of 13,128 fields were replaced, a 0.24% rate, because donor compatibility
+    requires a matching length and segment-kind sequence. Its AUC is not comparable with
+    the others at this sample size, and a donor path is locally smooth by construction,
+    so local continuity is the wrong instrument for it.
+  matched_operating_point:
+    note: both detectors flag 8.573% of fields, the rate the trained keep head chose
+    continuity_statistic: {precision: 0.7451, lift: 2.13, recall: 0.1824}
+    trained_keep_head_v6: {precision: 0.4312, lift: 1.23, recall: 0.1058}
+  conclusion: >-
+    The Gate G conclusion was wrong on its decisive point. Factorized corruption at
+    p=0.35 IS identifiable: a zero-parameter heuristic reaches AUC 0.7698 and, at the
+    trained detector's own flag rate, 0.7451 precision against its 0.4312 - a 73%
+    improvement with no parameters at all. The failure is one of learning, not of
+    information. Every measurement in v1 through v6 stands; the interpretation of the
+    final step does not.
+  bears_on_gate_f: >-
+    Path-correlated corruption is markedly more identifiable than factorized, 0.9333
+    against 0.7698, which is what a structural argument predicts: a replaced block is
+    inconsistent with its neighbours in a way a single resampled coordinate is not. Gate
+    F chose factorized as primary on four-icon fixtures where recovery was memorization.
+    This is independent evidence that the choice should be revisited.
+outputs:
+  local_metadata: runs/openmoji-g1-detectability-877feff-4processes-9b9b1699
+  report: reports/learning/corruption-detectability.json
+completed_at: 2026-09-20T21:45:00Z

@@ -354,14 +354,28 @@ plausible coordinate, so identifying it requires already knowing the icon. Detec
 not an easier sub-problem than denoising; it is the same problem, and with 65% of fields
 uncorrupted predicting keep is loss-minimising.
 
-Gate G therefore has a negative result rather than an open question. Factorized
-role-uniform categorical corruption at p=0.35 over a 289/417-value coordinate vocabulary
-produces states from which the corruption is not identifiable, and so not invertible, by
-a model of this class. Gate F selected this process as primary on four-icon fixtures at
-96-99% held-out recovery; that does not survive 2,681 icons, and the Gate F comparison
-should be re-read as a memorization comparison. Gate C and Gate D are untouched: the
-codec is exact and render-safe, and the negative result is about the corruption process,
-not the representation.
+That inference was then checked without training, and it was wrong on its decisive
+point. Run `openmoji-g1-detectability-877feff-4processes-9b9b1699` scores every legal
+field by a parameter-free local-continuity statistic - mean absolute distance to the
+same slot in adjacent segments - and separates corrupted from retained fields at AUC
+0.7698 under factorized corruption at p=0.35. At the trained detector's own 8.573% flag
+rate it reaches 0.7451 precision and 0.1824 recall, against the model's 0.4312 and
+0.1058: a zero-parameter heuristic beats a 579,872-parameter model by 73% on precision.
+
+The information-theoretic claim is therefore withdrawn. The corruption is identifiable;
+Gate G's failure is one of learning, not of information. Every measurement in v1 through
+v6 stands and so does every predeclared outcome - what does not stand is the inference
+from "the model could not detect it" to "it is not detectable", which needed a
+model-independent check that cost no training.
+
+The Gate G result is narrower and more useful than first stated: a 580K-parameter
+bidirectional transformer trained this way does not learn a corrupted-field detector
+that a trivial local statistic already provides, and collapses to the trivial policy
+instead. The Gate F implication strengthens rather than weakens: path-correlated
+corruption is markedly more identifiable than factorized, 0.9333 against 0.7698, exactly
+as a structural argument predicts, and Gate F chose factorized on four-icon fixtures
+where recovery was memorization. Gate C and Gate D are untouched: the codec is exact and
+render-safe, and none of this is about the representation.
 
 
 
@@ -800,35 +814,27 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Re-run the Gate F corruption comparison at corpus scale with the identity baseline
-attached. That comparison chose factorized role-uniform corruption as the primary
-process on four-icon fixtures where held-out recovery ran at 96-99%, which the Gate G
-sequence has since shown to be memorization rather than denoising. Path-correlated and
-whole-path replacement were set aside on that basis and deserve re-examination on the
-2,681-icon split, with the v5 encoder fix and the v6 edit mask both switched on, since
-each is a strict improvement independent of the corruption process.
+Run the registered corpus-scale corruption-process comparison,
+`openmoji-g1-corruption-process-corpus-*`, whose criteria are committed in its run
+record. It re-runs the Gate F choice on the 2,681-icon split rather than four-icon
+fixtures, with the v5 slot-binding fix and the v6 edit mask both on, and with the
+identity baseline attached to every number. The training-free probe already shows
+path-correlated corruption is far more identifiable than factorized, 0.9333 against
+0.7698, so the falsifiable question is whether that carries into learned recovery.
 
-The falsifiable question is whether any of the three processes yields corrupted states
-whose corrupted fields are actually detectable. The measurement already exists: the
-keep head's recall and precision against the base rate, which for factorized corruption
-is 0.1058 and 0.4312 against 0.3494. A process whose corruption is detectable should
-show a materially higher lift, and that is the criterion to predeclare - not held-out
-accuracy, which the identity policy already dominates.
+The gated criterion is deliberately not held-out accuracy, which the identity policy
+already dominates at 0.6506. It is the keep head's corrupted-field precision lift over
+the base rate, measured against both the trained factorized detector's 1.23x and the
+training-free statistic's 2.13x at a matched flag rate. A process is worth pursuing only
+if a trained model on it can at least match what a zero-parameter heuristic achieves.
 
-A cheaper preliminary, worth doing first because it costs no training: measure
-detectability directly. For each candidate corruption process, train nothing and instead
-ask whether a corrupted field is distinguishable from a legitimate one at all - for
-instance by comparing the likelihood a simple local-geometry statistic assigns to real
-versus resampled coordinates. If factorized corruption is genuinely non-identifiable
-that should be visible without a model, and it would bound how much any denoiser can
-achieve under it.
+Two things to carry into every later run regardless of that outcome. Report the identity
+baseline beside every recovery number; v1 through v5 were all reported against an
+untrained control instead, which flattered them. And render on the 128-icon draw, where
+the paired-difference interval's half-width is 0.0032, so a claimed render improvement
+above roughly 0.0064 is testable and anything smaller should not be claimed.
 
-If none of the three processes produces identifiable corruption at corpus scale, that is
-the Gate G answer for this formulation, and PROJECT_PLAN.md section 12's fallback
-interpretations become the live branch rather than a contingency. Note that both
-remaining processes replace larger correlated blocks, which is a reason to expect them
-to be *more* detectable, not less: a whole path replaced by a donor is structurally
-inconsistent with its neighbours in a way a single resampled coordinate is not.
-
-Render every result on the 128-icon draw, and report the identity baseline beside every
-recovery number from now on.
+If a trained model still cannot beat the trivial local statistic on any of the three
+processes, the honest reading is that this model class is the wrong instrument for the
+task rather than that the task is impossible, and PROJECT_PLAN.md section 12's fallback
+interpretations become the live branch.

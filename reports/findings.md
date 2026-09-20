@@ -1299,3 +1299,46 @@ scale with the identity baseline attached.
 What this does not touch: Gate C and Gate D stand, the codec is exact and render-safe,
 and v5 showed the encoder fix was worth keeping. The negative result is about the
 corruption process, not the representation.
+
+## 2026-09-20 — Correction: the corruption IS identifiable; the model failed to learn it
+
+**Hypothesis.** The preceding entry closed Gate G on the reading that factorized
+role-uniform corruption is not identifiable, inferred from a trained keep head reaching
+0.1058 recall at 0.4312 precision against a 0.3494 base rate. That inference had a
+competing explanation it did not rule out: the corruption is identifiable and the model
+failed to learn it. The project plan's next action called for settling this without
+training, and it should have been settled before the stronger claim was made.
+
+**Observation.** Run `openmoji-g1-detectability-877feff-4processes-9b9b1699` scores
+every legal coordinate field by a fixed local-continuity statistic — the mean absolute
+distance to the same slot in adjacent segments — with no learned parameters at all. On
+48 held-out icons it separates corrupted from retained fields at **AUC 0.7698** under
+factorized corruption at p=0.35. At the trained detector's own flag rate of 8.573%, the
+statistic reaches **0.7451 precision and 0.1824 recall**, against the trained model's
+0.4312 and 0.1058. A zero-parameter heuristic beats a 579,872-parameter model by 73% on
+precision at the same operating point.
+
+Across processes: path-correlated 0.9333, factorized at p=0.10 0.8575, factorized at
+p=0.35 0.7698, whole-path 0.5318. The whole-path figure is not comparable — donor
+compatibility replaced only 32 of 13,128 fields, and a donor path is locally smooth by
+construction, so local continuity is the wrong instrument for it.
+
+**Decision.** Withdraw the information-theoretic claim. Factorized corruption at p=0.35
+is identifiable; Gate G's failure is one of learning, not of information, and the
+previous entry's decisive step was wrong. Every measurement in v1 through v6 stands and
+so does every predeclared outcome; what does not stand is the inference from "the model
+could not detect it" to "it is not detectable". That inference needed a
+model-independent check, and the check was available for the cost of no training.
+
+The Gate G result is therefore narrower and more useful than stated: a 580K-parameter
+bidirectional transformer trained this way does not learn a corrupted-field detector
+that a trivial local statistic already provides, and it collapses to the trivial policy
+instead. That is actionable — a model given the continuity signal, or trained with a
+detection objective that the statistic bounds from below, has somewhere to go.
+
+The Gate F implication survives and strengthens. Path-correlated corruption is markedly
+more identifiable than factorized, 0.9333 against 0.7698, which is what a structural
+argument predicts: a replaced block is inconsistent with its neighbours in a way a
+single resampled coordinate is not. Gate F selected factorized on four-icon fixtures
+where recovery was memorization, and this is independent, training-free evidence that
+the selection should be revisited at corpus scale.
