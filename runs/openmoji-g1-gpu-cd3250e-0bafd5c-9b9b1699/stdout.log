@@ -1,1 +1,3 @@
 2026-09-20T09:38:14Z planned; no remote stage or GPU step yet
+2026-09-20T09:39:28Z staged; archive and extracted-tree hashes verified
+2026-09-20T09:40:06Z failed before model construction; staged relative input path resolved against image workdir

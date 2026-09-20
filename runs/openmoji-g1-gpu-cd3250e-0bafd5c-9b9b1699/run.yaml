@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-gpu-cd3250e-0bafd5c-9b9b1699
-state: planned
+state: failed
 parent_run: openmoji-g1-smoke-da44363-0bafd5c-9b9b1699
 hypothesis: >-
   The exact locally verified Gate G pipeline completes one CUDA train step on the owned
@@ -45,3 +45,8 @@ outputs:
   remote_workspace: /home/dev/workspace/openmoji-g1-gpu-cd3250e-0bafd5c-9b9b1699
   durable_artifacts: /home/dev/.cache/openmoji-g1-gpu-cd3250e-0bafd5c-9b9b1699
 planned_at: 2026-09-20T09:38:14Z
+staged_at: 2026-09-20T09:39:28Z
+failed_at: 2026-09-20T09:40:06Z
+failure:
+  reason: staged_relative_paths_resolved_against_image_workdir
+  gpu_step_started: false

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import sys
 from dataclasses import replace
 from pathlib import Path
@@ -44,6 +45,7 @@ def _run(config: dict[str, Any]) -> dict[str, Any]:
     config_path = source / _CONFIG_RELATIVE
     if hashlib.sha256(config_path.read_bytes()).hexdigest() != config["config_sha256"]:
         raise base.SmokeError("pipeline config hash does not match staged identity")
+    os.chdir(source)
     pilot = load_openmoji_pilot_config(config_path)
     if pilot.steps > base._positive_int(config["max_steps"], "max_steps"):
         raise base.SmokeError("pipeline smoke exceeds the configured step cap")
