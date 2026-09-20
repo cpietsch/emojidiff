@@ -650,3 +650,25 @@ A mature repository should expose reproducible commands for:
 The project succeeds when it produces clear evidence about the representation,
 corruption process, and vector-generation use case—even if the original diffusion
 hypothesis is rejected.
+
+## 14. Research weblog
+
+The operator needs a readable running account of the research that is separate from the
+machine-readable run registry: what was decided, why, what each experiment predicted,
+what it actually showed, and the visual output that makes a claim checkable by eye.
+
+Requirements:
+
+- A static site generated from the committed evidence already in the repository —
+  `state/CURRENT.md`, `state/runs.jsonl`, `runs/*/run.yaml`, `reports/**/summary.json`,
+  and the derived renders. It is a view over the research record, never a second,
+  hand-maintained source of truth that can silently disagree with it.
+- It shows the decision trail (gates, hypotheses, predeclared criteria, and whether each
+  was met or falsified), the experiment timeline, and the visual artifacts: rendered
+  icons, paired clean/corrupted/predicted trajectories, and contact sheets.
+- Falsified and superseded runs stay visible. A weblog that only shows successes would
+  misrepresent the research.
+- Served over the machine's Tailscale address, `100.69.189.78`, not published to any
+  external host and not a Claude artifact.
+- Regenerated and extended during training downtime, so it costs no GPU time and never
+  delays an experiment.
