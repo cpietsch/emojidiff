@@ -1,0 +1,53 @@
+schema_version: 1
+run_id: openmoji-g1-gpu-215bcb8-0bafd5c-9b9b1699
+state: planned
+parent_run: openmoji-g1-smoke-da44363-0bafd5c-9b9b1699
+retry_of: openmoji-g1-gpu-e7dc920-0bafd5c-9b9b1699
+hypothesis: >-
+  The exact locally verified Gate G pipeline completes one CUDA train step on the owned
+  RTX 4080, restores a canonical checkpoint in durable storage, and preserves locked
+  paths exactly.
+expected_information_gain: >-
+  Validates the real data, selected normalizers, conditioned model, optimizer,
+  checkpoint, and locked-edit path in the target GPU environment before larger work.
+  The single corrected factor is the launcher environment: the owned Docker smoke now
+  sets CUBLAS_WORKSPACE_CONFIG so the pipeline's declared deterministic algorithms are
+  achievable on CUDA rather than rejected.
+code:
+  git_commit: 215bcb8c8d67eefe4651c4807f45fab91c2971c2
+  snapshot_mode: git-archive-plus-hash-pinned-six-svg-smoke-fixture
+  archive_sha256: fa27c3b501e2abe7130be6f19e4bab715f5858fa4ca22fac1bcc5dbb00b3b99e
+  tree_sha256: 706315fd65867443cf6b564c848cff5c5fd844a5d8170c997c1f86d502118da2
+  change_from_retry_parent: owned Docker smoke launcher sets CUBLAS_WORKSPACE_CONFIG=:4096:8
+config:
+  path: configs/learning/openmoji-g1-dominant-bucket-smoke.yaml
+  sha256: 0bafd5c3b3de29da7192b8f044716131b98072cd90134c603c3d42942a3cf22b
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  assignments_sha256: e0cdb2a3cc8f00df5ad05df76c9feeac1f73446606f1fa0da013f8c3084e482b
+  staged_raw_svg_count: 6
+  bucket: bucket-p32-t128
+worker:
+  alias: owned-gpu
+  gpu: NVIDIA GeForce RTX 4080
+  driver: "595.71.05"
+  image: mojidiff/owned-gpu-smoke:cd3250e
+  image_digest: sha256:f42d0acc2a768b6929a982dbb1afcfb342b382751ea0e974ba00052e5dff38ca
+  torch: 2.8.0a0+5228986c39.nv25.06
+  cuda: "12.9"
+execution:
+  smoke_id: openmoji-g1-pipeline-v1
+  seed_set: [3101]
+  deterministic_algorithms: true
+  cublas_workspace_config: ":4096:8"
+  optimizer_steps: 1
+  resource_cap:
+    max_steps: 20000
+    max_storage_gb: 50
+  network: none
+  checkpoint_policy: retain all bounded smoke outputs in persistent artifact volume
+outputs:
+  local_metadata: runs/openmoji-g1-gpu-215bcb8-0bafd5c-9b9b1699
+  remote_workspace: /home/dev/workspace/openmoji-g1-gpu-215bcb8-0bafd5c-9b9b1699
+  durable_artifacts: /home/dev/.cache/openmoji-g1-gpu-215bcb8-0bafd5c-9b9b1699
+planned_at: 2026-09-20T11:05:30Z
