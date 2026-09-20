@@ -1211,3 +1211,43 @@ way to express "leave this one alone": copying a field means reconstructing its 
 token from scratch, and at 65% of fields uncorrupted that is most of the task. The next
 experiment is an edit-mask or residual formulation in which copying is the default and
 the model predicts only what to change.
+
+## 2026-09-20 — Every Gate G model is worse than doing nothing
+
+**Hypothesis.** None. This is a control that should have existed since v1 and did not,
+computed from already-committed metrics at no cost.
+
+**Observation.** Under argmax decoding, emitting the input unchanged is a legal policy:
+the identity function scores retained-token accuracy 1.0, changed-token accuracy 0.0,
+and aggregate accuracy equal to the uncorrupted fraction, 26,030 of 40,008 held-out
+fields, or 0.6506 at corruption 0.35. Every trained model in the sequence scores below
+it:
+
+| model | aggregate | changed | retained |
+| --- | ---: | ---: | ---: |
+| v1, 256 icons | 0.2312 | 0.0552 | 0.3256 |
+| v2, full split | 0.2886 | 0.0573 | 0.4128 |
+| v3, 3.53x capacity | 0.3036 | 0.0639 | 0.4323 |
+| v4, noise-conditioned | 0.2980 | 0.0556 | 0.4282 |
+| v5, slot-bound | 0.3793 | 0.0787 | 0.5408 |
+| **identity, copy `x_t`** | **0.6506** | 0.0000 | 1.0000 |
+
+The best model is 0.2713 below identity. In render terms the same holds: identity has a
+recovery fraction of exactly 0 at every corruption level by definition, which beats v2,
+v4 and v5 at 0.05, 0.10 and 0.20, and loses only at 0.35.
+
+**Decision.** Record this as a design failure in the experimental sequence, not only a
+result about the models. v1 compared held-out recovery against an *untrained* control
+and reported 18x above it; that comparison made weak learning look like progress,
+because random is the wrong floor. The right floor is the trivial policy, and against it
+every model so far is net harmful. The predeclared criteria from v1 through v5 are not
+invalidated - they measured what they said - but "learns far above its untrained
+control" should never again be reported without the identity baseline beside it.
+
+This also sharpens the remaining candidate rather than changing it. A denoiser that
+cannot beat "return the input" is not denoising, and the objective is why: every field
+is an independent softmax over a 289- or 417-way vocabulary, so representing identity
+requires reconstructing all 26,030 uncorrupted tokens exactly. The next run makes
+identity the default by predicting a per-field keep-or-change decision, and its primary
+criterion is to beat 0.6506 aggregate - the first Gate G criterion set against the
+trivial policy rather than against noise.

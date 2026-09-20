@@ -1,0 +1,44 @@
+{
+  "best_trained_model_deficit_vs_identity": 0.2712707458508299,
+  "corruption_probability": 0.35,
+  "held_out_fields": {
+    "changed": 13978,
+    "retained": 26030,
+    "total": 40008
+  },
+  "identity": {
+    "aggregate": 0.6506198760247951,
+    "changed": 0.0,
+    "retained": 1.0
+  },
+  "note": "Identity is a legal policy under argmax decoding: emit x_t unchanged.",
+  "render_recovery_fraction_at_every_level": 0.0,
+  "schema_version": 1,
+  "trained_models": {
+    "v1": {
+      "aggregate": 0.23115376924615078,
+      "changed": 0.05522964658749464,
+      "retained": 0.3256242796772954
+    },
+    "v2": {
+      "aggregate": 0.28861727654469105,
+      "changed": 0.057304335384175134,
+      "retained": 0.41283134844410296
+    },
+    "v3": {
+      "aggregate": 0.3035642871425715,
+      "changed": 0.06388610673916154,
+      "retained": 0.43227045716480983
+    },
+    "v4": {
+      "aggregate": 0.29801539692061585,
+      "changed": 0.055587351552439546,
+      "retained": 0.4281982328082981
+    },
+    "v5": {
+      "aggregate": 0.3793491301739652,
+      "changed": 0.07869509228788095,
+      "retained": 0.5407990779869382
+    }
+  }
+}
