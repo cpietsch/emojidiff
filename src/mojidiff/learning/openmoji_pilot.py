@@ -67,6 +67,31 @@ class PilotRow:
 
 
 @dataclass(frozen=True)
+class SelectionPolicy:
+    """Held-out checkpoint selection and early stopping.
+
+    The v1 data-scale predecessor trained a fixed 600-step budget and passed its
+    held-out loss minimum at step 240, so its reported checkpoint was already
+    overfitting.  When this policy is configured the run keeps the checkpoint with the
+    lowest held-out loss and stops once `patience_evals` consecutive evaluations fail
+    to improve on it by more than `min_delta`.  Configs without the policy behave
+    exactly as before.
+    """
+
+    objective: str
+    patience_evals: int
+    min_delta: float
+
+
+@dataclass(frozen=True)
+class _BestCheckpoint:
+    step: int
+    loss: float
+    payload: bytes
+    validation: dict[str, float | int | None]
+
+
+@dataclass(frozen=True)
 class OpenMojiPilotConfig:
     version: str
     source_revision: str
@@ -101,6 +126,7 @@ class OpenMojiPilotConfig:
     seed: int
     device: str
     eval_every: int = 0
+    selection_policy: SelectionPolicy | None = None
 
 
 def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
@@ -154,6 +180,7 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
         seed=_nonnegative_int(training.get("seed"), "seed"),
         device=_string(training, "device"),
         eval_every=_nonnegative_int(training.get("eval_every", 0), "eval_every"),
+        selection_policy=_selection_policy(training.get("selection_policy")),
     )
     if result.d_model % result.heads:
         raise OpenMojiPilotError("model.d_model must be divisible by model.heads")
@@ -163,7 +190,28 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
         raise OpenMojiPilotError("training.device must be auto, cpu, or cuda")
     if result.eval_every > result.steps:
         raise OpenMojiPilotError("training.eval_every cannot exceed training.steps")
+    if result.selection_policy is not None and not result.eval_every:
+        raise OpenMojiPilotError("selection_policy requires a nonzero training.eval_every")
     return result
+
+
+def _selection_policy(value: object) -> SelectionPolicy | None:
+    """Parse the optional held-out selection and early-stopping policy."""
+
+    if value is None:
+        return None
+    mapping = _mapping(value, "selection_policy")
+    objective = _string(mapping, "objective")
+    if objective != "held_out_loss":
+        raise OpenMojiPilotError("selection_policy.objective must be held_out_loss")
+    min_delta = mapping.get("min_delta", 0.0)
+    if isinstance(min_delta, bool) or not isinstance(min_delta, (int, float)) or min_delta < 0:
+        raise OpenMojiPilotError("selection_policy.min_delta must be nonnegative")
+    return SelectionPolicy(
+        objective=objective,
+        patience_evals=_positive_int(mapping.get("patience_evals"), "patience_evals"),
+        min_delta=float(min_delta),
+    )
 
 
 def load_pilot_index(
@@ -276,7 +324,40 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
         untrained = _validate()
         trace.append({"step": 0, "trained": False, **untrained})
 
+    policy = config.selection_policy
+    best: _BestCheckpoint | None = None
+    stale_evals = 0
+    stopped_early = False
+
+    def _consider(step: int, result: dict[str, float | int | None]) -> bool:
+        """Record a held-out evaluation against the selection policy.
+
+        Returns True when `patience_evals` consecutive evaluations have failed to
+        improve the objective, which is the caller's signal to stop training.  Step 0
+        is deliberately never considered: an untrained model is not a selectable one.
+        """
+
+        nonlocal best, stale_evals, stopped_early
+        assert policy is not None
+        loss = float(cast(float, result["loss"]))
+        if best is None or loss < best.loss - policy.min_delta:
+            best = _BestCheckpoint(
+                step=step,
+                loss=loss,
+                payload=_save_checkpoint(model, optimizer, step),
+                validation=dict(result),
+            )
+            stale_evals = 0
+            return False
+        stale_evals += 1
+        if stale_evals >= policy.patience_evals:
+            stopped_early = True
+            return True
+        return False
+
     metrics: list[dict[str, Any]] = []
+    completed_steps = 0
+    last_traced_step = 0
     for step in range(1, config.steps + 1):
         indices = [
             (step * config.batch_size + offset) % len(train_programs)
@@ -306,12 +387,35 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
                 "train_token_accuracy": counts["correct"] / counts["total"],
             }
         )
+        completed_steps = step
         if config.eval_every and step % config.eval_every == 0 and step != config.steps:
-            trace.append({"step": step, "trained": True, **_validate()})
+            interim = _validate()
+            trace.append({"step": step, "trained": True, **interim})
+            last_traced_step = step
+            if policy is not None and _consider(step, interim):
+                break
 
-    validation = _validate()
-    if config.eval_every:
-        trace.append({"step": config.steps, "trained": True, **validation})
+    final_step_validation = _validate()
+    if config.eval_every and last_traced_step != completed_steps:
+        trace.append({"step": completed_steps, "trained": True, **final_step_validation})
+        if policy is not None:
+            _consider(completed_steps, final_step_validation)
+
+    validation = final_step_validation
+    selected_step = completed_steps
+    if policy is not None:
+        if best is None:
+            raise OpenMojiPilotError("selection policy recorded no held-out evaluation")
+        # Restore the selected parameters in place so the locked-path check, the
+        # written checkpoint, and the reported held-out numbers all describe one model.
+        selected = _decode_checkpoint(best.payload)
+        model.load_state_dict(selected["model"])
+        optimizer.load_state_dict(selected["optimizer"])
+        selected_step = best.step
+        validation = _validate()
+        if validation != best.validation:
+            raise OpenMojiPilotError("restored selected checkpoint did not reproduce its metrics")
+
     lock_verified = _verify_locked_path(
         model,
         validation_rows[0],
@@ -322,14 +426,16 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
         config,
         device,
     )
-    checkpoint = _save_checkpoint(model, optimizer, config.steps)
+    checkpoint = (
+        best.payload if best is not None else _save_checkpoint(model, optimizer, config.steps)
+    )
     restored = _new_model(config, codec, groups, subgroups).to(device)
     restored_optimizer = torch.optim.AdamW(restored.parameters(), lr=config.learning_rate)
     document = _decode_checkpoint(checkpoint)
     restored.load_state_dict(document["model"])
     restored_optimizer.load_state_dict(document["optimizer"])
     checkpoint_round_trip = _model_hash(restored) == _model_hash(model)
-    if int(document["step"]) != config.steps or not checkpoint_round_trip:
+    if int(document["step"]) != selected_step or not checkpoint_round_trip:
         raise OpenMojiPilotError("canonical checkpoint did not restore the trained model")
 
     checkpoint_sha256 = hashlib.sha256(checkpoint).hexdigest()
@@ -366,6 +472,20 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
         summary["validation_untrained"] = untrained
         summary["validation_trace_sha256"] = hashlib.sha256(trace_payload).hexdigest()
         _write_bytes_artifact(config.report_root / TRACE_FILENAME, trace_payload)
+    if policy is not None:
+        # `steps` above stays the declared cap; `completed_steps` is what actually ran.
+        # `validation` describes the selected checkpoint, not the last trained model.
+        summary["selection"] = {
+            "objective": policy.objective,
+            "patience_evals": policy.patience_evals,
+            "min_delta": policy.min_delta,
+            "selected_step": selected_step,
+            "selected_held_out_loss": None if best is None else best.loss,
+            "completed_steps": completed_steps,
+            "stopped_early": stopped_early,
+            "evals_without_improvement": stale_evals,
+        }
+        summary["validation_final_step"] = final_step_validation
     _write_bytes_artifact(config.report_root / "metrics.jsonl", metrics_payload)
     _write_bytes_artifact(config.report_root / SUMMARY_FILENAME, _json_bytes(summary))
     _write_bytes_artifact(config.report_root / "README.md", _markdown(summary).encode())
@@ -624,11 +744,25 @@ def _markdown(summary: dict[str, Any]) -> str:
             f"Canonical checkpoint round trip: {summary['checkpoint_round_trip']}; "
             f"locked-path exactness: {summary['locked_path_exact']}.",
             "",
+            *_selection_markdown(summary),
             "This is a bounded fixed-topology geometry pipeline smoke over the dominant exact "
             "packed bucket. It is not evidence for unconditional generation.",
             "",
         ]
     )
+
+
+def _selection_markdown(summary: dict[str, Any]) -> list[str]:
+    selection = summary.get("selection")
+    if not isinstance(selection, dict):
+        return []
+    return [
+        f"Selected by {selection['objective']} at step {selection['selected_step']} of "
+        f"{selection['completed_steps']} run (cap {summary['steps']}); early stop: "
+        f"{selection['stopped_early']}. Reported held-out numbers describe that "
+        "selected checkpoint, not the last trained step.",
+        "",
+    ]
 
 
 def _mapping(value: object, field: str) -> dict[str, Any]:
