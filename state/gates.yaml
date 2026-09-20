@@ -16,9 +16,10 @@ headline: >-
   25.1% and narrows the train/held-out gap 39.7%. But changed-token recovery improved
   only 1.307x against a predeclared 1.5x, and rendering that checkpoint shows none of
   twelve held-out predictions is a recognizable icon. Data volume is no longer the
-  binding constraint, and neither is model capacity: a 3.53x model reaches the same
-  held-out loss floor sooner and then overfits. What remains is the corruption
-  schedule - at probability 0.35 a third of the geometry is simply gone.
+  binding constraint, and neither is model capacity. The cause is that the denoiser
+  barely reads its input: its output correlates at r = 0.91 between 5% and 35%
+  corruption, and at 5% it makes a nearly clean input 2.8x worse. It learned a prior
+  over icons, not a conditional denoiser.
 gates:
   - id: Gate A
     title: Orchestration and recovery
@@ -91,9 +92,12 @@ gates:
       full 128-icon held-out draw the loss-selected and accuracy-selected checkpoints
       differ by less than 0.0032 RGBA MAE in render error. A 3.53x capacity run then
       falsified capacity as the constraint too, reaching the same held-out loss floor
-      sooner and then overfitting. Data volume and model capacity are both eliminated on
-      matched predeclared comparisons; the corruption schedule is what remains. Still
-      fixed-topology and geometry-only.
+      sooner and then overfitting. A corruption-level sweep over one fixed checkpoint
+      then found the cause: the model's output is near-independent of its input,
+      correlating at r = 0.91 between 5% and 35% corruption, so it learned a
+      group-conditioned prior over icon geometry rather than a conditional denoiser. At
+      5% corruption it makes its input 2.8x worse. The denoiser has no noise-level input
+      and no corrupted-field mask. Still fixed-topology and geometry-only.
   - id: Gate H
     title: Broad pretraining question
     status: not-started

@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-corruption-sweep-71a080a-4levels-9b9b1699
-state: planned
+state: completed
 parent_run: openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
 hypothesis: >-
   Two mechanisms are in tension and this run adjudicates between them. The regime
@@ -90,3 +90,54 @@ outputs:
   local_metadata: runs/openmoji-g1-corruption-sweep-71a080a-4levels-9b9b1699
   report_roots: reports/learning/openmoji-g1-corruption-sweep-p{005,010,020,035}
 planned_at: 2026-09-20T19:00:00Z
+completed_at: 2026-09-20T19:15:00Z
+result:
+  statistic: per-icon recovery fraction (MAE(x_t) - MAE(x_hat_0)) / MAE(x_t), 72 px
+  levels:
+    "0.05": {median_x_t: 0.04973, median_x_hat_0: 0.13853, mean_recovery: -4.6517, ci95: [-7.6718, -1.6316], helped: 0, of: 32}
+    "0.10": {median_x_t: 0.08116, median_x_hat_0: 0.13914, mean_recovery: -1.2024, ci95: [-2.1178, -0.2869], helped: 4, of: 32}
+    "0.20": {median_x_t: 0.13864, median_x_hat_0: 0.13717, mean_recovery: -0.1315, ci95: [-0.2845, 0.0216], helped: 14, of: 32}
+    "0.35": {median_x_t: 0.17606, median_x_hat_0: 0.14045, mean_recovery: 0.1800, ci95: [0.1030, 0.2570], helped: 26, of: 32}
+  input_independence:
+    mean_x_t_error_by_level: {"0.05": 0.05098, "0.10": 0.08739, "0.20": 0.13592, "0.35": 0.17958}
+    mean_x_hat_0_error_by_level: {"0.05": 0.13822, "0.10": 0.13820, "0.20": 0.14728, "0.35": 0.14651}
+    per_icon_pearson_r_p005_vs_p035: 0.9122
+    mean_abs_prediction_difference_p005_vs_p035: 0.01902
+    statement: >-
+      Input render error varies by a factor of 3.5 across the sweep while prediction
+      error moves about 6%, and per-icon predictions at 0.05 and 0.35 correlate at
+      r = 0.91. The model emits nearly the same reconstruction regardless of how
+      corrupted its input is.
+  identical_rerun: true
+predeclared_outcome:
+  overall: falsified
+  recovery_improves_at_lower_corruption: {passed: false, observed: -1.2024, threshold: 0.3600}
+  monotone_in_corruption: {passed: false, observed: [-4.6517, -1.2024, -0.1315, 0.1800], note: strictly increasing in p, the opposite of the prediction}
+  a_useful_regime_exists: {passed: false, observed: 0.1800, threshold: 0.50}
+  reproducibility: {passed: true}
+  competing_hypothesis_confirmed: damage
+  conclusion: >-
+    The regime hypothesis is false and the damage hypothesis registered alongside it is
+    confirmed. At probability 0.05 the model makes its input 2.8x worse and helps on
+    zero of thirty-two icons. The mechanism is that the prediction barely depends on the
+    input: the model has learned a group- and subgroup-conditioned prior over icon
+    geometry and emits approximately that. GeometryDenoiser has no noise-level or
+    timestep input and no mask marking corrupted fields, and it trained at a single
+    fixed probability, so nothing tells it how much to trust what it is given.
+  reinterprets_earlier_runs: >-
+    The measurements stand, the interpretation does not. The +18% recovery at 0.35 is a
+    fixed-quality output beating a badly corrupted baseline, not recovered geometry.
+    Retained-token accuracy of 0.4128 was this same finding visible in token space since
+    v1. The shared loss floor near 7.35 across a 3.53x capacity change is consistent
+    with both models learning the same prior. v1 and v2 learned a prior over icons, not
+    a conditional denoiser.
+  redirects_to: >-
+    Not a corruption schedule. Give the model a noise-level or timestep embedding and
+    train across a range of levels; make copying easy through an edit mask or a residual
+    against x_t; and, as a diagnostic upper bound only, condition on which fields were
+    corrupted to separate identification failure from prediction failure.
+artifact_durability:
+  versioned: >-
+    Four contact sheets, summaries, and per-icon render metrics under reports/learning/,
+    with metrics and summaries also copied into this run directory. Reproducible from
+    the durable v2 checkpoint on CPU in about six minutes.

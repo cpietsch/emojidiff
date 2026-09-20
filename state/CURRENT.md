@@ -279,6 +279,32 @@ Two of the three candidate factors are therefore eliminated on matched, predecla
 comparisons - data volume by v2, capacity by v3 - and the remaining candidate is the
 corruption schedule, exactly where the render probe pointed.
 
+Testing that last candidate produced the most important result of the Gate G sequence,
+and it is not the one expected. Run
+`openmoji-g1-corruption-sweep-71a080a-4levels-9b9b1699` evaluated v2's loss-selected
+checkpoint at corruption probabilities 0.05, 0.10, 0.20 and 0.35 with identical icons
+and seeds, and no training. Mean per-icon recovery fraction at 72 px is -4.6517,
+-1.2024, -0.1315 and +0.1800 - strictly increasing in the corruption level, the opposite
+of the prediction. At 0.05 the model makes its input 2.8x worse and helps on zero of
+thirty-two icons. All three primary criteria are falsified and the competing damage
+hypothesis, registered in the same record before launch, is confirmed.
+
+The mechanism: mean `x_t` render error varies by a factor of 3.5 across the sweep while
+mean `x_hat_0` error moves about 6%, and per-icon predictions at 0.05 and 0.35 correlate
+at Pearson r = 0.91. The model emits nearly the same reconstruction whatever it is
+given. The p=0.05 contact sheet shows `x_t` almost indistinguishable from `x_0` and
+`x_hat_0` as scribble in every row. `GeometryDenoiser` has no timestep or noise-level
+input and no corrupted-field mask, and it trained at one fixed probability, so nothing
+tells it how much to trust its input.
+
+This reinterprets the sequence without invalidating any measurement. The +18% recovery
+at 0.35 is a fixed-quality output beating a badly corrupted baseline, not recovered
+geometry. Retained-token accuracy of 0.4128 was this same finding in token space since
+v1, and the standing 0.90 bar has been measuring the real problem all along. The shared
+loss floor near 7.35 across a 3.53x capacity change is consistent with both models
+learning the same prior. What v1 and v2 learned is a group-conditioned prior over icon
+geometry, not a conditional denoiser.
+
 
 
 ## Last completed action and verification
@@ -291,6 +317,12 @@ and metrics byte-identically, summary SHA-256
 cover the unchanged fixed-budget shape, argmin selection with a matching written
 checkpoint, deterministic patience exhaustion, and rejection of a policy without
 periodic evaluation. The full suite passes 112/112; Ruff and strict mypy pass.
+
+Registered and completed the corruption-level sweep
+`openmoji-g1-corruption-sweep-71a080a-4levels-9b9b1699` at commit `71a080a`: four
+evaluation levels over one fixed checkpoint, CPU only, no training, with every level
+reproducing identical artifacts. Its three primary criteria are falsified and the
+registered competing hypothesis is confirmed.
 
 Registered and completed the capacity run
 `openmoji-g1-capacity-v3-3c252d5-ee32665b-9b9b1699` at commit `3c252d5`, 72.1 s and
@@ -698,22 +730,25 @@ The selection scalar is settled: held-out loss, by convention, with the effect o
 quality bounded below 0.0032 RGBA MAE. Runs no longer need to argue the point; they
 record the rule and move on.
 
-Vary the corruption schedule. It is the only one of the three candidate factors still
-standing: v2 eliminated data volume and v3 eliminated model capacity, both on matched
-predeclared comparisons, and both converge to a held-out loss floor near 7.35 that looks
-like a property of the regime rather than of either model. The render probe showed why:
-at probability 0.35 the corrupted input is already visually destroyed, a third of the
-geometry is simply gone, and no model or dataset recovers information that is not there.
-That probability was chosen for the Gate F four-icon fixtures and has never been
-revisited at corpus scale.
+Make the model read its input. The corruption sweep showed it barely does: its output is
+near-independent of how corrupted the input is, which explains the 0.41 retained-token
+accuracy, the shared loss floor across a 3.53x capacity change, and why neither more data
+nor more parameters helped. A corruption schedule alone will not fix a model that ignores
+its input.
 
-The smallest version is a one-factor sweep of `corruption_probability` on the v2 model
-and split - everything else fixed - to find where held-out recovery and render error
-stop being dominated by information loss. The better version, and probably the right
-one, samples a corruption level per example from a range rather than fixing it, which is
-also what a denoiser facing many levels at sampling time actually needs; that is a
-change to the training distribution and should be its own predeclared run rather than
-folded into the sweep.
+The smallest change that addresses the observed mechanism is a noise-level input. Add a
+timestep or corruption-level embedding to `GeometryDenoiser` and sample the corruption
+level per example from a range instead of fixing it at 0.35, so the model can learn how
+much to trust what it is given. Hold the v2 model size, split, seed, batch size and
+learning rate fixed, and predeclare the recovery fraction at p=0.10 - currently -1.2024,
+where any value above zero would already be a qualitative change - alongside held-out
+loss at the selected checkpoint.
+
+Two follow-ups, in cost order. Make copying cheap: predict an edit mask or a residual
+against `x_t` so leaving a correct field alone is the default rather than something the
+model reconstructs token by token. And as a diagnostic upper bound only, not a realistic
+sampling-time signal, condition on which fields were corrupted, to separate inability to
+identify corrupted fields from inability to predict their values.
 
 Render every result on the 128-icon draw. The paired-difference interval's half-width
 there is 0.0032, so any claim of a render improvement above roughly 0.0064 is testable

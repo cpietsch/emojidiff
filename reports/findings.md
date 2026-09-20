@@ -1116,3 +1116,50 @@ held-out loss stopped improving, and 0.0831 would have cleared the criterion. It
 reported and not gated because the selection rule was settled before this run existed.
 That is precisely the post-hoc freedom the scalar comparison was run to remove, and it
 would have been available here.
+
+## 2026-09-20 — The Gate G denoiser is barely reading its input
+
+**Hypothesis.** Two mechanisms were registered in tension before launch. The *regime*
+hypothesis: corruption probability 0.35 destroys information no model can recover, so
+one fixed checkpoint evaluated at lower corruption should close a much larger fraction
+of the render gap. The *damage* hypothesis: held-out retained-token accuracy is only
+0.4128, so the model overwrites about 59% of already-correct fields, and at low
+corruption there is more correct material to damage, so recovery could go negative. The
+regime hypothesis was the registered prediction.
+
+**Observation.** Run `openmoji-g1-corruption-sweep-71a080a-4levels-9b9b1699` evaluated
+v2's loss-selected checkpoint at four corruption levels with identical icons and seeds.
+Mean per-icon recovery fraction at 72 px is -4.6517 at p=0.05, -1.2024 at p=0.10,
+-0.1315 at p=0.20 and +0.1800 at the trained p=0.35 — strictly increasing in p, the
+opposite of the prediction. At p=0.05 the model makes its input 2.8x worse and helps on
+zero of thirty-two icons. All three primary criteria are falsified; the damage
+hypothesis is confirmed.
+
+The mechanism is visible in one comparison. Across the sweep, mean `x_t` render error
+moves by a factor of 3.5, from 0.05098 to 0.17958, while mean `x_hat_0` error moves
+about 6%, from 0.13822 to 0.14651. Per icon, predictions at p=0.05 and p=0.35 correlate
+at Pearson r = 0.91. The model emits nearly the same reconstruction regardless of how
+corrupted its input is. The p=0.05 contact sheet shows it plainly: `x_t` is almost
+indistinguishable from `x_0` — legible WC signs, a solid hexagon, an airplane, a
+mushroom — and `x_hat_0` is scribble in every row.
+
+`GeometryDenoiser` takes corrupted tokens plus group and subgroup embeddings and nothing
+else. There is no timestep or noise-level input and no mask marking which fields were
+replaced, and it trained at a single fixed probability, so nothing tells it how much to
+trust what it is given.
+
+**Decision.** This reinterprets the whole Gate G sequence, though it invalidates none of
+its measurements. The +18% recovery at p=0.35 is a fixed-quality output beating a badly
+corrupted baseline, not recovered geometry. Retained-token accuracy of 0.4128 was never
+a secondary weakness — it was this finding, visible in token space since v1, and the
+standing 0.90 bar has been measuring the real problem all along. The held-out loss floor
+near 7.35 that v2 and a 3.53x larger v3 both reach is consistent with both learning the
+same prior, which is why capacity did not help. v1 and v2 learned a group-conditioned
+prior over icon geometry, not a conditional denoiser.
+
+The next experiment is therefore not a corruption schedule. Give the model a
+noise-level or timestep embedding and train across a range of levels, so it can modulate
+how much to trust its input; make copying cheap through an edit mask or a residual
+against `x_t`, so leaving a correct field alone is the default; and, as a diagnostic
+upper bound only, condition on which fields were corrupted, to separate inability to
+identify corrupted fields from inability to predict their values.
