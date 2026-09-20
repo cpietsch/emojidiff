@@ -30,7 +30,7 @@ from typing import Any
 import yaml
 
 from mojidiff.weblog.charts import Series, metric_chart
-from mojidiff.weblog.markdown import render_markdown
+from mojidiff.weblog.markdown import render_inline, render_markdown
 
 STATE_ORDER = ("planned", "staged", "running", "completed", "failed", "cancelled")
 _IMAGE_SUFFIXES = (".png", ".svg", ".jpg", ".jpeg", ".webp")
@@ -76,7 +76,7 @@ def build_site(root: Path, out: Path) -> dict[str, Any]:
     """Write the complete site under `out` and return a build manifest."""
 
     runs = _collect_runs(root)
-    gates = _load_gates(root)
+    gates, headline = _load_gates(root)
     findings = _read_text(root / "reports" / "findings.md")
     current = _read_text(root / "state" / "CURRENT.md")
     gallery = _collect_gallery(root)
@@ -89,7 +89,7 @@ def build_site(root: Path, out: Path) -> dict[str, Any]:
         _write(out / name, _asset(name))
 
     copied = _copy_assets(root, out, gallery, runs)
-    _write(out / "index.html", _index_page(runs, gates, current, gallery))
+    _write(out / "index.html", _index_page(runs, gates, headline or _headline(current), gallery))
     _write(out / "runs.html", _runs_page(runs))
     _write(out / "findings.html", _document_page("Decision trail", findings, "findings"))
     _write(out / "state.html", _document_page("Current research state", current, "state"))
@@ -196,15 +196,21 @@ def _collect_gallery(root: Path) -> dict[str, list[Path]]:
     return groups
 
 
-def _load_gates(root: Path) -> list[dict[str, Any]]:
+def _load_gates(root: Path) -> tuple[list[dict[str, Any]], str | None]:
+    """Return the gate board and the operator's explicit one-line headline."""
+
     path = root / "state" / "gates.yaml"
     if not path.is_file():
-        return []
+        return [], None
     parsed = yaml.safe_load(path.read_text()) or {}
     gates = parsed.get("gates") if isinstance(parsed, dict) else None
     if not isinstance(gates, list):
         raise WeblogError("state/gates.yaml must contain a `gates` list")
-    return [gate for gate in gates if isinstance(gate, dict)]
+    headline = parsed.get("headline") if isinstance(parsed, dict) else None
+    return (
+        [gate for gate in gates if isinstance(gate, dict)],
+        headline.strip() if isinstance(headline, str) else None,
+    )
 
 
 def _copy_assets(
@@ -248,7 +254,7 @@ def _read_jsonl(path: Path) -> list[dict[str, Any]]:
 def _index_page(
     runs: list[RunPage],
     gates: list[dict[str, Any]],
-    current: str | None,
+    headline: str,
     gallery: dict[str, list[Path]],
 ) -> str:
     counts: dict[str, int] = {}
@@ -266,7 +272,6 @@ def _index_page(
         f'<span class="tile-label">rendered artifacts</span></div>'
     )
 
-    headline = _headline(current)
     recent = [run for run in runs if run.timestamp][-12:][::-1]
     return _shell(
         "Overview",
@@ -275,7 +280,7 @@ def _index_page(
 <section class="hero">
   <p class="eyebrow">MojiDiff &middot; categorical denoising over typed SVG programs</p>
   <h1>Research weblog</h1>
-  <p class="lede">{escape(headline)}</p>
+  <p class="lede">{render_inline(headline)}</p>
   <div class="tiles">{tiles}</div>
 </section>
 {_gate_board(gates)}
@@ -298,7 +303,11 @@ def _index_page(
 
 
 def _headline(current: str | None) -> str:
-    """The first paragraph of the current hypothesis, as the operator wrote it."""
+    """The newest paragraph of the current hypothesis, as the operator wrote it.
+
+    The section is written oldest-first, so the last paragraph is the current state
+    of the research; leading with the first one would headline Gate B forever.
+    """
 
     if not current:
         return "No current-state handoff is committed yet."
@@ -307,14 +316,22 @@ def _headline(current: str | None) -> str:
         start = lines.index("## Current hypothesis and evidence") + 1
     except ValueError:
         return "No current hypothesis section is committed yet."
-    paragraph: list[str] = []
+    paragraphs: list[list[str]] = []
+    current_paragraph: list[str] = []
     for line in lines[start:]:
+        if line.startswith("## "):
+            break
         if not line.strip():
-            if paragraph:
-                break
+            if current_paragraph:
+                paragraphs.append(current_paragraph)
+                current_paragraph = []
             continue
-        paragraph.append(line.strip())
-    return " ".join(paragraph)
+        current_paragraph.append(line.strip())
+    if current_paragraph:
+        paragraphs.append(current_paragraph)
+    if not paragraphs:
+        return "No current hypothesis section is committed yet."
+    return " ".join(paragraphs[-1])
 
 
 def _gate_board(gates: list[dict[str, Any]]) -> str:

@@ -8,6 +8,15 @@
 # status: complete | open | blocked | not-started
 schema_version: 1
 updated: 2026-09-20
+# One-line state of the research, shown as the weblog's headline. Keep it in sync with
+# the Current hypothesis section of state/CURRENT.md; the weblog falls back to that
+# section's newest paragraph if this is absent.
+headline: >-
+  The representation is learnable and the 256-icon overfit was data-limited: the full
+  2,681-icon split cuts held-out loss 25.1% and narrows the train/held-out gap 39.7%.
+  But changed-token recovery improved only 1.307x against a predeclared 1.5x, so data
+  volume is no longer the binding constraint - and held-out loss and held-out accuracy
+  now disagree about when to stop.
 gates:
   - id: Gate A
     title: Orchestration and recovery

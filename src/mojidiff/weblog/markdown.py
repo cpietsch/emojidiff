@@ -163,6 +163,12 @@ def _collect_paragraph(lines: list[str], index: int) -> tuple[int, str]:
     return index, f"<p>{_inline(' '.join(body))}</p>"
 
 
+def render_inline(text: str) -> str:
+    """Render one line of inline Markdown, for prose used outside a block context."""
+
+    return _inline(text)
+
+
 def _inline(text: str) -> str:
     """Escape, then apply the supported inline spans."""
 
