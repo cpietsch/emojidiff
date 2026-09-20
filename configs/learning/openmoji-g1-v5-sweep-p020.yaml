@@ -1,0 +1,12 @@
+# Corruption sweep over the slot-bound v5 checkpoint. Same 32 icons, sizes and
+# corruption seeds as the v2 and v4 sweeps, so all three are directly comparable.
+schema_version: 1
+study_version: openmoji-g1-v5-sweep-p020
+pilot_config: configs/learning/openmoji-g1-slot-bound-v5.yaml
+checkpoint: /home/dev/.cache/openmoji-g1-slot-bound-v5-f502df1-d8af55ea-9b9b1699/checkpoint/checkpoint.zip
+checkpoint_sha256: a757475e60d6e4847a06967e6a83a8f26918ad71e1c309de23983a96faf95491
+report_root: reports/learning/openmoji-g1-v5-sweep-p020
+icons: 32
+render_sizes: [72, 18]
+render_timeout_seconds: 20
+corruption_probability: 0.20

@@ -16,10 +16,12 @@ headline: >-
   25.1% and narrows the train/held-out gap 39.7%. But changed-token recovery improved
   only 1.307x against a predeclared 1.5x, and rendering that checkpoint shows none of
   twelve held-out predictions is a recognizable icon. Data volume is no longer the
-  binding constraint, and neither is model capacity. The cause is that the denoiser
-  barely reads its input: its output correlates at r = 0.91 between 5% and 35%
-  corruption, and at 5% it makes a nearly clean input 2.8x worse. It learned a prior
-  over icons, not a conditional denoiser.
+  binding constraint, and neither is model capacity. The denoiser barely reads its
+  input: it learned a prior over icons, not a conditional denoiser. A provable encoder
+  defect - six coordinate lookups summed from one shared table, so a segment was an
+  unordered bag of its values - accounts for part of it, and fixing it for 768
+  parameters beats a 3.53x capacity increase. What remains is the prediction objective,
+  which has no cheap way to say "leave this field alone".
 gates:
   - id: Gate A
     title: Orchestration and recovery
@@ -96,8 +98,14 @@ gates:
       then found the cause: the model's output is near-independent of its input,
       correlating at r = 0.91 between 5% and 35% corruption, so it learned a
       group-conditioned prior over icon geometry rather than a conditional denoiser. At
-      5% corruption it makes its input 2.8x worse. The denoiser has no noise-level input
-      and no corrupted-field mask. Still fixed-topology and geometry-only.
+      5% corruption it makes its input 2.8x worse. Noise-level conditioning was falsified
+      as the explanation; the encoder was the defect, summing six coordinate lookups
+      from one shared table so a segment was an unordered bag of its values, provably
+      permutation-invariant in float64. Binding each value to its slot costs 768
+      parameters and beats a 3.53x capacity increase on every measure, but leaves the
+      prediction correlation unchanged at 0.86. Five candidates are eliminated by
+      predeclared comparison; the prediction objective remains. Still fixed-topology and
+      geometry-only.
   - id: Gate H
     title: Broad pretraining question
     status: not-started

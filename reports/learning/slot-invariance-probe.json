@@ -1,5 +1,7 @@
 {
   "precision": "float64",
+  "slot_binding": false,
+  "config": "configs/learning/openmoji-g1-dominant-bucket-train-v2-data-scale.yaml",
   "rows": [
     {
       "hexcode": "1F994",
@@ -38,5 +40,6 @@
       "identical_prediction": true
     }
   ],
-  "total_segments_swapped": 414
+  "total_segments_swapped": 414,
+  "all_predictions_identical": true
 }

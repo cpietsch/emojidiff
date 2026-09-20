@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-noise-conditioned-v4-6b935b2-5a9eaf44-9b9b1699
-state: planned
+state: completed
 parent_run: openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
 diagnosis_run: openmoji-g1-corruption-sweep-71a080a-4levels-9b9b1699
 hypothesis: >-
@@ -115,3 +115,32 @@ outputs:
   report_root: reports/learning/openmoji-g1-noise-conditioned-v4
   durable_artifacts: /home/dev/.cache/openmoji-g1-noise-conditioned-v4-6b935b2-5a9eaf44-9b9b1699
 planned_at: 2026-09-20T19:45:00Z
+completed_at: 2026-09-20T20:05:00Z
+result:
+  device: cuda
+  model_parameters: 580720
+  selected_step: 1020
+  completed_steps: 1500
+  ended_by: early_stopping
+  held_out_loss: 7.4284515380859375
+  held_out_aggregate_accuracy: 0.29801539692061585
+  held_out_changed_accuracy: 0.055587351552439546
+  held_out_retained_accuracy: 0.4281982328082981
+  checkpoint_sha256: e5d553187e00d4f2f2b80b4474e951571438225df880703455b058e7835df772
+  identical_rerun: true
+  mean_recovery_fraction_72px: {"0.05": -4.5349, "0.10": -1.0385, "0.20": -0.0910, "0.35": 0.2083}
+  per_icon_pearson_r_p005_vs_p035: 0.8619
+predeclared_outcome:
+  overall: falsified
+  stops_destroying_light_corruption: {passed: false, observed: -1.0385, threshold: 0.0}
+  output_depends_on_input: {passed: false, observed: 0.8619, threshold: 0.70}
+  light_corruption_damage_collapses: {passed: false, observed: -4.5349, threshold: -0.5}
+  does_not_wreck_the_trained_task: {passed: true, observed: 7.4284515380859375, threshold: 8.0}
+  structural_safety: {passed: true}
+  reproducibility: {passed: true}
+  conclusion: >-
+    Noise-level information was not the missing piece. Every figure moved in the
+    predicted direction and none moved enough to matter. Eliminating the informational
+    explanation is what forced the search into the encoder, where a provable defect was
+    found: the six coordinate lookups were summed from one shared table, so the model
+    could not tell which coordinate held which value.

@@ -305,6 +305,32 @@ loss floor near 7.35 across a 3.53x capacity change is consistent with both mode
 learning the same prior. What v1 and v2 learned is a group-conditioned prior over icon
 geometry, not a conditional denoiser.
 
+The cause is now identified and partly fixed. Noise-level conditioning was the obvious
+informational explanation and run
+`openmoji-g1-noise-conditioned-v4-6b935b2-5a9eaf44-9b9b1699` falsified it: sampling the
+corruption level per example over 0.05 to 0.50 and telling the model the level moved
+every figure in the predicted direction and none enough to matter, with the prediction
+correlation only 0.9122 to 0.8619. Eliminating that forced a look at the encoder, where
+the defect is provable. `GeometryDenoiser` summed six coordinate lookups from one shared
+embedding table into a single vector per segment, so a segment was an unordered bag of
+its values; in float64 a program and its coordinate-swapped variant produce
+byte-identical logits, maximum absolute difference exactly 0.0 across 414 swapped
+segments. The model was never ignoring `x_t` - it was reading a scrambled copy.
+
+Run `openmoji-g1-slot-bound-v5-f502df1-d8af55ea-9b9b1699` binds each value to its slot
+for 768 parameters, +0.13%, changing nothing else about v2. It beats the 3.53x capacity
+run on every measure: held-out loss 7.1782 against 7.3333 and 7.3790, retained accuracy
+0.5408 against 0.4128 and 0.4323, aggregate 0.3793, changed recovery 0.0787, and the
+latest held-out optimum of any run at step 1,500. At corruption 0.20 it is break-even,
+helping on 20 of 32 icons where v2 helped on 14. But its prediction correlation is
+0.8621, unchanged from v4, and two of its three behavioural criteria are falsified.
+Fixing the encoder raised the ceiling without changing what the model does.
+
+Slot binding is kept permanently: a strict improvement for 768 parameters that removes a
+defect which would confound every later result. Five candidates are now eliminated by
+predeclared comparison - data volume, capacity, the corruption regime, noise-level
+information, and encoder slot-blindness - leaving the prediction objective.
+
 
 
 ## Last completed action and verification
@@ -317,6 +343,16 @@ and metrics byte-identically, summary SHA-256
 cover the unchanged fixed-budget shape, argmin selection with a matching written
 checkpoint, deterministic patience exhaustion, and rejection of a policy without
 periodic evaluation. The full suite passes 112/112; Ruff and strict mypy pass.
+
+Registered and completed the noise-conditioned run v4 and the slot-bound run v5, at
+commits `6b935b2` and `f502df1`. v4 is falsified; v5 is partially falsified and its
+768-parameter change is retained. Both reproduce identical artifacts, and the v1 config
+still reproduces its recorded native summary byte-identically after every change.
+`GeometryDenoiser` gained optional noise-level conditioning and optional slot binding,
+both off by default so every earlier checkpoint still loads and every earlier probe
+still reproduces. The slot-invariance evidence is committed as
+`scripts/slot_invariance_probe.py` with its output, and a test pins both halves: the
+unbound encoder is permutation-invariant by construction, and binding removes it.
 
 Registered and completed the corruption-level sweep
 `openmoji-g1-corruption-sweep-71a080a-4levels-9b9b1699` at commit `71a080a`: four
@@ -730,25 +766,28 @@ The selection scalar is settled: held-out loss, by convention, with the effect o
 quality bounded below 0.0032 RGBA MAE. Runs no longer need to argue the point; they
 record the rule and move on.
 
-Make the model read its input. The corruption sweep showed it barely does: its output is
-near-independent of how corrupted the input is, which explains the 0.41 retained-token
-accuracy, the shared loss floor across a 3.53x capacity change, and why neither more data
-nor more parameters helped. A corruption schedule alone will not fix a model that ignores
-its input.
+Change the prediction objective so that copying is the default. It is the only candidate
+left after five predeclared eliminations, and the argument for it is concrete: every
+field is predicted by an independent single-shot softmax over a 289- or 417-way
+vocabulary, so "leave this one alone" costs exactly as much as inventing a new value.
+At corruption 0.35, 65% of fields are uncorrupted, so most of what the model is asked to
+do is reproduce tokens it was already given - and v5 shows it still cannot, even now
+that it can read them.
 
-The smallest change that addresses the observed mechanism is a noise-level input. Add a
-timestep or corruption-level embedding to `GeometryDenoiser` and sample the corruption
-level per example from a range instead of fixing it at 0.35, so the model can learn how
-much to trust what it is given. Hold the v2 model size, split, seed, batch size and
-learning rate fixed, and predeclare the recovery fraction at p=0.10 - currently -1.2024,
-where any value above zero would already be a qualitative change - alongside held-out
-loss at the selected checkpoint.
+The smallest version predicts a per-field keep-or-change decision alongside the value,
+and takes the input token wherever the decision is keep. A residual formulation - predict
+an offset against `x_t` rather than an absolute token - is the alternative and may suit
+the quarter-unit coordinate lattice better, since most corrections are probably small.
+Build on v5, keep slot binding, hold the split, seed, corruption probability, batch size
+and learning rate fixed, and predeclare retained-token accuracy against v5's 0.5408 and
+the recovery fraction at 0.10 against its -0.7607, where a change of sign remains the
+qualitative test.
 
-Two follow-ups, in cost order. Make copying cheap: predict an edit mask or a residual
-against `x_t` so leaving a correct field alone is the default rather than something the
-model reconstructs token by token. And as a diagnostic upper bound only, not a realistic
-sampling-time signal, condition on which fields were corrupted, to separate inability to
-identify corrupted fields from inability to predict their values.
+One diagnostic worth running first, because it is cheap and bounds the rest: condition on
+which fields were corrupted. That is not a realistic sampling-time signal, so it is an
+upper bound rather than a candidate design, but it separates inability to identify
+corrupted fields from inability to predict their values, and that determines which of
+the two formulations above is worth building.
 
 Render every result on the 128-icon draw. The paired-difference interval's half-width
 there is 0.0032, so any claim of a render improvement above roughly 0.0064 is testable

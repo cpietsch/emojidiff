@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-slot-bound-v5-f502df1-d8af55ea-9b9b1699
-state: planned
+state: completed
 parent_run: openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
 diagnosis_runs:
   - openmoji-g1-corruption-sweep-71a080a-4levels-9b9b1699
@@ -103,3 +103,39 @@ outputs:
   report_root: reports/learning/openmoji-g1-slot-bound-v5
   durable_artifacts: /home/dev/.cache/openmoji-g1-slot-bound-v5-f502df1-d8af55ea-9b9b1699
 planned_at: 2026-09-20T20:15:00Z
+completed_at: 2026-09-20T20:30:00Z
+result:
+  device: cuda
+  model_parameters: 578320
+  parameters_added_over_v2: 768
+  selected_step: 1500
+  completed_steps: 1980
+  ended_by: early_stopping
+  held_out_loss: 7.178236961364746
+  held_out_aggregate_accuracy: 0.3793491301739652
+  held_out_changed_accuracy: 0.07869509228788095
+  held_out_retained_accuracy: 0.5407990779869382
+  checkpoint_sha256: a757475e60d6e484
+  identical_rerun: true
+  mean_recovery_fraction_72px: {"0.05": -3.1470, "0.10": -0.7607, "0.20": -0.0253, "0.35": 0.2098}
+  per_icon_pearson_r_p005_vs_p035: 0.8621
+  beats_3.53x_capacity_on_every_measure: true
+predeclared_outcome:
+  overall: partially-falsified
+  retained_preservation_moves: {passed: false, observed: 0.5407990779869382, threshold: 0.70, baseline: 0.41283134844410296}
+  loss_improves: {passed: true, observed: 7.178236961364746, threshold: 7.3332648277282715}
+  stops_destroying_light_corruption: {passed: false, observed: -0.7607, threshold: 0.0, baseline: -1.2024}
+  output_depends_on_input: {passed: false, observed: 0.8621, threshold: 0.70, baseline: 0.9122, note: unchanged from v4's 0.8619}
+  structural_safety: {passed: true}
+  reproducibility: {passed: true}
+  retained_preservation_full: {passed: false, observed: 0.5407990779869382, threshold: 0.90, note: standing bar since v1}
+  conclusion: >-
+    The encoder defect was real and costly: 768 parameters of slot binding beat a 3.53x
+    capacity increase on every measure, lifting retained accuracy 31%, aggregate 31%,
+    changed recovery 37%, and improving held-out loss for the first time since v2. But
+    the correlation between predictions at 0.05 and 0.35 is unchanged at 0.8621, so
+    fixing the encoder raised the ceiling without changing what the model does. Keep
+    slot binding regardless; it is a strict improvement and removes a defect that would
+    confound every later result. What remains is the prediction objective: an
+    independent single-shot softmax per field has no cheap way to express "leave this
+    alone", and at 65% of fields uncorrupted that is most of the task.

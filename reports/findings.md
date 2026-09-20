@@ -1163,3 +1163,51 @@ how much to trust its input; make copying cheap through an edit mask or a residu
 against `x_t`, so leaving a correct field alone is the default; and, as a diagnostic
 upper bound only, condition on which fields were corrupted, to separate inability to
 identify corrupted fields from inability to predict their values.
+
+## 2026-09-20 — The encoder could not tell which coordinate was which
+
+**Hypothesis.** The denoiser's output was near-independent of its input. The
+informational explanation was that it trained at one fixed corruption level and was
+never told the level, so it could not learn how much to trust `x_t`.
+
+**Observation.** Run `openmoji-g1-noise-conditioned-v4-6b935b2-5a9eaf44-9b9b1699`
+sampled the corruption level per example over 0.05 to 0.50 and conditioned the model on
+it. All three primary criteria are falsified: recovery at 0.10 is -1.0385 against v2's
+-1.2024, the per-icon correlation between predictions at 0.05 and 0.35 is 0.8619 against
+0.9122, and recovery at 0.05 is -4.5349 against -4.6517. Every figure moved in the
+predicted direction; none moved enough to matter.
+
+Eliminating the informational explanation forced a look at the encoder, and the defect
+is there and provable. `GeometryDenoiser` summed six coordinate lookups — all from one
+shared embedding table — into a single vector per segment slot, and two start lookups
+into the path vector. A sum is commutative, so a segment was an unordered bag of its
+values. In float64, a program and its coordinate-swapped variant produce byte-identical
+logits: maximum absolute difference exactly 0.0 across 414 swapped segments in six
+held-out icons, with identical argmax predictions. The model was never ignoring `x_t`;
+it was reading a scrambled copy of it. Evidence is committed as
+`scripts/slot_invariance_probe.py` and its output.
+
+Run `openmoji-g1-slot-bound-v5-f502df1-d8af55ea-9b9b1699` binds each value to its slot
+by elementwise multiplication with a learned per-slot vector — **768 parameters**, +0.13%
+— changing nothing else about v2. It beats the 3.53x capacity run on every measure:
+held-out loss 7.1782 against v2's 7.3333 and v3's 7.3790, retained accuracy 0.5408
+against 0.4128 and 0.4323, aggregate 0.3793, changed recovery 0.0787. At corruption 0.20
+it is now break-even, helping on 20 of 32 icons where v2 helped on 14.
+
+But its prediction correlation at 0.05 against 0.35 is **0.8621** — unchanged from v4's
+0.8619 — and mean `x_hat_0` error still moves only 0.124 to 0.143 while the input moves
+0.051 to 0.180. Two of its three behavioural criteria are falsified.
+
+**Decision.** Keep slot binding permanently: it is a strict improvement for 768
+parameters and it removes a defect that would have confounded every later result. But
+record plainly that fixing the encoder raised the ceiling without changing what the model
+does — it still emits a prior lightly adjusted by its input.
+
+Five candidate explanations have now been eliminated by predeclared comparison: data
+volume, model capacity, the corruption regime, noise-level information, and encoder
+slot-blindness. What remains is the prediction objective. Every field is predicted by an
+independent single-shot softmax over a 289- or 417-way vocabulary, so there is no cheap
+way to express "leave this one alone": copying a field means reconstructing its exact
+token from scratch, and at 65% of fields uncorrupted that is most of the task. The next
+experiment is an edit-mask or residual formulation in which copying is the default and
+the model predicts only what to change.
