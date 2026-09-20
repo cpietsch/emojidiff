@@ -1,0 +1,81 @@
+schema_version: 1
+run_id: openmoji-g1-derived-threshold-v13-7c73fab-1687c462-9b9b1699
+state: planned
+parent_run: openmoji-g1-balanced-objective-v12-9bf3fe9-499c2436-9b9b1699
+hypothesis: >-
+  v12 beat the identity baseline, 0.6567 against 0.6502, but only with a decode threshold
+  fitted on a disjoint half of the held-out icons; at its own argmax decode it lost,
+  0.6086 against 0.6515. That threshold is derivable rather than arbitrary: keeping a
+  retained field is always right and changing one is right only if the value head
+  re-predicts the same token, so changing pays exactly above p = 1/(1+q) in the value
+  head's accuracy q on corrupted fields. Estimating q on TRAIN icons and decoding at that
+  threshold should beat identity with no calibration on held-out data at all.
+expected_information_gain: >-
+  It converts the project's first win over the trivial policy from one that needed a
+  post-hoc threshold into one the model simply produces. That is the difference between
+  a result that holds up and a result that needs an asterisk, and it costs one run.
+scope_limits: >-
+  Fixed-topology and geometry-only, single seed, marginal-respecting corruption at 0.35,
+  token accuracy rather than renders. The threshold is derived from a first-order
+  break-even argument that assumes changing a retained field is never right; that is
+  nearly but not exactly true, so the derived threshold is principled rather than optimal.
+changed_factors:
+  primary: >-
+    training.derive_decision_threshold false -> true. After training, the value head's
+    accuracy on corrupted TRAIN fields is measured under a corruption draw disjoint from
+    the held-out one, the decode threshold is set to 1/(1+q), and the held-out evaluation
+    is repeated with it.
+  parameters: unchanged at 525,152
+  held_fixed: v12 exactly otherwise, including the entropy-balanced value loss weight.
+  no_training_change: >-
+    This alters decoding and reporting only. The trained weights are identical to v12's;
+    the checkpoint should match.
+code:
+  git_commit: 7c73fab
+  execution_mode: native-local
+config:
+  path: configs/learning/openmoji-g1-derived-threshold-v13.yaml
+  sha256: 1687c4625ce852968dfd3d631c209aecfd782615ff7f78766626507619ffaa41
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  bucket: bucket-p32-t128
+  train_samples: 2681
+  validation_samples: 128
+baselines:
+  identity_on_the_full_held_out_draw: 0.6515
+  v12_own_argmax_decode: 0.6086
+  v12_with_a_threshold_fitted_on_held_out_icons: {calibration_half: 0.6568, evaluation_half: 0.6567, identity_there: 0.6502}
+  v12_value_head_accuracy_on_corrupted_fields: 0.1233
+predeclared_criteria:
+  evaluated_at: the checkpoint selected by held-out loss, decoded at the derived threshold
+  primary:
+    - id: beats_identity_without_calibration
+      statement: >-
+        Held-out aggregate token accuracy at the DERIVED threshold exceeds the identity
+        policy's, computed as retained_total / (changed_total + retained_total) from this
+        run's own totals. No threshold is fitted on held-out data anywhere in this run.
+    - id: improves_on_argmax
+      statement: Aggregate accuracy exceeds v12's own argmax decode, 0.6086.
+    - id: threshold_is_in_the_expected_region
+      statement: >-
+        The derived threshold lies between 0.85 and 0.95. The held-out value accuracy was
+        0.1233, giving 0.890; a train-split estimate should land near it, and a wildly
+        different value would mean the estimator is measuring something else.
+    - id: structural_safety
+      statement: Locked-path exactness holds and the canonical checkpoint round-trips.
+    - id: reproducibility
+      statement: A second complete invocation returns an identical JSON result.
+  reported_not_gated:
+    - the train-split value accuracy, the derived threshold, and the resulting flag rate
+    - changed and retained accuracy, which will move in opposite directions by design
+  falsification_meaning: >-
+    If the derived threshold does not beat identity while a fitted one does, the
+    break-even argument is too crude - most likely because changing a retained field is
+    not quite never right, or because the value head's accuracy on train icons does not
+    transfer. Either would be worth knowing, and the fallback is to derive the threshold
+    from a held-out-of-train split rather than from train itself.
+outputs:
+  local_metadata: runs/openmoji-g1-derived-threshold-v13-7c73fab-1687c462-9b9b1699
+  report_root: reports/learning/openmoji-g1-derived-threshold-v13
+  durable_artifacts: /home/dev/.cache/openmoji-g1-derived-threshold-v13-7c73fab-1687c462-9b9b1699
+planned_at: 2026-09-21T03:10:00Z
