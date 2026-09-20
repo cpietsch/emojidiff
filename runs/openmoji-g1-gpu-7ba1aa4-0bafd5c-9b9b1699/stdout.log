@@ -1,1 +1,3 @@
 2026-09-20T11:10:11Z planned; no remote stage or GPU step yet
+2026-09-20T11:11:22Z staged; archive and extracted-tree hashes verified
+2026-09-20T11:12:32Z completed; two identical invocations, artifacts durable in the persistent volume

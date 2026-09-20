@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-20T09:33:09Z
+Updated: 2026-09-20T11:12:32Z
 
 ## Current hypothesis and evidence
 
@@ -173,6 +173,16 @@ factorized fixed-topology geometry corruption. Its one CPU step, canonical check
 restore, and identical rerun pass. Near-random first-step accuracy is expected and is
 not learning evidence. This remains fixed-topology geometry-only, not unconditional
 generation.
+
+The bounded Gate G pipeline now also runs on real GPU hardware. On the owned RTX 4080,
+the same P32/T128 dominant-bucket config completes one CUDA optimizer step under
+declared deterministic algorithms, restores its canonical 7,075,309-byte checkpoint, and
+keeps locked paths byte-exact. Train loss is 15.216644 at 0.005068 token accuracy;
+validation loss is 15.344566 with 0.009404 aggregate, 0.008850 changed over 226 changed
+fields, and 0.009709 retained over 412 retained fields. These first-step accuracies are
+near random by construction and are explicitly not learning evidence. Gate G is
+therefore unblocked on pipeline mechanics but not passed.
+
 
 ## Last completed action and verification
 
@@ -358,6 +368,29 @@ Three preceding adapter failures are preserved with reason codes; one additional
 run completed its GPU/artifact work but failed only because the NGC banner violated the
 JSON stdout contract.
 
+Ran the owned-worker Gate G pipeline smoke through four registered identities and
+preserved all three failures. `openmoji-g1-gpu-cd3250e-0bafd5c-9b9b1699` failed before
+model construction on relative input paths resolved against the image working directory.
+`openmoji-g1-gpu-e7dc920-0bafd5c-9b9b1699` reached the first CUDA step and was rejected
+because `torch.use_deterministic_algorithms(True)` needs `CUBLAS_WORKSPACE_CONFIG` on
+CUDA >= 10.2; its artifact directory stayed empty.
+`openmoji-g1-gpu-215bcb8-0bafd5c-9b9b1699` completed the GPU step and wrote durable
+artifacts but failed the adapter result contract by digesting `summary.json` from the
+output root instead of the pilot report root; its artifacts are intact on the worker and
+listed in its `artifacts.json`.
+
+`openmoji-g1-gpu-7ba1aa4-0bafd5c-9b9b1699` completed. `device` is `cuda`, the staged
+archive and extracted-tree hashes verified, the checkpoint round-trips, locked paths are
+exact, and a second identical invocation returned the same JSON result. Its checkpoint
+digest `4b265e5575e3aa455a0d427e340ec407eaaaf39222709305d060281ae7e453f9` and summary
+digest `15ede088423678eb308548481e1c348850c04bf588101d4f74fecaaa224d07b7` also match the
+preserved third attempt exactly, so the GPU result reproduces across separate containers.
+The full suite passes 105/105 including a new CPU regression test that pins the staged
+wrapper to the artifact layout the pilot actually writes; Ruff and strict mypy pass.
+Two of the three failures were `scripts/remote/` wrapper defects, which had no test
+coverage before this session.
+
+
 ## Active jobs
 
 None. The owned-worker smoke ran in foreground containers with `--rm`; no container or
@@ -406,6 +439,15 @@ byte-stable at SHA-256
 `d11efa006657dafc2edf10bc5fe5725cad09e6beb40167032606f6c9f7c8407a`.
 It remains on the control-plane volume pending the pipeline-specific owned-worker smoke.
 
+The Gate G GPU smoke artifacts are durable in the owned worker's persistent artifact
+volume under `/home/dev/.cache/openmoji-g1-gpu-7ba1aa4-0bafd5c-9b9b1699/`, totalling
+7,077,100 bytes, well inside the 50 GB cap. The compact `summary.json` and
+`metrics.jsonl` were copied to the control plane under
+`runs/openmoji-g1-gpu-7ba1aa4-0bafd5c-9b9b1699/` and verified by hash against the worker
+originals. The 7,075,309-byte GPU checkpoint deliberately stays on the worker sink. The
+third attempt's identical artifacts are also retained on the worker; nothing was deleted.
+
+
 ## Current blockers and missing authorization
 
 - YOLO checks passed for hostname, persistent repository location, TLS-only isolated
@@ -433,8 +475,10 @@ It remains on the control-plane volume pending the pipeline-specific owned-worke
 
 ## Next smallest evidence-producing action
 
-Implement a bounded owned-worker pipeline-smoke adapter that stages the committed code
-plus only the six deterministically selected raw SVGs and palette under verified hashes.
-Then execute the same one-step Gate G config on the RTX 4080, verify the checkpoint in
-the persistent artifact volume, and compare pipeline behavior—not CPU/GPU floating-point
-artifact identity—before deciding whether a larger dominant-bucket run is justified.
+Define and register a bounded dominant-bucket training run on the owned RTX 4080 with
+predeclared accuracy thresholds, a step budget well inside the recorded 20,000-step cap,
+and a checkpoint/evacuation policy. The pipeline itself is no longer the open question:
+staging, determinism, conditioning, checkpointing, and locked-edit semantics are all
+verified on that GPU and reproduce across containers. The open question is whether the
+representation learns on the 2,681-icon train split, so the next run must declare its
+falsifiable held-out recovery criteria before launch.

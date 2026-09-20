@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-gpu-7ba1aa4-0bafd5c-9b9b1699
-state: planned
+state: completed
 parent_run: openmoji-g1-smoke-da44363-0bafd5c-9b9b1699
 retry_of: openmoji-g1-gpu-215bcb8-0bafd5c-9b9b1699
 hypothesis: >-
@@ -57,3 +57,15 @@ outputs:
   remote_workspace: /home/dev/workspace/openmoji-g1-gpu-7ba1aa4-0bafd5c-9b9b1699
   durable_artifacts: /home/dev/.cache/openmoji-g1-gpu-7ba1aa4-0bafd5c-9b9b1699
 planned_at: 2026-09-20T11:10:11Z
+staged_at: 2026-09-20T11:11:22Z
+completed_at: 2026-09-20T11:12:32Z
+result:
+  gpu_step_completed: true
+  device: cuda
+  checkpoint_round_trip: true
+  locked_path_exact: true
+  checkpoint_sha256: 4b265e5575e3aa455a0d427e340ec407eaaaf39222709305d060281ae7e453f9
+  summary_sha256: 15ede088423678eb308548481e1c348850c04bf588101d4f74fecaaa224d07b7
+  identical_rerun: true
+  reproduces_retry_parent: true
+  artifact_bytes: 7077100

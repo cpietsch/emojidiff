@@ -822,3 +822,58 @@ geometry-only. It neither demonstrates unconditional generation nor tests whethe
 conditioning improves quality. Add a bounded owned-worker pipeline-smoke adapter that
 stages only the six selected SVGs plus the palette under verified hashes, then execute
 the same config for one step on the RTX 4080 before defining a larger training run.
+
+## 2026-09-20 — Gate G dominant-bucket GPU pipeline smoke on the owned RTX 4080
+
+**Hypothesis.** The exact locally verified Gate G pipeline runs unchanged on the owned
+RTX 4080: it loads the real dominant-bucket data through its staged immutable snapshot,
+completes one CUDA optimizer step under declared deterministic algorithms, restores a
+canonical checkpoint in the persistent artifact volume, and keeps locked paths exact.
+
+**Method.** Commit the code, build a `git archive` snapshot extended with only the six
+deterministically selected raw SVGs and the pinned palette, register the run before
+execution, stage it under verified archive and extracted-tree hashes, and run the
+bounded pipeline smoke in the pinned GPU image with no network, a read-only root
+filesystem, dropped capabilities, and only the two Compose-prefixed named volumes
+mounted at run-specific subpaths. Repeat the identical invocation to test
+create-or-identical behavior.
+
+**Observation.** Three registered attempts were needed, and each failure was preserved
+under its own immutable identity rather than retried in place.
+
+1. `openmoji-g1-gpu-cd3250e-0bafd5c-9b9b1699` verified its stage and failed before model
+   construction: the staged pilot resolved relative input paths against the image
+   working directory, so the pinned palette was missing. No GPU step, no artifacts.
+2. `openmoji-g1-gpu-e7dc920-0bafd5c-9b9b1699` loaded the config, data, normalizers,
+   model, and optimizer, then was rejected inside the first CUDA step because
+   `torch.use_deterministic_algorithms(True)` requires `CUBLAS_WORKSPACE_CONFIG` on
+   CUDA >= 10.2. Artifact directory empty. The correction sets that variable explicitly
+   in the owned Docker launcher, which makes the declared determinism achievable rather
+   than relaxing it.
+3. `openmoji-g1-gpu-215bcb8-0bafd5c-9b9b1699` completed the GPU step, wrote a durable
+   checkpoint, and passed its round trip and locked-path checks, but failed the adapter
+   result contract because the staged wrapper digested `summary.json` from the output
+   root instead of the pilot's report root. Its artifacts remain intact on the worker
+   and are listed in its `artifacts.json`; nothing was deleted.
+
+`openmoji-g1-gpu-7ba1aa4-0bafd5c-9b9b1699` then completed. `device` is `cuda` with
+`deterministic_algorithms` true; train loss is 15.216644 with 0.005068 token accuracy at
+step 1; validation loss is 15.344566 with 0.009404 aggregate, 0.008850 changed over 226
+changed fields, and 0.009709 retained over 412 retained fields; the model has 577,552
+parameters over the 3,359-icon `bucket-p32-t128`; the 7,075,309-byte checkpoint
+round-trips and hashes
+`4b265e5575e3aa455a0d427e340ec407eaaaf39222709305d060281ae7e453f9`; locked paths are
+exact. A second identical invocation returned the same result, and both digests match
+attempt 3 exactly, so the result reproduces across separate containers rather than once.
+The local CPU pilot checkpoint has the same byte count but a different digest, which is
+the expected CPU/GPU floating-point difference and was never part of this contract.
+
+**Decision.** The selected representation, provenance join, conditioning, factorized
+corruption, optimizer, canonical checkpoint, and locked-edit path all execute correctly
+on the target GPU. First-step accuracies are near random by construction and are not
+learning evidence, so Gate G is not passed. The three preserved failures also expose a
+real gap: `scripts/remote/` wrapper code had no test coverage, and two of the three
+failures were wrapper defects rather than research defects. A CPU regression test now
+pins the wrapper to the artifact layout the pilot actually writes. The next step is to
+define a bounded dominant-bucket training run with predeclared thresholds, since the
+pipeline itself is no longer the open question.
