@@ -884,13 +884,19 @@ def edit_mask_loss_and_accuracy(
     *,
     detection_only: bool = False,
     pool_over_fields: bool = False,
+    value_loss_weight: float = 1.0,
 ) -> tuple[Tensor, dict[str, int]]:
     """Keep-or-change cross-entropy plus value cross-entropy on changed fields only.
 
     Accuracy is measured on the gated prediction, so it stays directly comparable with
     `geometry_loss_and_accuracy` and with the identity baseline.
 
-    With `detection_only` the value term is dropped entirely. The two terms have very
+    `value_loss_weight` scales the value term. The two objectives share an encoder and
+    are wildly unequal at chance - log 2 nats for a 2-class keep decision against log
+    417 for the value head, a factor of 8.7 - so an unweighted sum lets the value task,
+    which the model performs at 0.1087, dominate the representation and cost the
+    detector 1.064 of measured lift. With `detection_only` the value term is dropped
+    entirely. The two terms have very
     different scales - a 2-class decision against a 289- or 417-class one - and they
     share an encoder, so the value objective dominates what the encoder learns to
     represent. Dropping it asks whether this model can learn the detection signal at
@@ -924,11 +930,11 @@ def edit_mask_loss_and_accuracy(
     if pool_over_fields:
         loss = torch.cat(keep_losses).mean()
         if value_losses and not detection_only:
-            loss = loss + torch.cat(value_losses).mean()
+            loss = loss + value_loss_weight * torch.cat(value_losses).mean()
     else:
         loss = torch.stack(keep_losses).mean()
         if value_losses and not detection_only:
-            loss = loss + torch.stack(value_losses).mean()
+            loss = loss + value_loss_weight * torch.stack(value_losses).mean()
     return loss, {"correct": correct, "total": total}
 
 

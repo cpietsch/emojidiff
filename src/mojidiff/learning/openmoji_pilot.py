@@ -162,6 +162,13 @@ class OpenMojiPilotConfig:
     signal - roughly 31% four individual fields. Opt-in so v1 through v7 stay exactly
     reproducible.
     """
+    value_loss_weight: float = 1.0
+    """Scale on the value term of the edit-mask loss.
+
+    The keep and value objectives share an encoder and are unequal at chance - log 2
+    nats against log 417, a factor of 8.7 - so an unweighted sum lets the value task
+    dominate the representation. Measured cost to the detector: 1.064 of lift.
+    """
     metric_coordinates: int = 0
     """Fourier octaves for the metric coordinate encoding; 0 keeps the token tables.
 
@@ -275,6 +282,9 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
         mask_padding=_flag(model.get("mask_padding", False), "mask_padding"),
         metric_coordinates=_nonnegative_int(
             model.get("metric_coordinates", 0), "metric_coordinates"
+        ),
+        value_loss_weight=_positive_float(
+            training.get("value_loss_weight", 1.0), "value_loss_weight"
         ),
     )
     if result.d_model % result.heads:
@@ -576,6 +586,7 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
                 codec,
                 detection_only=config.detection_only,
                 pool_over_fields=config.pool_loss_over_fields,
+                value_loss_weight=config.value_loss_weight,
             )
         else:
             loss, counts = geometry_loss_and_accuracy(
@@ -775,6 +786,7 @@ def _evaluate(
                 codec,
                 detection_only=config.detection_only,
                 pool_over_fields=config.pool_loss_over_fields,
+                value_loss_weight=config.value_loss_weight,
             )
             split = edit_mask_accuracy_by_corruption(
                 value_logits, keep, noisy_batch, clean_batch, codec
