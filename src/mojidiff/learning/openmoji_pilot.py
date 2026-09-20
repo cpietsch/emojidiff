@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+from collections.abc import Callable
 from dataclasses import dataclass, replace
 from pathlib import Path, PurePosixPath
 from typing import Any, cast
@@ -23,6 +24,7 @@ from picosvg.svg import SVG
 from mojidiff.learning.geometry import (
     GeometryDenoiser,
     corrupt_factorized_geometry,
+    corrupt_marginal_geometry,
     corrupt_path_correlated_geometry,
     edit_mask_accuracy_by_corruption,
     edit_mask_loss_and_accuracy,
@@ -30,6 +32,7 @@ from mojidiff.learning.geometry import (
     geometry_loss_and_accuracy,
     packed_batch,
     predict_clean_geometry,
+    role_token_marginals,
 )
 from mojidiff.learning.tiny_study import (
     _decode_checkpoint,
@@ -284,19 +287,60 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
     return result
 
 
-CORRUPTION_PROCESSES = {
+CorruptionOperator = Callable[
+    [PackedTensorProgram, CodecConfig, float, "np.random.Generator"], PackedTensorProgram
+]
+
+CORRUPTION_PROCESSES: dict[str, object] = {
     "factorized": corrupt_factorized_geometry,
     "path_correlated": corrupt_path_correlated_geometry,
+    "marginal": corrupt_marginal_geometry,
 }
+"""Selectable corruption processes.
+
+Whole-path replacement is absent: it needs a donor pool and a coverage audit, and under
+single-donor compatibility it replaced 32 of 13,128 held-out fields.
+
+`marginal` exists because uniform replacement leaks. A zero-parameter detector that
+knows only the corpus marginal reaches 2.84 precision lift under `factorized` and 0.77
+under `marginal`, while the genuine local-continuity signal survives at 1.89 - so
+`factorized` makes detection largely a density test rather than a geometric one. It
+takes an extra marginal argument, which `corruption_operator` binds.
+"""
 
 CORRUPTION_LABELS = {
     "factorized": "factorized_role_uniform_geometry",
     "path_correlated": "path_correlated_geometry_blocks",
+    "marginal": "factorized_marginal_respecting_geometry",
 }
 """Reported names. `factorized` keeps the string v1 through v6 wrote, so their summaries
 stay byte-identical."""
-"""Processes with a matching signature. Whole-path replacement needs a donor pool and a
-coverage audit, so it is not selectable here; see the comparison run record."""
+
+
+def corruption_operator(
+    config: OpenMojiPilotConfig,
+    codec: CodecConfig,
+    train_programs: list[PackedTensorProgram],
+) -> CorruptionOperator:
+    """Bind the configured corruption process, estimating a marginal when it needs one.
+
+    The marginal is estimated from the TRAIN programs only, so no held-out information
+    reaches the corruption applied to held-out icons.
+    """
+
+    if config.corruption_process != "marginal":
+        return cast(CorruptionOperator, CORRUPTION_PROCESSES[config.corruption_process])
+    marginal = role_token_marginals(train_programs, codec)
+
+    def bound(
+        clean: PackedTensorProgram,
+        bound_codec: CodecConfig,
+        probability: float,
+        rng: np.random.Generator,
+    ) -> PackedTensorProgram:
+        return corrupt_marginal_geometry(clean, bound_codec, probability, rng, marginal)
+
+    return bound
 
 
 def _corruption_process(value: object) -> str:
@@ -423,6 +467,7 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
     train_programs = [_load_program(row, config, codec) for row in train_rows]
     validation_programs = [_load_program(row, config, codec) for row in validation_rows]
     device = _device(config.device)
+    corrupt = corruption_operator(config, codec, train_programs)
     model = _new_model(config, codec, groups, subgroups).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
     parameter_count = sum(parameter.numel() for parameter in model.parameters())
@@ -437,6 +482,7 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
             codec,
             config,
             device,
+            corrupt,
         )
 
     # Metric-only tracing. `_evaluate` draws its corruption from an independent numpy
@@ -495,7 +541,7 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
         # example is a deterministic function of (seed, step, index).
         levels = [sample_corruption_level(config, generator) for generator in generators]
         noisy = [
-            CORRUPTION_PROCESSES[config.corruption_process](program, codec, level, generator)
+            corrupt(program, codec, level, generator)
             for program, level, generator in zip(clean, levels, generators, strict=True)
         ]
         condition = _condition(
@@ -682,10 +728,13 @@ def _evaluate(
     codec: CodecConfig,
     config: OpenMojiPilotConfig,
     device: torch.device,
+    corrupt: Callable[
+        [PackedTensorProgram, CodecConfig, float, np.random.Generator], PackedTensorProgram
+    ],
 ) -> dict[str, float | int | None]:
     probability = config.evaluation_probability
     noisy = [
-        CORRUPTION_PROCESSES[config.corruption_process](
+        corrupt(
             program,
             codec,
             probability,

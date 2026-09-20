@@ -690,3 +690,101 @@ def test_padding_is_hidden_from_attention_only_when_asked() -> None:
         outputs[mask_padding] = coordinates
 
     assert not torch.allclose(outputs[False], outputs[True])
+
+
+def test_marginal_corruption_closes_the_density_leak() -> None:
+    """Uniform replacement makes corrupted tokens detectable without any geometry.
+
+    Corruption draws from the full legal vocabulary, so many replacements land on tokens
+    real icons never use, and a detector knowing only the corpus marginal reaches 2.84
+    precision lift with no context at all. Marginal-respecting replacement removes that
+    shortcut while leaving the genuine local-continuity signal in place.
+    """
+
+    import numpy as np
+
+    from mojidiff.learning.detectability import roc_auc, separation
+    from mojidiff.learning.geometry import (
+        corrupt_factorized_geometry,
+        corrupt_marginal_geometry,
+        role_token_marginals,
+    )
+    from mojidiff.learning.openmoji_pilot import (
+        _load_program,
+        _select_rows,
+        _selected_codec,
+        load_openmoji_pilot_config,
+        load_pilot_index,
+    )
+    from mojidiff.representation.packed import validate_packed_tensor_program
+
+    config = load_openmoji_pilot_config(
+        Path("configs/learning/openmoji-g1-dominant-bucket-train-v2-data-scale.yaml")
+    )
+    codec = _selected_codec(config)
+    by_split, _, _ = load_pilot_index(config)
+    train = [
+        _load_program(row, config, codec)
+        for row in _select_rows(by_split["primary/train"], 64, config.seed)
+    ]
+    marginal = role_token_marginals(train, codec)
+    assert marginal.shape == (5, 6, codec.effective_control_coordinate_bins + 1)
+    # Every distribution either sums to one or is an unused (kind, slot) pair.
+    totals = marginal.sum(axis=2)
+    assert np.all((np.isclose(totals, 1.0)) | np.isclose(totals, 0.0))
+
+    clean = [
+        _load_program(row, config, codec)
+        for row in _select_rows(by_split["primary/validation"], 12, config.seed + 1)
+    ]
+    logp = np.log(np.clip(marginal, 1e-12, None))
+
+    def density_and_continuity(noisy_programs: list) -> tuple[float, float]:
+        scores, labels = [], []
+        for reference, noisy in zip(clean, noisy_programs, strict=True):
+            validate_packed_tensor_program(noisy, codec, config.total_segment_slots)
+            for segment in range(noisy.coordinates.shape[0]):
+                kind = int(noisy.segment_type[segment])
+                if kind not in (1, 2, 3):
+                    continue
+                for slot in range(6):
+                    token = int(noisy.coordinates[segment, slot])
+                    if token <= 0:
+                        continue
+                    scores.append(-logp[kind, slot, token])
+                    labels.append(int(token != int(reference.coordinates[segment, slot])))
+        density = roc_auc(
+            [s for s, y in zip(scores, labels, strict=True) if y],
+            [s for s, y in zip(scores, labels, strict=True) if not y],
+        )
+        positive, negative = [], []
+        for reference, noisy in zip(clean, noisy_programs, strict=True):
+            a, b = separation(reference, noisy, codec)
+            positive += a
+            negative += b
+        return density, roc_auc(positive, negative)
+
+    uniform_density, uniform_continuity = density_and_continuity(
+        [
+            corrupt_factorized_geometry(
+                p, codec, 0.35, np.random.default_rng(config.seed + 9_000_000 + i)
+            )
+            for i, p in enumerate(clean)
+        ]
+    )
+    marginal_density, marginal_continuity = density_and_continuity(
+        [
+            corrupt_marginal_geometry(
+                p, codec, 0.35, np.random.default_rng(config.seed + 9_000_000 + i), marginal
+            )
+            for i, p in enumerate(clean)
+        ]
+    )
+
+    # The leak: uniform replacement is detectable from the marginal alone.
+    assert uniform_density > 0.70
+    # Closed: knowing the marginal no longer identifies corrupted fields.
+    assert marginal_density < 0.60
+    # But the geometric signal is still there to be learned.
+    assert marginal_continuity > 0.65
+    assert uniform_continuity > 0.65

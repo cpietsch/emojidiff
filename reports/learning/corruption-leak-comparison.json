@@ -1,0 +1,16 @@
+{
+  "factorized_uniform": {
+    "continuity_auc": 0.76740490975422,
+    "continuity_lift": 2.1260459758077186,
+    "corrupted_rate": 0.349217907227616,
+    "density_auc": 0.7508190029466258,
+    "density_lift": 2.8401216172886827
+  },
+  "marginal": {
+    "continuity_auc": 0.7201785584829514,
+    "continuity_lift": 1.8925081698650297,
+    "corrupted_rate": 0.3482200647249191,
+    "density_auc": 0.46160344358132066,
+    "density_lift": 0.7705568957996891
+  }
+}

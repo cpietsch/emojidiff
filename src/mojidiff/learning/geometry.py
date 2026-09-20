@@ -298,6 +298,103 @@ def corrupt_factorized_geometry(
     return noisy
 
 
+def role_token_marginals(
+    programs: Sequence[PackedTensorProgram], codec: CodecConfig
+) -> np.ndarray:
+    """Token frequencies per (segment kind, coordinate slot), as a [5, 6, vocab] table.
+
+    Keyed by kind as well as slot because the role of a slot depends on the kind: slot 0
+    is an endpoint for a LINE but a control handle for a QUAD or CUBIC, and the two have
+    different legal vocabularies - 289 endpoint bins against 417 control bins. A table
+    keyed by slot alone would put mass on tokens that are illegal for that role, which
+    the packed validator rejects.
+
+    Within each legal support a token never observed keeps a Laplace floor so it stays
+    reachable; everything outside the support is exactly zero.
+    """
+
+    vocabulary = codec.effective_control_coordinate_bins + 1
+    counts = np.zeros((5, 6, vocabulary), dtype=np.float64)
+    for kind in (SegmentType.LINE, SegmentType.QUAD, SegmentType.CUBIC):
+        control_count, coordinate_count = _coordinate_counts(kind)
+        for slot in range(coordinate_count):
+            bins = (
+                codec.effective_control_coordinate_bins
+                if slot < control_count
+                else codec.coordinate_bins
+            )
+            counts[int(kind), slot, 1 : bins + 1] = 1.0
+    countable = {int(SegmentType.LINE), int(SegmentType.QUAD), int(SegmentType.CUBIC)}
+    for program in programs:
+        for index, raw_kind in enumerate(program.segment_type):
+            observed = int(raw_kind)
+            if observed not in countable:
+                continue
+            _, coordinate_count = _coordinate_counts(SegmentType(observed))
+            for slot in range(coordinate_count):
+                token = int(program.coordinates[index, slot])
+                if token > 0 and counts[observed, slot, token] > 0:
+                    counts[observed, slot, token] += 1.0
+    totals = counts.sum(axis=2, keepdims=True)
+    return np.divide(counts, totals, out=np.zeros_like(counts), where=totals > 0)
+
+
+def corrupt_marginal_geometry(
+    clean: PackedTensorProgram,
+    codec: CodecConfig,
+    probability: float,
+    rng: np.random.Generator,
+    marginal: np.ndarray,
+) -> PackedTensorProgram:
+    """Replace fields with a different token drawn from that role's corpus marginal.
+
+    Factorized corruption draws uniformly from the full legal vocabulary, so a large
+    share of replacements land on tokens real icons essentially never use. A detector
+    that only knows the corpus marginal then reaches 2.831 precision lift with no
+    context at all, which makes detection under that process largely a density test
+    rather than a geometric one. Drawing from the marginal instead makes every corrupted
+    token in-distribution by construction, so identifying it requires the surrounding
+    geometry.
+
+    The marginal is keyed by segment kind as well as slot, because a slot's role - and
+    therefore its legal vocabulary - depends on the kind.
+    """
+
+    if not 0 <= probability <= 1:
+        raise ValueError("corruption probability must be within 0..1")
+    if marginal.shape != (5, 6, codec.effective_control_coordinate_bins + 1):
+        raise ValueError("marginal must be a [5, 6, vocabulary] table for this codec")
+    noisy = copy.deepcopy(clean)
+    offset = 0
+    for path_index, raw_length in enumerate(clean.path_length):
+        length = int(raw_length)
+        if not length:
+            break
+        for coordinate_index in range(2):
+            if rng.random() < probability:
+                noisy.start[path_index, coordinate_index] = _different_token(
+                    int(clean.start[path_index, coordinate_index]), codec.coordinate_bins, rng
+                )
+        for segment_index in range(offset, offset + length):
+            kind = SegmentType(int(clean.segment_type[segment_index]))
+            _, coordinate_count = _coordinate_counts(kind)
+            for slot in range(coordinate_count):
+                if rng.random() >= probability:
+                    continue
+                current = int(clean.coordinates[segment_index, slot])
+                weights = marginal[int(kind), slot].copy()
+                weights[current] = 0.0
+                total = weights.sum()
+                if total <= 0:
+                    continue
+                noisy.coordinates[segment_index, slot] = int(
+                    rng.choice(len(weights), p=weights / total)
+                )
+        offset += length
+    validate_packed_tensor_program(noisy, codec, clean.coordinates.shape[0])
+    return noisy
+
+
 def corrupt_path_correlated_geometry(
     clean: PackedTensorProgram,
     codec: CodecConfig,
