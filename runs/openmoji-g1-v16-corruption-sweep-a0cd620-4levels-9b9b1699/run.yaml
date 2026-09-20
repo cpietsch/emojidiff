@@ -1,0 +1,64 @@
+schema_version: 1
+run_id: openmoji-g1-v16-corruption-sweep-a0cd620-4levels-9b9b1699
+state: planned
+parent_run: openmoji-g1-geometric-gate-v16-85ec724-aaa03592-9b9b1699
+supersedes_for_v16: openmoji-g1-corruption-sweep-71a080a-4levels-9b9b1699
+hypothesis: >-
+  Every result in this gate is at corruption probability 0.35, where the input is already
+  scribble - so "no render is a recognizable icon" may be a statement about the regime
+  rather than the model. The same sweep over the v2 checkpoint found it made a lightly
+  corrupted input 2.8x WORSE and helped zero of 32 icons. v16 should at minimum never
+  damage its input at any level, and at the lightest corruption it should visibly improve
+  it. Whether it ever produces something recognizable is the question this run exists to
+  answer honestly, either way.
+expected_information_gain: >-
+  It is the cheapest test bearing directly on the project's primary objective, needs no
+  training, and its answer decides whether the next effort goes into the corruption
+  schedule or into the model. A negative answer at every level is as informative as a
+  positive one and must be reported as plainly.
+scope_limits: >-
+  v16 trained only at 0.35, so 0.05 through 0.20 are off-distribution by construction -
+  that is deliberate and is the point, but it means a poor result at low corruption does
+  not condemn a model trained across levels. Twelve icons, one corruption draw each,
+  single seed. Recognisability is a judgement and is reported as one, not gated.
+method: >-
+  Render x_0, x_t and x_hat_0 at probabilities 0.05, 0.10, 0.20 and 0.35, each gated at
+  the threshold derived for that level on the withheld calibration icons - 0.8700,
+  0.8150, 0.7600 and 0.6800 respectively. Identical icons and corruption seeds across
+  levels.
+code:
+  git_commit: a0cd6202d4e3b67af188f17d8fd94722951bc384
+  execution_mode: native-local-cpu
+  trains_nothing: true
+baselines:
+  identity: {recovery_at_every_level: 0.0}
+  v2_checkpoint_same_sweep: {"0.05": -4.6517, "0.10": -1.2024, "0.20": -0.1315, "0.35": 0.1800, note: uniform corruption, helped 0 of 32 at 0.05}
+  v16_at_0.35: {paired_render_recovery_72px: 0.2511}
+predeclared_criteria:
+  primary:
+    - id: never_damages
+      statement: >-
+        At every level, mean paired per-icon render recovery at 72 px is positive with
+        its 95% interval excluding zero. The v2 checkpoint failed this badly at three of
+        four levels; a repaired model should not.
+    - id: improves_a_lightly_corrupted_input
+      statement: >-
+        At probability 0.05, median x_hat_0 RGBA MAE at 72 px is below the median x_t
+        error at that level. Improving a nearly clean input is strictly harder than
+        improving a destroyed one and is where v2 failed worst.
+    - id: reproducibility
+      statement: Every level reproduces identical artifacts on a second invocation.
+  reported_not_gated:
+    - whether any render is recognizable, stated plainly by inspection either way
+    - median x_t and x_hat_0 error at each level, and icons helped
+  falsification_meaning: >-
+    If the model still damages lightly corrupted inputs, the repairs did not generalise
+    off the training corruption level and the corruption schedule becomes the next
+    training factor. If it never damages but nothing is recognizable at any level, then
+    the limit is the model rather than the regime, and PROJECT_PLAN.md section 12 branch
+    4 - Gate I, the cached autoregressive baseline on the same codec - is the remaining
+    route to a positive generation result.
+outputs:
+  local_metadata: runs/openmoji-g1-v16-corruption-sweep-a0cd620-4levels-9b9b1699
+  report_roots: reports/learning/openmoji-g1-v16-sweep-p{005,010,020,035}
+planned_at: 2026-09-21T06:30:00Z
