@@ -1,0 +1,12 @@
+# Renders for v16 at its geometric decode threshold, so the picture is what the run
+# actually produces.
+schema_version: 1
+study_version: openmoji-g1-v16-renders
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+checkpoint: /home/dev/.cache/render-v16/checkpoint.zip
+checkpoint_sha256: 31fa3e14e7f1b7e2dcae33d08bfcf8bd0134636d5e3f8683ac9505a14ad5be9c
+report_root: reports/learning/openmoji-g1-v16-renders
+icons: 12
+render_sizes: [72, 18]
+render_timeout_seconds: 20
+decision_threshold: 0.68

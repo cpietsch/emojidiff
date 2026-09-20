@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-geometric-gate-v16-85ec724-aaa03592-9b9b1699
-state: planned
+state: completed
 parent_run: openmoji-g1-distance-kernel-v15-6a52c12-744bad0a-9b9b1699
 hypothesis: >-
   v15 localises 27% better than v14 in view units and recovers nearly three times as much
@@ -88,3 +88,46 @@ outputs:
   report_root: reports/learning/openmoji-g1-geometric-gate-v16
   durable_artifacts: /home/dev/.cache/openmoji-g1-geometric-gate-v16-85ec724-aaa03592-9b9b1699
 planned_at: 2026-09-21T04:40:00Z
+completed_at: 2026-09-21T05:00:00Z
+result:
+  device: cuda
+  identical_rerun: true
+  checkpoint_identical_to_v15: true
+  decision_threshold: 0.6800
+  break_even_threshold_for_comparison: 0.8604
+  calibration_view_units_saved_per_field: 2.9843
+  held_out: {aggregate: 0.6354, changed: 0.0672, retained: 0.9392}
+  identity_baseline: 0.6515
+  paired_render_recovery:
+    px72: {mean: 0.2511, ci95: [0.1408, 0.3614], helped: 11, of: 12}
+    px18: {mean: 0.2745, ci95: [0.1661, 0.3828], helped: 11, of: 12}
+    v15_px72: 0.1246
+    v14_px72: 0.0447
+    identity: 0.0
+predeclared_outcome:
+  overall: passed
+  lowers_the_threshold: {passed: true, observed: 0.6800, threshold: 0.8604}
+  improves_paired_render_recovery: {passed: true, observed: 0.2511, threshold: 0.1246, ci_excludes_zero: true}
+  saves_error_on_calibration: {passed: true, observed: 2.9843}
+  structural_safety: {passed: true}
+  reproducibility: {passed: true}
+  expected_tension_observed:
+    statement: >-
+      Held-out aggregate token accuracy falls to 0.6354 against identity's 0.6515, which
+      this run's record anticipated before it ran. The model recovers 25% of the render
+      gap while scoring worse than doing nothing on exact tokens.
+    conclusion: >-
+      Between v15 and v16 this is now conclusive rather than suggestive: exact-token
+      accuracy is the wrong metric for this project. A model can be simultaneously worse
+      than the identity policy on it and the best geometric denoiser the project has
+      produced, and both are true of v16.
+  conclusion: >-
+    Changing nothing but the decode rule - the trained weights are byte-identical to
+    v15's - takes paired render recovery from +0.1246 to +0.2511 at 72 px and +0.1306 to
+    +0.2745 at 18 px, helping 11 of 12 icons with intervals excluding zero. That is 5.6x
+    v14 and 2x v15. The two corrections compound because they are the same correction
+    applied twice: train for closeness, then gate on closeness.
+  scope: >-
+    No render in this project is a recognizable icon and this one is not either. At 35%
+    corruption the input is already scribble and recovering a quarter of that gap leaves
+    scribble. What is established is a measurable, compounding direction.

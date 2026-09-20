@@ -1567,3 +1567,39 @@ A recording note worth keeping. On a first pass I compared the two models by the
 session already caught once. Both models render identical corrupted inputs, so the paired
 per-icon difference is the correct statistic, and it says the opposite. On paired data,
 compare the pairs.
+
+## 2026-09-21 — Gate on closeness: render recovery doubles again, and the metric question is settled
+
+**Hypothesis.** v15 localised 27% better than v14 yet gated itself more tightly, 0.8604
+against 0.8183, because the break-even rule `p > 1/(1+q)` credits only exact tokens.
+Choosing the threshold by absolute view-unit error saved on withheld calibration icons
+should lower it and let the model act on what it already localises well.
+
+**Observation.** All predeclared criteria pass. The threshold falls to **0.6800**, saving
+2.9843 view units per field on calibration, and paired per-icon render recovery rises
+from **+0.1246 to +0.2511** at 72 px and +0.1306 to +0.2745 at 18 px, helping 11 of 12
+icons with both intervals excluding zero. The trained weights are byte-identical to
+v15's, so it is the decode rule alone — 5.6x v14's recovery and 2x v15's.
+
+The two corrections compound because they are the same correction applied twice: train
+for closeness, then gate on closeness.
+
+Held-out aggregate token accuracy falls to **0.6354 against identity's 0.6515**, which
+the run's record anticipated as expected_tension before it ran.
+
+**Decision.** Between v15 and v16 the metric question is settled rather than merely
+argued. **Exact-token accuracy is the wrong primary metric for this project.** v16 is
+simultaneously worse than the identity policy on it and the best geometric denoiser the
+project has produced; both statements are true and neither is a contradiction. Mean
+absolute view-unit error and paired render recovery are the primary metrics from here,
+with exact-token accuracy kept as secondary so nothing already published is withdrawn.
+
+Where the sequence lands, from a model that actively destroyed its input to one that
+recovers a quarter of the render gap, across seven verified defects and corrections and
+a model that shrank from 579,872 parameters to 525,152: identity 0.0000, v14 +0.0447,
+v15 +0.1246, v16 **+0.2511**.
+
+And what it does not establish, unchanged: no render in this project is a recognizable
+icon. At 35% corruption the input is already scribble and recovering a quarter of that
+gap leaves scribble. The direction is measurable and compounding; the generator does not
+yet work.
