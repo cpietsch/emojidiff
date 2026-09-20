@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-corruption-process-corpus-76f41a3-2arms-9b9b1699
-state: planned
+state: cancelled
 parent_runs:
   - openmoji-g1-edit-mask-v6-0228c3b-0f6ce115-9b9b1699
   - openmoji-g1-detectability-877feff-4processes-9b9b1699
@@ -120,3 +120,19 @@ outputs:
     - reports/learning/openmoji-g1-process-path-correlated
   durable_artifacts: /home/dev/.cache/openmoji-g1-corruption-process-corpus-76f41a3-2arms-9b9b1699
 planned_at: 2026-09-20T22:05:00Z
+cancelled_at: 2026-09-20T22:46:00Z
+cancellation:
+  deferred_by: openmoji-g1-detection-only-v7-856230a-9d2db303-9b9b1699
+  reason: >-
+    This comparison assumes a trained model can learn corrupted-field detection on some
+    corruption process. The detection-only diagnostic tested that assumption directly
+    and falsified it: with the competing value objective removed entirely, the trained
+    detector reached 1.365x precision lift against a zero-parameter statistic's 2.13x on
+    the same data, and converged there - held-out loss selected step 660 of a 6,300 cap.
+    Comparing processes is only meaningful once a trained model can learn the signal on
+    at least one of them, so running the arms now would compare two numbers that both
+    lose to a heuristic.
+  status: >-
+    Not withdrawn. The configs, criteria and matched setup remain valid and this run
+    record stands ready to be re-registered under a new identity once a model can learn
+    detection at all.
