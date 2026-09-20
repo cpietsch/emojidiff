@@ -1,0 +1,28 @@
+schema_version: 1
+run_id: whole-path-fixture-v1-796f051-dc7f64b5-9b9b1699
+state: completed
+hypothesis: >-
+  Four family-distinct programs within P16/T128 can have enough exact external path
+  donors to support a fair whole-path geometry replacement treatment.
+git_commit: 796f051dd13532bd62e930a192b5d60192244e39
+config: configs/learning/whole-path-fixture-v1.yaml
+config_sha256: dc7f64b537a14997b94ceb419cd152e9cd1ceac2ce94aa12d9777cd5cfccac13
+dataset_manifest: reports/codec/full-primary-structure-v2-opacity/hybrid.jsonl
+dataset_manifest_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+worker: gtc-local-cpu
+resource_cap:
+  external_spend_usd: 0
+  source_icons: 4006
+  normalization_attempts: 4006
+command: >-
+  .venv/bin/python -m mojidiff.learning.path_fixture --config
+  configs/learning/whole-path-fixture-v1.yaml
+outputs:
+  report: reports/corruption/whole-path-fixture-v1
+  fixture: data/manifests/openmoji-17.0.0-whole-path-fixture-v1.json
+artifact_durability: compact-report-pending-local-git
+result:
+  artifact_identity_rerun: true
+  fixture_sha256: 7530db5426714b7f34c88cba4fcae4acf06c2eafbc0b663eed77a98f1edaacb0
+  selected_icons: [1F33B, E314, 1F30E, 1F92F]
+  eligible_geometry_field_fractions: [1.0, 1.0, 1.0, 0.8742331288343558]

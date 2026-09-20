@@ -1,0 +1,13 @@
+schema_version: 1
+run_id: whole-path-fixture-v2-1c91af1-aa5e1b78-9b9b1699
+state: planned
+hypothesis: family-distinct P16/T128 donor fixture remains identical after schema completion
+git_commit: 1c91af1
+config: configs/learning/whole-path-fixture-v2.yaml
+config_sha256: aa5e1b78eecd1f01cb5806c9219e8768475d8414c2bd4c0d787c98c5ba5959f2
+dataset_manifest: reports/codec/full-primary-structure-v2-opacity/hybrid.jsonl
+dataset_manifest_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+worker: gtc-local-cpu
+resource_cap: {external_spend_usd: 0, source_icons: 4006}
+command: .venv/bin/python -m mojidiff.learning.path_fixture --config configs/learning/whole-path-fixture-v2.yaml
+artifact_durability: compact-report-pending-local-git

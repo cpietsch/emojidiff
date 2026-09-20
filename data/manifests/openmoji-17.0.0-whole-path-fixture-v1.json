@@ -1,0 +1,41 @@
+{
+  "rows": [
+    {
+      "group": "animals-nature",
+      "hexcode": "1F33B",
+      "selected_representation": "semantic",
+      "source_path": "color/svg/1F33B.svg",
+      "source_svg_sha256": "8ec898c7225016a95cc1c71c1634ac2e1966f5c97b7d9ee209ebe35a003fa08b",
+      "subgroup": "plant-flower",
+      "variant_family_id": "f6ec1aa60b7960c3"
+    },
+    {
+      "group": "extras-openmoji",
+      "hexcode": "E314",
+      "selected_representation": "semantic",
+      "source_path": "color/svg/E314.svg",
+      "source_svg_sha256": "04ae82bb02c9a4153711da54403c56fb766a60c347cf9ceb4a6061f3027f31bd",
+      "subgroup": "healthcare",
+      "variant_family_id": "ef00d5f5c268a693"
+    },
+    {
+      "group": "travel-places",
+      "hexcode": "1F30E",
+      "selected_representation": "semantic",
+      "source_path": "color/svg/1F30E.svg",
+      "source_svg_sha256": "646738669bbba2382054c92428f9ef0850ad900a1ac912f7537012fef883786e",
+      "subgroup": "place-map",
+      "variant_family_id": "fc0c93d4434969ff"
+    },
+    {
+      "group": "smileys-emotion",
+      "hexcode": "1F92F",
+      "selected_representation": "semantic",
+      "source_path": "color/svg/1F92F.svg",
+      "source_svg_sha256": "09d01e78499daf0a441bf1e24a16c102436df9ef9aee6f344b1ed11cded9f7c2",
+      "subgroup": "face-unwell",
+      "variant_family_id": "bf6bf4a22828b6f6"
+    }
+  ],
+  "schema_version": 1
+}
