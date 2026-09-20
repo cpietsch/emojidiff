@@ -1,0 +1,65 @@
+{
+  "continuity_at_full_flag_rate": {
+    "flag_rate": 0.3504,
+    "lift": 1.7,
+    "precision": 0.5957,
+    "recall": 0.5957
+  },
+  "icons": 48,
+  "matched_operating_point": {
+    "conclusion": "A zero-parameter heuristic beats the 579,872-parameter model at the same flag rate.",
+    "continuity_statistic": {
+      "lift": 2.13,
+      "precision": 0.7451,
+      "recall": 0.1824
+    },
+    "note": "Both detectors flag 8.573% of fields, the rate the trained keep head chose.",
+    "trained_keep_head_v6": {
+      "lift": 1.23,
+      "precision": 0.4312,
+      "recall": 0.1058
+    }
+  },
+  "results": {
+    "factorized_p0.10": {
+      "auc": 0.8574552768279278,
+      "corrupted": 1382,
+      "corrupted_rate": 0.10527117611212675,
+      "median_score_corrupted": 23.25,
+      "median_score_retained": 4.0,
+      "retained": 11746
+    },
+    "factorized_p0.35": {
+      "auc": 0.7698275374214862,
+      "corrupted": 4600,
+      "corrupted_rate": 0.35039609993906157,
+      "median_score_corrupted": 24.0,
+      "median_score_retained": 8.0,
+      "retained": 8528
+    },
+    "path_correlated_p0.35": {
+      "auc": 0.9333018483949813,
+      "corrupted": 5252,
+      "corrupted_rate": 0.40006093845216334,
+      "median_score_corrupted": 27.0,
+      "median_score_retained": 3.0,
+      "retained": 7876
+    },
+    "whole_path_p0.35": {
+      "auc": 0.5317749694563225,
+      "corrupted": 32,
+      "corrupted_rate": 0.002437538086532602,
+      "median_score_corrupted": 3.0,
+      "median_score_retained": 3.0,
+      "retained": 13096
+    }
+  },
+  "schema_version": 1,
+  "statistic": "mean absolute distance to the same slot in adjacent segments, view units",
+  "trained_detector_reference": {
+    "base_rate": 0.3494,
+    "precision": 0.4312,
+    "process": "factorized_p0.35",
+    "recall": 0.1058
+  }
+}

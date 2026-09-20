@@ -446,3 +446,61 @@ def test_edit_mask_makes_the_identity_policy_exactly_representable() -> None:
         edit_mask_predictions(values, torch.tensor([[1.0, 0.0]]).expand(4, 2), tokens),
         torch.ones(4, dtype=tokens.dtype),
     )
+
+
+def test_the_continuity_statistic_separates_a_planted_outlier() -> None:
+    """The detectability probe must actually detect a break in continuity.
+
+    Gate G's conclusion turns on whether corrupted fields are identifiable at all, so
+    the instrument used to answer that has to be shown to work on a case where the
+    answer is known.
+    """
+
+    import copy
+
+    import numpy as np
+    import pytest
+
+    from mojidiff.learning.detectability import roc_auc, separation
+    from mojidiff.learning.openmoji_pilot import (
+        _load_program,
+        _select_rows,
+        _selected_codec,
+        load_openmoji_pilot_config,
+        load_pilot_index,
+    )
+
+    config = load_openmoji_pilot_config(
+        Path("configs/learning/openmoji-g1-dominant-bucket-smoke.yaml")
+    )
+    codec = _selected_codec(config)
+    by_split, _, _ = load_pilot_index(config)
+    row = _select_rows(by_split["primary/validation"], 1, config.seed + 1)[0]
+    clean = _load_program(row, config, codec)
+
+    # An identical program has no corrupted fields, so there is nothing to separate.
+    corrupted, retained = separation(clean, clean, codec)
+    assert corrupted == []
+    assert retained
+
+    # Plant far-away values in a handful of fields; a continuity statistic must rank
+    # them above the untouched ones.
+    planted = copy.deepcopy(clean)
+    changed = 0
+    # Every fifth segment, so a planted field always has legitimate neighbours. Planting
+    # into adjacent segments would make the outliers smooth with respect to each other.
+    for segment_index in range(0, planted.coordinates.shape[0], 5):
+        token = int(planted.coordinates[segment_index, 0])
+        if token > 0 and changed < 12:
+            planted.coordinates[segment_index, 0] = 1 if token > 144 else codec.coordinate_bins
+            changed += 1
+    assert changed == 12
+
+    corrupted, retained = separation(clean, planted, codec)
+    assert len(corrupted) == 12
+    assert roc_auc(corrupted, retained) > 0.9
+
+    # A statistic with no signal scores 0.5, including when every value ties.
+    assert roc_auc([1.0, 1.0], [1.0, 1.0]) == pytest.approx(0.5)
+    assert roc_auc([2.0, 3.0], [0.0, 1.0]) == pytest.approx(1.0)
+    assert np.isnan(roc_auc([], [1.0]))
