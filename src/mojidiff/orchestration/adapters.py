@@ -487,6 +487,7 @@ command = [
     "docker", "run", "--rm", "--pull=never", "--network=none", "--read-only",
     "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m", "--cap-drop", "ALL", "--gpus", "all",
     "--user", str(os.getuid()) + ":" + str(os.getgid()),
+    "--env", "CUBLAS_WORKSPACE_CONFIG=:4096:8",
     "--mount", "type=volume,src=" + config["workspace_volume"]
     + ",dst=" + workspace_container + "/" + run_id
     + ",volume-subpath=" + run_id + ",volume-nocopy",

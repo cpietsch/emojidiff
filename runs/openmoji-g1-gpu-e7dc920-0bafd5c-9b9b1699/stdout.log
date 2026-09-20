@@ -1,1 +1,3 @@
 2026-09-20T11:01:52Z planned; no remote stage or GPU step yet
+2026-09-20T11:03:17Z staged; archive and extracted-tree hashes verified
+2026-09-20T11:04:35Z failed during the first CUDA step; torch.use_deterministic_algorithms(True) rejected cuBLAS without CUBLAS_WORKSPACE_CONFIG

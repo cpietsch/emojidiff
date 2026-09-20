@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-gpu-e7dc920-0bafd5c-9b9b1699
-state: planned
+state: failed
 parent_run: openmoji-g1-smoke-da44363-0bafd5c-9b9b1699
 retry_of: openmoji-g1-gpu-cd3250e-0bafd5c-9b9b1699
 hypothesis: >-
@@ -49,3 +49,10 @@ outputs:
   remote_workspace: /home/dev/workspace/openmoji-g1-gpu-e7dc920-0bafd5c-9b9b1699
   durable_artifacts: /home/dev/.cache/openmoji-g1-gpu-e7dc920-0bafd5c-9b9b1699
 planned_at: 2026-09-20T11:01:52Z
+staged_at: 2026-09-20T11:03:17Z
+failed_at: 2026-09-20T11:04:35Z
+failure:
+  reason: cuda_deterministic_algorithms_require_cublas_workspace_config
+  gpu_step_started: true
+  model_constructed: true
+  artifact_bytes: 0
