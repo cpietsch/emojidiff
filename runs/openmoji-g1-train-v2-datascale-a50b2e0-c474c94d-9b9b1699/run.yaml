@@ -1,0 +1,135 @@
+schema_version: 1
+run_id: openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
+state: planned
+parent_run: openmoji-g1-train-v1-native-c9bf1b9-f2a06ca5-9b9b1699
+hypothesis: >-
+  The v1 falsification was a data-scale failure, not an optimization or plumbing
+  failure. Training the identical 577,552-parameter denoiser on the full 2,681-icon
+  family-disjoint train split of the dominant P32/T128 bucket, instead of a 256-icon
+  subsample, generalizes materially better on the identical 128-icon held-out draw:
+  a lower held-out loss minimum, a narrower train/held-out gap, and higher
+  changed-token recovery at the selected checkpoint.
+expected_information_gain: >-
+  v1 established that the representation is learnable at real icon diversity but that
+  256 icons are too few to generalize. This run decides whether 10.5x more data is
+  sufficient at this model size, or whether the next factor is model capacity,
+  augmentation, or the corruption schedule. It is the cheapest test that separates
+  those, because it changes only the data.
+scope_limits: >-
+  Fixed-topology and geometry-only. Not unconditional generation, not topology
+  generation, not a style or AR comparison. A single seed, so small differences are
+  not interpretable across seeds. Group/subgroup conditioning and exact path locks are
+  unchanged from v1.
+changed_factors:
+  primary: train_samples 256 -> 2681 (the complete family-disjoint train split)
+  secondary: >-
+    The fixed 600-step budget becomes a 6,300-step cap plus held-out-loss early
+    stopping with patience 8 evaluations. This is a stopping rule, not a change to the
+    learning problem. It is disclosed as a second change and controlled for by reading
+    the v1 baseline at its own held-out loss minimum, step 240, rather than at its
+    reported step 600. Both arms are therefore compared under the same selection rule.
+  held_fixed: >-
+    model (d_model 96, 4 heads, 2 layers, ff 192, 577,552 parameters), seed 3101,
+    corruption probability 0.35, batch size 16, learning rate 0.001, eval_every 60,
+    validation_samples 128 drawn by the identical hash order, codec, bucket, and the
+    held-out corruption seeds.
+  step_budget_rationale: >-
+    6,300 steps x 16 / 2,681 icons is 37.6 epochs, matched to v1's 600 x 16 / 256 =
+    37.5 epochs, so the cap is not an unmatched advantage. Early stopping is expected
+    to end the run before the cap.
+code:
+  git_commit: a50b2e0b515d89758190107b7bbddd8e5a6681f5
+  execution_mode: native-local
+config:
+  path: configs/learning/openmoji-g1-dominant-bucket-train-v2-data-scale.yaml
+  sha256: c474c94db45be13faee785910ec9e6ab3f384b3d5692902bf7aee439fd7254cf
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  assignments_sha256: e0cdb2a3cc8f00df5ad05df76c9feeac1f73446606f1fa0da013f8c3084e482b
+  bucket: bucket-p32-t128
+  bucket_icons: 3359
+  train_samples: 2681
+  validation_samples: 128
+  family_disjoint_train_validation: true
+worker:
+  alias: gpubox-4080
+  gpu: NVIDIA GeForce RTX 4080
+  driver: "595.71.05"
+  torch: 2.14.0a0+4fdf77b940.nv26.08
+  cuda: "13.4"
+execution:
+  seed_set: [3101]
+  deterministic_algorithms: true
+  cublas_workspace_config: ":4096:8"
+  optimizer_step_cap: 6300
+  early_stopping: {objective: held_out_loss, patience_evals: 8, min_delta: 0.0}
+  batch_size: 16
+  learning_rate: 0.001
+  corruption_probability: 0.35
+  eval_every: 60
+  resource_cap: {max_steps: 20000, max_storage_gb: 50}
+  network: none
+baseline:
+  run: openmoji-g1-train-v1-native-c9bf1b9-f2a06ca5-9b9b1699
+  read_at: held-out loss minimum, step 240, from its committed validation.jsonl
+  held_out_loss: 9.793182373046875
+  held_out_aggregate_accuracy: 0.20908318336332735
+  held_out_changed_accuracy: 0.043854628702246386
+  held_out_retained_accuracy: 0.29781021897810217
+  train_token_accuracy_at_step: 0.3921783625730994
+predeclared_criteria:
+  note: >-
+    Declared before launch. A disclosed 60-step sizing preflight on the full 2,681-icon
+    split was run first to size wall time and memory. It reported 61.7 s wall including
+    data loading, 290.1 MiB peak CUDA memory, train token accuracy 0.0793, held-out
+    loss 10.5741, and held-out changed-token accuracy 0.0228 at step 60. The
+    corresponding v1 step-60 numbers are held-out loss 10.7155 and changed 0.0219, so
+    the preflight distinguishes nothing about the outcome and is disclosed rather than
+    hidden. The full run was not observed beforehand.
+  evaluated_at: the checkpoint selected by held-out loss, not the last trained step
+  primary:
+    - id: data_scale_lowers_held_out_loss
+      statement: >-
+        The minimum held-out loss is below 9.7932, the v1 baseline minimum on the
+        identical validation draw and corruption seeds.
+    - id: generalization_gap_narrows
+      statement: >-
+        At the selected step, train token accuracy minus held-out aggregate accuracy is
+        below 0.1831, the v1 value at its own selected step. Train token accuracy is a
+        16-sample per-step figure, so the mean over the ten training steps ending at
+        the selected step is used for both arms.
+    - id: held_out_changed_recovery_improves
+      statement: >-
+        Held-out changed-token accuracy is at least 1.5x the v1 baseline value of
+        0.043855, that is at least 0.065782.
+    - id: later_held_out_optimum
+      statement: >-
+        The selected step is later than v1's step 240, so more data supports longer
+        useful training rather than merely reaching the same optimum sooner.
+    - id: structural_safety
+      statement: >-
+        Locked-path exactness holds and the canonical checkpoint round-trips at the
+        selected step.
+    - id: reproducibility
+      statement: A second complete invocation returns an identical JSON result.
+  standing_gate_not_a_prediction:
+    - id: retained_preservation
+      statement: Held-out retained-token accuracy is at least 0.90.
+      note: >-
+        Carried forward from v1, where it was falsified at 0.3256. It is recorded so
+        the Gate G bar is not quietly dropped, but this run is not predicted to meet
+        it: 10.5x data at an unchanged 577,552 parameters is not expected to close a
+        0.33-to-0.90 gap. If it is met, that is a stronger result than the hypothesis.
+  reported_not_gated:
+    - the complete held-out trace and the step at which loss turns upward, if it does
+    - held-out aggregate accuracy and retained-token accuracy at the selected step
+    - the last-trained-step held-out numbers, for the overfitting comparison
+    - wall time, peak CUDA memory, and whether early stopping or the cap ended the run
+  chance_level: >-
+    Random legal-token choice is about 0.0035 for endpoints over 289 bins and 0.0024
+    for controls over 417 bins.
+outputs:
+  local_metadata: runs/openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
+  report_root: reports/learning/openmoji-g1-dominant-bucket-train-v2-data-scale
+  durable_artifacts: /home/dev/.cache/openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
+planned_at: 2026-09-20T17:05:00Z
