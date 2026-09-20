@@ -164,6 +164,14 @@ class OpenMojiPilotConfig:
     signal - roughly 31% four individual fields. Opt-in so v1 through v7 stay exactly
     reproducible.
     """
+    calibration_samples: int = 0
+    """Train-split icons withheld from training, used only to estimate the value accuracy.
+
+    v13 derived its threshold from icons the model had trained on, where the value head
+    scores 0.2751 against 0.1233 held out. The threshold came out too permissive, 0.784
+    against the 0.890 the held-out accuracy implies, and it beat identity by only
+    0.0003. Reserving icons the model never sees makes the estimate honest.
+    """
     derive_decision_threshold: bool = False
     """Derive the decode threshold from a training-split estimate instead of using argmax.
 
@@ -299,6 +307,9 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
         derive_decision_threshold=_flag(
             training.get("derive_decision_threshold", False), "derive_decision_threshold"
         ),
+        calibration_samples=_nonnegative_int(
+            training.get("calibration_samples", 0), "calibration_samples"
+        ),
     )
     if result.d_model % result.heads:
         raise OpenMojiPilotError("model.d_model must be divisible by model.heads")
@@ -308,6 +319,10 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
         raise OpenMojiPilotError("training.device must be auto, cpu, or cuda")
     if result.eval_every > result.steps:
         raise OpenMojiPilotError("training.eval_every cannot exceed training.steps")
+    if result.calibration_samples and not result.derive_decision_threshold:
+        raise OpenMojiPilotError("calibration_samples requires training.derive_decision_threshold")
+    if result.calibration_samples >= result.train_samples:
+        raise OpenMojiPilotError("calibration_samples must leave training icons behind")
     if result.derive_decision_threshold and not result.edit_mask:
         raise OpenMojiPilotError("derive_decision_threshold requires model.edit_mask")
     if result.detection_only and not result.edit_mask:
@@ -496,12 +511,18 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
     _verify(config.palette, config.palette_sha256, "palette")
     _verify(config.style_summary, config.style_summary_sha256, "style summary")
     by_split, groups, subgroups = load_pilot_index(config)
-    train_rows = _select_rows(by_split["primary/train"], config.train_samples, config.seed)
+    selected_train = _select_rows(by_split["primary/train"], config.train_samples, config.seed)
+    # The calibration slice is taken from the END of the deterministic selection order,
+    # so a run with calibration_samples=0 trains on exactly the same icons as before.
+    split_at = len(selected_train) - config.calibration_samples
+    train_rows = selected_train[:split_at]
+    calibration_rows = selected_train[split_at:]
     validation_rows = _select_rows(
         by_split["primary/validation"], config.validation_samples, config.seed + 1
     )
     codec = _selected_codec(config)
     train_programs = [_load_program(row, config, codec) for row in train_rows]
+    calibration_programs = [_load_program(row, config, codec) for row in calibration_rows]
     validation_programs = [_load_program(row, config, codec) for row in validation_rows]
     device = _device(config.device)
     corrupt = corruption_operator(config, codec, train_programs)
@@ -651,8 +672,13 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
     decision_threshold = 0.5
     value_accuracy_train: float | None = None
     if config.derive_decision_threshold:
+        # Prefer icons withheld from training; fall back to train icons when none are
+        # reserved, which is what v13 did and is recorded as the weaker estimate.
+        estimate_rows = calibration_rows or train_rows
+        estimate_programs = calibration_programs or train_programs
         value_accuracy_train = _train_value_accuracy(
-            model, train_rows, train_programs, groups, subgroups, codec, config, device, corrupt
+            model, estimate_rows, estimate_programs, groups, subgroups, codec, config,
+            device, corrupt,
         )
         decision_threshold = break_even_threshold(value_accuracy_train)
         validation = _evaluate(
@@ -729,6 +755,8 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
         # byte-identical to what it wrote.
         summary["decision_threshold"] = decision_threshold
         summary["train_value_accuracy"] = value_accuracy_train
+        summary["calibration_samples"] = config.calibration_samples
+        summary["calibration_withheld_from_training"] = bool(config.calibration_samples)
     if policy is not None:
         # `steps` above stays the declared cap; `completed_steps` is what actually ran.
         # `validation` describes the selected checkpoint, not the last trained model.
