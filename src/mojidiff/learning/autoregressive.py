@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from typing import cast
 
 import numpy as np
 import torch
@@ -135,6 +136,58 @@ class SequenceLayout:
             return None
         used = sum(int(decoded[earlier * PATH_STRIDE]) for earlier in range(path))
         return max(self.total_segment_slots - used, 0)
+
+
+def _slot_index(layout: SequenceLayout) -> Tensor:
+    """The coordinate slot 0-5 each absolute position carries, or -1 if it carries none."""
+
+    index = torch.full((layout.length,), -1, dtype=torch.long)
+    for position in range(layout.length):
+        found = layout.coordinate_slot_of(position)
+        if found is not None:
+            index[position] = found[1]
+    return index
+
+
+def _kind_position(layout: SequenceLayout) -> Tensor:
+    """Where the segment-kind token governing each coordinate position lives.
+
+    A slot decodes over a different range depending on the kind - slot 0 is an endpoint
+    for a LINE and a control handle for a CUBIC - so the value of a coordinate token is
+    not knowable from the token alone. The kind sits at the head of its segment's block,
+    already decoded by the time any of its coordinates are read.
+    """
+
+    index = torch.full((layout.length,), -1, dtype=torch.long)
+    for position in range(layout.length):
+        found = layout.coordinate_slot_of(position)
+        if found is not None:
+            index[position] = layout.segment_type_position(found[0])
+    return index
+
+
+def coordinate_kind_tokens(tokens: Tensor, layout: SequenceLayout) -> Tensor:
+    """For each absolute position, the segment-kind token that governs it, else 0."""
+
+    where = _kind_position(layout).to(tokens.device)
+    gathered = tokens.gather(1, where.clamp_min(0)[None].expand(tokens.shape[0], -1))
+    return gathered * (where >= 0)[None]
+
+
+def teacher_forcing_inputs(tokens: Tensor, layout: SequenceLayout) -> tuple[Tensor, Tensor]:
+    """The shifted input sequence and the segment kinds aligned to it.
+
+    Both shift by one, and getting only one of them right is an off-by-one that changes
+    which affine map decodes a coordinate without changing any shape - so it trains, and
+    quietly. Doing the shift once, here, is the point of this function.
+    """
+
+    zero = torch.zeros_like(tokens[:, :1])
+    kinds = coordinate_kind_tokens(tokens, layout)
+    return (
+        torch.cat((zero, tokens[:, :-1]), dim=1),
+        torch.cat((zero, kinds[:, :-1]), dim=1),
+    )
 
 
 def flatten_program(program: PackedTensorProgram, layout: SequenceLayout) -> Tensor:
@@ -363,12 +416,32 @@ class CausalProgramModel(nn.Module):
         feedforward: int,
         group_vocab_size: int = 0,
         subgroup_vocab_size: int = 0,
+        metric_coordinates: int = 0,
     ) -> None:
         super().__init__()
         self.layout = layout
         self.d_model = d_model
         self.heads = heads
+        self.metric_coordinates = metric_coordinates
         self.token_embedding = nn.Embedding(layout.vocabulary, d_model)
+        # Gate G verified this on the same codec: a coordinate token is a point on a
+        # quarter-unit lattice, and a categorical table has no way to say two of them
+        # are adjacent. Its trained table scored Spearman -0.136 against bin distance -
+        # not weakly ordered, faintly anti-ordered - and replacing it with Fourier
+        # features of the decoded view-unit value took render recovery from 0.0447 to
+        # 0.2511 while shrinking the model. The causal model inherits the same defect
+        # verbatim, so it gets the same correction, behind a flag so earlier runs stay
+        # reproducible.
+        self.coordinate_projection = (
+            nn.Linear(2 * metric_coordinates + 2, d_model) if metric_coordinates > 0 else None
+        )
+        if metric_coordinates > 0:
+            self.register_buffer("_slot_index", _slot_index(layout), persistent=False)
+            self.register_buffer("_kind_position", _kind_position(layout), persistent=False)
+            self.register_buffer(
+                "_control_counts", torch.tensor([0, 0, 2, 4, 0], dtype=torch.long),
+                persistent=False,
+            )
         self.position_embedding = nn.Embedding(layout.length + 1, d_model)
         self.group_embedding = (
             nn.Embedding(group_vocab_size, d_model) if group_vocab_size > 0 else None
@@ -388,17 +461,26 @@ class CausalProgramModel(nn.Module):
         condition: dict[str, Tensor] | None = None,
         cache: list[tuple[Tensor, Tensor]] | None = None,
         offset: int = 0,
+        kinds: Tensor | None = None,
     ) -> tuple[Tensor, list[tuple[Tensor, Tensor]]]:
         """Logits for each supplied position, plus the updated key/value cache.
 
         `offset` is the absolute position of the first supplied token, so a cached decode
         step passes one token and its true position rather than re-reading the prefix.
+
+        `kinds` is required only under metric coordinates, and carries the segment-kind
+        token governing each supplied token's own slot. The caller supplies it because
+        a one-token cached step cannot see the kind, which sits up to six positions back.
         """
 
         positions = torch.arange(
             offset, offset + tokens.shape[1], device=tokens.device
         ).clamp_max(self.layout.length)
         hidden = self.token_embedding(tokens) + self.position_embedding(positions)[None]
+        if self.coordinate_projection is not None:
+            if kinds is None:
+                raise ValueError("metric coordinates need the governing segment kinds")
+            hidden = self._apply_metric_coordinates(hidden, tokens, positions, kinds)
         if self.group_embedding is not None or self.subgroup_embedding is not None:
             if condition is None:
                 raise ValueError("this model was built with structured conditioning")
@@ -414,6 +496,56 @@ class CausalProgramModel(nn.Module):
             hidden, present = block(hidden, past)
             updated.append(present)
         return self.head(self.norm(hidden)), updated
+
+    def _apply_metric_coordinates(
+        self, hidden: Tensor, tokens: Tensor, positions: Tensor, kinds: Tensor
+    ) -> Tensor:
+        """Replace the categorical embedding with Fourier features of the decoded value.
+
+        The supplied token at index i occupies absolute slot `positions[i] - 1`: the
+        model reads the token before the one it predicts. Position 0 has no predecessor
+        and is left categorical, which costs nothing - it is the start token.
+        """
+
+        codec = self.layout.codec
+        slot_index = cast(Tensor, self._slot_index)
+        control_counts = cast(Tensor, self._control_counts)
+        absolute = (positions - 1).clamp_min(0)
+        slot = slot_index.to(tokens.device)[absolute][None].expand_as(tokens)
+        is_coordinate = (slot >= 0) & (positions > 0)[None] & (tokens > 0)
+
+        endpoint_step = 72.0 / (codec.coordinate_bins - 1)
+        control_span = codec.control_coordinate_max - codec.control_coordinate_min
+        control_step = control_span / (codec.effective_control_coordinate_bins - 1)
+        index = (tokens.to(torch.float32) - 1.0).clamp_min(0.0)
+        counts = control_counts.to(tokens.device)[kinds.clamp(0, 4)]
+        is_control = slot < counts
+        value = torch.where(
+            is_control,
+            codec.control_coordinate_min + index * control_step,
+            index * endpoint_step,
+        ) * is_coordinate.to(torch.float32)
+
+        frequencies = torch.pow(
+            2.0,
+            torch.arange(self.metric_coordinates, dtype=torch.float32, device=tokens.device),
+        ) * torch.pi / 72.0
+        scaled = value[..., None] * frequencies
+        features = torch.cat(
+            (
+                (value / 72.0)[..., None],
+                is_coordinate.to(torch.float32)[..., None],
+                torch.sin(scaled),
+                torch.cos(scaled),
+            ),
+            dim=-1,
+        )
+        projection = cast(nn.Linear, self.coordinate_projection)
+        replacement: Tensor = projection(features)
+        keep = is_coordinate[..., None].to(hidden.dtype)
+        categorical: Tensor = self.token_embedding(tokens)
+        # Only the token term is replaced; position and conditioning still apply.
+        return hidden + keep * (replacement - categorical)
 
 
 class _CausalBlock(nn.Module):
@@ -482,8 +614,14 @@ def generate(
     cache: list[tuple[Tensor, Tensor]] | None = None
     current = torch.zeros((1, 1), dtype=torch.long, device=device)
     calls = 0
+    kind_at = _kind_position(layout)
     for position in range(layout.length):
-        logits, cache = model(current, condition, cache, offset=position)
+        # The token being fed in occupies slot `position - 1`; its governing kind was
+        # decoded earlier in this same loop, so it is always available here.
+        kinds = torch.zeros((1, 1), dtype=torch.long, device=device)
+        if position > 0 and int(kind_at[position - 1]) >= 0:
+            kinds[0, 0] = int(decoded[int(kind_at[position - 1])])
+        logits, cache = model(current, condition, cache, offset=position, kinds=kinds)
         calls += 1
         mask = legal_mask(position, decoded, layout).to(device)
         if not bool(mask.any()):

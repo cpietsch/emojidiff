@@ -35,6 +35,7 @@ from mojidiff.learning.autoregressive import (
     flatten_program,
     generate,
     legal_mask,
+    teacher_forcing_inputs,
 )
 from mojidiff.learning.openmoji_pilot import (
     OpenMojiPilotError,
@@ -61,6 +62,7 @@ class ARCorpusConfig:
     heads: int
     layers: int
     feedforward: int
+    metric_coordinates: int
     steps: int
     batch_size: int
     learning_rate: float
@@ -94,6 +96,7 @@ def load_ar_corpus_config(path: Path) -> ARCorpusConfig:
         heads=int(model["heads"]),
         layers=int(model["layers"]),
         feedforward=int(model["feedforward"]),
+        metric_coordinates=int(model.get("metric_coordinates", 0)),
         steps=int(training["steps"]),
         batch_size=int(training["batch_size"]),
         learning_rate=float(training["learning_rate"]),
@@ -121,6 +124,7 @@ class _Split:
 
     def __init__(self, rows: tuple[PilotRow, ...], layout: SequenceLayout) -> None:
         self.rows = rows
+        self.layout = layout
         self.tokens = torch.zeros((len(rows), layout.length), dtype=torch.long)
         self.packed = np.zeros((len(rows), layout.length * layout.vocabulary // 8), dtype=np.uint8)
         self.shape = (layout.length, layout.vocabulary)
@@ -202,6 +206,7 @@ def run_ar_corpus(config: ARCorpusConfig, config_path: Path) -> dict[str, Any]:
         feedforward=config.feedforward,
         group_vocab_size=len(groups) + 1,
         subgroup_vocab_size=len(subgroups) + 1,
+        metric_coordinates=config.metric_coordinates,
     ).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
 
@@ -242,13 +247,13 @@ def run_ar_corpus(config: ARCorpusConfig, config_path: Path) -> dict[str, Any]:
         indices = rng.choice(len(train.rows), size=config.batch_size, replace=False)
         tokens = train.tokens[indices].to(device)
         masks = train.masks(indices).to(device)
-        shifted = torch.cat((torch.zeros_like(tokens[:, :1]), tokens[:, :-1]), dim=1)
+        shifted, kinds = teacher_forcing_inputs(tokens, layout)
         batch_condition = {
             key: value[indices].to(device) for key, value in condition["train"].items()
         }
         free = _free_mask(masks)
         optimizer.zero_grad(set_to_none=True)
-        logits, _ = model(shifted, batch_condition)
+        logits, _ = model(shifted, batch_condition, kinds=kinds)
         loss = torch.nn.functional.cross_entropy(
             logits.masked_fill(~masks, float("-inf"))[free], tokens[free]
         )
@@ -359,9 +364,11 @@ def _evaluate(
         window = np.arange(start, min(start + 16, len(split.rows)))
         tokens = split.tokens[window].to(device)
         masks = split.masks(window).to(device)
-        shifted = torch.cat((torch.zeros_like(tokens[:, :1]), tokens[:, :-1]), dim=1)
+        shifted, kinds = teacher_forcing_inputs(tokens, split.layout)
         logits, _ = model(
-            shifted, {key: value[window].to(device) for key, value in condition.items()}
+            shifted,
+            {key: value[window].to(device) for key, value in condition.items()},
+            kinds=kinds,
         )
         free = _free_mask(masks)
         loss = torch.nn.functional.cross_entropy(

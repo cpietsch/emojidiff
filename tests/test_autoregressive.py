@@ -21,6 +21,7 @@ from mojidiff.learning.autoregressive import (
     flatten_program,
     generate,
     legal_mask,
+    teacher_forcing_inputs,
     unflatten_program,
 )
 from mojidiff.learning.openmoji_pilot import (
@@ -221,3 +222,109 @@ def test_overfit_selection_draws_distinct_subgroups() -> None:
     assert _distinct_subgroup_rows(rows, 3, seed=11) == chosen
     with pytest.raises(OpenMojiPilotError):
         _distinct_subgroup_rows(rows, 4, seed=11)
+
+
+def _metric_model(layout: SequenceLayout) -> CausalProgramModel:
+    torch.manual_seed(17)
+    return CausalProgramModel(
+        layout, d_model=32, heads=4, layers=2, feedforward=64, metric_coordinates=6
+    )
+
+
+def test_metric_coordinates_order_the_coordinate_space(pieces: Pieces) -> None:
+    """The property the categorical table did not have, pinned before it is relied on.
+
+    Gate G measured Spearman -0.136 between its trained embedding distances and bin
+    distance: the table was not weakly ordered, it was faintly anti-ordered. These
+    features are a fixed function of the decoded value, so the ordering holds at
+    initialisation and cannot be trained away.
+    """
+
+    _, _, layout, programs, _, _ = pieces
+    model = _metric_model(layout)
+    tokens = flatten_program(programs[0], layout)
+    coordinate = next(
+        position
+        for position in range(layout.length)
+        if layout.coordinate_slot_of(position) is not None
+    )
+
+    def embedded(value: int) -> torch.Tensor:
+        probe = tokens.clone()
+        probe[coordinate] = value
+        shifted, kinds = teacher_forcing_inputs(probe[None], layout)
+        hidden = model.token_embedding(shifted) + model.position_embedding(
+            torch.arange(layout.length)
+        )[None]
+        positions = torch.arange(layout.length)
+        with torch.no_grad():
+            out = model._apply_metric_coordinates(hidden, shifted, positions, kinds)
+        return out[0, coordinate + 1]
+
+    anchor = embedded(100)
+    distances = [float((embedded(100 + step) - anchor).norm()) for step in (1, 4, 16, 64)]
+    assert distances == sorted(distances), f"not monotone in bin distance: {distances}"
+    assert distances[0] < distances[-1] / 4
+
+
+def test_cached_decode_matches_full_forward_under_metric_coordinates(pieces: Pieces) -> None:
+    """The cache equality must survive an input path that depends on earlier tokens."""
+
+    _, _, layout, programs, _, _ = pieces
+    model = _metric_model(layout)
+    model.eval()
+    tokens = flatten_program(programs[0], layout)[None]
+    shifted, kinds = teacher_forcing_inputs(tokens, layout)
+    with torch.no_grad():
+        full, _ = model(shifted, None, kinds=kinds)
+        cache: list[tuple[torch.Tensor, torch.Tensor]] | None = None
+        stepwise = []
+        for position in range(layout.length):
+            logits, cache = model(
+                shifted[:, position : position + 1],
+                None,
+                cache,
+                offset=position,
+                kinds=kinds[:, position : position + 1],
+            )
+            stepwise.append(logits[:, -1])
+    assert torch.allclose(full, torch.stack(stepwise, dim=1), atol=1e-5)
+
+
+def test_generation_stays_legal_under_metric_coordinates(pieces: Pieces) -> None:
+    _, codec, layout, programs, _, _ = pieces
+    model = _metric_model(layout)
+    model.eval()
+    sampled, calls = generate(
+        model, programs[0], None, greedy=False, rng=np.random.default_rng(3)
+    )
+    assert calls == layout.length
+    validate_packed_tensor_program(sampled, codec, layout.total_segment_slots)
+
+
+def test_the_earlier_arm_is_unaffected_by_the_coordinate_option(pieces: Pieces) -> None:
+    """Adding metric coordinates must not move a run that did not ask for them.
+
+    `ar-corpus-i2` is a committed negative result and the baseline the next arm is read
+    against. Its training loop now goes through `teacher_forcing_inputs` and its model
+    takes a `kinds` argument, so both have to be provably inert at zero - otherwise the
+    comparison is against a baseline that quietly moved.
+    """
+
+    _, _, layout, programs, groups, subgroups = pieces
+    tokens = torch.stack([flatten_program(program, layout) for program in programs])
+    shifted, kinds = teacher_forcing_inputs(tokens, layout)
+    previous = torch.cat((torch.zeros_like(tokens[:, :1]), tokens[:, :-1]), dim=1)
+    assert torch.equal(shifted, previous), "the shift itself changed"
+
+    model = _model(layout, groups, subgroups)
+    condition = {
+        "group": torch.zeros(len(programs), dtype=torch.long),
+        "subgroup": torch.zeros(len(programs), dtype=torch.long),
+    }
+    with torch.no_grad():
+        without, _ = model(shifted, condition)
+        with_kinds, _ = model(shifted, condition, kinds=kinds)
+        with_wrong, _ = model(shifted, condition, kinds=torch.full_like(kinds, 3))
+    assert torch.equal(without, with_kinds)
+    assert torch.equal(without, with_wrong), "kinds must be inert without the option"
