@@ -1,0 +1,13 @@
+# Corruption-level sweep over the v2 loss-selected checkpoint. The model is fixed; only
+# the evaluation corruption level changes, so differences isolate the regime rather than
+# the model. p=0.35 is the level it trained at and is the sweep's control.
+schema_version: 1
+study_version: openmoji-g1-corruption-sweep-p005
+pilot_config: configs/learning/openmoji-g1-dominant-bucket-train-v2-data-scale.yaml
+checkpoint: /home/dev/.cache/openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699/checkpoint/checkpoint.zip
+checkpoint_sha256: e791493769907ac428db6a081310c0beacc4b88d2072b24fc07df0287e0295b4
+report_root: reports/learning/openmoji-g1-corruption-sweep-p005
+icons: 32
+render_sizes: [72, 18]
+render_timeout_seconds: 20
+corruption_probability: 0.05
