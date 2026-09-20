@@ -793,3 +793,64 @@ def test_marginal_corruption_closes_the_density_leak() -> None:
     # But the geometric signal is still there to be learned.
     assert marginal_continuity > 0.65
     assert uniform_continuity > 0.65
+
+
+def test_metric_coordinates_encode_magnitude_and_shrink_the_model() -> None:
+    """Under metric encoding, nearby lattice bins must produce nearby inputs.
+
+    A token table gives the encoder no way to subtract two coordinates: on a trained
+    checkpoint the Spearman between embedding distance and bin distance is -0.136 and
+    adjacent bins sit 0.989 of the all-pairs mean apart, i.e. no order at all. The
+    metric path decodes each token to its view-unit value instead, so proximity in the
+    lattice becomes proximity in the input by construction.
+    """
+
+    import torch
+
+    from mojidiff.learning.geometry import GeometryDenoiser
+    from mojidiff.learning.openmoji_pilot import (
+        _selected_codec,
+        load_openmoji_pilot_config,
+    )
+
+    config = load_openmoji_pilot_config(
+        Path("configs/learning/openmoji-g1-dominant-bucket-smoke.yaml")
+    )
+    codec = _selected_codec(config)
+    torch.manual_seed(0)
+    metric = GeometryDenoiser(
+        codec, config.total_segment_slots, d_model=96, heads=4, layers=2, feedforward=192,
+        metric_coordinates=8,
+    )
+    torch.manual_seed(0)
+    categorical = GeometryDenoiser(
+        codec, config.total_segment_slots, d_model=96, heads=4, layers=2, feedforward=192,
+    )
+
+    # Strictly fewer parameters, so this cannot be confounded with a capacity change.
+    metric_count = sum(p.numel() for p in metric.parameters())
+    categorical_count = sum(p.numel() for p in categorical.parameters())
+    assert metric_count < categorical_count
+    assert metric.coordinate_embedding is None and categorical.coordinate_embedding is not None
+
+    # One CUBIC segment whose slot 5 (an endpoint) takes three values: 100, 102, 280.
+    def features_for(token: int) -> torch.Tensor:
+        tokens = torch.zeros(1, config.total_segment_slots, 6, dtype=torch.long)
+        tokens[0, 0, :] = 100
+        tokens[0, 0, 5] = token
+        kinds = torch.zeros(1, config.total_segment_slots, dtype=torch.long)
+        kinds[0, 0] = 3
+        return metric._metric_features(tokens, kinds)[0, 0]
+
+    near = (features_for(100) - features_for(102)).norm()
+    far = (features_for(100) - features_for(280)).norm()
+    assert near < far, "adjacent lattice bins must be closer than distant ones"
+
+    # A control slot and an endpoint slot decode with different affine maps, so the
+    # same token means different values in the two roles.
+    tokens = torch.zeros(1, config.total_segment_slots, 6, dtype=torch.long)
+    tokens[0, 0, :] = 100
+    cubic = torch.zeros(1, config.total_segment_slots, dtype=torch.long)
+    cubic[0, 0] = 3
+    per_slot = metric._metric_features(tokens, cubic)[0, 0].reshape(6, -1)
+    assert not torch.allclose(per_slot[0], per_slot[5])

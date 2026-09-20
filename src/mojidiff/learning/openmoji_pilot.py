@@ -162,6 +162,15 @@ class OpenMojiPilotConfig:
     signal - roughly 31% four individual fields. Opt-in so v1 through v7 stay exactly
     reproducible.
     """
+    metric_coordinates: int = 0
+    """Fourier octaves for the metric coordinate encoding; 0 keeps the token tables.
+
+    Coordinates live on a quarter-unit lattice but a token table encodes them as
+    unordered categories, so the subtraction the continuity statistic performs has no
+    operand the encoder can use. Setting this decodes each token to its view-unit value
+    with the role-correct affine map and projects Fourier features of it, replacing the
+    categorical tables entirely - which makes the model strictly smaller.
+    """
     mask_padding: bool = False
     """Hide typed padding slots from attention; about 29% of the sequence."""
     detection_only: bool = False
@@ -264,6 +273,9 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
             training.get("pool_loss_over_fields", False), "pool_loss_over_fields"
         ),
         mask_padding=_flag(model.get("mask_padding", False), "mask_padding"),
+        metric_coordinates=_nonnegative_int(
+            model.get("metric_coordinates", 0), "metric_coordinates"
+        ),
     )
     if result.d_model % result.heads:
         raise OpenMojiPilotError("model.d_model must be divisible by model.heads")
@@ -706,6 +718,7 @@ def _new_model(
         slot_binding=config.slot_binding,
         edit_mask=config.edit_mask,
         mask_padding=config.mask_padding,
+        metric_coordinates=config.metric_coordinates,
     )
 
 

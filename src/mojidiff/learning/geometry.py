@@ -10,6 +10,7 @@ from __future__ import annotations
 import copy
 from collections.abc import Sequence
 from dataclasses import fields
+from typing import cast
 
 import numpy as np
 import torch
@@ -50,6 +51,7 @@ class GeometryDenoiser(nn.Module):
         group_vocab_size: int = 0,
         subgroup_vocab_size: int = 0,
         noise_level_features: int = 0,
+        metric_coordinates: int = 0,
         slot_binding: bool = False,
         edit_mask: bool = False,
         mask_padding: bool = False,
@@ -59,13 +61,37 @@ class GeometryDenoiser(nn.Module):
         self.total_segment_slots = total_segment_slots
         self.endpoint_bins = codec.coordinate_bins
         self.control_bins = codec.effective_control_coordinate_bins
+        self.control_minimum = codec.control_coordinate_min
+        self.control_maximum = codec.control_coordinate_max
         sizes = _path_field_sizes(codec)
         self.path_embeddings = nn.ModuleDict(
             {name: nn.Embedding(size, d_model, padding_idx=0) for name, size in sizes.items()}
         )
-        self.endpoint_embedding = nn.Embedding(self.endpoint_bins + 1, d_model, padding_idx=0)
+        # Coordinates live on a quarter-unit lattice - a metric space - but a token
+        # table encodes them as unordered categories, so the local-difference the
+        # continuity statistic computes in closed form has no operand the encoder can
+        # subtract. Measured on a trained checkpoint: Spearman between embedding
+        # distance and bin distance is -0.136 and adjacent bins sit 0.989 of the
+        # all-pairs mean apart, i.e. no order at all. With `metric_coordinates` the
+        # input side decodes each token to its view-unit value instead, using the
+        # role-correct affine map, and projects Fourier features of it. The output
+        # heads stay categorical. Replacement, not augmentation: a numeric code added
+        # on top of the embeddings is swamped by them.
+        # The categorical tables are not allocated at all under metric encoding, so the
+        # change is a strict capacity REDUCTION and cannot be confounded with the
+        # capacity arm already eliminated.
+        self.metric_coordinates = metric_coordinates
+        self.endpoint_embedding = (
+            None
+            if metric_coordinates
+            else nn.Embedding(self.endpoint_bins + 1, d_model, padding_idx=0)
+        )
         self.segment_type_embedding = nn.Embedding(5, d_model, padding_idx=0)
-        self.coordinate_embedding = nn.Embedding(self.control_bins + 1, d_model, padding_idx=0)
+        self.coordinate_embedding = (
+            None
+            if metric_coordinates
+            else nn.Embedding(self.control_bins + 1, d_model, padding_idx=0)
+        )
         self.position_embedding = nn.Embedding(codec.max_paths + total_segment_slots, d_model)
         self.group_embedding = (
             nn.Embedding(group_vocab_size, d_model) if group_vocab_size > 0 else None
@@ -90,6 +116,16 @@ class GeometryDenoiser(nn.Module):
         # Adding a per-slot vector would not help: a sum of sums is still symmetric.
         # Multiplying binds value to slot while costing 8 * d_model parameters, so the
         # fix is structural rather than a capacity change.
+        if metric_coordinates:
+            width = 2 + 2 * metric_coordinates
+            self.coordinate_projection: nn.Linear | None = nn.Linear(6 * width, d_model)
+            self.start_projection: nn.Linear | None = nn.Linear(2 * width, d_model)
+            self.register_buffer(
+                "control_counts", torch.tensor([0, 0, 2, 4, 0], dtype=torch.long), persistent=False
+            )
+        else:
+            self.coordinate_projection = None
+            self.start_projection = None
         self.slot_binding = slot_binding
         self.coordinate_slot: nn.Parameter | None = None
         self.start_slot: nn.Parameter | None = None
@@ -121,6 +157,47 @@ class GeometryDenoiser(nn.Module):
         self.edit_mask = edit_mask
         self.start_keep_head = nn.Linear(d_model, 2 * 2) if edit_mask else None
         self.coordinate_keep_head = nn.Linear(d_model, 6 * 2) if edit_mask else None
+
+    def _metric_features(
+        self, tokens: Tensor, segment_type: Tensor, *, endpoints_only: bool = False
+    ) -> Tensor:
+        """Decode tokens to view units and return Fourier features, flattened per slot.
+
+        A slot's role depends on the segment kind - slot 0 is an endpoint for a LINE and
+        a control handle for a CUBIC - and the two decode with different affine maps
+        over different ranges, so the kind selects the map per field.
+        """
+
+        endpoint_step = 72.0 / (self.endpoint_bins - 1)
+        control_span = self.control_maximum - self.control_minimum
+        control_step = control_span / (self.control_bins - 1)
+        index = (tokens.to(torch.float32) - 1.0).clamp_min(0.0)
+        endpoint_value = index * endpoint_step
+        if endpoints_only:
+            value = endpoint_value
+        else:
+            control_value = self.control_minimum + index * control_step
+            slots = torch.arange(tokens.shape[2], device=tokens.device)[None, None, :]
+            counts = cast(Tensor, self.control_counts)
+            is_control = slots < counts[segment_type][:, :, None]
+            value = torch.where(is_control, control_value, endpoint_value)
+        legal = (tokens > 0).to(torch.float32)
+        value = value * legal
+        scaled = value[..., None] * (
+            torch.pow(2.0, torch.arange(self.metric_coordinates, dtype=torch.float32,
+                                        device=tokens.device))[None, None, None, :]
+            * torch.pi / 72.0
+        )
+        features = torch.cat(
+            (
+                (value / 72.0)[..., None],
+                legal[..., None],
+                torch.sin(scaled),
+                torch.cos(scaled),
+            ),
+            dim=-1,
+        )
+        return features.reshape(*tokens.shape[:2], -1)
 
     def forward(
         self,
@@ -160,18 +237,30 @@ class GeometryDenoiser(nn.Module):
         )
         for name in _PATH_FIELDS:
             path_hidden = path_hidden + self.path_embeddings[name](batch[name])
-        for start_index in range(2):
-            embedded = self.endpoint_embedding(batch["start"][:, :, start_index])
-            if self.start_slot is not None:
-                embedded = embedded * self.start_slot[start_index]
-            path_hidden = path_hidden + embedded
+        if self.start_projection is not None:
+            path_hidden = path_hidden + self.start_projection(
+                self._metric_features(
+                    batch["start"], torch.zeros_like(batch["start"][:, :, 0]), endpoints_only=True
+                )
+            )
+        elif self.endpoint_embedding is not None:
+            for start_index in range(2):
+                embedded = self.endpoint_embedding(batch["start"][:, :, start_index])
+                if self.start_slot is not None:
+                    embedded = embedded * self.start_slot[start_index]
+                path_hidden = path_hidden + embedded
 
         segment_hidden = self.segment_type_embedding(batch["segment_type"])
-        for coordinate_index in range(6):
-            embedded = self.coordinate_embedding(batch["coordinates"][:, :, coordinate_index])
-            if self.coordinate_slot is not None:
-                embedded = embedded * self.coordinate_slot[coordinate_index]
-            segment_hidden = segment_hidden + embedded
+        if self.coordinate_projection is not None:
+            segment_hidden = segment_hidden + self.coordinate_projection(
+                self._metric_features(batch["coordinates"], batch["segment_type"])
+            )
+        elif self.coordinate_embedding is not None:
+            for coordinate_index in range(6):
+                embedded = self.coordinate_embedding(batch["coordinates"][:, :, coordinate_index])
+                if self.coordinate_slot is not None:
+                    embedded = embedded * self.coordinate_slot[coordinate_index]
+                segment_hidden = segment_hidden + embedded
         hidden = torch.cat((path_hidden, segment_hidden), dim=1)
         positions = torch.arange(hidden.shape[1], device=hidden.device)
         hidden = hidden + self.position_embedding(positions)[None, :, :]
