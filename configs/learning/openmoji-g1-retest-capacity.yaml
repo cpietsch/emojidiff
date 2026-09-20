@@ -1,0 +1,120 @@
+schema_version: 1
+study_version: openmoji-g1-retest-capacity
+source_revision: f9fc506a3f913be9897ab0181d611d4c910a4104
+report_root: reports/learning/openmoji-g1-retest-capacity
+checkpoint_root: data/processed/openmoji-g1-retest-capacity
+
+inputs:
+  raw_root: data/raw/openmoji/17.0.0
+  hybrid: reports/codec/full-primary-structure-v2-opacity/hybrid.jsonl
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  assignments: reports/codec/capacity-layout-v1/bucket-assignments.jsonl
+  assignments_sha256: e0cdb2a3cc8f00df5ad05df76c9feeac1f73446606f1fa0da013f8c3084e482b
+  expected_icons: 4006
+  palette: data/raw/openmoji/17.0.0/data/color-palette.json
+  palette_sha256: 566f30548fbc0fe4f4aa0c2a563820f0c26e46a89523b174e25a685720058228
+  style_summary: reports/codec/style-vocabulary-v2-render-sentinel/summary.json
+  style_summary_sha256: 005dc6b4f94da48a31e9677a0aaa6ef44649b7e83235ca8a1e74dc69e5693d33
+  style_candidate: leading-k48-plus-4.1
+
+selection:
+  bucket: bucket-p32-t128
+  expected_bucket_icons: 3359
+
+codec:
+  max_paths: 32
+  max_segments: 128
+  total_segment_slots: 128
+
+# Exactly the v2 configuration plus slot binding. Nothing else moves: the encoder
+# summed six coordinate lookups from one shared table into one vector per segment, so a
+# segment was an unordered bag of its values and the model could not tell which
+# coordinate held which. Binding costs 8 * d_model = 768 parameters, +0.13%.
+model:
+  # Decode each coordinate token to its view-unit value and project Fourier features of
+  # it, replacing the categorical tables. The trained table had no order at all -
+  # Spearman -0.136 against bin distance - so the subtraction the continuity statistic
+  # performs had no operand the encoder could use. Strictly fewer parameters:
+  # 579,872 -> 525,152, so this cannot be a capacity effect.
+  metric_coordinates: 8
+  mask_padding: true
+  # Slot binding is redundant here: concatenating per-slot features already
+  # distinguishes the six coordinates, so it is switched off rather than left on doing
+  # nothing.
+  slot_binding: false
+  # Every trained model so far scores below the identity policy, which is 0.6506
+  # aggregate at this corruption level. The objective is why: each field is an
+  # independent softmax, so "leave this alone" costs as much as inventing a value.
+  # With the edit mask, identity is predict-keep-everywhere.
+  edit_mask: true
+  # v3's 3.53x scaling, retested. Its original conclusion - that capacity does nothing -
+  # was measured on a setup where 768 parameters of slot binding later beat it outright.
+  d_model: 192
+  heads: 8
+  layers: 4
+  feedforward: 384
+
+training:
+  train_samples: 2681
+  validation_samples: 128
+  batch_size: 16
+  steps: 6300
+  learning_rate: 0.001
+  corruption_probability: 0.35
+  # Drop the value term. It is a 289/417-class objective against the keep head's
+  # 2-class one and they share an encoder, so the encoder is shaped almost entirely by
+  # a task the model cannot do. This asks whether the detection signal - which a
+  # zero-parameter statistic extracts at 2.13x lift - is learnable at all when nothing
+  # competes for the representation.
+  # The value head trains too, so this is a denoiser rather than a detector: the
+  # keep decision gates the decode and the value head supplies what to put back.
+  # It is the first time the full objective has been run with all four defects fixed,
+  # and it is the first honest test against the identity baseline - the bar every model
+  # in this project has failed.
+  detection_only: false
+  # Normalise the two objectives by their chance cross-entropy: log 2 nats for the
+  # 2-class keep decision against log 417 for the value head. Unweighted, the value term
+  # is 8.7x larger at chance and dominates the shared encoder, costing the detector a
+  # measured 1.064 of lift. log(2)/log(417) = 0.1149.
+  value_loss_weight: 0.1149
+  # Decode at 1/(1+q) rather than argmax, with q the value head's accuracy on corrupted
+  # fields estimated on TRAIN icons. v12 beat identity only with a threshold fitted on
+  # held-out data; this derives it, so the comparison needs no sweep.
+  derive_decision_threshold: true
+  # Withhold 256 of the 2,681 train icons from training and use them only to estimate
+  # the value accuracy. v13 estimated it on icons the model had trained on, where the
+  # value head scores 0.2751 against 0.1233 held out, so its threshold was too
+  # permissive at 0.784 and it beat identity by only 0.0003.
+  calibration_samples: 256
+  # Spread the value target over nearby bins so being close earns gradient. tau is in
+  # view units; 1.0 spans four quarter-unit bins either side. Under exact-token targets
+  # a confident one-view-unit miss costs the same as a far one, and the value head sits
+  # at 0.222 - which pins the break-even decode threshold at 0.818.
+  value_distance_tau: 1.0
+  # Choose the decode threshold by view-unit error saved on the withheld calibration
+  # icons, not by the exact-token break-even rule. v15 localised 27% better than v14 and
+  # gated itself more tightly at 0.8604 against 0.8183, because the exact-token rule
+  # gives no credit for being close.
+  geometric_gate: true
+  # Two verified defects, corrected together because both are bugs rather than knobs
+  # and neither can be evaluated while the other is active: the loss averaged over
+  # per-(kind, slot) groups, giving four single-field QUAD groups 4/13 of the weight
+  # and making the early-stopping signal ~31% four fields; and no attention padding
+  # mask, so ~29% of the sequence was attended as if it were content.
+  pool_loss_over_fields: true
+  # Draw replacements from the corpus distribution for the field's role instead of
+  # uniformly over the legal vocabulary. Uniform replacement leaks: a zero-parameter
+  # detector knowing only the marginal reaches 2.84 lift, so v8's 2.806 was matching a
+  # density test rather than learning geometry. Under this process that detector falls
+  # to 0.771 while the local-continuity signal survives at 1.893.
+  corruption_process: marginal
+  seed: 3101
+  device: auto
+  eval_every: 60
+  # v1 trained a fixed 600-step budget and reported step 600, but its held-out loss
+  # bottomed out at step 240 and then rose. Select on held-out loss instead, so this
+  # run and the v1 baseline are both read at their own held-out optimum.
+  selection_policy:
+    objective: held_out_loss
+    patience_evals: 8
+    min_delta: 0.0
