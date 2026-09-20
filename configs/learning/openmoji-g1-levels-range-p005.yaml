@@ -1,0 +1,13 @@
+# 32-icon per-level render comparison: range at corruption 0.05, gated at the threshold
+# derived for that level on its own withheld calibration icons.
+schema_version: 1
+study_version: openmoji-g1-levels-range-p005
+pilot_config: configs/learning/openmoji-g1-retest-noise-conditioning.yaml
+checkpoint: /home/dev/.cache/render-retest-noise-conditioning/checkpoint.zip
+checkpoint_sha256: 334f8304403f2cf88f1828516981086f572ba5aa0a5f8e55ba0e4c5f07078dc6
+report_root: reports/learning/openmoji-g1-levels-range-p005
+icons: 32
+render_sizes: [72, 18]
+render_timeout_seconds: 20
+corruption_probability: 0.05
+decision_threshold: 0.5350
