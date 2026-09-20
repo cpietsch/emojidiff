@@ -1,0 +1,117 @@
+schema_version: 1
+run_id: openmoji-g1-noise-conditioned-v4-6b935b2-5a9eaf44-9b9b1699
+state: planned
+parent_run: openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
+diagnosis_run: openmoji-g1-corruption-sweep-71a080a-4levels-9b9b1699
+hypothesis: >-
+  The Gate G denoiser produced output near-independent of its input because it trained
+  at one fixed corruption level and was never told the level, so it had no reason to
+  learn how much to trust `x_t` and settled on a group-conditioned prior. Sampling a
+  corruption level per example across 0.05 to 0.50 and conditioning the model on that
+  level makes the output actually depend on the input: the model stops destroying
+  lightly corrupted inputs, and its predictions at 0.05 and 0.35 stop being nearly the
+  same picture.
+expected_information_gain: >-
+  This is the first Gate G run that targets the diagnosed mechanism rather than a
+  resource. If it works, the earlier recovery numbers become interpretable as denoising
+  for the first time and the gate has a path forward. If it does not, the failure is
+  not about noise-level information and the next candidates are an edit-mask or
+  residual objective, which are larger changes.
+scope_limits: >-
+  Fixed-topology and geometry-only, single seed. Model size is v2's, plus 3,168
+  parameters of noise projection, because v3 showed capacity is not the constraint.
+  Success here would mean the model reads its input, not that its output is usable; the
+  renders have never yet produced a recognizable icon at any setting.
+changed_factors:
+  primary: >-
+    Two inseparable halves of one mechanism: corruption level sampled per example over
+    0.05 to 0.50 instead of fixed at 0.35, and 16 sinusoidal noise-level conditioning
+    features supplied to the model. Sampling without telling the model would leave it
+    unable to use the level; telling it without varying the level would leave it a
+    constant. They are deliberately not separated, and this is recorded as a two-factor
+    change rather than presented as one.
+  held_fixed: >-
+    the full 2,681-icon split, the 128-icon validation draw and its corruption seeds,
+    seed 3101, batch size 16, learning rate 0.001, eval_every 60, the 6,300-step cap,
+    the held-out-loss selection policy with patience 8, the codec, and the bucket.
+  model_parameters: {v2: 577552, v4: 580720}
+  evaluation: >-
+    Held-out evaluation and checkpoint selection stay at corruption 0.35, exactly the
+    task v2 and v3 were measured on.
+code:
+  git_commit: 6b935b2d25f8639504d42e45d8dd8964f4671fb0
+  execution_mode: native-local
+config:
+  path: configs/learning/openmoji-g1-noise-conditioned-v4.yaml
+  sha256: 5a9eaf449658d1e30a752062f75a24bdcfeba590cde7d41b027e69dcf2f3b669
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  bucket: bucket-p32-t128
+  train_samples: 2681
+  validation_samples: 128
+baseline:
+  run: openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
+  held_out_loss_at_0.35: 7.3332648277282715
+  held_out_changed_accuracy_at_0.35: 0.057304335384175134
+  mean_recovery_fraction_72px: {"0.05": -4.6517, "0.10": -1.2024, "0.20": -0.1315, "0.35": 0.1800}
+  per_icon_pearson_r_p005_vs_p035: 0.9122
+execution:
+  seed_set: [3101]
+  deterministic_algorithms: true
+  cublas_workspace_config: ":4096:8"
+  optimizer_step_cap: 6300
+  early_stopping: {objective: held_out_loss, patience_evals: 8, min_delta: 0.0}
+  resource_cap: {max_steps: 20000, max_storage_gb: 50}
+  network: none
+predeclared_criteria:
+  note: >-
+    Declared before launch. No preflight. The baseline figures above are v2's, measured
+    on the same 32-icon sweep draw and the same 128-icon validation draw.
+  evaluated_at: the checkpoint selected by held-out loss at corruption 0.35
+  primary:
+    - id: stops_destroying_light_corruption
+      statement: >-
+        Mean per-icon recovery fraction at corruption 0.10 and 72 px is above zero,
+        against v2's -1.2024. Above zero means the model improves a lightly corrupted
+        input rather than damaging it, which is a qualitative change of sign.
+    - id: output_depends_on_input
+      statement: >-
+        The per-icon Pearson correlation between `x_hat_0` render error at corruption
+        0.05 and at 0.35 falls below 0.70, against v2's 0.9122. This is the direct
+        measure of the diagnosed mechanism.
+    - id: light_corruption_damage_collapses
+      statement: >-
+        Mean recovery fraction at corruption 0.05 is above -0.5, against v2's -4.6517.
+    - id: does_not_wreck_the_trained_task
+      statement: >-
+        Held-out loss at the selected checkpoint, evaluated at 0.35, is below 8.0. v2
+        reached 7.3333 while training only at 0.35, so some loss at that single level is
+        expected from spreading training across a range; a large regression would mean
+        the range was too wide rather than that conditioning failed.
+    - id: structural_safety
+      statement: Locked-path exactness holds and the canonical checkpoint round-trips.
+    - id: reproducibility
+      statement: A second complete invocation returns an identical JSON result.
+  standing_gate_not_a_prediction:
+    - id: retained_preservation
+      statement: Held-out retained-token accuracy at 0.35 is at least 0.90.
+      note: >-
+        Carried from v1, v2 and v3 at 0.3256, 0.4128 and 0.4323. This run targets the
+        mechanism behind that number, so movement here is the most informative single
+        figure even though the bar is not predicted to be met.
+  falsification_meaning: >-
+    If the correlation stays high and the model still destroys lightly corrupted inputs,
+    noise-level information was not the missing piece. The next candidates are then
+    structural rather than informational: predict an edit mask or a residual against
+    `x_t` so that copying is the default, and separately condition on which fields were
+    corrupted as a diagnostic upper bound to separate identification failure from
+    prediction failure.
+  reported_not_gated:
+    - the full four-level recovery sweep, for direct comparison with v2's
+    - held-out aggregate, changed and retained accuracy at 0.35
+    - the selected step, whether the cap or early stopping ended the run, wall time and peak memory
+outputs:
+  local_metadata: runs/openmoji-g1-noise-conditioned-v4-6b935b2-5a9eaf44-9b9b1699
+  report_root: reports/learning/openmoji-g1-noise-conditioned-v4
+  durable_artifacts: /home/dev/.cache/openmoji-g1-noise-conditioned-v4-6b935b2-5a9eaf44-9b9b1699
+planned_at: 2026-09-20T19:45:00Z
