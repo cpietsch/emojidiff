@@ -1,0 +1,87 @@
+schema_version: 1
+run_id: openmoji-g1-per-level-comparison-19dd31e-2models-9b9b1699
+state: planned
+parent_runs:
+  - openmoji-g1-geometric-gate-v16-85ec724-aaa03592-9b9b1699
+  - openmoji-g1-retest-eliminations-b949fc2-3arms-9b9b1699
+hypothesis: >-
+  Training across corruption levels was retested and restored v4's conclusion that it
+  changes nothing - but that retest measured only at probability 0.35, the one level at
+  which the sweep has since shown nothing can help, because a third of the geometry is
+  simply gone. The sweep also showed that v16, trained at 0.35 alone, produces
+  recognizable icons at 0.05 and 0.10 despite those levels being off-distribution for it.
+  A model that samples its corruption level over 0.05 to 0.50 and is told the level
+  should beat it at exactly those low levels, where v16 is extrapolating and it is not.
+expected_information_gain: >-
+  It is the direct test of the correction the sweep implies: that this gate's entire
+  history reported a single destructive level and that doing so hid where the model
+  works. If the range-trained model wins at low corruption, the project has a better
+  operating point and a reason to train that way. If it does not, then v16's
+  extrapolation is genuinely as good as training for the regime, which would be
+  surprising and worth knowing.
+scope_limits: >-
+  Fixed-topology and geometry-only, single seed. No new training: both checkpoints exist,
+  so this is an evaluation study. 32 icons rather than the 12 used previously, because
+  the last sweep was prevented from a significant result at 0.05 by one bad case.
+  Recognisability is a judgement and is reported as one.
+method: >-
+  Both models rendered at 0.05, 0.10, 0.20 and 0.35 on the same 32 held-out icons with
+  the same corruption seeds, each gated at the threshold derived for that level on its
+  own withheld calibration icons. Reported per level, never collapsed.
+models:
+  v16:
+    trained_at: fixed 0.35
+    thresholds: {"0.05": 0.8700, "0.10": 0.8150, "0.20": 0.7600, "0.35": 0.6800}
+    calibration_view_units_saved: {"0.05": 0.4636, "0.10": 0.9464, "0.20": 1.9726, "0.35": 3.0133}
+  range:
+    trained_at: sampled 0.05-0.50 with 16 noise-level features
+    thresholds: {"0.05": 0.5350, "0.10": 0.5800, "0.20": 0.6150, "0.35": 0.7600}
+    calibration_view_units_saved: {"0.05": 0.4134, "0.10": 0.8185, "0.20": 1.5370, "0.35": 1.9435}
+    note: >-
+      It gates far lower at low corruption and so edits more there, but saves fewer view
+      units per field on calibration at every level - which argues against the hypothesis
+      before the run and is recorded here rather than after.
+code:
+  git_commit: 19dd31e
+  execution_mode: native-local-cpu
+  trains_nothing: true
+baselines:
+  v16_at_12_icons: {"0.05": 0.0308, "0.10": 0.3902, "0.20": 0.2469, "0.35": 0.2511}
+  identity: 0.0
+predeclared_criteria:
+  statistic: >-
+    Paired per-icon difference in absolute RGBA MAE, x_t minus x_hat_0, at 72 px. The
+    absolute form rather than the relative one, because at low corruption the relative
+    statistic divides by a denominator that goes to zero - which is what prevented a
+    significant result at 0.05 last time.
+  primary:
+    - id: range_model_wins_at_low_corruption
+      statement: >-
+        At probability 0.05, the range-trained model's mean paired absolute improvement
+        exceeds v16's, and the 95% interval on the per-icon difference BETWEEN the two
+        models excludes zero. This is the hypothesis.
+    - id: range_model_does_not_lose_at_the_trained_level
+      statement: >-
+        At probability 0.35, the range-trained model's mean paired absolute improvement
+        is not below v16's by more than the interval on their difference. Buying low-level
+        performance with a loss at 0.35 would be a trade, not a win, and must be visible.
+    - id: both_models_help_at_every_level
+      statement: >-
+        For each model and level, mean paired absolute improvement is positive with its
+        95% interval excluding zero. At 32 icons a single bad case should no longer
+        prevent this.
+    - id: reproducibility
+      statement: Every one of the eight render runs reproduces identical artifacts.
+  reported_not_gated:
+    - per-level medians, icons helped, and the relative statistic alongside the absolute
+    - whether renders are recognizable at each level, for each model, stated plainly
+  falsification_meaning: >-
+    If the range-trained model does not win at low corruption, then v16's extrapolation
+    from a single level is as good as training across levels, the calibration figures
+    above predicted the outcome correctly, and the remaining lever is not the training
+    schedule. That would leave Gate I - the cached autoregressive baseline on the same
+    codec - as the one untried route to a generation result rather than a denoising one.
+outputs:
+  local_metadata: runs/openmoji-g1-per-level-comparison-19dd31e-2models-9b9b1699
+  report_roots: reports/learning/openmoji-g1-levels-{v16,range}-p{005,010,020,035}
+planned_at: 2026-09-21T07:20:00Z
