@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-20T09:21:22Z
+Updated: 2026-09-20T09:33:09Z
 
 ## Current hypothesis and evidence
 
@@ -164,6 +164,15 @@ seed's 12.07 points. Whole-path again reaches 100% but changes only 608 held-out
 versus 3,337 and 3,586, so it remains a lighter feasibility task. All three replicas
 resume exactly and reproduce byte-identically. Factorized role-uniform corruption is
 the Gate G primary; path-correlated and whole-path are retained named ablations.
+
+Gate G has begun with a bounded local pipeline smoke over the dominant exact packed
+bucket. The hash-pinned hybrid and capacity ledgers join one-to-one; P32/T128 contains
+3,359 icons split 2,681/339/339 across train/validation/test with no family leakage.
+The new pipeline adds group/subgroup conditioning and exact path locks while retaining
+factorized fixed-topology geometry corruption. Its one CPU step, canonical checkpoint
+restore, and identical rerun pass. Near-random first-step accuracy is expected and is
+not learning evidence. This remains fixed-topology geometry-only, not unconditional
+generation.
 
 ## Last completed action and verification
 
@@ -392,6 +401,11 @@ smoke checkpoint and result are retained under
 retained under `/home/dev/workspace/owned-gpu-smoke-5da02d3-7c03a644/`. No artifact was
 deleted or published.
 
+The local Gate G pilot's 7,075,309-byte canonical checkpoint is reproducible and
+byte-stable at SHA-256
+`d11efa006657dafc2edf10bc5fe5725cad09e6beb40167032606f6c9f7c8407a`.
+It remains on the control-plane volume pending the pipeline-specific owned-worker smoke.
+
 ## Current blockers and missing authorization
 
 - YOLO checks passed for hostname, persistent repository location, TLS-only isolated
@@ -419,8 +433,8 @@ deleted or published.
 
 ## Next smallest evidence-producing action
 
-Implement the first Gate G packed factorized training configuration and harness locally,
-with deterministic dry-run and checkpoint/resume tests. Then run that exact training
-pipeline as a tiny bounded worker smoke before deciding whether the evidence justifies
-a larger RTX 4080 training run. The generic adapter smoke authorizes the worker path but
-does not substitute for the required pipeline-specific smoke.
+Implement a bounded owned-worker pipeline-smoke adapter that stages the committed code
+plus only the six deterministically selected raw SVGs and palette under verified hashes.
+Then execute the same one-step Gate G config on the RTX 4080, verify the checkpoint in
+the persistent artifact volume, and compare pipeline behavior—not CPU/GPU floating-point
+artifact identity—before deciding whether a larger dominant-bucket run is justified.

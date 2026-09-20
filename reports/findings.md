@@ -793,3 +793,32 @@ is a reproducible negative result on this diagnostic, and the latter proves comp
 donor learning but is not a matched-difficulty quality win. This choice applies only to
 the current custom iterative-denoiser formulation; it is not an exact D3PM claim and
 does not yet establish topology or style generation.
+
+## 2026-09-20 — Gate G dominant-bucket CPU pipeline smoke
+
+**Hypothesis.** The selected factorized formulation can move from a four-icon fixture to
+the dominant exact OpenMoji packed bucket without breaking provenance joins, selected
+semantic/outlined normalization, structured conditioning, canonical checkpointing, or
+locked-path editing semantics.
+
+**Method.** Join the hash-pinned 4,006-row hybrid ledger to the exact adaptive-capacity
+assignments, audit split-family isolation, and select the P32/T128 bucket. Deterministically
+sample four train and two validation icons, including their selected normalization
+routes, then execute one CPU training step with group/subgroup conditioning. Save and
+restore the canonical checkpoint and run a path-locked corruption/prediction check. The
+complete invocation was repeated through create-or-identical artifact guards.
+
+**Observation.** The join is one-to-one. The bucket contains 3,359 icons: 2,681 train,
+339 validation, and 339 test, with no variant family crossing splits. The 577,552-parameter
+pipeline completes, its 7,075,309-byte checkpoint restores exactly, the locked path is
+unchanged, and every compact artifact repeats byte-identically. First-step train and
+validation accuracy are near random, as expected; they are not learning evidence. The
+run was registered retroactively after the omission was detected and retains its base
+commit plus dirty-source hash.
+
+**Decision.** The local data/model/checkpoint/editing path is ready for a pipeline-specific
+GPU smoke, but Gate G is not otherwise passed. This pilot is fixed-topology and
+geometry-only. It neither demonstrates unconditional generation nor tests whether
+conditioning improves quality. Add a bounded owned-worker pipeline-smoke adapter that
+stages only the six selected SVGs plus the palette under verified hashes, then execute
+the same config for one step on the RTX 4080 before defining a larger training run.

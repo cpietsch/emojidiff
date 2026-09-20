@@ -1,0 +1,43 @@
+schema_version: 1
+study_version: openmoji-g1-dominant-bucket-smoke
+source_revision: f9fc506a3f913be9897ab0181d611d4c910a4104
+report_root: reports/learning/openmoji-g1-dominant-bucket-smoke
+checkpoint_root: data/processed/openmoji-g1-dominant-bucket-smoke
+
+inputs:
+  raw_root: data/raw/openmoji/17.0.0
+  hybrid: reports/codec/full-primary-structure-v2-opacity/hybrid.jsonl
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  assignments: reports/codec/capacity-layout-v1/bucket-assignments.jsonl
+  assignments_sha256: e0cdb2a3cc8f00df5ad05df76c9feeac1f73446606f1fa0da013f8c3084e482b
+  expected_icons: 4006
+  palette: data/raw/openmoji/17.0.0/data/color-palette.json
+  palette_sha256: 566f30548fbc0fe4f4aa0c2a563820f0c26e46a89523b174e25a685720058228
+  style_summary: reports/codec/style-vocabulary-v2-render-sentinel/summary.json
+  style_summary_sha256: 005dc6b4f94da48a31e9677a0aaa6ef44649b7e83235ca8a1e74dc69e5693d33
+  style_candidate: leading-k48-plus-4.1
+
+selection:
+  bucket: bucket-p32-t128
+  expected_bucket_icons: 3359
+
+codec:
+  max_paths: 32
+  max_segments: 128
+  total_segment_slots: 128
+
+model:
+  d_model: 96
+  heads: 4
+  layers: 2
+  feedforward: 192
+
+training:
+  train_samples: 4
+  validation_samples: 2
+  batch_size: 2
+  steps: 1
+  learning_rate: 0.001
+  corruption_probability: 0.35
+  seed: 3101
+  device: auto

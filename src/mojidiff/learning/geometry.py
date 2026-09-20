@@ -47,6 +47,8 @@ class GeometryDenoiser(nn.Module):
         heads: int,
         layers: int,
         feedforward: int,
+        group_vocab_size: int = 0,
+        subgroup_vocab_size: int = 0,
     ) -> None:
         super().__init__()
         self.max_paths = codec.max_paths
@@ -61,6 +63,12 @@ class GeometryDenoiser(nn.Module):
         self.segment_type_embedding = nn.Embedding(5, d_model, padding_idx=0)
         self.coordinate_embedding = nn.Embedding(self.control_bins + 1, d_model, padding_idx=0)
         self.position_embedding = nn.Embedding(codec.max_paths + total_segment_slots, d_model)
+        self.group_embedding = (
+            nn.Embedding(group_vocab_size, d_model) if group_vocab_size > 0 else None
+        )
+        self.subgroup_embedding = (
+            nn.Embedding(subgroup_vocab_size, d_model) if subgroup_vocab_size > 0 else None
+        )
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=d_model,
             nhead=heads,
@@ -78,7 +86,11 @@ class GeometryDenoiser(nn.Module):
         self.start_head = nn.Linear(d_model, 2 * (self.endpoint_bins + 1))
         self.coordinate_head = nn.Linear(d_model, 6 * (self.control_bins + 1))
 
-    def forward(self, batch: dict[str, Tensor]) -> tuple[Tensor, Tensor]:
+    def forward(
+        self,
+        batch: dict[str, Tensor],
+        condition: dict[str, Tensor] | None = None,
+    ) -> tuple[Tensor, Tensor]:
         path_hidden = torch.zeros(
             (*batch["path_length"].shape, self.position_embedding.embedding_dim),
             dtype=torch.float32,
@@ -97,6 +109,19 @@ class GeometryDenoiser(nn.Module):
         hidden = torch.cat((path_hidden, segment_hidden), dim=1)
         positions = torch.arange(hidden.shape[1], device=hidden.device)
         hidden = hidden + self.position_embedding(positions)[None, :, :]
+        if self.group_embedding is not None or self.subgroup_embedding is not None:
+            if condition is None or set(condition) != {"group", "subgroup"}:
+                raise ValueError("structured condition requires group and subgroup tensors")
+            if condition["group"].shape != batch["path_length"].shape[:1]:
+                raise ValueError("group condition must contain one token per batch item")
+            if condition["subgroup"].shape != batch["path_length"].shape[:1]:
+                raise ValueError("subgroup condition must contain one token per batch item")
+            conditioning = torch.zeros_like(hidden[:, 0])
+            if self.group_embedding is not None:
+                conditioning = conditioning + self.group_embedding(condition["group"])
+            if self.subgroup_embedding is not None:
+                conditioning = conditioning + self.subgroup_embedding(condition["subgroup"])
+            hidden = hidden + conditioning[:, None, :]
         encoded = self.encoder(hidden)
         path_encoded = encoded[:, : self.max_paths]
         segment_encoded = encoded[:, self.max_paths :]
@@ -125,25 +150,33 @@ def corrupt_factorized_geometry(
     codec: CodecConfig,
     probability: float,
     rng: np.random.Generator,
+    *,
+    locked_paths: np.ndarray | None = None,
 ) -> PackedTensorProgram:
     """Independently replace each legal geometry token with a different legal token."""
 
     if not 0 <= probability <= 1:
         raise ValueError("corruption probability must be within 0..1")
+    locks = _locked_path_mask(locked_paths, codec.max_paths)
     noisy = copy.deepcopy(clean)
     for path_index, raw_length in enumerate(clean.path_length):
         if int(raw_length) == 0:
             break
+        if locks[path_index]:
+            continue
         for coordinate_index in range(2):
             if rng.random() < probability:
                 noisy.start[path_index, coordinate_index] = _different_token(
                     int(clean.start[path_index, coordinate_index]), codec.coordinate_bins, rng
                 )
     offset = 0
-    for raw_length in clean.path_length:
+    for path_index, raw_length in enumerate(clean.path_length):
         length = int(raw_length)
         if not length:
             break
+        if locks[path_index]:
+            offset += length
+            continue
         for segment_index in range(offset, offset + length):
             kind = SegmentType(int(clean.segment_type[segment_index]))
             control_count, coordinate_count = _coordinate_counts(kind)
@@ -471,14 +504,19 @@ def predict_clean_geometry(
     noisy: PackedTensorProgram,
     logits: tuple[Tensor, Tensor],
     codec: CodecConfig,
+    *,
+    locked_paths: np.ndarray | None = None,
 ) -> PackedTensorProgram:
     """Project logits through known topology and legal coordinate vocabularies."""
 
     result = copy.deepcopy(noisy)
+    locks = _locked_path_mask(locked_paths, codec.max_paths)
     start_logits, coordinate_logits = logits
     for path_index, raw_length in enumerate(result.path_length):
         if not int(raw_length):
             break
+        if locks[path_index]:
+            continue
         for coordinate_index in range(2):
             result.start[path_index, coordinate_index] = int(
                 start_logits[0, path_index, coordinate_index, 1 : codec.coordinate_bins + 1]
@@ -487,10 +525,13 @@ def predict_clean_geometry(
                 + 1
             )
     offset = 0
-    for raw_length in result.path_length:
+    for path_index, raw_length in enumerate(result.path_length):
         length = int(raw_length)
         if not length:
             break
+        if locks[path_index]:
+            offset += length
+            continue
         for segment_index in range(offset, offset + length):
             kind = SegmentType(int(result.segment_type[segment_index]))
             control_count, coordinate_count = _coordinate_counts(kind)
@@ -508,6 +549,14 @@ def predict_clean_geometry(
                 )
         offset += length
     return result
+
+
+def _locked_path_mask(value: np.ndarray | None, max_paths: int) -> np.ndarray:
+    if value is None:
+        return np.zeros((max_paths,), dtype=np.bool_)
+    if not isinstance(value, np.ndarray) or value.shape != (max_paths,) or value.dtype != np.bool_:
+        raise ValueError("locked_paths must be a boolean vector with one entry per path slot")
+    return value
 
 
 def _coordinate_counts(kind: SegmentType) -> tuple[int, int]:

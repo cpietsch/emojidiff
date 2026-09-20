@@ -616,7 +616,7 @@ def _contact_sheet(
     return payload.getvalue()
 
 
-def _save_checkpoint(model: GeometryDenoiser, optimizer: torch.optim.Optimizer, step: int) -> bytes:
+def _save_checkpoint(model: torch.nn.Module, optimizer: torch.optim.Optimizer, step: int) -> bytes:
     document = {
         "step": step,
         "model": model.state_dict(),
@@ -786,7 +786,7 @@ def _decode_checkpoint_key(value: dict[str, Any]) -> int | str:
     raise TinyLearningError("checkpoint mapping key is invalid")
 
 
-def _model_hash(model: GeometryDenoiser) -> str:
+def _model_hash(model: torch.nn.Module) -> str:
     digest = hashlib.sha256()
     for name, tensor in sorted(model.state_dict().items()):
         digest.update(name.encode())

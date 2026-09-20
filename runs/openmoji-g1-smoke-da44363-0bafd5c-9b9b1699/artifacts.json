@@ -1,0 +1,18 @@
+{
+  "artifacts": [
+    {
+      "bytes": 7075309,
+      "kind": "canonical_checkpoint",
+      "path": "data/processed/openmoji-g1-dominant-bucket-smoke/checkpoint.zip",
+      "sha256": "d11efa006657dafc2edf10bc5fe5725cad09e6beb40167032606f6c9f7c8407a"
+    },
+    {
+      "kind": "summary",
+      "path": "reports/learning/openmoji-g1-dominant-bucket-smoke/summary.json",
+      "sha256": "54a7392a9ba32694292a7eb8d716fa1bb0afd35ecbe068d3a8b0283a737264da"
+    }
+  ],
+  "artifact_identity_rerun": true,
+  "schema_version": 1,
+  "status": "completed"
+}

@@ -37,6 +37,7 @@ mojidiff-capacity-study = "mojidiff.representation.capacity_study:main"
 mojidiff-style-study = "mojidiff.representation.style_study:main"
 mojidiff-stress-study = "mojidiff.representation.stress_study:main"
 mojidiff-tiny-learning = "mojidiff.learning.tiny_study:main"
+mojidiff-openmoji-pilot = "mojidiff.learning.openmoji_pilot:main"
 mojidiff-representation = "mojidiff.representation.cli:main"
 mojidiff-worker = "mojidiff.orchestration.cli:main"
 

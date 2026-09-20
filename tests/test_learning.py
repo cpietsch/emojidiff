@@ -152,6 +152,71 @@ def test_factorized_and_path_correlated_contracts_preserve_grammar() -> None:
         validate_packed_tensor_program(noisy, codec, 16)
 
 
+def test_factorized_corruption_and_prediction_preserve_locked_paths() -> None:
+    codec = _codec()
+    dense, _ = encode_program(_program(), codec)
+    clean = pack_tensor_program(dense, codec, total_segment_slots=16)
+    locks = np.zeros((codec.max_paths,), dtype=np.bool_)
+    locks[0] = True
+    noisy = corrupt_factorized_geometry(
+        clean,
+        codec,
+        1.0,
+        np.random.default_rng(37),
+        locked_paths=locks,
+    )
+    model = GeometryDenoiser(
+        codec,
+        16,
+        d_model=32,
+        heads=4,
+        layers=1,
+        feedforward=64,
+    )
+    prediction = predict_clean_geometry(
+        noisy,
+        model(packed_batch([noisy], torch.device("cpu"))),
+        codec,
+        locked_paths=locks,
+    )
+
+    assert np.array_equal(noisy.start[0], clean.start[0])
+    assert np.array_equal(noisy.coordinates[:4], clean.coordinates[:4])
+    assert np.array_equal(prediction.start[0], clean.start[0])
+    assert np.array_equal(prediction.coordinates[:4], clean.coordinates[:4])
+    validate_packed_tensor_program(prediction, codec, 16)
+
+
+def test_structured_conditioning_requires_and_accepts_group_tokens() -> None:
+    codec = _codec()
+    dense, _ = encode_program(_program(), codec)
+    clean = pack_tensor_program(dense, codec, total_segment_slots=16)
+    batch = packed_batch([clean], torch.device("cpu"))
+    model = GeometryDenoiser(
+        codec,
+        16,
+        d_model=32,
+        heads=4,
+        layers=1,
+        feedforward=64,
+        group_vocab_size=3,
+        subgroup_vocab_size=5,
+    )
+
+    with np.testing.assert_raises(ValueError):
+        model(batch)
+    logits = model(
+        batch,
+        {
+            "group": torch.tensor([1], dtype=torch.long),
+            "subgroup": torch.tensor([2], dtype=torch.long),
+        },
+    )
+
+    assert logits[0].shape == (1, 4, 2, 290)
+    assert logits[1].shape == (1, 16, 6, 418)
+
+
 def test_path_correlated_gate_changes_complete_paths_or_none() -> None:
     codec = _codec()
     dense, _ = encode_program(_program(), codec)

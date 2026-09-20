@@ -1,0 +1,39 @@
+schema_version: 1
+run_id: openmoji-g1-smoke-da44363-0bafd5c-9b9b1699
+state: completed
+hypothesis: >-
+  The selected factorized fixed-topology pipeline can load family-disjoint rows from
+  the dominant exact OpenMoji packed bucket, execute a conditioned train step, restore
+  a canonical checkpoint, and preserve an explicitly locked path.
+expected_information_gain: >-
+  Falsifies data joins, selected-route normalization, conditioning, checkpointing, and
+  locked-path semantics locally before any pipeline-specific GPU smoke.
+code:
+  base_git_commit: eb8ef72c45d0aee3f72fc548737ec099f33218fa
+  dirty_source_sha256: da44363e8d73f00a39871eae45377554519dc3cd2718b16b914111ab0ee907ad
+  snapshot_mode: base-plus-recorded-dirty-source
+config:
+  path: configs/learning/openmoji-g1-dominant-bucket-smoke.yaml
+  sha256: 0bafd5c3b3de29da7192b8f044716131b98072cd90134c603c3d42942a3cf22b
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  assignments_sha256: e0cdb2a3cc8f00df5ad05df76c9feeac1f73446606f1fa0da013f8c3084e482b
+  bucket: bucket-p32-t128
+  bucket_icons: 3359
+worker:
+  alias: gtc-local-cpu
+  torch: 2.8.0+cpu
+execution:
+  seed_set: [3101]
+  deterministic_algorithms: true
+  corruption: factorized_role_uniform_geometry
+  optimizer_steps: 1
+  train_samples: 4
+  validation_samples: 2
+  batch_size: 2
+  external_spend_usd: 0
+outputs:
+  compact_report: reports/learning/openmoji-g1-dominant-bucket-smoke
+  checkpoint: data/processed/openmoji-g1-dominant-bucket-smoke/checkpoint.zip
+recorded_retroactively: true
+completed_at: 2026-09-20T09:33:09Z
