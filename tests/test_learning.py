@@ -854,3 +854,39 @@ def test_metric_coordinates_encode_magnitude_and_shrink_the_model() -> None:
     cubic[0, 0] = 3
     per_slot = metric._metric_features(tokens, cubic)[0, 0].reshape(6, -1)
     assert not torch.allclose(per_slot[0], per_slot[5])
+
+
+def test_the_break_even_threshold_matches_its_decision_rule() -> None:
+    """Changing a field pays only above 1/(1+q) in the value head's accuracy.
+
+    Keeping a retained field is always right; changing one is right only if the value
+    head re-predicts the same token, which is negligible. The threshold is therefore
+    derivable from a training-split estimate of q rather than swept on the data it is
+    reported on - which is what made the first identity win require a post-hoc sweep.
+    """
+
+    import pytest
+    import torch
+
+    from mojidiff.learning.geometry import break_even_threshold, edit_mask_predictions
+
+    assert break_even_threshold(0.0) == 1.0
+    assert break_even_threshold(1.0) == pytest.approx(0.5)
+    assert break_even_threshold(0.1233) == pytest.approx(1 / 1.1233)
+    with pytest.raises(ValueError):
+        break_even_threshold(1.5)
+
+    # A field the model calls "change" with probability 0.8 is edited under argmax but
+    # kept under a threshold derived from a weak value head.
+    keep_logits = torch.log(torch.tensor([[0.8, 0.2]]))
+    values = torch.zeros(1, 10)
+    values[0, 4] = 5.0
+    tokens = torch.tensor([9])
+    assert edit_mask_predictions(values, keep_logits, tokens).item() == 5
+    assert edit_mask_predictions(values, keep_logits, tokens, 0.5).item() == 5
+    cautious = break_even_threshold(0.12)
+    assert edit_mask_predictions(values, keep_logits, tokens, cautious).item() == 9
+
+    # Confident enough, and it edits again.
+    confident = torch.log(torch.tensor([[0.95, 0.05]]))
+    assert edit_mask_predictions(values, confident, tokens, cautious).item() == 5

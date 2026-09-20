@@ -866,13 +866,38 @@ def _legal_fields(
     return groups
 
 
+def break_even_threshold(value_accuracy: float) -> float:
+    """Confidence above which changing a field beats keeping it.
+
+    Keeping a retained field is always right; changing one is right only if the value
+    head happens to re-predict the same token, which is negligible. So with `q` the
+    value head's accuracy on genuinely corrupted fields, the expected gain from changing
+    at confidence `p` is `p*q - (1 - p)`, which is positive exactly when
+
+        p > 1 / (1 + q)
+
+    At q = 0.12 that is 0.893: the model must be nearly certain before editing pays.
+    This is derivable from a training-split estimate of `q`, so the decode threshold
+    never has to be fitted on the data it is reported on.
+    """
+
+    if not 0.0 <= value_accuracy <= 1.0:
+        raise ValueError("value accuracy must be within 0..1")
+    return 1.0 / (1.0 + value_accuracy)
+
+
 def edit_mask_predictions(
-    value_logits: Tensor, keep_logits: Tensor, noisy_tokens: Tensor
+    value_logits: Tensor, keep_logits: Tensor, noisy_tokens: Tensor, threshold: float = 0.5
 ) -> Tensor:
-    """Copy the input where the model says keep, otherwise take its predicted value."""
+    """Copy the input unless the model is confident enough that changing it pays.
+
+    `threshold` is the probability of "change" required to act. The default 0.5 is plain
+    argmax, which is what every run before v13 used.
+    """
 
     predicted = value_logits.argmax(dim=-1) + 1
-    return torch.where(keep_logits.argmax(dim=-1) == 1, noisy_tokens, predicted)
+    change_probability = torch.softmax(keep_logits.float(), dim=-1)[..., 0]
+    return torch.where(change_probability >= threshold, predicted, noisy_tokens)
 
 
 def edit_mask_loss_and_accuracy(
@@ -885,6 +910,7 @@ def edit_mask_loss_and_accuracy(
     detection_only: bool = False,
     pool_over_fields: bool = False,
     value_loss_weight: float = 1.0,
+    threshold: float = 0.5,
 ) -> tuple[Tensor, dict[str, int]]:
     """Keep-or-change cross-entropy plus value cross-entropy on changed fields only.
 
@@ -924,7 +950,7 @@ def edit_mask_loss_and_accuracy(
                     value_logits[changed], targets[changed] - 1, reduction=reduction
                 )
             )
-        predictions = edit_mask_predictions(value_logits, keep_logits, noisy_tokens)
+        predictions = edit_mask_predictions(value_logits, keep_logits, noisy_tokens, threshold)
         correct += int((predictions == targets).sum().item())
         total += int(targets.numel())
     if pool_over_fields:
@@ -944,6 +970,8 @@ def edit_mask_accuracy_by_corruption(
     noisy: dict[str, Tensor],
     clean: dict[str, Tensor],
     codec: CodecConfig,
+    *,
+    threshold: float = 0.5,
 ) -> dict[str, dict[str, int]]:
     """Split gated-prediction accuracy by whether corruption changed the token."""
 
@@ -956,7 +984,7 @@ def edit_mask_accuracy_by_corruption(
     ):
         if keep_logits is None or not targets.numel():
             continue
-        predictions = edit_mask_predictions(value_logits, keep_logits, noisy_tokens)
+        predictions = edit_mask_predictions(value_logits, keep_logits, noisy_tokens, threshold)
         matches = predictions == targets
         changed = noisy_tokens != targets
         for name, mask in (("changed", changed), ("retained", ~changed)):
@@ -972,6 +1000,7 @@ def predict_clean_geometry(
     *,
     locked_paths: np.ndarray | None = None,
     keep: tuple[Tensor, Tensor] | None = None,
+    threshold: float = 0.5,
 ) -> PackedTensorProgram:
     """Project logits through known topology and legal coordinate vocabularies.
 
@@ -991,9 +1020,9 @@ def predict_clean_geometry(
         if locks[path_index]:
             continue
         for coordinate_index in range(2):
-            if start_keep is not None and int(
-                start_keep[0, path_index, coordinate_index].argmax().item()
-            ):
+            if start_keep is not None and float(
+                torch.softmax(start_keep[0, path_index, coordinate_index].float(), dim=-1)[0]
+            ) < threshold:
                 continue
             result.start[path_index, coordinate_index] = int(
                 start_logits[0, path_index, coordinate_index, 1 : codec.coordinate_bins + 1]
@@ -1013,9 +1042,11 @@ def predict_clean_geometry(
             kind = SegmentType(int(result.segment_type[segment_index]))
             control_count, coordinate_count = _coordinate_counts(kind)
             for coordinate_index in range(coordinate_count):
-                if coordinate_keep is not None and int(
-                    coordinate_keep[0, segment_index, coordinate_index].argmax().item()
-                ):
+                if coordinate_keep is not None and float(
+                    torch.softmax(
+                        coordinate_keep[0, segment_index, coordinate_index].float(), dim=-1
+                    )[0]
+                ) < threshold:
                     continue
                 bins = (
                     codec.effective_control_coordinate_bins

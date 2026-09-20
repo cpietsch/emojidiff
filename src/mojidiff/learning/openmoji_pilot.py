@@ -23,6 +23,8 @@ from picosvg.svg import SVG
 
 from mojidiff.learning.geometry import (
     GeometryDenoiser,
+    _legal_fields,
+    break_even_threshold,
     corrupt_factorized_geometry,
     corrupt_marginal_geometry,
     corrupt_path_correlated_geometry,
@@ -162,6 +164,14 @@ class OpenMojiPilotConfig:
     signal - roughly 31% four individual fields. Opt-in so v1 through v7 stay exactly
     reproducible.
     """
+    derive_decision_threshold: bool = False
+    """Derive the decode threshold from a training-split estimate instead of using argmax.
+
+    Changing a field only pays when the model is confident past `1 / (1 + q)`, where `q`
+    is the value head's accuracy on genuinely corrupted fields. Plain argmax uses 0.5
+    regardless, which makes the model edit far more than pays. Estimating `q` on TRAIN
+    icons keeps the threshold off the data it is reported on.
+    """
     value_loss_weight: float = 1.0
     """Scale on the value term of the edit-mask loss.
 
@@ -286,6 +296,9 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
         value_loss_weight=_positive_float(
             training.get("value_loss_weight", 1.0), "value_loss_weight"
         ),
+        derive_decision_threshold=_flag(
+            training.get("derive_decision_threshold", False), "derive_decision_threshold"
+        ),
     )
     if result.d_model % result.heads:
         raise OpenMojiPilotError("model.d_model must be divisible by model.heads")
@@ -295,6 +308,8 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
         raise OpenMojiPilotError("training.device must be auto, cpu, or cuda")
     if result.eval_every > result.steps:
         raise OpenMojiPilotError("training.eval_every cannot exceed training.steps")
+    if result.derive_decision_threshold and not result.edit_mask:
+        raise OpenMojiPilotError("derive_decision_threshold requires model.edit_mask")
     if result.detection_only and not result.edit_mask:
         raise OpenMojiPilotError("detection_only requires model.edit_mask")
     if result.selection_policy is not None and not result.eval_every:
@@ -633,6 +648,26 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
         if validation != best.validation:
             raise OpenMojiPilotError("restored selected checkpoint did not reproduce its metrics")
 
+    decision_threshold = 0.5
+    value_accuracy_train: float | None = None
+    if config.derive_decision_threshold:
+        value_accuracy_train = _train_value_accuracy(
+            model, train_rows, train_programs, groups, subgroups, codec, config, device, corrupt
+        )
+        decision_threshold = break_even_threshold(value_accuracy_train)
+        validation = _evaluate(
+            model,
+            validation_rows,
+            validation_programs,
+            groups,
+            subgroups,
+            codec,
+            config,
+            device,
+            corrupt,
+            decision_threshold,
+        )
+
     lock_verified = _verify_locked_path(
         model,
         validation_rows[0],
@@ -689,6 +724,11 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
         summary["validation_untrained"] = untrained
         summary["validation_trace_sha256"] = hashlib.sha256(trace_payload).hexdigest()
         _write_bytes_artifact(config.report_root / TRACE_FILENAME, trace_payload)
+    if config.derive_decision_threshold:
+        # Only present when the threshold is derived, so every earlier run's summary is
+        # byte-identical to what it wrote.
+        summary["decision_threshold"] = decision_threshold
+        summary["train_value_accuracy"] = value_accuracy_train
     if policy is not None:
         # `steps` above stays the declared cap; `completed_steps` is what actually ran.
         # `validation` describes the selected checkpoint, not the last trained model.
@@ -755,6 +795,7 @@ def _evaluate(
     corrupt: Callable[
         [PackedTensorProgram, CodecConfig, float, np.random.Generator], PackedTensorProgram
     ],
+    threshold: float = 0.5,
 ) -> dict[str, float | int | None]:
     probability = config.evaluation_probability
     noisy = [
@@ -787,9 +828,10 @@ def _evaluate(
                 detection_only=config.detection_only,
                 pool_over_fields=config.pool_loss_over_fields,
                 value_loss_weight=config.value_loss_weight,
+                threshold=threshold,
             )
             split = edit_mask_accuracy_by_corruption(
-                value_logits, keep, noisy_batch, clean_batch, codec
+                value_logits, keep, noisy_batch, clean_batch, codec, threshold=threshold
             )
         else:
             loss, counts = geometry_loss_and_accuracy(
@@ -814,6 +856,69 @@ def _evaluate(
         ),
         "retained_total": split["retained"]["total"],
     }
+
+
+def _train_value_accuracy(
+    model: GeometryDenoiser,
+    rows: tuple[PilotRow, ...],
+    programs: list[PackedTensorProgram],
+    groups: dict[str, int],
+    subgroups: dict[str, int],
+    codec: CodecConfig,
+    config: OpenMojiPilotConfig,
+    device: torch.device,
+    corrupt: Callable[
+        [PackedTensorProgram, CodecConfig, float, np.random.Generator], PackedTensorProgram
+    ],
+    icons: int = 128,
+) -> float:
+    """The value head's exact-token accuracy on corrupted TRAIN fields.
+
+    This is the `q` the break-even threshold is derived from. It is measured on training
+    icons, under a corruption draw disjoint from the held-out one, so the threshold the
+    model decodes with never touches the data it is reported on.
+    """
+
+    count = min(icons, len(programs))
+    subset = programs[:count]
+    subset_rows = rows[:count]
+    noisy = [
+        corrupt(
+            program,
+            codec,
+            config.evaluation_probability,
+            np.random.default_rng(config.seed + 11_000_000 + index),
+        )
+        for index, program in enumerate(subset)
+    ]
+    noisy_batch = packed_batch(noisy, device)
+    clean_batch = packed_batch(subset, device)
+    levels = [config.evaluation_probability] * count
+    with torch.no_grad():
+        start_logits, coordinate_logits, keep = model.forward_with_edits(
+            noisy_batch,
+            _condition(
+                subset_rows,
+                groups,
+                subgroups,
+                device,
+                levels if config.noise_level_features else None,
+            ),
+        )
+    correct = 0
+    total = 0
+    for value_logits, _, targets, noisy_tokens in _legal_fields(
+        (start_logits, coordinate_logits), keep, noisy_batch, clean_batch, codec
+    ):
+        if not targets.numel():
+            continue
+        changed = noisy_tokens != targets
+        if not bool(changed.any()):
+            continue
+        predicted = value_logits.argmax(dim=-1) + 1
+        correct += int(((predicted == targets) & changed).sum().item())
+        total += int(changed.sum().item())
+    return correct / total if total else 0.0
 
 
 def _verify_locked_path(
