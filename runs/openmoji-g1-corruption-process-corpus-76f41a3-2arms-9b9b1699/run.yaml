@@ -1,0 +1,122 @@
+schema_version: 1
+run_id: openmoji-g1-corruption-process-corpus-76f41a3-2arms-9b9b1699
+state: planned
+parent_runs:
+  - openmoji-g1-edit-mask-v6-0228c3b-0f6ce115-9b9b1699
+  - openmoji-g1-detectability-877feff-4processes-9b9b1699
+supersedes_selection_from: tiny-geometry-f1-v3-seed2701-factorized-5eca9c1-e252438f-bd6c4bbc
+hypothesis: >-
+  Gate F selected factorized role-uniform corruption as the primary process from
+  four-icon fixtures where held-out recovery ran at 96-99%, which the Gate G sequence
+  has since shown to be memorization rather than denoising. On the 2,681-icon split,
+  path-correlated corruption defines a materially more learnable problem than
+  factorized, because its corrupted fields are more identifiable: a training-free
+  local-continuity statistic separates them at AUC 0.9333 against factorized's 0.7698.
+  A model trained on path-correlated corruption should therefore learn a
+  corrupted-field detector that beats the trivial statistic, where the factorized model
+  did not.
+expected_information_gain: >-
+  This re-runs a selection the project made on evidence that no longer supports it, at
+  corpus scale and with every improvement the Gate G sequence produced. It either
+  identifies a corruption process on which this model class works, or shows that none
+  of them does - in which case the model class, not the task, is the problem and
+  PROJECT_PLAN.md section 12's fallback interpretations become the live branch.
+scope_limits: >-
+  Two arms, not three. Whole-path replacement is excluded because it needs a donor pool
+  and a compatible-coverage audit: under single-donor compatibility the detectability
+  probe replaced only 32 of 13,128 held-out fields, a 0.24% rate, so including it as
+  configured would be a null treatment rather than a comparison. Its Gate F fixture
+  already measured only 24.74% of legal fields as having an exact compatible donor. It
+  is deferred with that reason recorded, not dropped.
+  Fixed-topology and geometry-only, single seed, one corruption draw per icon.
+arms:
+  factorized:
+    config: configs/learning/openmoji-g1-process-factorized.yaml
+    sha256: 7bfd76b675ed7b916e6061d3c8bf1065fe7cf914574704fb23e176c075066b80
+    role: control, and the process Gate F selected
+  path_correlated:
+    config: configs/learning/openmoji-g1-process-path-correlated.yaml
+    sha256: 1ca993912b923805a139d11242b2d7ee9069644609ed835f9ba1924ab2d12974
+    role: treatment
+  matched: >-
+    The two configs differ only in training.corruption_process. Both carry the v5 slot
+    binding and the v6 edit mask, the full 2,681-icon split, the 128-icon validation
+    draw and its corruption seeds, seed 3101, corruption probability 0.35, batch size
+    16, learning rate 0.001, eval_every 60, the 6,300-step cap, and the held-out-loss
+    selection policy with patience 8.
+code:
+  git_commit: 76f41a3
+  execution_mode: native-local
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  bucket: bucket-p32-t128
+  train_samples: 2681
+  validation_samples: 128
+baselines:
+  identity:
+    note: emit x_t unchanged; a legal policy under argmax decoding
+    aggregate_at_p035: 0.6506198760247951
+    render_recovery_fraction: 0.0
+  training_free_detector:
+    note: parameter-free local-continuity statistic, at a matched 8.573% flag rate
+    factorized: {auc: 0.7698, precision: 0.7451, lift: 2.13, recall: 0.1824}
+    path_correlated: {auc: 0.9333}
+  v6_trained_detector_on_factorized: {precision: 0.4312, lift: 1.23, recall: 0.1058}
+execution:
+  seed_set: [3101]
+  deterministic_algorithms: true
+  cublas_workspace_config: ":4096:8"
+  optimizer_step_cap: 6300
+  early_stopping: {objective: held_out_loss, patience_evals: 8, min_delta: 0.0}
+  resource_cap: {max_steps: 20000, max_storage_gb: 50}
+  network: none
+predeclared_criteria:
+  note: >-
+    Declared before either arm runs. Held-out aggregate accuracy is deliberately NOT the
+    gated quantity: the identity policy scores 0.6506 and dominates every model so far,
+    so an accuracy criterion would reward collapsing to identity. The gated quantity is
+    whether a trained model learns a corrupted-field detector better than a
+    zero-parameter statistic on the same data.
+  evaluated_at: the checkpoint selected by held-out loss, per arm
+  primary:
+    - id: path_correlated_beats_factorized_on_detection
+      statement: >-
+        The path-correlated arm's keep-head precision lift over its own base rate
+        exceeds the factorized arm's, both measured at a matched 8.573% flag rate.
+    - id: a_trained_detector_beats_the_free_one
+      statement: >-
+        At least one arm's keep-head precision lift exceeds the training-free statistic's
+        lift on that same process - 2.13x for factorized, to be measured for
+        path-correlated before the arms are compared. This is the criterion that decides
+        whether a trained model adds anything at all.
+    - id: beats_identity
+      statement: >-
+        At least one arm's held-out aggregate accuracy exceeds 0.6506198760247951.
+        Reported for both arms regardless.
+    - id: structural_safety
+      statement: Locked-path exactness holds and the canonical checkpoint round-trips, both arms.
+    - id: reproducibility
+      statement: Each arm returns an identical JSON result on a second invocation.
+  degenerate_pass_watch: >-
+    As in v6, a model predicting keep everywhere scores exactly identity. Report the
+    fraction of fields predicted keep for both arms; an arm that passes beats_identity
+    while its keep fraction approaches 1.0 has collapsed to the trivial policy and must
+    be reported as collapse.
+  falsification_meaning: >-
+    If neither arm learns a detector beating the free statistic, the conclusion is about
+    this model class rather than about either corruption process: a bidirectional
+    transformer trained with this objective does not learn a signal that is present and
+    trivially extractable. That is a Gate F and Gate G level result and makes
+    PROJECT_PLAN.md section 12's fallback interpretations the live branch.
+  reported_not_gated:
+    - held-out aggregate, changed and retained accuracy for both arms, beside identity
+    - keep fraction, detector recall and precision for both arms
+    - the four-level render recovery sweep for both arms, beside identity's zero
+    - selected step, wall time, peak memory
+outputs:
+  local_metadata: runs/openmoji-g1-corruption-process-corpus-76f41a3-2arms-9b9b1699
+  report_roots:
+    - reports/learning/openmoji-g1-process-factorized
+    - reports/learning/openmoji-g1-process-path-correlated
+  durable_artifacts: /home/dev/.cache/openmoji-g1-corruption-process-corpus-76f41a3-2arms-9b9b1699
+planned_at: 2026-09-20T22:05:00Z
