@@ -484,10 +484,10 @@ command = [
     "--user", str(os.getuid()) + ":" + str(os.getgid()),
     "--mount", "type=volume,src=" + config["workspace_volume"]
     + ",dst=" + workspace_container + "/" + run_id
-    + ",volume-subpath=" + run_id + ",volume-nocopy,rw",
+    + ",volume-subpath=" + run_id + ",volume-nocopy",
     "--mount", "type=volume,src=" + config["artifact_volume"]
     + ",dst=" + artifact_container + "/" + run_id
-    + ",volume-subpath=" + artifact_subpath + "/" + run_id + ",volume-nocopy,rw",
+    + ",volume-subpath=" + artifact_subpath + "/" + run_id + ",volume-nocopy",
     config["image"], "python3", "-I", "-B",
     source_root + "/scripts/remote/vast_tiny_smoke.py", "--config", inner_encoded,
 ]

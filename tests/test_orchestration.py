@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import io
 import json
+import os
 import shlex
 import subprocess
 import tarfile
@@ -12,6 +13,7 @@ from typing import Any
 import pytest
 
 from mojidiff.orchestration.adapters import (
+    REMOTE_OWNED_DOCKER_SMOKE,
     SSH_OPTIONS,
     AdapterError,
     ProbeOnlySshAdapter,
@@ -390,6 +392,65 @@ def test_owned_smoke_requires_safe_named_volume_mapping() -> None:
         adapter_for(missing, _artifact_store()).smoke(request)
     with pytest.raises(AdapterError, match="artifact_volume_subpath"):
         adapter_for(unsafe, _artifact_store()).smoke(request)
+
+
+def test_owned_smoke_remote_launcher_uses_valid_scoped_volume_mounts(tmp_path: Path) -> None:
+    workspace = tmp_path / "workspace"
+    artifact = tmp_path / "home" / ".cache"
+    (workspace / "fixture-run").mkdir(parents=True)
+    artifact.mkdir(parents=True)
+    log = tmp_path / "docker-argv.log"
+    fake_docker = tmp_path / "docker"
+    fake_docker.write_text(
+        "#!/usr/bin/env python3\n"
+        "import os, sys\n"
+        "with open(os.environ['FAKE_DOCKER_LOG'], 'a', encoding='utf-8') as stream:\n"
+        "    stream.write('\\0'.join(sys.argv[1:]) + '\\n')\n",
+        encoding="utf-8",
+    )
+    fake_docker.chmod(0o755)
+    config = {
+        "artifact_root": str(artifact),
+        "artifact_volume": "artifact-volume",
+        "artifact_volume_subpath": ".cache",
+        "archive_sha256": "a" * 64,
+        "config_sha256": "b" * 64,
+        "git_revision": "c" * 40,
+        "image": "example.invalid/pytorch:fixed",
+        "max_steps": 2,
+        "max_storage_bytes": 1_000_000,
+        "run_id": "fixture-run",
+        "smoke_id": "tiny-smoke-v1",
+        "tree_sha256": "d" * 64,
+        "workspace_root": str(workspace),
+        "workspace_volume": "workspace-volume",
+    }
+    encoded = base64.urlsafe_b64encode(
+        json.dumps(config, sort_keys=True, separators=(",", ":")).encode()
+    ).decode().rstrip("=")
+    environment = os.environ.copy()
+    environment["FAKE_DOCKER_LOG"] = str(log)
+    environment["PATH"] = f"{tmp_path}:{environment['PATH']}"
+
+    result = subprocess.run(
+        ["python3", "-I", "-c", REMOTE_OWNED_DOCKER_SMOKE, encoded],
+        capture_output=True,
+        check=False,
+        env=environment,
+        text=True,
+    )
+
+    assert result.returncode == 0, result.stderr
+    invocations = log.read_text(encoding="utf-8").splitlines()
+    assert len(invocations) == 2
+    run_argv = invocations[1].split("\0")
+    mounts = [run_argv[index + 1] for index, value in enumerate(run_argv) if value == "--mount"]
+    assert mounts == [
+        "type=volume,src=workspace-volume,dst=/mojidiff/workspace/fixture-run,"
+        "volume-subpath=fixture-run,volume-nocopy",
+        "type=volume,src=artifact-volume,dst=/mojidiff/artifacts/fixture-run,"
+        "volume-subpath=.cache/fixture-run,volume-nocopy",
+    ]
 
 
 def test_owned_smoke_requires_docker_execution() -> None:
