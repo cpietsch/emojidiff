@@ -1,0 +1,42 @@
+{
+  "precision": "float64",
+  "rows": [
+    {
+      "hexcode": "1F994",
+      "segments_swapped": 96,
+      "max_abs_logit_difference": 0.0,
+      "identical_prediction": true
+    },
+    {
+      "hexcode": "E30A",
+      "segments_swapped": 86,
+      "max_abs_logit_difference": 0.0,
+      "identical_prediction": true
+    },
+    {
+      "hexcode": "1F6BE",
+      "segments_swapped": 16,
+      "max_abs_logit_difference": 0.0,
+      "identical_prediction": true
+    },
+    {
+      "hexcode": "1F3CA-1F3FB-200D-2642-FE0F",
+      "segments_swapped": 42,
+      "max_abs_logit_difference": 0.0,
+      "identical_prediction": true
+    },
+    {
+      "hexcode": "1F3CB-1F3FC-200D-2642-FE0F",
+      "segments_swapped": 105,
+      "max_abs_logit_difference": 0.0,
+      "identical_prediction": true
+    },
+    {
+      "hexcode": "1F93D-1F3FC",
+      "segments_swapped": 69,
+      "max_abs_logit_difference": 0.0,
+      "identical_prediction": true
+    }
+  ],
+  "total_segments_swapped": 414
+}

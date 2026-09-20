@@ -50,6 +50,7 @@ class GeometryDenoiser(nn.Module):
         group_vocab_size: int = 0,
         subgroup_vocab_size: int = 0,
         noise_level_features: int = 0,
+        slot_binding: bool = False,
     ) -> None:
         super().__init__()
         self.max_paths = codec.max_paths
@@ -79,6 +80,20 @@ class GeometryDenoiser(nn.Module):
         self.noise_level_projection = (
             nn.Linear(2 * noise_level_features, d_model) if noise_level_features > 0 else None
         )
+        # Bind each coordinate value to the slot it occupies. Without this the six
+        # coordinate lookups - all from one shared table - are summed into a single
+        # vector, so a segment is represented by an unordered bag of its values and the
+        # model provably cannot tell which coordinate held which. It still has to
+        # predict all six separately, which makes copying its own input impossible.
+        # Adding a per-slot vector would not help: a sum of sums is still symmetric.
+        # Multiplying binds value to slot while costing 8 * d_model parameters, so the
+        # fix is structural rather than a capacity change.
+        self.slot_binding = slot_binding
+        self.coordinate_slot: nn.Parameter | None = None
+        self.start_slot: nn.Parameter | None = None
+        if slot_binding:
+            self.coordinate_slot = nn.Parameter(torch.normal(1.0, 0.02, (6, d_model)))
+            self.start_slot = nn.Parameter(torch.normal(1.0, 0.02, (2, d_model)))
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=d_model,
             nhead=heads,
@@ -124,14 +139,18 @@ class GeometryDenoiser(nn.Module):
         )
         for name in _PATH_FIELDS:
             path_hidden = path_hidden + self.path_embeddings[name](batch[name])
-        path_hidden = path_hidden + self.endpoint_embedding(batch["start"][:, :, 0])
-        path_hidden = path_hidden + self.endpoint_embedding(batch["start"][:, :, 1])
+        for start_index in range(2):
+            embedded = self.endpoint_embedding(batch["start"][:, :, start_index])
+            if self.start_slot is not None:
+                embedded = embedded * self.start_slot[start_index]
+            path_hidden = path_hidden + embedded
 
         segment_hidden = self.segment_type_embedding(batch["segment_type"])
         for coordinate_index in range(6):
-            segment_hidden = segment_hidden + self.coordinate_embedding(
-                batch["coordinates"][:, :, coordinate_index]
-            )
+            embedded = self.coordinate_embedding(batch["coordinates"][:, :, coordinate_index])
+            if self.coordinate_slot is not None:
+                embedded = embedded * self.coordinate_slot[coordinate_index]
+            segment_hidden = segment_hidden + embedded
         hidden = torch.cat((path_hidden, segment_hidden), dim=1)
         positions = torch.arange(hidden.shape[1], device=hidden.device)
         hidden = hidden + self.position_embedding(positions)[None, :, :]
@@ -144,7 +163,11 @@ class GeometryDenoiser(nn.Module):
                 conditioning = conditioning + self.subgroup_embedding(condition["subgroup"])
             if self.noise_level_projection is not None:
                 conditioning = conditioning + self.noise_level_projection(
-                    _noise_level_features(condition["noise_level"], self.noise_level_features)
+                    _noise_level_features(
+                        condition["noise_level"],
+                        self.noise_level_features,
+                        self.noise_level_projection.weight.dtype,
+                    )
                 )
             hidden = hidden + conditioning[:, None, :]
         encoded = self.encoder(hidden)
@@ -159,13 +182,17 @@ class GeometryDenoiser(nn.Module):
         return start, coordinates
 
 
-def _noise_level_features(level: Tensor, count: int) -> Tensor:
-    """Sinusoidal features of a corruption level in 0..1, as [sin | cos] pairs."""
+def _noise_level_features(level: Tensor, count: int, dtype: torch.dtype) -> Tensor:
+    """Sinusoidal features of a corruption level in 0..1, as [sin | cos] pairs.
 
-    frequencies = torch.pow(
-        2.0, torch.arange(count, dtype=torch.float32, device=level.device)
-    ) * torch.pi
-    scaled = level.to(torch.float32)[:, None] * frequencies[None, :]
+    `dtype` follows the projection's parameters rather than being hardcoded, so the
+    module works when cast to another precision.
+    """
+
+    frequencies = (
+        torch.pow(2.0, torch.arange(count, dtype=dtype, device=level.device)) * torch.pi
+    )
+    scaled = level.to(dtype)[:, None] * frequencies[None, :]
     return torch.cat((torch.sin(scaled), torch.cos(scaled)), dim=1)
 
 

@@ -140,6 +140,13 @@ class OpenMojiPilotConfig:
     """Sinusoidal conditioning features for the corruption level; 0 disables it."""
     evaluation_corruption_probability: float | None = None
     """Level the held-out evaluation uses. Defaults to `corruption_probability`."""
+    slot_binding: bool = False
+    """Bind each coordinate value to the slot it occupies in its segment.
+
+    Without it the encoder sums six lookups from one shared table, so a segment is an
+    unordered bag of its coordinates and the model cannot tell which one held which
+    value. Off by default, so every earlier checkpoint still loads.
+    """
 
     @property
     def evaluation_probability(self) -> float:
@@ -210,6 +217,7 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
             training.get("evaluation_corruption_probability"),
             "evaluation_corruption_probability",
         ),
+        slot_binding=_flag(model.get("slot_binding", False), "slot_binding"),
     )
     if result.d_model % result.heads:
         raise OpenMojiPilotError("model.d_model must be divisible by model.heads")
@@ -229,6 +237,12 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
             "corruption_probability_max must exceed training.corruption_probability"
         )
     return result
+
+
+def _flag(value: object, field: str) -> bool:
+    if not isinstance(value, bool):
+        raise OpenMojiPilotError(f"{field} must be a boolean")
+    return value
 
 
 def _optional_probability(value: object, field: str) -> float | None:
@@ -558,6 +572,7 @@ def _new_model(
         group_vocab_size=len(groups) + 1,
         subgroup_vocab_size=len(subgroups) + 1,
         noise_level_features=config.noise_level_features,
+        slot_binding=config.slot_binding,
     )
 
 

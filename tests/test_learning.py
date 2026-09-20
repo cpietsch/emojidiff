@@ -317,3 +317,71 @@ def test_checkpoint_is_byte_stable_and_restores_training_state() -> None:
     assert step == 1
     assert _model_hash(restored_model) == _model_hash(model)
     assert _save_checkpoint(restored_model, restored_optimizer, step) == first
+
+
+def test_slot_binding_is_what_lets_the_encoder_distinguish_coordinate_slots() -> None:
+    """A segment's six coordinates must not collapse into an unordered bag.
+
+    The encoder sums six lookups from one shared embedding table into a single vector
+    per segment slot. Without slot binding a program and its coordinate-swapped variant
+    have byte-identical representations, so the model provably cannot tell which
+    coordinate held which value while still having to predict all six separately -
+    which is why it could not copy its own input. This pins both halves: the defect the
+    unbound path still has, and that binding is what removes it.
+    """
+
+    import copy
+
+    import torch
+
+    from mojidiff.learning.geometry import GeometryDenoiser, packed_batch
+    from mojidiff.learning.openmoji_pilot import (
+        _load_program,
+        _select_rows,
+        _selected_codec,
+        load_openmoji_pilot_config,
+        load_pilot_index,
+    )
+
+    config = load_openmoji_pilot_config(
+        Path("configs/learning/openmoji-g1-dominant-bucket-smoke.yaml")
+    )
+    codec = _selected_codec(config)
+    by_split, _, _ = load_pilot_index(config)
+    row = _select_rows(by_split["primary/validation"], 1, config.seed + 1)[0]
+    program = _load_program(row, config, codec)
+
+    swapped = copy.deepcopy(program)
+    changed = 0
+    for index in range(swapped.coordinates.shape[0]):
+        first, second = int(swapped.coordinates[index, 0]), int(swapped.coordinates[index, 1])
+        if first != second and first != 0 and second != 0:
+            swapped.coordinates[index, 0], swapped.coordinates[index, 1] = second, first
+            changed += 1
+    assert changed > 0, "fixture must contain segments with two distinct coordinates"
+
+    device = torch.device("cpu")
+    results = {}
+    for binding in (False, True):
+        torch.manual_seed(0)
+        model = (
+            GeometryDenoiser(
+                codec,
+                config.total_segment_slots,
+                d_model=32,
+                heads=4,
+                layers=1,
+                feedforward=64,
+                slot_binding=binding,
+            )
+            .eval()
+            .double()
+        )
+        with torch.no_grad():
+            _, original = model(packed_batch([program], device))
+            _, permuted = model(packed_batch([swapped], device))
+        # float64, so neither outcome can rest on summation-order noise.
+        results[binding] = torch.equal(original, permuted)
+
+    assert results[False] is True, "the unbound encoder is permutation-invariant by construction"
+    assert results[True] is False, "slot binding must make the encoder slot-aware"

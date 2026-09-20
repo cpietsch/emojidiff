@@ -1,0 +1,12 @@
+# Corruption-level sweep over the noise-conditioned v4 checkpoint. Same 32 icons, sizes
+# and corruption seeds as the v2 sweep, so the two are directly comparable.
+schema_version: 1
+study_version: openmoji-g1-v4-sweep-p010
+pilot_config: configs/learning/openmoji-g1-noise-conditioned-v4.yaml
+checkpoint: /home/dev/.cache/openmoji-g1-noise-conditioned-v4-6b935b2-5a9eaf44-9b9b1699/checkpoint/checkpoint.zip
+checkpoint_sha256: e5d553187e00d4f2f2b80b4474e951571438225df880703455b058e7835df772
+report_root: reports/learning/openmoji-g1-v4-sweep-p010
+icons: 32
+render_sizes: [72, 18]
+render_timeout_seconds: 20
+corruption_probability: 0.10
