@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-metric-coordinates-v10-abec130-d7044dc2-9b9b1699
-state: planned
+state: completed
 parent_run: openmoji-g1-marginal-corruption-v9-74dc5fd-0ef00ff4-9b9b1699
 hypothesis: >-
   v9, under leak-free corruption and sound optimisation, reached 1.506 precision lift
@@ -89,3 +89,41 @@ outputs:
   report_root: reports/learning/openmoji-g1-metric-coordinates-v10
   durable_artifacts: /home/dev/.cache/openmoji-g1-metric-coordinates-v10-abec130-d7044dc2-9b9b1699
 planned_at: 2026-09-21T01:20:00Z
+completed_at: 2026-09-21T01:40:00Z
+result:
+  device: cuda
+  model_parameters: 525152
+  parameters_removed_vs_v9: 54720
+  selected_step: 5340
+  completed_steps: 5820
+  ended_by: early_stopping
+  identical_rerun: true
+  detector_at_matched_flag_rate: {precision: 0.9691, lift_over_base_rate: 2.781, recall: 0.2384}
+  detector_at_base_flag_rate: {precision: 0.7182, lift_over_base_rate: 2.061, recall: 0.7182}
+predeclared_outcome:
+  overall: passed
+  beats_the_free_geometric_detector: {passed: true, observed: 2.781, threshold: 1.893}
+  improves_on_categorical_input: {passed: true, observed: 2.781, threshold: 1.506}
+  structural_safety: {passed: true}
+  reproducibility: {passed: true}
+  conclusion: >-
+    The first trained model in this project to beat a zero-parameter heuristic on a task
+    with no shortcut in it, and it does so with 54,720 FEWER parameters than the arm it
+    improves on. Encoding coordinates as magnitudes rather than identities takes the
+    detector from 1.506 to 2.781 against a free continuity statistic at 1.893. Capacity
+    is excluded from both directions: the capacity arm was already eliminated, and this
+    change is a strict reduction.
+  completes_the_arc: >-
+    Four verified defects, none a tuning knob: the loss averaged over groups so four
+    fields carried 31% of it; no attention padding mask, so 29.4% of the sequence was
+    attended as content; corruption drew uniformly so a token-marginal detector scored
+    2.84 with no context at all; and coordinates were encoded as unordered categories so
+    no difference was computable. Closing the third is what made the others readable -
+    it revealed that v8's 2.806 was mostly the leak, which is why v9's 1.506 rather than
+    v8's number is the baseline this run improves on.
+  scope: >-
+    Detection, not reconstruction. The model identifies which fields were corrupted; it
+    does not put back what was there, held-out accuracy is meaningless for a
+    detection-only model, and the identity baseline is untouched by this run. What it
+    establishes is that the representation and training setup can support learning a
+    real geometric relation, which nothing before it had shown.

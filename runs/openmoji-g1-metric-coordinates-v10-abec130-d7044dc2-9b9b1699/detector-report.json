@@ -1,0 +1,34 @@
+{
+  "base_rate": 0.34845530893821236,
+  "config": "configs/learning/openmoji-g1-metric-coordinates-v10.yaml",
+  "corruption_process": "marginal",
+  "detection_only": true,
+  "evaluation_corruption_probability": 0.35,
+  "fields": 40008,
+  "operating_points": {
+    "flag_base_rate": {
+      "flag_rate": 0.34845530893821236,
+      "flagged": 13941,
+      "lift_over_base_rate": 2.0612145682594516,
+      "precision": 0.7182411591707912,
+      "recall": 0.7182411591707912,
+      "true_positive": 10013
+    },
+    "matched_flag_rate": {
+      "flag_rate": 0.08573285342931414,
+      "flagged": 3430,
+      "lift_over_base_rate": 2.781120519774819,
+      "precision": 0.9690962099125364,
+      "recall": 0.23843339789111254,
+      "true_positive": 3324
+    },
+    "model_own_threshold": {
+      "flag_rate": 0.29086682663467306,
+      "flagged": 11637,
+      "lift_over_base_rate": 2.234292757240726,
+      "precision": 0.7785511729827275,
+      "recall": 0.6498816440714439,
+      "true_positive": 9060
+    }
+  }
+}
