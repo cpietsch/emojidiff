@@ -23,6 +23,8 @@ from picosvg.svg import SVG
 from mojidiff.learning.geometry import (
     GeometryDenoiser,
     corrupt_factorized_geometry,
+    edit_mask_accuracy_by_corruption,
+    edit_mask_loss_and_accuracy,
     geometry_accuracy_by_corruption,
     geometry_loss_and_accuracy,
     packed_batch,
@@ -140,6 +142,13 @@ class OpenMojiPilotConfig:
     """Sinusoidal conditioning features for the corruption level; 0 disables it."""
     evaluation_corruption_probability: float | None = None
     """Level the held-out evaluation uses. Defaults to `corruption_probability`."""
+    edit_mask: bool = False
+    """Predict a per-field keep-or-change decision and copy the input where it says keep.
+
+    Without it, representing "leave this field alone" costs a full reconstruction through
+    a 289- or 417-way softmax, so the identity policy - which outscores every trained
+    model so far - is expensive for the model to express. Off by default.
+    """
     slot_binding: bool = False
     """Bind each coordinate value to the slot it occupies in its segment.
 
@@ -218,6 +227,7 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
             "evaluation_corruption_probability",
         ),
         slot_binding=_flag(model.get("slot_binding", False), "slot_binding"),
+        edit_mask=_flag(model.get("edit_mask", False), "edit_mask"),
     )
     if result.d_model % result.heads:
         raise OpenMojiPilotError("model.d_model must be divisible by model.heads")
@@ -439,8 +449,16 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
         )
         clean_batch = packed_batch(clean, device)
         optimizer.zero_grad(set_to_none=True)
-        logits = model(packed_batch(noisy, device), condition)
-        loss, counts = geometry_loss_and_accuracy(logits, clean_batch, codec)
+        noisy_batch = packed_batch(noisy, device)
+        start_logits, coordinate_logits, keep = model.forward_with_edits(noisy_batch, condition)
+        if keep is not None:
+            loss, counts = edit_mask_loss_and_accuracy(
+                (start_logits, coordinate_logits), keep, noisy_batch, clean_batch, codec
+            )
+        else:
+            loss, counts = geometry_loss_and_accuracy(
+                (start_logits, coordinate_logits), clean_batch, codec
+            )
         loss.backward()  # type: ignore[no-untyped-call]
         optimizer.step()
         metrics.append(
@@ -573,6 +591,7 @@ def _new_model(
         subgroup_vocab_size=len(subgroups) + 1,
         noise_level_features=config.noise_level_features,
         slot_binding=config.slot_binding,
+        edit_mask=config.edit_mask,
     )
 
 
@@ -608,16 +627,27 @@ def _evaluate(
     ]
     levels = [probability] * len(clean)
     with torch.no_grad():
-        logits = model(
-            packed_batch(noisy, device),
+        noisy_batch = packed_batch(noisy, device)
+        clean_batch = packed_batch(clean, device)
+        start_logits, coordinate_logits, keep = model.forward_with_edits(
+            noisy_batch,
             _condition(
                 rows, groups, subgroups, device, levels if config.noise_level_features else None
             ),
         )
-        loss, counts = geometry_loss_and_accuracy(logits, packed_batch(clean, device), codec)
-        split = geometry_accuracy_by_corruption(
-            logits, packed_batch(noisy, device), packed_batch(clean, device), codec
-        )
+        value_logits = (start_logits, coordinate_logits)
+        if keep is not None:
+            loss, counts = edit_mask_loss_and_accuracy(
+                value_logits, keep, noisy_batch, clean_batch, codec
+            )
+            split = edit_mask_accuracy_by_corruption(
+                value_logits, keep, noisy_batch, clean_batch, codec
+            )
+        else:
+            loss, counts = geometry_loss_and_accuracy(value_logits, clean_batch, codec)
+            split = geometry_accuracy_by_corruption(
+                value_logits, noisy_batch, clean_batch, codec
+            )
     return {
         "loss": float(loss),
         "accuracy": counts["correct"] / counts["total"],
@@ -656,13 +686,15 @@ def _verify_locked_path(
         locked_paths=locks,
     )
     with torch.no_grad():
-        logits = model(
+        start_logits, coordinate_logits, keep = model.forward_with_edits(
             packed_batch([noisy], device),
             _condition(
                 (row,), groups, subgroups, device, [1.0] if config.noise_level_features else None
             ),
         )
-    prediction = predict_clean_geometry(noisy, logits, codec, locked_paths=locks)
+    prediction = predict_clean_geometry(
+        noisy, (start_logits, coordinate_logits), codec, locked_paths=locks, keep=keep
+    )
     length = int(clean.path_length[0])
     exact = bool(
         np.array_equal(prediction.start[0], clean.start[0])

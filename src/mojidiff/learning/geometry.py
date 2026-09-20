@@ -51,6 +51,7 @@ class GeometryDenoiser(nn.Module):
         subgroup_vocab_size: int = 0,
         noise_level_features: int = 0,
         slot_binding: bool = False,
+        edit_mask: bool = False,
     ) -> None:
         super().__init__()
         self.max_paths = codec.max_paths
@@ -110,12 +111,30 @@ class GeometryDenoiser(nn.Module):
         )
         self.start_head = nn.Linear(d_model, 2 * (self.endpoint_bins + 1))
         self.coordinate_head = nn.Linear(d_model, 6 * (self.control_bins + 1))
+        # Per-field keep-or-change decision. Without it, representing "leave this field
+        # alone" means reconstructing its exact token through a 289- or 417-way softmax,
+        # so the identity policy - which beats every trained model so far - costs the
+        # model as much as inventing new values. With it, identity is predict-keep
+        # everywhere, and the value heads only have to handle fields marked changed.
+        self.edit_mask = edit_mask
+        self.start_keep_head = nn.Linear(d_model, 2 * 2) if edit_mask else None
+        self.coordinate_keep_head = nn.Linear(d_model, 6 * 2) if edit_mask else None
 
     def forward(
         self,
         batch: dict[str, Tensor],
         condition: dict[str, Tensor] | None = None,
     ) -> tuple[Tensor, Tensor]:
+        """Value logits only, so every existing caller is unchanged."""
+
+        start, coordinates, _ = self.forward_with_edits(batch, condition)
+        return start, coordinates
+
+    def forward_with_edits(
+        self,
+        batch: dict[str, Tensor],
+        condition: dict[str, Tensor] | None = None,
+    ) -> tuple[Tensor, Tensor, tuple[Tensor, Tensor] | None]:
         # Validate the condition contract before doing any work, so a config and a
         # checkpoint that disagree about conditioning fail immediately and loudly
         # rather than part-way through a forward pass.
@@ -179,7 +198,15 @@ class GeometryDenoiser(nn.Module):
         coordinates = self.coordinate_head(segment_encoded).reshape(
             *segment_encoded.shape[:2], 6, self.control_bins + 1
         )
-        return start, coordinates
+        keep: tuple[Tensor, Tensor] | None = None
+        if self.start_keep_head is not None and self.coordinate_keep_head is not None:
+            keep = (
+                self.start_keep_head(path_encoded).reshape(*path_encoded.shape[:2], 2, 2),
+                self.coordinate_keep_head(segment_encoded).reshape(
+                    *segment_encoded.shape[:2], 6, 2
+                ),
+            )
+        return start, coordinates, keep
 
 
 def _noise_level_features(level: Tensor, count: int, dtype: torch.dtype) -> Tensor:
@@ -562,24 +589,164 @@ def geometry_accuracy_by_corruption(
     return result
 
 
+def _legal_fields(
+    logits: tuple[Tensor, Tensor],
+    keep: tuple[Tensor, Tensor] | None,
+    noisy: dict[str, Tensor],
+    clean: dict[str, Tensor],
+    codec: CodecConfig,
+) -> list[tuple[Tensor, Tensor | None, Tensor, Tensor]]:
+    """Flatten the active legal geometry fields into comparable groups.
+
+    Returns `(value_logits, keep_logits, targets, noisy_tokens)` per group, with tokens
+    still 1-based as the codec stores them and `value_logits` already narrowed to that
+    group's legal bins.
+    """
+
+    start_logits, coordinate_logits = logits
+    groups: list[tuple[Tensor, Tensor | None, Tensor, Tensor]] = []
+
+    active_paths = clean["path_length"] > 0
+    start_mask = active_paths[:, :, None].expand(-1, -1, 2)
+    groups.append(
+        (
+            start_logits[start_mask][:, 1 : codec.coordinate_bins + 1],
+            keep[0][start_mask] if keep is not None else None,
+            clean["start"][start_mask],
+            noisy["start"][start_mask],
+        )
+    )
+
+    segment_types = clean["segment_type"]
+    for kind in (SegmentType.LINE, SegmentType.QUAD, SegmentType.CUBIC):
+        control_count, coordinate_count = _coordinate_counts(kind)
+        kind_mask = segment_types == int(kind)
+        for coordinate_index in range(coordinate_count):
+            targets = clean["coordinates"][:, :, coordinate_index][kind_mask]
+            if not targets.numel():
+                continue
+            bins = (
+                codec.effective_control_coordinate_bins
+                if coordinate_index < control_count
+                else codec.coordinate_bins
+            )
+            groups.append(
+                (
+                    coordinate_logits[:, :, coordinate_index][kind_mask][:, 1 : bins + 1],
+                    keep[1][:, :, coordinate_index][kind_mask] if keep is not None else None,
+                    targets,
+                    noisy["coordinates"][:, :, coordinate_index][kind_mask],
+                )
+            )
+    return groups
+
+
+def edit_mask_predictions(
+    value_logits: Tensor, keep_logits: Tensor, noisy_tokens: Tensor
+) -> Tensor:
+    """Copy the input where the model says keep, otherwise take its predicted value."""
+
+    predicted = value_logits.argmax(dim=-1) + 1
+    return torch.where(keep_logits.argmax(dim=-1) == 1, noisy_tokens, predicted)
+
+
+def edit_mask_loss_and_accuracy(
+    logits: tuple[Tensor, Tensor],
+    keep: tuple[Tensor, Tensor],
+    noisy: dict[str, Tensor],
+    clean: dict[str, Tensor],
+    codec: CodecConfig,
+) -> tuple[Tensor, dict[str, int]]:
+    """Keep-or-change cross-entropy plus value cross-entropy on changed fields only.
+
+    Accuracy is measured on the gated prediction, so it stays directly comparable with
+    `geometry_loss_and_accuracy` and with the identity baseline.
+    """
+
+    keep_losses: list[Tensor] = []
+    value_losses: list[Tensor] = []
+    correct = 0
+    total = 0
+    for value_logits, keep_logits, targets, noisy_tokens in _legal_fields(
+        logits, keep, noisy, clean, codec
+    ):
+        if keep_logits is None or not targets.numel():
+            continue
+        keep_targets = (noisy_tokens == targets).long()
+        keep_losses.append(nn.functional.cross_entropy(keep_logits, keep_targets))
+        changed = keep_targets == 0
+        if bool(changed.any()):
+            value_losses.append(
+                nn.functional.cross_entropy(
+                    value_logits[changed], targets[changed] - 1
+                )
+            )
+        predictions = edit_mask_predictions(value_logits, keep_logits, noisy_tokens)
+        correct += int((predictions == targets).sum().item())
+        total += int(targets.numel())
+    loss = torch.stack(keep_losses).mean()
+    if value_losses:
+        loss = loss + torch.stack(value_losses).mean()
+    return loss, {"correct": correct, "total": total}
+
+
+def edit_mask_accuracy_by_corruption(
+    logits: tuple[Tensor, Tensor],
+    keep: tuple[Tensor, Tensor],
+    noisy: dict[str, Tensor],
+    clean: dict[str, Tensor],
+    codec: CodecConfig,
+) -> dict[str, dict[str, int]]:
+    """Split gated-prediction accuracy by whether corruption changed the token."""
+
+    result = {
+        "changed": {"correct": 0, "total": 0},
+        "retained": {"correct": 0, "total": 0},
+    }
+    for value_logits, keep_logits, targets, noisy_tokens in _legal_fields(
+        logits, keep, noisy, clean, codec
+    ):
+        if keep_logits is None or not targets.numel():
+            continue
+        predictions = edit_mask_predictions(value_logits, keep_logits, noisy_tokens)
+        matches = predictions == targets
+        changed = noisy_tokens != targets
+        for name, mask in (("changed", changed), ("retained", ~changed)):
+            result[name]["correct"] += int((matches & mask).sum().item())
+            result[name]["total"] += int(mask.sum().item())
+    return result
+
+
 def predict_clean_geometry(
     noisy: PackedTensorProgram,
     logits: tuple[Tensor, Tensor],
     codec: CodecConfig,
     *,
     locked_paths: np.ndarray | None = None,
+    keep: tuple[Tensor, Tensor] | None = None,
 ) -> PackedTensorProgram:
-    """Project logits through known topology and legal coordinate vocabularies."""
+    """Project logits through known topology and legal coordinate vocabularies.
+
+    With `keep`, a field the model marks as unchanged is left exactly as the input had
+    it rather than being reconstructed from the value head, so the identity policy is
+    reachable by predicting keep everywhere.
+    """
 
     result = copy.deepcopy(noisy)
     locks = _locked_path_mask(locked_paths, codec.max_paths)
     start_logits, coordinate_logits = logits
+    start_keep = keep[0] if keep is not None else None
+    coordinate_keep = keep[1] if keep is not None else None
     for path_index, raw_length in enumerate(result.path_length):
         if not int(raw_length):
             break
         if locks[path_index]:
             continue
         for coordinate_index in range(2):
+            if start_keep is not None and int(
+                start_keep[0, path_index, coordinate_index].argmax().item()
+            ):
+                continue
             result.start[path_index, coordinate_index] = int(
                 start_logits[0, path_index, coordinate_index, 1 : codec.coordinate_bins + 1]
                 .argmax()
@@ -598,6 +765,10 @@ def predict_clean_geometry(
             kind = SegmentType(int(result.segment_type[segment_index]))
             control_count, coordinate_count = _coordinate_counts(kind)
             for coordinate_index in range(coordinate_count):
+                if coordinate_keep is not None and int(
+                    coordinate_keep[0, segment_index, coordinate_index].argmax().item()
+                ):
+                    continue
                 bins = (
                     codec.effective_control_coordinate_bins
                     if coordinate_index < control_count

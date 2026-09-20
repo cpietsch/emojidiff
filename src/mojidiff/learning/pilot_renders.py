@@ -162,7 +162,7 @@ def run_pilot_renders(config: PilotRenderConfig, config_path: Path) -> dict[str,
             np.random.default_rng(pilot.seed + _EVAL_SEED_OFFSET + index),
         )
         with torch.no_grad():
-            logits = model(
+            start_logits, coordinate_logits, keep = model.forward_with_edits(
                 packed_batch([noisy], device),
                 _condition(
                     (row,),
@@ -174,7 +174,9 @@ def run_pilot_renders(config: PilotRenderConfig, config_path: Path) -> dict[str,
                     [probability] if pilot.noise_level_features else None,
                 ),
             )
-        prediction = predict_clean_geometry(noisy, logits, codec)
+        prediction = predict_clean_geometry(
+            noisy, (start_logits, coordinate_logits), codec, keep=keep
+        )
         rows.extend(
             _render_one(
                 row, {"x_0": clean, "x_t": noisy, "x_hat_0": prediction},
@@ -201,6 +203,8 @@ def run_pilot_renders(config: PilotRenderConfig, config_path: Path) -> dict[str,
         "trained_corruption_probability": pilot.corruption_probability,
         "trained_corruption_probability_max": pilot.corruption_probability_max,
         "noise_level_conditioned": pilot.noise_level_features > 0,
+        "slot_binding": pilot.slot_binding,
+        "edit_mask": pilot.edit_mask,
         "corruption_probability_overridden": config.corruption_probability is not None,
         "corruption": "factorized_role_uniform_geometry, the pilot's held-out draw",
         "rendered_rows": [row.source_path for row in validation_rows[: config.icons]],

@@ -385,3 +385,64 @@ def test_slot_binding_is_what_lets_the_encoder_distinguish_coordinate_slots() ->
 
     assert results[False] is True, "the unbound encoder is permutation-invariant by construction"
     assert results[True] is False, "slot binding must make the encoder slot-aware"
+
+
+def test_edit_mask_makes_the_identity_policy_exactly_representable() -> None:
+    """Predicting keep everywhere must reproduce the input byte for byte.
+
+    The identity policy outscores every trained Gate G model, and without an edit mask
+    the model can only express it by reconstructing all 26,030 uncorrupted tokens
+    through a 289- or 417-way softmax. This pins that the gated decode makes it free.
+    """
+
+    import numpy as np
+    import torch
+
+    from mojidiff.learning.geometry import (
+        corrupt_factorized_geometry,
+        edit_mask_predictions,
+        predict_clean_geometry,
+    )
+    from mojidiff.learning.openmoji_pilot import (
+        _load_program,
+        _select_rows,
+        _selected_codec,
+        load_openmoji_pilot_config,
+        load_pilot_index,
+    )
+
+    config = load_openmoji_pilot_config(
+        Path("configs/learning/openmoji-g1-dominant-bucket-smoke.yaml")
+    )
+    codec = _selected_codec(config)
+    by_split, _, _ = load_pilot_index(config)
+    row = _select_rows(by_split["primary/validation"], 1, config.seed + 1)[0]
+    clean = _load_program(row, config, codec)
+    noisy = corrupt_factorized_geometry(clean, codec, 0.35, np.random.default_rng(7))
+    assert not np.array_equal(noisy.coordinates, clean.coordinates)
+
+    # Value logits that would overwrite everything with token 1, and a keep decision
+    # that says keep everywhere. The keep decision must win.
+    start_logits = torch.zeros(1, codec.max_paths, 2, codec.coordinate_bins + 1)
+    coordinate_logits = torch.zeros(
+        1, config.total_segment_slots, 6, codec.effective_control_coordinate_bins + 1
+    )
+    keep = (
+        torch.tensor([0.0, 1.0]).expand(1, codec.max_paths, 2, 2).contiguous(),
+        torch.tensor([0.0, 1.0]).expand(1, config.total_segment_slots, 6, 2).contiguous(),
+    )
+
+    identity = predict_clean_geometry(noisy, (start_logits, coordinate_logits), codec, keep=keep)
+
+    assert np.array_equal(identity.coordinates, noisy.coordinates)
+    assert np.array_equal(identity.start, noisy.start)
+    # And the field-level helper agrees with the program-level decode.
+    values = torch.zeros(4, 10)
+    tokens = torch.tensor([3, 5, 7, 9])
+    assert torch.equal(
+        edit_mask_predictions(values, torch.tensor([[0.0, 1.0]]).expand(4, 2), tokens), tokens
+    )
+    assert torch.equal(
+        edit_mask_predictions(values, torch.tensor([[1.0, 0.0]]).expand(4, 2), tokens),
+        torch.ones(4, dtype=tokens.dtype),
+    )
