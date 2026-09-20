@@ -164,7 +164,15 @@ def run_pilot_renders(config: PilotRenderConfig, config_path: Path) -> dict[str,
         with torch.no_grad():
             logits = model(
                 packed_batch([noisy], device),
-                _condition((row,), groups, subgroups, device),
+                _condition(
+                    (row,),
+                    groups,
+                    subgroups,
+                    device,
+                    # A checkpoint trained with noise-level conditioning must be told
+                    # the level it is being evaluated at, including in a sweep.
+                    [probability] if pilot.noise_level_features else None,
+                ),
             )
         prediction = predict_clean_geometry(noisy, logits, codec)
         rows.extend(
@@ -191,6 +199,8 @@ def run_pilot_renders(config: PilotRenderConfig, config_path: Path) -> dict[str,
         "render_sizes": list(config.render_sizes),
         "corruption_probability": probability,
         "trained_corruption_probability": pilot.corruption_probability,
+        "trained_corruption_probability_max": pilot.corruption_probability_max,
+        "noise_level_conditioned": pilot.noise_level_features > 0,
         "corruption_probability_overridden": config.corruption_probability is not None,
         "corruption": "factorized_role_uniform_geometry, the pilot's held-out draw",
         "rendered_rows": [row.source_path for row in validation_rows[: config.icons]],

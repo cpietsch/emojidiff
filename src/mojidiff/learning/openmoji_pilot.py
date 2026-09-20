@@ -127,6 +127,25 @@ class OpenMojiPilotConfig:
     device: str
     eval_every: int = 0
     selection_policy: SelectionPolicy | None = None
+    corruption_probability_max: float | None = None
+    """Upper end of a per-example corruption range; `corruption_probability` is the low end.
+
+    The corruption sweep found the denoiser's output near-independent of its input: it
+    trained at one fixed level, was never told the level, and learned a prior instead of
+    a conditional denoiser. Sampling a level per example and telling the model what it
+    is are the two halves of the smallest fix. `None` keeps the single fixed level, so
+    every earlier config is untouched.
+    """
+    noise_level_features: int = 0
+    """Sinusoidal conditioning features for the corruption level; 0 disables it."""
+    evaluation_corruption_probability: float | None = None
+    """Level the held-out evaluation uses. Defaults to `corruption_probability`."""
+
+    @property
+    def evaluation_probability(self) -> float:
+        if self.evaluation_corruption_probability is not None:
+            return self.evaluation_corruption_probability
+        return self.corruption_probability
 
 
 def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
@@ -181,6 +200,16 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
         device=_string(training, "device"),
         eval_every=_nonnegative_int(training.get("eval_every", 0), "eval_every"),
         selection_policy=_selection_policy(training.get("selection_policy")),
+        corruption_probability_max=_optional_probability(
+            training.get("corruption_probability_max"), "corruption_probability_max"
+        ),
+        noise_level_features=_nonnegative_int(
+            training.get("noise_level_features", 0), "noise_level_features"
+        ),
+        evaluation_corruption_probability=_optional_probability(
+            training.get("evaluation_corruption_probability"),
+            "evaluation_corruption_probability",
+        ),
     )
     if result.d_model % result.heads:
         raise OpenMojiPilotError("model.d_model must be divisible by model.heads")
@@ -192,7 +221,20 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
         raise OpenMojiPilotError("training.eval_every cannot exceed training.steps")
     if result.selection_policy is not None and not result.eval_every:
         raise OpenMojiPilotError("selection_policy requires a nonzero training.eval_every")
+    if (
+        result.corruption_probability_max is not None
+        and result.corruption_probability_max <= result.corruption_probability
+    ):
+        raise OpenMojiPilotError(
+            "corruption_probability_max must exceed training.corruption_probability"
+        )
     return result
+
+
+def _optional_probability(value: object, field: str) -> float | None:
+    if value is None:
+        return None
+    return _probability(value, field)
 
 
 def _selection_policy(value: object) -> SelectionPolicy | None:
@@ -364,16 +406,23 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
             for offset in range(config.batch_size)
         ]
         clean = [train_programs[index] for index in indices]
-        noisy = [
-            corrupt_factorized_geometry(
-                program,
-                codec,
-                config.corruption_probability,
-                np.random.default_rng(config.seed + step * 100_000 + index),
-            )
-            for index, program in zip(indices, clean, strict=True)
+        generators = [
+            np.random.default_rng(config.seed + step * 100_000 + index) for index in indices
         ]
-        condition = _condition([train_rows[index] for index in indices], groups, subgroups, device)
+        # Draw the level first, then corrupt with the same generator, so the whole
+        # example is a deterministic function of (seed, step, index).
+        levels = [sample_corruption_level(config, generator) for generator in generators]
+        noisy = [
+            corrupt_factorized_geometry(program, codec, level, generator)
+            for program, level, generator in zip(clean, levels, generators, strict=True)
+        ]
+        condition = _condition(
+            [train_rows[index] for index in indices],
+            groups,
+            subgroups,
+            device,
+            levels if config.noise_level_features else None,
+        )
         clean_batch = packed_batch(clean, device)
         optimizer.zero_grad(set_to_none=True)
         logits = model(packed_batch(noisy, device), condition)
@@ -508,6 +557,17 @@ def _new_model(
         feedforward=config.feedforward,
         group_vocab_size=len(groups) + 1,
         subgroup_vocab_size=len(subgroups) + 1,
+        noise_level_features=config.noise_level_features,
+    )
+
+
+def sample_corruption_level(config: OpenMojiPilotConfig, rng: np.random.Generator) -> float:
+    """The per-example corruption level, or the single fixed one when no range is set."""
+
+    if config.corruption_probability_max is None:
+        return config.corruption_probability
+    return float(
+        rng.uniform(config.corruption_probability, config.corruption_probability_max)
     )
 
 
@@ -521,17 +581,24 @@ def _evaluate(
     config: OpenMojiPilotConfig,
     device: torch.device,
 ) -> dict[str, float | int | None]:
+    probability = config.evaluation_probability
     noisy = [
         corrupt_factorized_geometry(
             program,
             codec,
-            config.corruption_probability,
+            probability,
             np.random.default_rng(config.seed + 9_000_000 + index),
         )
         for index, program in enumerate(clean)
     ]
+    levels = [probability] * len(clean)
     with torch.no_grad():
-        logits = model(packed_batch(noisy, device), _condition(rows, groups, subgroups, device))
+        logits = model(
+            packed_batch(noisy, device),
+            _condition(
+                rows, groups, subgroups, device, levels if config.noise_level_features else None
+            ),
+        )
         loss, counts = geometry_loss_and_accuracy(logits, packed_batch(clean, device), codec)
         split = geometry_accuracy_by_corruption(
             logits, packed_batch(noisy, device), packed_batch(clean, device), codec
@@ -576,7 +643,9 @@ def _verify_locked_path(
     with torch.no_grad():
         logits = model(
             packed_batch([noisy], device),
-            _condition((row,), groups, subgroups, device),
+            _condition(
+                (row,), groups, subgroups, device, [1.0] if config.noise_level_features else None
+            ),
         )
     prediction = predict_clean_geometry(noisy, logits, codec, locked_paths=locks)
     length = int(clean.path_length[0])
@@ -595,13 +664,22 @@ def _condition(
     groups: dict[str, int],
     subgroups: dict[str, int],
     device: torch.device,
+    levels: list[float] | None = None,
 ) -> dict[str, torch.Tensor]:
-    return {
+    """Structured conditioning. `levels` is supplied only when the model expects it,
+    because `GeometryDenoiser` rejects a condition whose keys it did not ask for."""
+
+    condition = {
         "group": torch.tensor([groups[row.group] for row in rows], dtype=torch.long, device=device),
         "subgroup": torch.tensor(
             [subgroups[row.subgroup] for row in rows], dtype=torch.long, device=device
         ),
     }
+    if levels is not None:
+        condition["noise_level"] = torch.tensor(
+            levels, dtype=torch.float32, device=device
+        )
+    return condition
 
 
 def _load_program(

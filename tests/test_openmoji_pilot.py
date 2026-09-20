@@ -194,3 +194,82 @@ def test_selection_policy_requires_periodic_evaluation() -> None:
 
     with pytest.raises(OpenMojiPilotError, match="nonzero training.eval_every"):
         load_openmoji_pilot_config(broken)
+
+
+def test_a_model_without_noise_conditioning_rejects_a_noise_level() -> None:
+    from mojidiff.learning.geometry import GeometryDenoiser
+    from mojidiff.learning.openmoji_pilot import _selected_codec
+
+    config = load_openmoji_pilot_config(
+        Path("configs/learning/openmoji-g1-dominant-bucket-smoke.yaml")
+    )
+    codec = _selected_codec(config)
+    plain = GeometryDenoiser(
+        codec, config.total_segment_slots, d_model=32, heads=4, layers=1, feedforward=64,
+        group_vocab_size=3, subgroup_vocab_size=3,
+    )
+    conditioned = GeometryDenoiser(
+        codec, config.total_segment_slots, d_model=32, heads=4, layers=1, feedforward=64,
+        group_vocab_size=3, subgroup_vocab_size=3, noise_level_features=8,
+    )
+
+    # The condition contract is exact in both directions, so a config and a checkpoint
+    # cannot silently disagree about whether the model is told its corruption level.
+    assert plain.noise_level_projection is None
+    assert conditioned.noise_level_projection is not None
+    import torch
+
+    base = {
+        "group": torch.zeros(1, dtype=torch.long),
+        "subgroup": torch.zeros(1, dtype=torch.long),
+    }
+    with pytest.raises(ValueError, match="condition must contain exactly"):
+        plain({"path_length": torch.zeros(1, config.max_paths, dtype=torch.long)},
+              {**base, "noise_level": torch.zeros(1)})
+    with pytest.raises(ValueError, match="condition must contain exactly"):
+        conditioned({"path_length": torch.zeros(1, config.max_paths, dtype=torch.long)}, base)
+
+
+def test_corruption_level_sampling_is_fixed_without_a_range_and_within_it_otherwise() -> None:
+    import numpy as np
+
+    from mojidiff.learning.openmoji_pilot import sample_corruption_level
+
+    config = load_openmoji_pilot_config(
+        Path("configs/learning/openmoji-g1-dominant-bucket-smoke.yaml")
+    )
+    assert config.corruption_probability_max is None
+    fixed = [
+        sample_corruption_level(config, np.random.default_rng(seed)) for seed in range(5)
+    ]
+    assert fixed == [config.corruption_probability] * 5
+
+    ranged = replace(config, corruption_probability=0.05, corruption_probability_max=0.5)
+    drawn = [
+        sample_corruption_level(ranged, np.random.default_rng(seed)) for seed in range(20)
+    ]
+    assert all(0.05 <= value <= 0.5 for value in drawn)
+    assert len(set(drawn)) > 1
+    # Deterministic in the generator, so an example is a pure function of its seed.
+    assert sample_corruption_level(ranged, np.random.default_rng(3)) == drawn[3]
+
+
+def test_a_corruption_range_must_be_ordered(tmp_path: Path) -> None:
+    config_path = Path("configs/learning/openmoji-g1-dominant-bucket-smoke.yaml")
+    source = yaml.safe_load(config_path.read_bytes())
+    source["training"]["corruption_probability_max"] = 0.1
+    source["training"]["corruption_probability"] = 0.35
+    broken = tmp_path / "range.yaml"
+    broken.write_text(yaml.safe_dump(source))
+
+    with pytest.raises(OpenMojiPilotError, match="corruption_probability_max must exceed"):
+        load_openmoji_pilot_config(broken)
+
+
+def test_the_evaluation_level_defaults_to_the_training_level() -> None:
+    config = load_openmoji_pilot_config(
+        Path("configs/learning/openmoji-g1-dominant-bucket-smoke.yaml")
+    )
+
+    assert config.evaluation_probability == config.corruption_probability
+    assert replace(config, evaluation_corruption_probability=0.1).evaluation_probability == 0.1

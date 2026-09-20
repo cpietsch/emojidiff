@@ -49,6 +49,7 @@ class GeometryDenoiser(nn.Module):
         feedforward: int,
         group_vocab_size: int = 0,
         subgroup_vocab_size: int = 0,
+        noise_level_features: int = 0,
     ) -> None:
         super().__init__()
         self.max_paths = codec.max_paths
@@ -68,6 +69,15 @@ class GeometryDenoiser(nn.Module):
         )
         self.subgroup_embedding = (
             nn.Embedding(subgroup_vocab_size, d_model) if subgroup_vocab_size > 0 else None
+        )
+        # Continuous conditioning on how corrupted the input is. Without it the model
+        # has no way to know whether to trust `x_t` or to overwrite it, and a model
+        # trained at one fixed corruption level never needs to ask. Sinusoidal features
+        # rather than a bucket embedding, so a level never seen in training still lands
+        # somewhere sensible between the levels that were.
+        self.noise_level_features = noise_level_features
+        self.noise_level_projection = (
+            nn.Linear(2 * noise_level_features, d_model) if noise_level_features > 0 else None
         )
         encoder_layer = nn.TransformerEncoderLayer(
             d_model=d_model,
@@ -91,6 +101,22 @@ class GeometryDenoiser(nn.Module):
         batch: dict[str, Tensor],
         condition: dict[str, Tensor] | None = None,
     ) -> tuple[Tensor, Tensor]:
+        # Validate the condition contract before doing any work, so a config and a
+        # checkpoint that disagree about conditioning fail immediately and loudly
+        # rather than part-way through a forward pass.
+        expected: set[str] = set()
+        if self.group_embedding is not None or self.subgroup_embedding is not None:
+            expected |= {"group", "subgroup"}
+        if self.noise_level_projection is not None:
+            expected.add("noise_level")
+        if expected or condition is not None:
+            if condition is None or set(condition) != expected:
+                raise ValueError(f"condition must contain exactly {sorted(expected)}")
+            batch_size = batch["path_length"].shape[:1]
+            for name in sorted(expected):
+                if condition[name].shape != batch_size:
+                    raise ValueError(f"{name} condition must contain one value per batch item")
+
         path_hidden = torch.zeros(
             (*batch["path_length"].shape, self.position_embedding.embedding_dim),
             dtype=torch.float32,
@@ -109,18 +135,17 @@ class GeometryDenoiser(nn.Module):
         hidden = torch.cat((path_hidden, segment_hidden), dim=1)
         positions = torch.arange(hidden.shape[1], device=hidden.device)
         hidden = hidden + self.position_embedding(positions)[None, :, :]
-        if self.group_embedding is not None or self.subgroup_embedding is not None:
-            if condition is None or set(condition) != {"group", "subgroup"}:
-                raise ValueError("structured condition requires group and subgroup tensors")
-            if condition["group"].shape != batch["path_length"].shape[:1]:
-                raise ValueError("group condition must contain one token per batch item")
-            if condition["subgroup"].shape != batch["path_length"].shape[:1]:
-                raise ValueError("subgroup condition must contain one token per batch item")
+        if expected:
+            assert condition is not None
             conditioning = torch.zeros_like(hidden[:, 0])
             if self.group_embedding is not None:
                 conditioning = conditioning + self.group_embedding(condition["group"])
             if self.subgroup_embedding is not None:
                 conditioning = conditioning + self.subgroup_embedding(condition["subgroup"])
+            if self.noise_level_projection is not None:
+                conditioning = conditioning + self.noise_level_projection(
+                    _noise_level_features(condition["noise_level"], self.noise_level_features)
+                )
             hidden = hidden + conditioning[:, None, :]
         encoded = self.encoder(hidden)
         path_encoded = encoded[:, : self.max_paths]
@@ -132,6 +157,16 @@ class GeometryDenoiser(nn.Module):
             *segment_encoded.shape[:2], 6, self.control_bins + 1
         )
         return start, coordinates
+
+
+def _noise_level_features(level: Tensor, count: int) -> Tensor:
+    """Sinusoidal features of a corruption level in 0..1, as [sin | cos] pairs."""
+
+    frequencies = torch.pow(
+        2.0, torch.arange(count, dtype=torch.float32, device=level.device)
+    ) * torch.pi
+    scaled = level.to(torch.float32)[:, None] * frequencies[None, :]
+    return torch.cat((torch.sin(scaled), torch.cos(scaled)), dim=1)
 
 
 def corrupt_geometry(
