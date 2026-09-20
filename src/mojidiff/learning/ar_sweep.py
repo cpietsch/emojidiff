@@ -56,16 +56,25 @@ from mojidiff.representation.codec_study import _write_bytes_artifact
 
 
 @dataclass(frozen=True)
-class ARScalingConfig:
-    version: str
-    pilot_config: Path
-    report_root: Path
-    fractions: tuple[float, ...]
+class Arm:
+    """One point on whichever axis this study sweeps."""
+
+    label: str
+    fraction: float
     d_model: int
     heads: int
     layers: int
     feedforward: int
     metric_coordinates: int
+
+
+@dataclass(frozen=True)
+class ARScalingConfig:
+    version: str
+    axis: str
+    pilot_config: Path
+    report_root: Path
+    arms: tuple[Arm, ...]
     steps: int
     batch_size: int
     learning_rate: float
@@ -74,27 +83,37 @@ class ARScalingConfig:
     patience_evals: int
     marginal_alpha: float
     min_second_doubling_share: float
+    max_best_ratio: float
 
 
 def load_ar_scaling_config(path: Path) -> ARScalingConfig:
     root = yaml.safe_load(path.read_bytes())
     if not isinstance(root, dict) or root.get("schema_version") != 1:
         raise OpenMojiPilotError("ar scaling schema_version must be 1")
-    model = root["model"]
+    base = root["model"]
     training = root["training"]
-    fractions = tuple(float(value) for value in root["fractions"])
-    if len(fractions) != 3 or list(fractions) != sorted(fractions):
-        raise OpenMojiPilotError("fractions must be three values in increasing order")
+    arms = tuple(
+        Arm(
+            label=str(entry["label"]),
+            fraction=float(entry.get("fraction", 1.0)),
+            d_model=int(entry.get("d_model", base["d_model"])),
+            heads=int(entry.get("heads", base["heads"])),
+            layers=int(entry.get("layers", base["layers"])),
+            feedforward=int(entry.get("feedforward", base["feedforward"])),
+            metric_coordinates=int(
+                entry.get("metric_coordinates", base.get("metric_coordinates", 0))
+            ),
+        )
+        for entry in root["arms"]
+    )
+    if len(arms) != 3:
+        raise OpenMojiPilotError("this study reads three arms, ordered small to large")
     return ARScalingConfig(
         version=str(root["study_version"]),
+        axis=str(root["axis"]),
         pilot_config=Path(str(root["pilot_config"])),
         report_root=Path(str(root["report_root"])),
-        fractions=fractions,
-        d_model=int(model["d_model"]),
-        heads=int(model["heads"]),
-        layers=int(model["layers"]),
-        feedforward=int(model["feedforward"]),
-        metric_coordinates=int(model.get("metric_coordinates", 0)),
+        arms=arms,
         steps=int(training["steps"]),
         batch_size=int(training["batch_size"]),
         learning_rate=float(training["learning_rate"]),
@@ -103,6 +122,7 @@ def load_ar_scaling_config(path: Path) -> ARScalingConfig:
         patience_evals=int(training["patience_evals"]),
         marginal_alpha=float(training["marginal_alpha"]),
         min_second_doubling_share=float(root["criteria"]["min_second_doubling_share"]),
+        max_best_ratio=float(root["criteria"]["max_best_ratio"]),
     )
 
 
@@ -137,13 +157,14 @@ def run_ar_scaling(config: ARScalingConfig, config_path: Path) -> dict[str, Any]
     # The subsets are nested, so a larger arm is a strict superset of a smaller one and
     # the only thing that differs between arms is how many icons there are.
     order = np.random.default_rng(config.seed).permutation(len(train.rows))
-    arms: list[dict[str, Any]] = []
-    for fraction in config.fractions:
-        count = max(int(round(fraction * len(train.rows))), config.batch_size)
+    results: list[dict[str, Any]] = []
+    for arm in config.arms:
+        count = max(int(round(arm.fraction * len(train.rows))), config.batch_size)
         subset = np.sort(order[:count])
-        arms.append(
+        results.append(
             _train_arm(
                 config,
+                arm,
                 layout,
                 train,
                 subset,
@@ -153,20 +174,25 @@ def run_ar_scaling(config: ARScalingConfig, config_path: Path) -> dict[str, Any]
                 groups,
                 subgroups,
                 device,
-                fraction,
             )
         )
+    arms = results
 
     improvements = [
-        arms[0]["held_out_nll"] - arms[1]["held_out_nll"],
-        arms[1]["held_out_nll"] - arms[2]["held_out_nll"],
+        results[0]["held_out_nll"] - results[1]["held_out_nll"],
+        results[1]["held_out_nll"] - results[2]["held_out_nll"],
     ]
     share = improvements[1] / improvements[0] if improvements[0] > 0 else 0.0
     monotone = all(value > 0 for value in improvements)
+    best_ratio = min(float(arm["ratio_to_own_floor"]) for arm in results)
     checks = {
-        "monotone_in_data": monotone,
-        "second_doubling_still_buys": monotone
-        and share >= config.min_second_doubling_share,
+        f"monotone_in_{config.axis}": monotone,
+        "second_step_still_buys": monotone and share >= config.min_second_doubling_share,
+        # i4's lesson, written into the instrument. Its criterion asked whether returns
+        # had stopped and passed while the returns were far too small to matter, which
+        # is the Gate G failure of a metric that reads well and points the wrong way.
+        # A direction without a magnitude does not identify a lever.
+        "best_arm_clears_magnitude_bar": best_ratio <= config.max_best_ratio,
     }
 
     summary = {
@@ -177,15 +203,22 @@ def run_ar_scaling(config: ARScalingConfig, config_path: Path) -> dict[str, Any]
         "gpu": torch.cuda.get_device_name(0) if device.type == "cuda" else None,
         "torch_version": str(torch.__version__),
         "deterministic_algorithms": True,
+        "axis": config.axis,
         "prepare_seconds": prepare_seconds,
         "validation_icons": len(validation.rows),
         "arms": arms,
         "improvement_first_doubling": improvements[0],
         "improvement_second_doubling": improvements[1],
         "second_doubling_share": share,
-        "criteria": {"min_second_doubling_share": config.min_second_doubling_share},
+        "best_ratio_to_own_floor": best_ratio,
+        "criteria": {
+            "min_second_doubling_share": config.min_second_doubling_share,
+            "max_best_ratio": config.max_best_ratio,
+        },
         "checks": checks,
-        "predeclared_outcome": "data_limited" if all(checks.values()) else "not_data_limited",
+        "predeclared_outcome": (
+            f"limited_by_{config.axis}" if all(checks.values()) else f"not_limited_by_{config.axis}"
+        ),
     }
     _write_bytes_artifact(config.report_root / "summary.json", _json(summary))
     _write_bytes_artifact(
@@ -197,6 +230,7 @@ def run_ar_scaling(config: ARScalingConfig, config_path: Path) -> dict[str, Any]
 
 def _train_arm(
     config: ARScalingConfig,
+    arm: Arm,
     layout: SequenceLayout,
     train: _Split,
     subset: np.ndarray,
@@ -206,18 +240,17 @@ def _train_arm(
     groups: dict[str, int],
     subgroups: dict[str, int],
     device: torch.device,
-    fraction: float,
 ) -> dict[str, Any]:
     torch.manual_seed(config.seed)
     model = CausalProgramModel(
         layout,
-        d_model=config.d_model,
-        heads=config.heads,
-        layers=config.layers,
-        feedforward=config.feedforward,
+        d_model=arm.d_model,
+        heads=arm.heads,
+        layers=arm.layers,
+        feedforward=arm.feedforward,
         group_vocab_size=len(groups) + 1,
         subgroup_vocab_size=len(subgroups) + 1,
-        metric_coordinates=config.metric_coordinates,
+        metric_coordinates=arm.metric_coordinates,
     ).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
 
@@ -264,7 +297,8 @@ def _train_arm(
             held_out = _evaluate(model, validation, validation_condition, device)
             trace.append(
                 {
-                    "fraction": fraction,
+                    "label": arm.label,
+                    "fraction": arm.fraction,
                     "step": step,
                     "train_loss": float(loss.detach()),
                     "held_out_nll": held_out,
@@ -278,8 +312,10 @@ def _train_arm(
                 if stale >= config.patience_evals:
                     break
     return {
-        "fraction": fraction,
+        "label": arm.label,
+        "fraction": arm.fraction,
         "icons": len(subset),
+        "parameters": sum(parameter.numel() for parameter in model.parameters()),
         "held_out_nll": best,
         "marginal_nll": floor_total / floor_count,
         "ratio_to_own_floor": best / (floor_total / floor_count),

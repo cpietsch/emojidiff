@@ -1,0 +1,55 @@
+# Gate I arm 5: capacity, the last untested factor.
+#
+# Three arms have now landed within 0.05 nats of each other. i2 cleared its zero-
+# parameter position-marginal floor by 7.7%; i3 corrected the coordinate encoding that
+# was decisive for the denoiser on this same codec and moved nothing; i4 quadrupled the
+# data and moved the ratio from 0.9340 to 0.9285. The gap to the floor sits at about
+# 0.28 nats regardless of what is changed.
+#
+# i4 passed both of its predeclared checks and did not support the decision it was
+# written to inform. It asked whether returns had stopped, and they had not - the second
+# doubling still bought 76% of what the first did - but at roughly 0.011 nats per
+# doubling, closing the gap to the original 0.5 criterion would take on the order of 150
+# doublings. That is the Gate G failure exactly: a metric that reads well and points the
+# wrong way. So this study carries a magnitude criterion as well as a direction.
+#
+# Capacity is the last factor that has not been measured for this model. Gate G found it
+# did not matter for the denoiser, but that is a different model on a different task and
+# is not evidence here.
+#
+# 524,674 to 1,614,978 to 4,817,570 parameters, roughly 3x a step, 9x end to end. Heads
+# stay at 4 throughout, so the attention matrix is the same size in every arm and peak
+# memory scales with depth alone: 4 layers measured 3.63 GiB, so 8 layers should sit
+# near 7.3 GiB on a 15.5 GiB card.
+schema_version: 1
+study_version: ar-capacity-i5
+axis: capacity
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+report_root: reports/learning/ar-capacity-i5
+
+model: {d_model: 96, heads: 4, layers: 4, feedforward: 192, metric_coordinates: 0}
+
+arms:
+  - {label: base-525k, d_model: 96, layers: 4, feedforward: 192}
+  - {label: mid-1.6m, d_model: 160, layers: 6, feedforward: 320}
+  - {label: large-4.8m, d_model: 256, layers: 8, feedforward: 512}
+
+training:
+  steps: 6300
+  batch_size: 16
+  learning_rate: 0.001
+  seed: 3301
+  eval_every: 300
+  patience_evals: 8
+  marginal_alpha: 1.0
+
+criteria:
+  min_second_doubling_share: 0.25
+  # New, and deliberately a far lower bar than the 0.5 that i2 and i3 were read against.
+  # 0.5 is the standing bar for "this is a generator" and nothing here is close to it.
+  # 0.85 asks a smaller question: at 9x the parameters, does capacity behave like a
+  # lever at all? A ratio that stays above 0.85 across a 9x range is not a lever, and
+  # the honest answer to Gate I is then that this codec's sequence resists
+  # autoregressive modelling at any scale this project can reach - which is a result,
+  # not a failure to find one.
+  max_best_ratio: 0.85

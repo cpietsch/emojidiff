@@ -25,7 +25,11 @@ study_version: ar-scaling-i4
 pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
 report_root: reports/learning/ar-scaling-i4
 
-fractions: [0.25, 0.5, 1.0]
+axis: data
+arms:
+  - {label: quarter, fraction: 0.25}
+  - {label: half, fraction: 0.5}
+  - {label: all, fraction: 1.0}
 
 # i2's model exactly. The coordinate option is off because i3 showed it changes nothing
 # here, and the cleaner baseline is the one with fewer moving parts.
@@ -41,6 +45,10 @@ training:
   marginal_alpha: 1.0
 
 criteria:
+  # Not part of i4 as it ran; recorded here so the config still loads and so the value
+  # it would have taken is explicit. i4's verdict stands on the two checks it declared.
+  max_best_ratio: 1.0
+
   # Declared before the runs. Data-limited means two things together: held-out
   # likelihood improves at every doubling, and the second doubling still buys a real
   # fraction of what the first did. A curve that improves but is clearly saturating

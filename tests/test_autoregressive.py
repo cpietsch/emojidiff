@@ -15,8 +15,8 @@ import pytest
 import torch
 
 from mojidiff.learning.ar_corpus import _Split
-from mojidiff.learning.ar_data_scaling import _subset_view
 from mojidiff.learning.ar_overfit import _distinct_subgroup_rows
+from mojidiff.learning.ar_sweep import _subset_view
 from mojidiff.learning.autoregressive import (
     CausalProgramModel,
     SequenceLayout,
