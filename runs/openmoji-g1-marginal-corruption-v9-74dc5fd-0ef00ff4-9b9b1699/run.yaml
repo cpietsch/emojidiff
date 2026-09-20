@@ -1,0 +1,87 @@
+schema_version: 1
+run_id: openmoji-g1-marginal-corruption-v9-74dc5fd-0ef00ff4-9b9b1699
+state: planned
+parent_run: openmoji-g1-sound-optimisation-v8-949e0e5-4feee442-9b9b1699
+hypothesis: >-
+  v8's detector reached 2.806 precision lift, but a zero-parameter detector that knows
+  only the corpus marginal reaches 2.831 on the same data, so v8 matched a density test
+  rather than learning geometry. Factorized corruption draws replacements uniformly from
+  the full legal vocabulary, so many land on tokens real icons never use. Drawing them
+  from the corpus distribution for the field's role instead removes that shortcut: the
+  marginal detector falls to 0.771 while the local-continuity signal survives at 1.893.
+  Under this leak-free process the model must use the surrounding geometry, and this run
+  measures for the first time how much of that signal it can actually learn.
+expected_information_gain: >-
+  This is the first honest detection benchmark in the project. Every earlier detector
+  number - v6 1.234, v7 1.365, v8 2.806, and the free references at 2.13 and 2.83 - was
+  measured on a process whose corruption is identifiable from a token marginal alone. A
+  trained model that beats the continuity statistic HERE has learned geometry; one that
+  does not has not, and no amount of the earlier numbers would have told us which.
+scope_limits: >-
+  Detection-only, so it reconstructs nothing and held-out accuracy is meaningless here.
+  Single seed, probability 0.35. Not comparable with v8 in absolute terms: the task is
+  strictly harder because the easy fraction of corruptions has been removed, so a lower
+  lift than v8's 2.806 is expected and is not a regression.
+changed_factors:
+  primary: training.corruption_process factorized -> marginal.
+  parameters: unchanged at 579,872
+  held_fixed: >-
+    v8 exactly otherwise: pool_loss_over_fields, mask_padding, detection_only, slot
+    binding, edit-mask heads, the full 2,681-icon split, the 128-icon validation draw
+    and its corruption seeds, seed 3101, probability 0.35, batch 16, lr 0.001,
+    eval_every 60, the 6,300-step cap, held-out-loss selection with patience 8.
+  marginal_estimated_from: >-
+    train programs only, so no held-out information reaches the corruption applied to
+    held-out icons.
+code:
+  git_commit: 74dc5fd
+  execution_mode: native-local
+config:
+  path: configs/learning/openmoji-g1-marginal-corruption-v9.yaml
+  sha256: 0ef00ff401f00797647053a02629dab7da603c5b3784fd8600ed1fe71e9a3e46
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  bucket: bucket-p32-t128
+  train_samples: 2681
+  validation_samples: 128
+free_references_under_each_process:
+  note: >-
+    Measured before this run, on 128 held-out icons, at the matched 8.573% flag rate.
+    The marginal column is what this run must be judged against.
+  factorized_uniform: {marginal_density_lift: 2.840, local_continuity_lift: 2.126}
+  marginal_respecting: {marginal_density_lift: 0.771, local_continuity_lift: 1.893}
+  trained_under_factorized: {v6: 1.234, v7: 1.365, v8: 2.806}
+predeclared_criteria:
+  note: Measured by scripts/detector_report.py at the matched 8.573% flag rate.
+  evaluated_at: the checkpoint selected by held-out loss
+  primary:
+    - id: beats_the_free_geometric_detector
+      statement: >-
+        Precision lift exceeds 1.893, the local-continuity statistic measured under this
+        same corruption process. This is the first criterion in the project that a model
+        can only pass by using geometry, because the density shortcut is gone.
+    - id: not_explained_by_density
+      statement: >-
+        Precision lift exceeds 1.20. The marginal-density detector scores 0.771 here, so
+        anything at or below about 1.0 would mean the model learned nothing this process
+        did not hand it.
+    - id: structural_safety
+      statement: Locked-path exactness holds and the canonical checkpoint round-trips.
+    - id: reproducibility
+      statement: A second complete invocation returns an identical JSON result.
+  reported_not_gated:
+    - detector recall and precision at the model's own threshold and at the base flag rate
+    - the selected step and whether early stopping or the cap ended the run
+    - held-out field-pooled loss, not comparable across corruption processes
+  falsification_meaning: >-
+    If the model cannot beat a zero-parameter continuity statistic once the density
+    shortcut is removed, then v8's apparent success was entirely the leak, and the
+    conclusion is that this model class does not learn the geometric relation even under
+    sound optimisation. That would make the representational interventions - per-field
+    tokenisation, or ordinal coordinate features - the next runs, and both were measured
+    and argued for by the diagnostic panel.
+outputs:
+  local_metadata: runs/openmoji-g1-marginal-corruption-v9-74dc5fd-0ef00ff4-9b9b1699
+  report_root: reports/learning/openmoji-g1-marginal-corruption-v9
+  durable_artifacts: /home/dev/.cache/openmoji-g1-marginal-corruption-v9-74dc5fd-0ef00ff4-9b9b1699
+planned_at: 2026-09-21T00:40:00Z
