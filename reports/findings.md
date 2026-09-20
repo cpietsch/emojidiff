@@ -1484,3 +1484,47 @@ What remains is measured. The value head is weak at 0.1233 exact-token accuracy 
 detection confidence high so only the top few percent of flags pay. The next step is the
 distance-kernel target the task-formulation lens argued for, so that being close earns
 gradient, and calibrating the gate during training rather than after it.
+
+## 2026-09-21 — The identity win, without the asterisk
+
+**Hypothesis.** v12 beat the identity baseline only with a decode threshold fitted on
+held-out icons; its own argmax decode lost by 0.0429. That threshold is derivable rather
+than arbitrary: keeping a retained field is always right and changing one is right only
+if the value head re-predicts the same token, so changing pays above `p = 1/(1+q)` in the
+value head's accuracy `q` on corrupted fields.
+
+**Observation.** v13 derived the threshold from train icons and beat identity with
+nothing fitted on held-out data — 0.6519 against 0.6515 — but by only 0.0003, and its
+threshold criterion was falsified informatively. The value head scores **0.2751** on
+icons it trained on against **0.1233** held out, so `q` was inflated and the threshold
+came out at 0.784 where the held-out accuracy implies 0.890. The model edited more than
+paid.
+
+v14 estimates `q` on 256 icons **withheld from training**: 0.2220, threshold 0.8183,
+aggregate **0.6543 against identity's 0.6515**, a margin of **+0.0027**. All four
+predeclared criteria pass. Retained-token accuracy reaches **0.9815**, the highest of any
+model in this project. The run is handicapped by its own design — withholding those icons
+also removes them from training, so it learned from 2,425 rather than 2,681, 9.6% less
+than everything it is compared against — so the margin is conservative.
+
+**Decision.** Record the result and its size in the same sentence. Nothing in v14 is
+fitted on held-out data: the threshold comes from icons the model never trained on, the
+checkpoint is selected on held-out loss as every run here does, and the identity
+comparison is a plain read. The project has a denoiser that does better than doing
+nothing, with no caveat about how the number was obtained.
+
+It is also +0.0027 on token accuracy, about 0.4% relative. This is not a good model; it
+is a model that has stopped being worse than useless. The value head reaches only 0.222
+on withheld corrupted fields, which is why the break-even threshold sits at 0.818 and the
+model edits just 4% of what it sees.
+
+The next step is unchanged and every term in it is now measured: the value head predicts
+an exact bin on a quarter-unit metric lattice through a categorical softmax, so being
+close earns nothing. A distance-kernel target should lift `q`, which lowers the
+break-even threshold, which lets the model act on more of what it already detects
+correctly at 2.569 lift.
+
+A recording note: v13's in-place idempotency rerun failed closed because v14 added two
+summary fields afterwards and the artifact writer refuses to replace a differing file.
+Re-running v13 to a fresh report root reproduces every other field exactly. The failure
+is kept rather than papered over.

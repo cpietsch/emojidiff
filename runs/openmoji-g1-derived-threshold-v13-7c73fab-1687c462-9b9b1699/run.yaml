@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-derived-threshold-v13-7c73fab-1687c462-9b9b1699
-state: planned
+state: completed
 parent_run: openmoji-g1-balanced-objective-v12-9bf3fe9-499c2436-9b9b1699
 hypothesis: >-
   v12 beat the identity baseline, 0.6567 against 0.6502, but only with a decode threshold
@@ -79,3 +79,35 @@ outputs:
   report_root: reports/learning/openmoji-g1-derived-threshold-v13
   durable_artifacts: /home/dev/.cache/openmoji-g1-derived-threshold-v13-7c73fab-1687c462-9b9b1699
 planned_at: 2026-09-21T03:10:00Z
+completed_at: 2026-09-21T03:20:00Z
+result:
+  device: cuda
+  train_value_accuracy: 0.2751
+  derived_threshold: 0.7842
+  held_out: {aggregate: 0.6519, changed: 0.0494, retained: 0.9741}
+  identity_baseline: 0.6515
+  margin: 0.0003
+  checkpoint_identical_to_v12: true
+  identical_rerun:
+    value: true
+    caveat: >-
+      Its in-place idempotency rerun failed closed at a later commit, because v14 added
+      `calibration_samples` and `calibration_withheld_from_training` to the summary
+      schema after v13 had run, and the artifact writer refuses to replace a differing
+      file. Re-running to a fresh report root at the current commit reproduces every
+      other field exactly, so the run is deterministic and only the schema moved. The
+      failure is recorded rather than papered over.
+predeclared_outcome:
+  overall: partially-falsified
+  beats_identity_without_calibration: {passed: true, observed: 0.6519, threshold: 0.6515}
+  improves_on_argmax: {passed: true, observed: 0.6519, threshold: 0.6086}
+  threshold_is_in_the_expected_region: {passed: false, observed: 0.7842, expected: [0.85, 0.95]}
+  structural_safety: {passed: true}
+  reproducibility: {passed: true, see: the caveat above}
+  conclusion: >-
+    The break-even threshold works - this beats identity with nothing fitted on held-out
+    data - but by only 0.0003, and the threshold criterion is falsified for an
+    informative reason. The value head scores 0.2751 on icons the model trained on
+    against 0.1233 held out, so estimating q there gives 0.784 where the held-out
+    accuracy implies 0.890, and the model edits more than pays. The fix is the one this
+    run's falsification meaning named: estimate q on icons withheld from training.

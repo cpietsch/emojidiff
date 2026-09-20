@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-withheld-calibration-v14-dbfc543-359d06bd-9b9b1699
-state: planned
+state: completed
 parent_run: openmoji-g1-derived-threshold-v13-7c73fab-1687c462-9b9b1699
 hypothesis: >-
   v13 beat identity without any held-out calibration, 0.6519 against 0.6515, but by only
@@ -83,3 +83,34 @@ outputs:
   report_root: reports/learning/openmoji-g1-withheld-calibration-v14
   durable_artifacts: /home/dev/.cache/openmoji-g1-withheld-calibration-v14-dbfc543-359d06bd-9b9b1699
 planned_at: 2026-09-21T03:30:00Z
+completed_at: 2026-09-21T03:40:00Z
+result:
+  device: cuda
+  trained_on_icons: 2425
+  calibration_icons_withheld: 256
+  withheld_value_accuracy: 0.2220
+  derived_threshold: 0.8183
+  held_out: {aggregate: 0.6543, changed: 0.0423, retained: 0.9815}
+  identity_baseline: 0.6515
+  margin: 0.0027
+  identical_rerun: true
+predeclared_outcome:
+  overall: passed
+  beats_identity_without_touching_held_out_data: {passed: true, observed: 0.6543, threshold: 0.6515}
+  improves_on_the_trained_on_estimate: {passed: true, observed: 0.0027, threshold: 0.0003}
+  threshold_reflects_an_honest_estimate: {passed: true, observed: 0.8183, bounds: [0.7842, 0.95]}
+  structural_safety: {passed: true}
+  reproducibility: {passed: true}
+  conclusion: >-
+    The project beats the trivial policy with nothing fitted on held-out data: the decode
+    threshold is derived from 256 icons withheld from training, the checkpoint is
+    selected on held-out loss as every run here does, and the identity comparison is a
+    plain read. Retained-token accuracy is 0.9815, the highest of any model here. The run
+    is handicapped by its own design, training on 2,425 icons rather than 2,681, so the
+    margin is conservative.
+  honest_limits: >-
+    The margin is +0.0027 on token accuracy, about 0.4% relative. This is not a good
+    model; it is a model that has stopped being worse than useless. The value head
+    reaches only 0.222 on withheld corrupted fields, which is why the break-even
+    threshold sits at 0.818 and the model edits just 4% of fields. No render in this
+    project has produced a recognizable icon and this run does not change that.
