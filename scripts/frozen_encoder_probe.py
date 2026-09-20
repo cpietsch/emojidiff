@@ -30,12 +30,12 @@ from mojidiff.learning.detectability import roc_auc  # noqa: E402
 from mojidiff.learning.detector_reference import fit_logistic, score  # noqa: E402
 from mojidiff.learning.geometry import packed_batch  # noqa: E402
 from mojidiff.learning.openmoji_pilot import (  # noqa: E402
-    CORRUPTION_PROCESSES,
     _condition,
     _load_program,
     _new_model,
     _select_rows,
     _selected_codec,
+    corruption_operator,
     load_openmoji_pilot_config,
     load_pilot_index,
 )
@@ -65,8 +65,14 @@ def main() -> None:
         captured["encoded"] = output.detach()
 
     model.encoder.register_forward_hook(hook)
-    corrupt = CORRUPTION_PROCESSES[config.corruption_process]
+    # Bind through the pilot's own operator so the corruption draw is identical to the
+    # one the run trained and evaluated against; `marginal` needs the train programs.
     probability = config.evaluation_probability
+    train_programs = [
+        _load_program(row, config, codec)
+        for row in _select_rows(by_split["primary/train"], 512, config.seed)
+    ]
+    corrupt = corruption_operator(config, codec, train_programs)
 
     def collect(rows: tuple, seed_base: int) -> tuple[np.ndarray, np.ndarray]:
         features: list[np.ndarray] = []

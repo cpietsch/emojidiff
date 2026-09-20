@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-marginal-corruption-v9-74dc5fd-0ef00ff4-9b9b1699
-state: planned
+state: completed
 parent_run: openmoji-g1-sound-optimisation-v8-949e0e5-4feee442-9b9b1699
 hypothesis: >-
   v8's detector reached 2.806 precision lift, but a zero-parameter detector that knows
@@ -85,3 +85,38 @@ outputs:
   report_root: reports/learning/openmoji-g1-marginal-corruption-v9
   durable_artifacts: /home/dev/.cache/openmoji-g1-marginal-corruption-v9-74dc5fd-0ef00ff4-9b9b1699
 planned_at: 2026-09-21T00:40:00Z
+completed_at: 2026-09-21T01:00:00Z
+result:
+  device: cuda
+  model_parameters: 579872
+  selected_step: 2340
+  completed_steps: 2820
+  ended_by: early_stopping
+  identical_rerun: true
+  detector_at_matched_flag_rate: {precision: 0.5248, lift_over_base_rate: 1.506, recall: 0.1291}
+  detector_at_base_flag_rate: {precision: 0.4295, lift_over_base_rate: 1.232}
+predeclared_outcome:
+  overall: partially-falsified
+  beats_the_free_geometric_detector: {passed: false, observed: 1.506, threshold: 1.893}
+  not_explained_by_density: {passed: true, observed: 1.506, threshold: 1.20}
+  structural_safety: {passed: true}
+  reproducibility: {passed: true}
+  conclusion: >-
+    The first honest detection number in the project, and it says two things. The model
+    does learn geometry: 1.506 is far above the 0.771 a density detector manages under
+    this process, so it is not using the marginal, which no longer helps. But it still
+    loses to a zero-parameter local-continuity statistic at 1.893 on the identical
+    corrupted inputs, under sound optimisation and 2,340 steps.
+  reinterprets_v8: >-
+    v8's 2.806 was mostly the leak. The honest ranking under leak-free corruption is
+    continuity 1.893, v9 1.506, density 0.771. Every detector number measured under
+    factorized corruption - v6 1.234, v7 1.365, v8 2.806, and the 2.13 and 2.83 free
+    references - describes a task that is partly a density test.
+  opens: >-
+    The predeclared falsification meaning applies: the model cannot beat a trivial
+    geometric statistic with the shortcut removed and the optimisation fixed, so the
+    remaining candidates are representational. The measured one is that coordinate
+    values enter as identities rather than magnitudes - the trained input embedding is
+    statistically indistinguishable from random init at Spearman -0.136 and adjacent-bin
+    distance 0.989 of the all-pairs mean, while the output head, which gets a direct
+    gradient from the corpus marginal, does show order at +0.143 and 0.882.

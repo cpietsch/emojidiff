@@ -22,12 +22,12 @@ if str(_REPO_ROOT / "src") not in sys.path:
 
 from mojidiff.learning.geometry import _legal_fields, packed_batch  # noqa: E402
 from mojidiff.learning.openmoji_pilot import (  # noqa: E402
-    CORRUPTION_PROCESSES,
     _condition,
     _load_program,
     _new_model,
     _select_rows,
     _selected_codec,
+    corruption_operator,
     load_openmoji_pilot_config,
     load_pilot_index,
 )
@@ -53,8 +53,14 @@ def main() -> None:
     model.eval()
 
     clean = [_load_program(row, config, codec) for row in rows]
-    corrupt = CORRUPTION_PROCESSES[config.corruption_process]
+    # Bind through the pilot's own operator so the corruption draw is identical to the
+    # one the run trained and evaluated against; `marginal` needs the train programs.
     probability = config.evaluation_probability
+    train_programs = [
+        _load_program(row, config, codec)
+        for row in _select_rows(by_split["primary/train"], 512, config.seed)
+    ]
+    corrupt = corruption_operator(config, codec, train_programs)
     noisy = [
         corrupt(program, codec, probability, np.random.default_rng(config.seed + 9_000_000 + index))
         for index, program in enumerate(clean)

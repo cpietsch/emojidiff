@@ -1,0 +1,34 @@
+{
+  "base_rate": 0.34845530893821236,
+  "config": "configs/learning/openmoji-g1-marginal-corruption-v9.yaml",
+  "corruption_process": "marginal",
+  "detection_only": true,
+  "evaluation_corruption_probability": 0.35,
+  "fields": 40008,
+  "operating_points": {
+    "flag_base_rate": {
+      "flag_rate": 0.34845530893821236,
+      "flagged": 13941,
+      "lift_over_base_rate": 1.2324469809417096,
+      "precision": 0.4294526934940105,
+      "recall": 0.4294526934940105,
+      "true_positive": 5987
+    },
+    "matched_flag_rate": {
+      "flag_rate": 0.08573285342931414,
+      "flagged": 3430,
+      "lift_over_base_rate": 1.5060219421163281,
+      "precision": 0.5247813411078717,
+      "recall": 0.1291155584247902,
+      "true_positive": 1800
+    },
+    "model_own_threshold": {
+      "flag_rate": 0.10195460907818436,
+      "flagged": 4079,
+      "lift_over_base_rate": 1.4669160769445162,
+      "precision": 0.5111546947781319,
+      "recall": 0.14955885517538198,
+      "true_positive": 2085
+    }
+  }
+}
