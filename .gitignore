@@ -50,3 +50,6 @@ runs/**/samples-full/
 !runs/**/stdout.log
 *.tmp
 tmp/
+
+# Generated research weblog; rebuild with `python -m mojidiff.weblog.build`.
+site/

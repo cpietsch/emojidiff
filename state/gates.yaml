@@ -1,0 +1,102 @@
+# Evidence-gate board.
+#
+# The gate definitions come from PROJECT_PLAN.md section 11; `status` and `evidence`
+# record where each one actually stands, and are the operator's judgement rather than
+# anything the code can infer. Update this file together with state/CURRENT.md when a
+# gate's status changes, and keep the two consistent. The weblog renders it verbatim.
+#
+# status: complete | open | blocked | not-started
+schema_version: 1
+updated: 2026-09-20
+gates:
+  - id: Gate A
+    title: Orchestration and recovery
+    status: complete
+    question: Would a worker loss erase the experiment ledger, or hide an active job?
+    evidence: >-
+      Run registry, durable artifact sink, and detached launch/status/sync adapters are
+      in place and exercised. The owned-worker adapter smoke round-tripped a hashed
+      artifact twice, and three preceding adapter failures are preserved with reason
+      codes.
+  - id: Gate B
+    title: Corpus and rights audit
+    status: complete
+    question: Is every sample, split, and exclusion traceable, hashed, and justified?
+    evidence: >-
+      The reviewed OpenMoji 17.0.0 primary manifest has 4,006 rows: 3,902 ordinary
+      includes and 104 visually reviewed overrides. It excludes 270 metadata flags,
+      keeps 218 noncanonical aliases in a reversible split, and retains one
+      renderer-failing SVG as a defect row. Independent verification passes.
+  - id: Gate C
+    title: Representation study
+    status: complete
+    question: Which typed SVG representation, with what explicit tradeoffs and fallback?
+    evidence: >-
+      Semantic strokes with a 60-case reason-coded outlined fallback, role-typed q289
+      endpoints and q417 control handles, K48+1 stroke widths, and packed P80/T1216
+      capacity. Selected against measured alternatives; the falsified viewBox-clamping
+      and unaugmented-K48 tails are kept as negative results.
+  - id: Gate D
+    title: Invariant and renderer stress test
+    status: complete
+    question: Do exposed states serialize safely and render reliably, with failures classified?
+    evidence: >-
+      200 stable random packed round trips, 2,000/2,000 invalid mutations rejected
+      across ten families, three malformed typed-XML cases classified, and 25 isolated
+      renders including an 80-path/1,216-segment boundary program. The first
+      mutator-boundary failure is preserved.
+  - id: Gate E
+    title: Tiny learning proof
+    status: complete
+    question: Is the representation learnable end to end, with exact checkpoint resume?
+    evidence: >-
+      Closed from a controlled v1-v5 sequence: 100% one-icon overfit, one-icon and
+      diverse held-out recovery, recognizable renders at 72 and 18 px, and exact resume
+      with byte-stable artifacts. Fixed-topology geometry only.
+  - id: Gate F
+    title: Corruption comparison
+    status: complete
+    question: Which corruption process is the primary, on measured grounds?
+    evidence: >-
+      Factorized role-uniform corruption is the primary. Across two seeds it beats
+      path-correlated corruption on changed-token recovery by 12.07 and 12.60 points on
+      a matched v3 fixture. Whole-path replacement reaches 100% but changes far fewer
+      held-out fields, so it is retained as a lighter feasibility ablation.
+  - id: Gate G
+    title: OpenMoji generation and editing
+    status: open
+    question: >-
+      Does the selected formulation actually generate and edit OpenMoji well, under
+      structured conditioning and locked-path inpainting?
+    evidence: >-
+      Pipeline mechanics pass on CPU and on the owned RTX 4080. Training v1 on a
+      256-icon subsample was falsified by overfitting. The v2 data-scale run on the full
+      2,681-icon split substantially improves generalization but misses its
+      changed-token recovery bar, so changed-field recovery, not data volume, is now the
+      open question. Still fixed-topology and geometry-only.
+  - id: Gate H
+    title: Broad pretraining question
+    status: not-started
+    question: Does broader licensed pretraining help, or dilute the style?
+    evidence: Gated on a stable OpenMoji pipeline.
+  - id: Gate I
+    title: Cached AR comparison
+    status: not-started
+    question: How does the denoiser compare with a matched, KV-cached autoregressive baseline?
+    evidence: >-
+      Not begun. The comparison must be at matched parameter count, data, codec, and
+      engineering effort, measured end to end on one named GPU.
+  - id: Gate J
+    title: Deployment optimization
+    status: not-started
+    question: Do the optimizations preserve numerical and visual parity, and pay off?
+    evidence: Gated on a frozen checkpoint worth optimizing.
+  - id: Gate K
+    title: Research interface and narrative
+    status: open
+    question: Does every displayed claim link to a reproducible run and environment?
+    evidence: >-
+      This weblog is the first piece: a static view over the committed run registry,
+      run records, findings, and renders, served on the machine's Tailscale address.
+      The paired trajectory viewer, inpainting controls, and benchmark explorer are not
+      built yet.
