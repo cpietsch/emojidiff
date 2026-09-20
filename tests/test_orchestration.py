@@ -62,7 +62,11 @@ def _authorized_owned(workspace_root: str = "/home/hans/mojidiff-runs") -> Worke
         workspace_root=workspace_root,
         image="nvcr.io/nvidia/pytorch:25.06-py3",
         resource_cap={"max_steps": 2, "max_storage_gb": 1},
-        raw={},
+        raw={
+            "workspace_volume": "code-server-gpu_gpubox-workspace",
+            "artifact_volume": "code-server-gpu_gpubox-home",
+            "artifact_volume_subpath": ".cache",
+        },
     )
 
 
@@ -345,8 +349,47 @@ def test_owned_smoke_plan_uses_a_redacted_docker_launcher() -> None:
     assert description["argv"][-1].startswith("<redacted:")
     assert config["workspace_root"] == "/home/hans/mojidiff-runs"
     assert config["artifact_root"] == "/home/hans/mojidiff-artifacts"
+    assert config["workspace_volume"] == "code-server-gpu_gpubox-workspace"
+    assert config["artifact_volume"] == "code-server-gpu_gpubox-home"
+    assert config["artifact_volume_subpath"] == ".cache"
     assert config["image"] == "nvcr.io/nvidia/pytorch:25.06-py3"
     assert config["run_id"] == request.run_id
+
+
+def test_owned_smoke_requires_safe_named_volume_mapping() -> None:
+    request = SmokeRequest("fixture-run", snapshot_identity(_stage_request()))
+    worker = _authorized_owned()
+    missing = WorkerSpec(
+        name=worker.name,
+        enabled=worker.enabled,
+        ssh_alias=worker.ssh_alias,
+        kind=worker.kind,
+        execution=worker.execution,
+        workspace_root=worker.workspace_root,
+        image=worker.image,
+        resource_cap=worker.resource_cap,
+        raw={},
+    )
+    unsafe = WorkerSpec(
+        name=worker.name,
+        enabled=worker.enabled,
+        ssh_alias=worker.ssh_alias,
+        kind=worker.kind,
+        execution=worker.execution,
+        workspace_root=worker.workspace_root,
+        image=worker.image,
+        resource_cap=worker.resource_cap,
+        raw={
+            "workspace_volume": "valid-volume",
+            "artifact_volume": "also-valid",
+            "artifact_volume_subpath": "../escape",
+        },
+    )
+
+    with pytest.raises(AdapterError, match="workspace_volume"):
+        adapter_for(missing, _artifact_store()).smoke(request)
+    with pytest.raises(AdapterError, match="artifact_volume_subpath"):
+        adapter_for(unsafe, _artifact_store()).smoke(request)
 
 
 def test_owned_smoke_requires_docker_execution() -> None:

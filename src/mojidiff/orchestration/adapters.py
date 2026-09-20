@@ -36,6 +36,7 @@ _MAX_SNAPSHOT_MEMBERS = 50_000
 _STAGE_MANIFEST = ".mojidiff-stage.json"
 _FILESYSTEM_SINK = "worker-filesystem"
 _CONTAINER_IMAGE = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/@:+-]{0,511}\Z")
+_DOCKER_VOLUME = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,254}\Z")
 
 SSH_OPTIONS = (
     "-o",
@@ -386,6 +387,7 @@ stage(configuration, snapshot)
 REMOTE_OWNED_DOCKER_SMOKE = r"""import base64
 import json
 import os
+import re
 import subprocess
 import sys
 
@@ -404,9 +406,9 @@ except (ValueError, UnicodeError, json.JSONDecodeError) as exc:
     fail("invalid owned smoke configuration: " + type(exc).__name__)
 
 required = {
-    "artifact_root", "archive_sha256", "config_sha256", "git_revision", "image",
-    "max_steps", "max_storage_bytes", "run_id", "smoke_id", "tree_sha256",
-    "workspace_root",
+    "artifact_root", "artifact_volume", "artifact_volume_subpath", "archive_sha256",
+    "config_sha256", "git_revision", "image", "max_steps", "max_storage_bytes",
+    "run_id", "smoke_id", "tree_sha256", "workspace_root", "workspace_volume",
 }
 if not isinstance(config, dict) or set(config) != required:
     fail("invalid owned smoke configuration fields")
@@ -420,9 +422,47 @@ if not all(
     fail("invalid owned smoke path")
 if not isinstance(config["image"], str) or "\x00" in config["image"] or "\n" in config["image"]:
     fail("invalid owned smoke image")
+volume_pattern = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,254}\Z")
+for field in ("workspace_volume", "artifact_volume"):
+    if not isinstance(config[field], str) or volume_pattern.fullmatch(config[field]) is None:
+        fail("invalid owned smoke Docker volume")
+artifact_subpath = config["artifact_volume_subpath"]
+if (
+    not isinstance(artifact_subpath, str)
+    or not artifact_subpath
+    or artifact_subpath.startswith("/")
+    or "\x00" in artifact_subpath
+    or "\n" in artifact_subpath
+    or any(part in ("", ".", "..") for part in artifact_subpath.split("/"))
+):
+    fail("invalid owned smoke artifact volume subpath")
+run_id = config["run_id"]
+if not isinstance(run_id, str) or re.fullmatch(r"[a-z0-9][a-z0-9._-]{0,127}", run_id) is None:
+    fail("invalid owned smoke run id")
+
+volume_check = subprocess.run(
+    ["docker", "volume", "inspect", config["workspace_volume"], config["artifact_volume"]],
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.DEVNULL,
+    check=False,
+    shell=False,
+)
+if volume_check.returncode != 0:
+    fail("configured Docker volumes are unavailable")
+
+workspace_run_host = os.path.join(workspace_host, run_id)
+if os.path.islink(workspace_run_host) or not os.path.isdir(workspace_run_host):
+    fail("staged workspace run directory is unavailable")
+artifact_run_host = os.path.join(artifact_host, run_id)
+if os.path.lexists(artifact_run_host):
+    if os.path.islink(artifact_run_host) or not os.path.isdir(artifact_run_host):
+        fail("artifact run path is not a directory")
+else:
+    os.mkdir(artifact_run_host, mode=0o700)
+
 workspace_container = "/mojidiff/workspace"
 artifact_container = "/mojidiff/artifacts"
-source_root = workspace_container + "/" + config["run_id"] + "/source"
+source_root = workspace_container + "/" + run_id + "/source"
 inner = {
     "artifact_root": artifact_container,
     "archive_sha256": config["archive_sha256"],
@@ -442,8 +482,12 @@ command = [
     "docker", "run", "--rm", "--pull=never", "--network=none", "--read-only",
     "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m", "--cap-drop", "ALL", "--gpus", "all",
     "--user", str(os.getuid()) + ":" + str(os.getgid()),
-    "--mount", "type=bind,src=" + workspace_host + ",dst=" + workspace_container + ",rw",
-    "--mount", "type=bind,src=" + artifact_host + ",dst=" + artifact_container + ",rw",
+    "--mount", "type=volume,src=" + config["workspace_volume"]
+    + ",dst=" + workspace_container + "/" + run_id
+    + ",volume-subpath=" + run_id + ",volume-nocopy,rw",
+    "--mount", "type=volume,src=" + config["artifact_volume"]
+    + ",dst=" + artifact_container + "/" + run_id
+    + ",volume-subpath=" + artifact_subpath + "/" + run_id + ",volume-nocopy,rw",
     config["image"], "python3", "-I", "-B",
     source_root + "/scripts/remote/vast_tiny_smoke.py", "--config", inner_encoded,
 ]
@@ -695,9 +739,23 @@ class OwnedDockerAdapter(VastSshAdapter):
         workspace_root = _workspace_root(self.worker)
         artifact_root = self._filesystem_artifact_root(workspace_root)
         image = _container_image(self.worker.image)
+        workspace_volume = _docker_volume_name(
+            self.worker.raw.get("workspace_volume"),
+            f"workers.{self.worker.name}.workspace_volume",
+        )
+        artifact_volume = _docker_volume_name(
+            self.worker.raw.get("artifact_volume"),
+            f"workers.{self.worker.name}.artifact_volume",
+        )
+        artifact_volume_subpath = _relative_volume_subpath(
+            self.worker.raw.get("artifact_volume_subpath"),
+            f"workers.{self.worker.name}.artifact_volume_subpath",
+        )
         cap = self.worker.resource_cap
         config = {
             "artifact_root": artifact_root,
+            "artifact_volume": artifact_volume,
+            "artifact_volume_subpath": artifact_volume_subpath,
             "archive_sha256": request.snapshot.archive_sha256,
             "config_sha256": request.snapshot.config_sha256,
             "git_revision": request.snapshot.git_revision,
@@ -708,6 +766,7 @@ class OwnedDockerAdapter(VastSshAdapter):
             "smoke_id": request.smoke_id,
             "tree_sha256": request.snapshot.tree_sha256,
             "workspace_root": workspace_root,
+            "workspace_volume": workspace_volume,
         }
         command = _remote_python_command(REMOTE_OWNED_DOCKER_SMOKE, config)
         argv = ("ssh", *SSH_OPTIONS, "--", self._alias(), command)
@@ -788,6 +847,23 @@ def _container_image(value: str | None) -> str:
     if not isinstance(value, str) or _CONTAINER_IMAGE.fullmatch(value) is None:
         raise AdapterError("worker image must be a safe container image reference")
     return value
+
+
+def _docker_volume_name(value: object, field: str) -> str:
+    if not isinstance(value, str) or _DOCKER_VOLUME.fullmatch(value) is None:
+        raise AdapterError(f"{field} must be a safe existing Docker volume name")
+    return value
+
+
+def _relative_volume_subpath(value: object, field: str) -> str:
+    if not isinstance(value, str) or not value or "\x00" in value or "\n" in value:
+        raise AdapterError(f"{field} must be a safe relative POSIX path")
+    path = PurePosixPath(value)
+    if path.is_absolute() or any(part in {"", ".", ".."} for part in path.parts):
+        raise AdapterError(f"{field} must be a normalized relative POSIX path")
+    if path.as_posix() != value.rstrip("/"):
+        raise AdapterError(f"{field} must be a normalized relative POSIX path")
+    return path.as_posix()
 
 
 def _remote_python_command(program: str, config: dict[str, object]) -> str:
