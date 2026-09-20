@@ -716,7 +716,10 @@ def test_marginal_corruption_closes_the_density_leak() -> None:
         load_openmoji_pilot_config,
         load_pilot_index,
     )
-    from mojidiff.representation.packed import validate_packed_tensor_program
+    from mojidiff.representation.packed import (
+        PackedTensorProgram,
+        validate_packed_tensor_program,
+    )
 
     config = load_openmoji_pilot_config(
         Path("configs/learning/openmoji-g1-dominant-bucket-train-v2-data-scale.yaml")
@@ -739,7 +742,9 @@ def test_marginal_corruption_closes_the_density_leak() -> None:
     ]
     logp = np.log(np.clip(marginal, 1e-12, None))
 
-    def density_and_continuity(noisy_programs: list) -> tuple[float, float]:
+    def density_and_continuity(
+        noisy_programs: list[PackedTensorProgram],
+    ) -> tuple[float, float]:
         scores, labels = [], []
         for reference, noisy in zip(clean, noisy_programs, strict=True):
             validate_packed_tensor_program(noisy, codec, config.total_segment_slots)
