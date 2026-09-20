@@ -1,0 +1,94 @@
+schema_version: 1
+run_id: openmoji-g1-train-ec2436b-f2a06ca5-9b9b1699
+state: planned
+parent_run: openmoji-g1-gpu-7ba1aa4-0bafd5c-9b9b1699
+hypothesis: >-
+  With the selected packed representation, factorized role-uniform geometry corruption,
+  and group/subgroup conditioning, a 577,552-parameter denoiser trained on a 256-icon
+  family-disjoint subsample of the dominant P32/T128 bucket recovers corrupted geometry
+  fields on 128 held-out icons far above its own untrained same-input control, and
+  preserves already-correct fields reliably.
+expected_information_gain: >-
+  This is the first Gate G run whose outcome is a learning claim rather than pipeline
+  liveness. It moves the icon count from the 4-icon Gate F fixtures to 256 diverse
+  icons across 10 groups and 75 subgroups, and it decides whether a larger
+  full-split run is justified.
+scope_limits: >-
+  Fixed-topology and geometry-only. Not unconditional generation, not topology
+  generation, not a style or AR comparison. A single seed, so small differences are not
+  interpretable across seeds.
+code:
+  git_commit: ec2436b006be076a4858868ff77e5bb5e172d523
+  snapshot_mode: git-archive-plus-hash-pinned-384-svg-training-fixture
+  archive_sha256: efe3f4093ba77bc25ab5dad5a0b848088903ff0da906a676b011536e594fc6c9
+  tree_sha256: 1f97ba11d1031ee40c75004a03fdc3309da1c288f56e18e3f13dc59339a9c596
+config:
+  path: configs/learning/openmoji-g1-dominant-bucket-train-v1.yaml
+  sha256: f2a06ca55cd18a36d0fc5f5f86f29d34c94bccddcf3c65a716f02f9656bec0ef
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  assignments_sha256: e0cdb2a3cc8f00df5ad05df76c9feeac1f73446606f1fa0da013f8c3084e482b
+  bucket: bucket-p32-t128
+  bucket_icons: 3359
+  train_samples: 256
+  validation_samples: 128
+  staged_raw_svg_count: 384
+  family_disjoint_train_validation: true
+  train_groups: 10
+  train_subgroups: 75
+worker:
+  alias: owned-gpu
+  gpu: NVIDIA GeForce RTX 4080
+  driver: "595.71.05"
+  image: mojidiff/owned-gpu-smoke:cd3250e
+  image_digest: sha256:f42d0acc2a768b6929a982dbb1afcfb342b382751ea0e974ba00052e5dff38ca
+  torch: 2.8.0a0+5228986c39.nv25.06
+  cuda: "12.9"
+execution:
+  smoke_id: openmoji-g1-train-v1
+  seed_set: [3101]
+  deterministic_algorithms: true
+  cublas_workspace_config: ":4096:8"
+  optimizer_steps: 600
+  batch_size: 16
+  learning_rate: 0.001
+  corruption_probability: 0.35
+  eval_every: 60
+  resource_cap:
+    max_steps: 20000
+    max_storage_gb: 50
+  network: none
+  checkpoint_policy: retain checkpoint and compact evidence in the persistent artifact volume
+predeclared_criteria:
+  note: >-
+    Declared before launch. A 60-step CPU preflight was run first to size memory and
+    wall time; it reported an untrained held-out changed-token accuracy of 0.003005 and
+    0.021892 after 60 steps. That preflight informed these thresholds and is disclosed
+    rather than hidden. The full 600-step outcome was not observed beforehand.
+  primary:
+    - id: held_out_recovery_above_control
+      statement: >-
+        Held-out changed-token accuracy is at least 10x the untrained same-input
+        control evaluated on the identical corruption draw.
+    - id: retained_preservation
+      statement: Held-out retained-token accuracy is at least 0.90.
+    - id: monotone_learning
+      statement: >-
+        Held-out changed-token accuracy increases in at least 8 of the 10 recorded
+        trace intervals.
+    - id: structural_safety
+      statement: Locked-path exactness holds and the canonical checkpoint round-trips.
+    - id: reproducibility
+      statement: A second complete invocation returns an identical JSON result.
+  reported_not_gated:
+    - absolute held-out changed-token accuracy
+    - held-out aggregate accuracy and loss
+    - the complete 11-point validation trace
+  chance_level: >-
+    Random legal-token choice is about 0.0035 for endpoints over 289 bins and 0.0024
+    for controls over 417 bins, so the untrained control near 0.003 is at chance.
+outputs:
+  local_metadata: runs/openmoji-g1-train-ec2436b-f2a06ca5-9b9b1699
+  remote_workspace: /home/dev/workspace/openmoji-g1-train-ec2436b-f2a06ca5-9b9b1699
+  durable_artifacts: /home/dev/.cache/openmoji-g1-train-ec2436b-f2a06ca5-9b9b1699
+planned_at: 2026-09-20T11:25:37Z
