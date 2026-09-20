@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T06:15:00Z
+Updated: 2026-09-21T07:05:00Z
 
 ## Current hypothesis and evidence
 
@@ -471,6 +471,31 @@ capacity increase outright. At 3.69x on a sound setup it is still within noise, 
 best model this session built remains the smallest one. The two results were never in
 tension: one is a representational fix, the other raw size.
 
+Sweeping v16 across corruption levels then retires the standing line about renders. At
+probability 0.05 and 0.10 the predictions are RECOGNIZABLE ICONS and visibly repaired:
+the hedgehog's stray diagonal removed, the first-aid kit's slash gone, "WC" cleaned to
+near-perfect, the vampire's face restored, and at 0.10 the weightlifter 1F3CB going from
+heavy scribble to a clean figure. Recovery by level, each gated at the threshold derived
+for it on withheld icons, is +0.0308, +0.3902, +0.2469 and +0.2511, against the v2
+checkpoint's -4.6517, -1.2024, -0.1315 and +0.1800 on the same sweep - where v2 helped
+zero of 32 icons at 0.05.
+
+"No render in this project is a recognizable icon" was true of probability 0.35, the only
+level this gate ever trained or reported at, and is obsolete as a general claim. The
+ceiling was set by the corruption schedule, not by the representation, the model or the
+objective - each suspected in turn and none the binding constraint at the end.
+
+The never_damages criterion is falsified and the diagnosis is kept: at 0.05 nine of
+twelve icons improve, two are untouched and one, 26A0, worsens by 0.05018 absolute;
+because its x_t error was only 0.01390 the relative statistic turns that into -3.61 and
+drags the mean to +0.0308 from a median of +0.3496. The absolute difference does not
+rescue it either, so twelve icons is genuinely too few for one bad case.
+
+The framing stays narrow. This removes a handful of stray strokes from an icon that is
+mostly intact. It is not a generator, it does not reconstruct destroyed geometry, and
+26A0 shows it can still damage a near-perfect input. v16 trained only at 0.35, so every
+level below is off-distribution, which makes the result stronger rather than weaker.
+
 Every plateau the sequence had declared - data volume, capacity, the corruption regime,
 noise conditioning - was measured under the broken loss and is no longer admissible as
 read. The numbers stand; the interpretation does not.
@@ -935,29 +960,31 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Re-register and run the corpus-scale corruption-process comparison. It is the last piece
-of declared work whose blocker has cleared, and its configs, matched setup and criteria
-are already committed under
-`openmoji-g1-corruption-process-corpus-76f41a3-2arms-9b9b1699`, cancelled with the reason
-that no trained model could then learn detection on any process. v10 through v16 resolved
-that: the detector runs at 2.569 lift and paired render recovery is +0.2511.
+Train across a range of corruption levels and report at each, rather than training and
+reporting at a single destructive point. Everything needed already exists: the pilot
+takes `corruption_probability_max` to sample a level per example, and
+`noise_level_features` to tell the model which level it is seeing. Both were added and
+tested earlier in this session, and the retest showed the pair changes nothing at 0.35 -
+but 0.35 is exactly the level at which nothing could help, and the sweep has now shown
+that lower levels are where this model works.
 
-Re-register it against the current base and the current metrics. The gated quantity
-should be paired render recovery, not exact-token accuracy, and the arms need the
-marginal-respecting process added alongside factorized and path-correlated - the
-training-free probe put local-continuity detectability at 0.9333 for path-correlated
-against 0.7698 for factorized, so a real difference between the processes is expected
-where the earlier comparison could not have seen one.
+Take v16 as the base, sample the level over 0.05 to 0.50 with noise conditioning on, and
+report paired render recovery at 0.05, 0.10, 0.20 and 0.35 separately rather than
+collapsing them. Predeclare against this run's per-level numbers - +0.0308, +0.3902,
++0.2469, +0.2511 - and against the 9 of 12 icons helped at 0.05, since damaging a nearly
+clean input is the failure mode that matters there. Use more than twelve icons: this run
+was prevented from a significant result at 0.05 by a single bad case.
 
-After that the open questions are larger than one run each, and should be predeclared
-separately:
+Then the two pieces of declared work that remain, each larger than one run:
 
-- The corruption-regime sweep, which is an evaluation study over a fixed checkpoint and
-  was excluded from the retests as a different kind of work. v16 has never been swept.
-- Whether any corruption level produces a recognizable render. Every result in this gate
-  is at probability 0.35, where the input is already scribble; the sweep would answer it.
-- Gate I, the cached autoregressive baseline on the same codec, which is PROJECT_PLAN.md
-  section 12 branch 4 and is still the only untried route to a positive generation result.
+- The corpus-scale corruption-process comparison, whose configs and criteria are already
+  committed under `openmoji-g1-corruption-process-corpus-76f41a3-2arms-9b9b1699`,
+  cancelled when no trained model could learn detection on any process. That blocker
+  cleared at v10. It needs the marginal-respecting process as a third arm and the gated
+  metric switched to paired render recovery.
+- Gate I, the cached autoregressive baseline on the same codec - PROJECT_PLAN.md section
+  12 branch 4 - which is still the only untried route to a generation result rather than
+  a denoising one.
 
 Standing rules from this session, for every later run:
 
@@ -966,10 +993,10 @@ Standing rules from this session, for every later run:
   detector scores 2.84 under uniform corruption and 0.771 under marginal.
 - Never fit a decode threshold on the data it is reported on. Derive it, or estimate it
   on icons withheld from training.
-- On paired data, compare the pairs. This session made that mistake twice and caught it
-  twice; both times the paired statistic reversed the conclusion.
+- On paired data, compare the pairs; and at low corruption prefer absolute differences,
+  since relative recovery divides by a denominator that goes to zero.
 - Primary metrics are mean absolute view-unit error and paired render recovery.
-  Exact-token accuracy is secondary and points the wrong way: v16 is worse than identity
-  on it and the best denoiser here.
-- Run `python scripts/audit_run_records.py` before committing a run record. It caught a
-  real bookkeeping error in this session.
+  Exact-token accuracy is secondary and points the wrong way.
+- Report results per corruption level. A single level hid the main finding of this gate
+  for its entire history.
+- Run `python scripts/audit_run_records.py` before committing a run record.

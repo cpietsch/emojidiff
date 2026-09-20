@@ -12,14 +12,14 @@ updated: 2026-09-20
 # the Current hypothesis section of state/CURRENT.md; the weblog falls back to that
 # section's newest paragraph if this is absent.
 headline: >-
-  Five verified defects, none of them tuning knobs, had been distorting every Gate G
-  result: a loss that gave four fields 31% of its weight, no attention padding mask, a
-  corruption process whose replacements were detectable from a token marginal alone,
-  coordinates encoded as unordered categories on what is actually a metric lattice, and
-  two objectives of wildly different scale sharing one encoder. Fixing them produced the
-  first trained model here to beat a zero-parameter heuristic on a leak-free task, and
-  then the first to beat the identity policy of emitting its input unchanged - by about
-  1% relative, with a calibrated decode, and with fewer parameters than it started with.
+  Seven verified defects, none of them tuning knobs, had been distorting every Gate G
+  result - a loss that gave four fields 31% of its weight, no attention padding mask, a
+  corruption process detectable from a token marginal alone, coordinates encoded as
+  unordered categories on a metric lattice, two objectives of wildly different scale
+  sharing an encoder, a decode gate derived in the wrong units, and a primary metric
+  anti-correlated with the goal. With those fixed the model beats the identity policy
+  with nothing fitted on held-out data, and at low corruption it produces recognizable
+  icons and visibly repairs them. The ceiling was the corruption schedule all along.
 gates:
   - id: Gate A
     title: Orchestration and recovery
@@ -108,8 +108,13 @@ gates:
       exact-token accuracy fell below identity - which settles that exact-token accuracy
       is the wrong primary metric here. The four earlier eliminations were then retested
       off that base and all survive - capacity restores v3, 256 icons restores v2, noise
-      conditioning restores v4 - so they are admissible again. No render is a
-      recognizable icon; at 35% corruption the input is already scribble. Every earlier plateau in
+      conditioning restores v4 - so they are admissible again. Sweeping that model across
+      corruption levels then produced the gate's first recognizable output: at
+      probability 0.05 and 0.10 the predictions are recognizable icons and visibly
+      repaired, with recovery +0.0308 and +0.3902 against the earlier checkpoint's
+      -4.6517 and -1.2024. The ceiling was the corruption schedule, not the
+      representation, the model or the objective. It remains a denoiser that removes
+      stray strokes from a mostly intact icon, not a generator. Every earlier plateau in
       this gate was measured under the broken loss and is no longer admissible as read.
 
   - id: Gate H
