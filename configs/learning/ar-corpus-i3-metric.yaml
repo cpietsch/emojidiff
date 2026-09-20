@@ -18,7 +18,7 @@
 # discounting.
 schema_version: 1
 study_version: ar-corpus-i3-metric
-source_revision: b7d803bcc17ed9540e310cff7ddab8fce1b8d6c2
+source_revision: 83b89339ff0fabc46d708b300bbb23b7f468c3f7
 pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
 report_root: reports/learning/ar-corpus-i3-metric
 checkpoint_root: data/processed/ar-corpus-i3-metric
