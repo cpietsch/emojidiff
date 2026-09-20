@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-gpu-215bcb8-0bafd5c-9b9b1699
-state: planned
+state: failed
 parent_run: openmoji-g1-smoke-da44363-0bafd5c-9b9b1699
 retry_of: openmoji-g1-gpu-e7dc920-0bafd5c-9b9b1699
 hypothesis: >-
@@ -51,3 +51,11 @@ outputs:
   remote_workspace: /home/dev/workspace/openmoji-g1-gpu-215bcb8-0bafd5c-9b9b1699
   durable_artifacts: /home/dev/.cache/openmoji-g1-gpu-215bcb8-0bafd5c-9b9b1699
 planned_at: 2026-09-20T11:05:30Z
+staged_at: 2026-09-20T11:06:50Z
+failed_at: 2026-09-20T11:08:34Z
+failure:
+  reason: wrapper_read_summary_from_output_root_instead_of_report_root
+  gpu_step_started: true
+  gpu_step_completed: true
+  artifacts_written: true
+  artifacts_durable: true

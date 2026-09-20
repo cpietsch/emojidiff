@@ -20,6 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import vast_tiny_smoke as base  # noqa: E402
 
 from mojidiff.learning.openmoji_pilot import (  # noqa: E402
+    SUMMARY_FILENAME,
     OpenMojiPilotConfig,
     load_openmoji_pilot_config,
     run_openmoji_pilot,
@@ -57,7 +58,7 @@ def _run(config: dict[str, Any]) -> dict[str, Any]:
     output = artifact / config["run_id"] / "smoke" / _SMOKE_ID
     if output.is_symlink():
         raise base.SmokeError("pipeline smoke output root is a symbolic link")
-    summary = run_openmoji_pilot_with_roots(pilot, config_path, output)
+    summary, configured = run_openmoji_pilot_with_roots(pilot, config_path, output)
     if not str(summary["device"]).startswith("cuda"):
         raise base.SmokeError("pipeline smoke did not execute on CUDA")
     final_size = staged_bytes + base._directory_storage_bytes(artifact / config["run_id"])
@@ -73,7 +74,9 @@ def _run(config: dict[str, Any]) -> dict[str, Any]:
         "schema_version": 1,
         "smoke_id": _SMOKE_ID,
         "stage": stage,
-        "summary_sha256": hashlib.sha256((output / "summary.json").read_bytes()).hexdigest(),
+        "summary_sha256": hashlib.sha256(
+            (configured.report_root / SUMMARY_FILENAME).read_bytes()
+        ).hexdigest(),
     }
 
 
@@ -81,13 +84,15 @@ def run_openmoji_pilot_with_roots(
     pilot: OpenMojiPilotConfig,
     config_path: Path,
     output: Path,
-) -> dict[str, Any]:
+) -> tuple[dict[str, Any], OpenMojiPilotConfig]:
+    """Run the pilot under one output root and return its summary and resolved roots."""
+
     configured = replace(
         pilot,
         report_root=output / "report",
         checkpoint_root=output / "checkpoint",
     )
-    return run_openmoji_pilot(configured, config_path)
+    return run_openmoji_pilot(configured, config_path), configured
 
 
 def main() -> int:

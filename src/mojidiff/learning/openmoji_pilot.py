@@ -42,6 +42,9 @@ from mojidiff.representation.packed import (
 )
 from mojidiff.representation.program import CodecConfig, encode_program
 
+SUMMARY_FILENAME = "summary.json"
+"""Name of the compact summary a pilot run writes under its report root."""
+
 
 class OpenMojiPilotError(RuntimeError):
     """The bounded Gate G pilot is invalid or failed closed."""
@@ -335,7 +338,7 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
         "metrics_sha256": hashlib.sha256(metrics_payload).hexdigest(),
     }
     _write_bytes_artifact(config.report_root / "metrics.jsonl", metrics_payload)
-    _write_bytes_artifact(config.report_root / "summary.json", _json_bytes(summary))
+    _write_bytes_artifact(config.report_root / SUMMARY_FILENAME, _json_bytes(summary))
     _write_bytes_artifact(config.report_root / "README.md", _markdown(summary).encode())
     _write_bytes_artifact(config.checkpoint_root / "checkpoint.zip", checkpoint)
     return summary
