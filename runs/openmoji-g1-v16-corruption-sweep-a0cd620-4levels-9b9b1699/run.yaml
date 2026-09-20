@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-v16-corruption-sweep-a0cd620-4levels-9b9b1699
-state: planned
+state: completed
 parent_run: openmoji-g1-geometric-gate-v16-85ec724-aaa03592-9b9b1699
 supersedes_for_v16: openmoji-g1-corruption-sweep-71a080a-4levels-9b9b1699
 hypothesis: >-
@@ -62,3 +62,46 @@ outputs:
   local_metadata: runs/openmoji-g1-v16-corruption-sweep-a0cd620-4levels-9b9b1699
   report_roots: reports/learning/openmoji-g1-v16-sweep-p{005,010,020,035}
 planned_at: 2026-09-21T06:30:00Z
+completed_at: 2026-09-21T07:00:00Z
+result:
+  identical_rerun: true
+  levels:
+    "0.05": {threshold: 0.870, median_x_t: 0.03730, median_x_hat_0: 0.02235, mean_recovery: 0.0308, median_recovery: 0.3496, ci95: [-0.6289, 0.6904], helped: 9, of: 12}
+    "0.10": {threshold: 0.815, median_x_t: 0.08247, median_x_hat_0: 0.04206, mean_recovery: 0.3902, ci95: [0.2269, 0.5536], helped: 11, of: 12}
+    "0.20": {threshold: 0.760, median_x_t: 0.12568, median_x_hat_0: 0.10014, mean_recovery: 0.2469, ci95: [0.0888, 0.4049], helped: 10, of: 12}
+    "0.35": {threshold: 0.680, median_x_t: 0.16955, median_x_hat_0: 0.13373, mean_recovery: 0.2511, ci95: [0.1408, 0.3614], helped: 11, of: 12}
+  v2_same_sweep: {"0.05": -4.6517, "0.10": -1.2024, "0.20": -0.1315, "0.35": 0.1800, helped_at_0.05: "0 of 32"}
+predeclared_outcome:
+  overall: partially-falsified
+  never_damages:
+    passed: false
+    detail: >-
+      The interval excludes zero at 0.10, 0.20 and 0.35 but not at 0.05, where nine of
+      twelve icons improve, two are untouched and exactly one worsens - 26A0, by 0.05018
+      absolute. Its x_t error was only 0.01390, so the relative statistic turns that into
+      -3.61 and drags a mean of twelve to +0.0308 from a median of +0.3496. The absolute
+      difference does not rescue it either, mean +0.01070 with interval
+      [-0.00204, +0.02344], so at twelve icons one bad case is genuinely enough to
+      prevent significance. Falsified as written.
+  improves_a_lightly_corrupted_input: {passed: true, median_x_hat_0: 0.02235, median_x_t: 0.03730}
+  reproducibility: {passed: true}
+  headline: >-
+    At probability 0.05 and 0.10 the predictions are RECOGNIZABLE ICONS and visibly
+    repaired - the hedgehog's stray slash removed, the first-aid kit's diagonal gone,
+    "WC" cleaned, the vampire's face restored, and at 0.10 the weightlifter 1F3CB going
+    from heavy scribble to a clean figure. This is the first result in this project where
+    the output is something a person would recognise.
+  what_it_changes: >-
+    The standing line that no render in this project is a recognizable icon was true and
+    is now obsolete. It described probability 0.35, the only level this gate ever trained
+    or reported at, where a third of the geometry is simply gone. The ceiling was set by
+    the corruption schedule, not by the representation, the model or the objective.
+  honest_framing: >-
+    This is a denoiser that removes a handful of stray strokes from an icon that is
+    mostly intact - not a generator, and not a model that reconstructs destroyed
+    geometry. 26A0 shows it can still damage a near-perfect input. v16 trained only at
+    0.35, so these levels are off-distribution, which makes the result stronger rather
+    than weaker.
+  next: >-
+    Train across a range of corruption levels and report at each, rather than training
+    and reporting at a single destructive point.
