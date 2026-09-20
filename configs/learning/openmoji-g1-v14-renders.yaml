@@ -1,0 +1,12 @@
+# Renders for v14 at its own derived decode threshold, so the picture is what the run
+# actually produces rather than what plain argmax would.
+schema_version: 1
+study_version: openmoji-g1-v14-renders
+pilot_config: configs/learning/openmoji-g1-withheld-calibration-v14.yaml
+checkpoint: /home/dev/.cache/render-v14/checkpoint.zip
+checkpoint_sha256: 90c15badb537045b5e7674b1fc434b347a012267c9db0d7c3f9872f7ed43e5bc
+report_root: reports/learning/openmoji-g1-v14-renders
+icons: 12
+render_sizes: [72, 18]
+render_timeout_seconds: 20
+decision_threshold: 0.8183

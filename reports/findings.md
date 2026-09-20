@@ -1528,3 +1528,42 @@ A recording note: v13's in-place idempotency rerun failed closed because v14 add
 summary fields afterwards and the artifact writer refuses to replace a differing file.
 Re-running v13 to a fresh report root reproduces every other field exactly. The failure
 is kept rather than papered over.
+
+## 2026-09-21 — The distance kernel works, and the criteria were measuring the wrong thing
+
+**Hypothesis.** The value head predicts an exact bin on a quarter-unit lattice through a
+289/417-way softmax, so a confident one-view-unit miss costs 10.0187 — identical to a
+hundred-unit miss. Its accuracy of 0.222 pins the break-even decode threshold at 0.818,
+which is why v14 edits only 4% of fields despite a detector at 2.569 lift. Spreading the
+target by distance should raise that accuracy and every downstream term with it.
+
+**Observation.** All three primary criteria are falsified, and all three are stated in
+exact-token terms: the withheld value accuracy falls to 0.1623, the identity margin to
++0.0014, and the derived threshold rises to 0.8604.
+
+The measures committed to as reported-not-gated say the opposite. Mean absolute error on
+corrupted held-out fields falls from **8.2871 to 6.0282 view units**, a 27% reduction,
+with the median down 33% from 3.75 to 2.50 and the fraction within one view unit up from
+0.2793 to 0.3169. Paired per-icon render recovery, each model decoded at its own derived
+threshold, rises from **+0.0447 to +0.1246** at 72 px and +0.0729 to +0.1306 at 18 px,
+both intervals excluding zero, helping 10 and 11 of 12 icons. These are the first
+positive render recoveries this project has measured under leak-free corruption.
+
+**Decision.** Record the criteria as falsified and the intervention as a success, because
+that combination is a verdict on the criteria. Exact-token accuracy is anti-correlated
+with what the project is trying to produce — the task-formulation lens said so before any
+of this ran, calling the model a calibrated localiser graded pass/fail at ±0.125 units,
+and this is the measurement that settles it.
+
+Two consequences. **Demote exact-token accuracy**: mean absolute view-unit error and
+paired render recovery become the primary reported metrics, with exact-token accuracy
+kept as secondary so nothing already published is withdrawn. And **correct the decode
+gate**: the break-even rule `p > 1/(1+q)` is derived in exact-token terms, so a value
+head that is closer but not exacter raises its own threshold and edits less of what it
+could improve. A gate derived from expected geometric gain is the next run.
+
+A recording note worth keeping. On a first pass I compared the two models by their median
+`x_hat_0` error, 0.16074 against 0.16985, and read v15 as worse — the same mistake this
+session already caught once. Both models render identical corrupted inputs, so the paired
+per-icon difference is the correct statistic, and it says the opposite. On paired data,
+compare the pairs.

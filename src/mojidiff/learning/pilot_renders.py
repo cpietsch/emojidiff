@@ -74,6 +74,13 @@ class PilotRenderConfig:
     icons: int
     render_sizes: tuple[int, ...]
     render_timeout_seconds: int
+    decision_threshold: float = 0.5
+    """Confidence required to edit a field. Models that derive one should be rendered at it.
+
+    The gate is what turns detection and value prediction into an actual edit, so
+    rendering at plain argmax when a run decodes at its derived threshold would render
+    something the run never produced.
+    """
     corruption_probability: float | None = None
     """Evaluate at a different corruption level than the checkpoint trained at.
 
@@ -105,7 +112,14 @@ def load_pilot_render_config(path: Path) -> PilotRenderConfig:
             root.get("render_timeout_seconds", 20), "render_timeout_seconds"
         ),
         corruption_probability=_optional_probability(root.get("corruption_probability")),
+        decision_threshold=_probability_value(root.get("decision_threshold", 0.5)),
     )
+
+
+def _probability_value(value: object) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 < value <= 1:
+        raise PilotRenderError("decision_threshold must be within (0, 1]")
+    return float(value)
 
 
 def _optional_probability(value: object) -> float | None:
@@ -175,7 +189,11 @@ def run_pilot_renders(config: PilotRenderConfig, config_path: Path) -> dict[str,
                 ),
             )
         prediction = predict_clean_geometry(
-            noisy, (start_logits, coordinate_logits), codec, keep=keep
+            noisy,
+            (start_logits, coordinate_logits),
+            codec,
+            keep=keep,
+            threshold=config.decision_threshold,
         )
         rows.extend(
             _render_one(
@@ -205,6 +223,7 @@ def run_pilot_renders(config: PilotRenderConfig, config_path: Path) -> dict[str,
         "noise_level_conditioned": pilot.noise_level_features > 0,
         "slot_binding": pilot.slot_binding,
         "edit_mask": pilot.edit_mask,
+        "decision_threshold": config.decision_threshold,
         "corruption_probability_overridden": config.corruption_probability is not None,
         "corruption": "factorized_role_uniform_geometry, the pilot's held-out draw",
         "rendered_rows": [row.source_path for row in validation_rows[: config.icons]],

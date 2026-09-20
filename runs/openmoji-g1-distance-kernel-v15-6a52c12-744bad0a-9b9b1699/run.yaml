@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-distance-kernel-v15-6a52c12-744bad0a-9b9b1699
-state: planned
+state: completed
 parent_run: openmoji-g1-withheld-calibration-v14-dbfc543-359d06bd-9b9b1699
 hypothesis: >-
   v14 beats the identity baseline by 0.0027 with nothing fitted on held-out data, but
@@ -87,3 +87,51 @@ outputs:
   report_root: reports/learning/openmoji-g1-distance-kernel-v15
   durable_artifacts: /home/dev/.cache/openmoji-g1-distance-kernel-v15-6a52c12-744bad0a-9b9b1699
 planned_at: 2026-09-21T04:00:00Z
+completed_at: 2026-09-21T04:20:00Z
+result:
+  device: cuda
+  selected_step: 4860
+  completed_steps: 5340
+  identical_rerun: true
+  withheld_value_accuracy: 0.1623
+  derived_threshold: 0.8604
+  held_out: {aggregate: 0.6529, changed: 0.0527, retained: 0.9740}
+  identity_baseline: 0.6515
+  margin: 0.0014
+  geometric_accuracy_on_corrupted_fields:
+    v15: {exact_token: 0.1000, mean_abs_view_units: 6.0282, median_abs_view_units: 2.5000, within_1_unit: 0.3169, within_2_units: 0.4590}
+    v14: {exact_token: 0.1210, mean_abs_view_units: 8.2871, median_abs_view_units: 3.7500, within_1_unit: 0.2793, within_2_units: 0.3887}
+  paired_render_recovery_12_icons:
+    v15: {px72: 0.1246, ci95: [0.0611, 0.1882], helped: 10, of: 12, px18: 0.1306}
+    v14: {px72: 0.0447, ci95: [0.0083, 0.0811], helped: 8, of: 12, px18: 0.0729}
+    identity: 0.0
+predeclared_outcome:
+  overall: falsified
+  lifts_the_value_head: {passed: false, observed: 0.1623, threshold: 0.2220, note: exact-token terms}
+  widens_the_margin_over_identity: {passed: false, observed: 0.0014, threshold: 0.0027}
+  lowers_the_derived_threshold: {passed: false, observed: 0.8604, threshold: 0.8183}
+  structural_safety: {passed: true}
+  reproducibility: {passed: true}
+  verdict_on_the_criteria: >-
+    All three primary criteria are stated in exact-token terms and all three fail, while
+    both measures this run committed to REPORTING show a clear success: mean absolute
+    view-unit error falls 27% and median 33%, and paired per-icon render recovery nearly
+    triples, 0.1246 against 0.0447 at 72 px with both confidence intervals excluding
+    zero. That combination is a verdict on the criteria rather than on the intervention.
+    Exact-token accuracy is anti-correlated with what this project is trying to produce,
+    which is what the task-formulation lens argued before this run existed.
+  recording_note: >-
+    On a first pass I also compared the two models by their MEDIAN x_hat_0 error, 0.16074
+    against 0.16985, and read v15 as worse. That is the same mistake this session already
+    caught once: on paired data, compare the pairs. Both models render identical
+    corrupted inputs, so the paired per-icon recovery is the correct statistic.
+  changes:
+    demote_exact_token_accuracy: >-
+      Mean absolute view-unit error and paired render recovery become the primary
+      reported metrics; exact-token accuracy stays secondary so nothing already published
+      is withdrawn.
+    correct_the_gate: >-
+      The break-even rule p > 1/(1+q) is derived in exact-token terms, so a value head
+      that is closer but not exacter raises its own threshold - v15's went to 0.8604 -
+      and edits less of what it could improve. A gate derived from expected geometric
+      gain is the next run.

@@ -1,0 +1,16 @@
+{
+  "v14_exact_token_target": {
+    "exact": 0.12100997059034503,
+    "mean_abs_view_units": 8.287066924897784,
+    "median_abs_view_units": 3.75,
+    "within_1_unit": 0.27931999139229613,
+    "within_2_units": 0.38870956172441
+  },
+  "v15_distance_kernel_target": {
+    "exact": 0.09999282691342085,
+    "mean_abs_view_units": 6.028154364823183,
+    "median_abs_view_units": 2.5,
+    "within_1_unit": 0.31690696506706834,
+    "within_2_units": 0.4590058102001291
+  }
+}
