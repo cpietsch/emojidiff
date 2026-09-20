@@ -30,11 +30,13 @@ from mojidiff.learning.geometry import (
     corrupt_path_correlated_geometry,
     edit_mask_accuracy_by_corruption,
     edit_mask_loss_and_accuracy,
+    geometric_gate_threshold,
     geometry_accuracy_by_corruption,
     geometry_loss_and_accuracy,
     packed_batch,
     predict_clean_geometry,
     role_token_marginals,
+    token_view_values,
 )
 from mojidiff.learning.tiny_study import (
     _decode_checkpoint,
@@ -163,6 +165,14 @@ class OpenMojiPilotConfig:
     40,004 other fields, and makes held-out loss - the selection and early-stopping
     signal - roughly 31% four individual fields. Opt-in so v1 through v7 stay exactly
     reproducible.
+    """
+    geometric_gate: bool = False
+    """Choose the decode threshold by view-unit error saved rather than by exact tokens.
+
+    The break-even rule `p > 1/(1+q)` counts a field as recovered only when the predicted
+    token is exact, so a value head that is closer but not exacter raises its own
+    threshold and edits less of what it could improve. Measured: v15 localised 27% better
+    than v14 in view units and gated itself more tightly, 0.8604 against 0.8183.
     """
     value_distance_tau: float = 0.0
     """View-unit scale of the distance-kernel value target; 0 keeps exact-token targets.
@@ -323,6 +333,7 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
         value_distance_tau=_nonnegative_float(
             training.get("value_distance_tau", 0.0), "value_distance_tau"
         ),
+        geometric_gate=_flag(training.get("geometric_gate", False), "geometric_gate"),
     )
     if result.d_model % result.heads:
         raise OpenMojiPilotError("model.d_model must be divisible by model.heads")
@@ -332,6 +343,8 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
         raise OpenMojiPilotError("training.device must be auto, cpu, or cuda")
     if result.eval_every > result.steps:
         raise OpenMojiPilotError("training.eval_every cannot exceed training.steps")
+    if result.geometric_gate and not result.derive_decision_threshold:
+        raise OpenMojiPilotError("geometric_gate requires training.derive_decision_threshold")
     if result.calibration_samples and not result.derive_decision_threshold:
         raise OpenMojiPilotError("calibration_samples requires training.derive_decision_threshold")
     if result.calibration_samples >= result.train_samples:
@@ -684,6 +697,7 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
             raise OpenMojiPilotError("restored selected checkpoint did not reproduce its metrics")
 
     decision_threshold = 0.5
+    error_saved = 0.0
     value_accuracy_train: float | None = None
     if config.derive_decision_threshold:
         # Prefer icons withheld from training; fall back to train icons when none are
@@ -695,6 +709,11 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
             device, corrupt,
         )
         decision_threshold = break_even_threshold(value_accuracy_train)
+        if config.geometric_gate:
+            decision_threshold, error_saved = _geometric_threshold(
+                model, estimate_rows, estimate_programs, groups, subgroups, codec, config,
+                device, corrupt,
+            )
         validation = _evaluate(
             model,
             validation_rows,
@@ -771,6 +790,12 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
         summary["train_value_accuracy"] = value_accuracy_train
         summary["calibration_samples"] = config.calibration_samples
         summary["value_distance_tau"] = config.value_distance_tau
+        summary["geometric_gate"] = config.geometric_gate
+        if config.geometric_gate:
+            summary["break_even_threshold_for_comparison"] = break_even_threshold(
+                value_accuracy_train or 0.0
+            )
+            summary["calibration_view_units_saved_per_field"] = error_saved
         summary["calibration_withheld_from_training"] = bool(config.calibration_samples)
     if policy is not None:
         # `steps` above stays the declared cap; `completed_steps` is what actually ran.
@@ -963,6 +988,67 @@ def _train_value_accuracy(
         correct += int(((predicted == targets) & changed).sum().item())
         total += int(changed.sum().item())
     return correct / total if total else 0.0
+
+
+def _geometric_threshold(
+    model: GeometryDenoiser,
+    rows: tuple[PilotRow, ...],
+    programs: list[PackedTensorProgram],
+    groups: dict[str, int],
+    subgroups: dict[str, int],
+    codec: CodecConfig,
+    config: OpenMojiPilotConfig,
+    device: torch.device,
+    corrupt: Callable[
+        [PackedTensorProgram, CodecConfig, float, np.random.Generator], PackedTensorProgram
+    ],
+    icons: int = 128,
+) -> tuple[float, float]:
+    """Pick the decode threshold that saves the most absolute view-unit error.
+
+    Measured on the withheld calibration icons under a corruption draw disjoint from the
+    held-out one, so nothing about the threshold touches what is reported.
+    """
+
+    count = min(icons, len(programs))
+    subset = programs[:count]
+    subset_rows = rows[:count]
+    noisy = [
+        corrupt(
+            program,
+            codec,
+            config.evaluation_probability,
+            np.random.default_rng(config.seed + 12_000_000 + index),
+        )
+        for index, program in enumerate(subset)
+    ]
+    noisy_batch = packed_batch(noisy, device)
+    clean_batch = packed_batch(subset, device)
+    levels = [config.evaluation_probability] * count
+    with torch.no_grad():
+        start_logits, coordinate_logits, keep = model.forward_with_edits(
+            noisy_batch,
+            _condition(
+                subset_rows, groups, subgroups, device,
+                levels if config.noise_level_features else None,
+            ),
+        )
+    if keep is None:
+        return break_even_threshold(0.0), 0.0
+
+    kinds = clean_batch["segment_type"]
+    clean_values = token_view_values(clean_batch["coordinates"], kinds, codec)
+    noisy_values = token_view_values(noisy_batch["coordinates"], kinds, codec)
+    predicted_tokens = coordinate_logits.argmax(dim=-1)
+    predicted_values = token_view_values(predicted_tokens, kinds, codec)
+    change_probability = torch.softmax(keep[1].float(), dim=-1)[..., 0]
+    legal = clean_batch["coordinates"] > 0
+
+    return geometric_gate_threshold(
+        change_probability[legal],
+        (noisy_values - clean_values).abs()[legal],
+        (predicted_values - clean_values).abs()[legal],
+    )
 
 
 def _verify_locked_path(

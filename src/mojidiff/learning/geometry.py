@@ -887,6 +887,59 @@ def distance_kernel_loss(
     return -(weights * torch.log_softmax(logits.float(), dim=-1)).sum(dim=-1)
 
 
+def token_view_values(tokens: Tensor, segment_type: Tensor, codec: CodecConfig) -> Tensor:
+    """Decode coordinate tokens to view units, selecting the map by segment kind.
+
+    Slot 0 is an endpoint for a LINE and a control handle for a CUBIC, and the two decode
+    over different ranges, so the kind picks the affine map per field. Illegal or padded
+    fields decode to zero and should be masked by the caller.
+    """
+
+    endpoint_step = 72.0 / (codec.coordinate_bins - 1)
+    control_span = codec.control_coordinate_max - codec.control_coordinate_min
+    control_step = control_span / (codec.effective_control_coordinate_bins - 1)
+    control_counts = torch.tensor([0, 0, 2, 4, 0], dtype=torch.long, device=tokens.device)
+    index = (tokens.to(torch.float32) - 1.0).clamp_min(0.0)
+    slots = torch.arange(tokens.shape[-1], device=tokens.device)
+    is_control = slots[None, None, :] < control_counts[segment_type][:, :, None]
+    value = torch.where(
+        is_control, codec.control_coordinate_min + index * control_step, index * endpoint_step
+    )
+    return value * (tokens > 0).to(torch.float32)
+
+
+def geometric_gate_threshold(
+    change_probability: Tensor,
+    keep_error: Tensor,
+    edit_error: Tensor,
+    *,
+    steps: int = 200,
+) -> tuple[float, float]:
+    """Pick the decode threshold that most reduces absolute view-unit error.
+
+    The break-even rule `p > 1/(1+q)` counts a field as recovered only when the predicted
+    token is exact, so a value head that is closer but not exacter raises its own
+    threshold and edits less of what it could improve - measured, v15 localised 27%
+    better than v14 and gated itself more tightly. This instead asks what editing
+    actually does to the geometry: for each candidate threshold, the total error saved by
+    editing every field above it, and the threshold that saves the most wins.
+
+    Returns the threshold and the error saved per field at it. Computed on withheld
+    calibration data, never on what is reported.
+    """
+
+    gain = keep_error - edit_error
+    best_threshold, best_gain = 1.0, 0.0
+    for index in range(steps + 1):
+        threshold = index / steps
+        flagged = change_probability >= threshold
+        total = float(gain[flagged].sum()) if bool(flagged.any()) else 0.0
+        if total > best_gain:
+            best_gain, best_threshold = total, threshold
+    per_field = best_gain / max(int(change_probability.numel()), 1)
+    return best_threshold, per_field
+
+
 def break_even_threshold(value_accuracy: float) -> float:
     """Confidence above which changing a field beats keeping it.
 

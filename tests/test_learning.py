@@ -927,3 +927,57 @@ def test_the_distance_kernel_rewards_being_close() -> None:
     # The target is a normalised distribution, so the loss is bounded below by its
     # entropy rather than reaching zero.
     assert kernel[0] > 0
+
+
+def test_the_geometric_gate_picks_the_threshold_that_saves_error() -> None:
+    """The break-even rule counts only exact hits; this one counts distance saved.
+
+    v15 localised 27% better than v14 in view units and gated itself MORE tightly,
+    0.8604 against 0.8183, because the exact-token rule gave it no credit for being
+    close. This picks the threshold by what editing actually does to the geometry.
+    """
+
+    import pytest
+    import torch
+
+    from mojidiff.learning.geometry import (
+        break_even_threshold,
+        geometric_gate_threshold,
+        token_view_values,
+    )
+    from mojidiff.learning.openmoji_pilot import _selected_codec, load_openmoji_pilot_config
+
+    probability = torch.tensor([0.95, 0.90, 0.80, 0.40, 0.20, 0.10])
+    keep_error = torch.tensor([20.0, 18.0, 15.0, 0.0, 0.0, 0.0])
+    edit_error = torch.tensor([3.0, 4.0, 12.0, 9.0, 8.0, 7.0])
+
+    threshold, saved = geometric_gate_threshold(probability, keep_error, edit_error)
+    # Editing the top three saves (20-3) + (18-4) + (15-12) = 34 over six fields.
+    assert saved == pytest.approx(34.0 / 6)
+    assert 0.40 < threshold <= 0.80
+    # Editing anything below hurts, so the gate must exclude it.
+    assert threshold > float(probability[3])
+
+    # When editing never helps, the gate refuses to edit at all.
+    never, nothing = geometric_gate_threshold(
+        probability, torch.zeros(6), torch.ones(6) * 5.0
+    )
+    assert never == 1.0 and nothing == 0.0
+
+    # Being close but never exact: the break-even rule sees nothing, the gate sees a lot.
+    assert break_even_threshold(0.0) == 1.0
+    close, saved_close = geometric_gate_threshold(
+        torch.tensor([0.9, 0.8]), torch.tensor([20.0, 20.0]), torch.tensor([1.0, 1.0])
+    )
+    assert close <= 0.8 and saved_close > 0
+
+    # The view-unit decode selects its affine map by segment kind.
+    config = load_openmoji_pilot_config(
+        Path("configs/learning/openmoji-g1-dominant-bucket-smoke.yaml")
+    )
+    codec = _selected_codec(config)
+    tokens = torch.full((1, 2, 6), 101, dtype=torch.long)
+    kinds = torch.tensor([[1, 3]])  # LINE then CUBIC
+    values = token_view_values(tokens, kinds, codec)
+    assert values[0, 0, 0] != values[0, 1, 0], "slot 0 is an endpoint for LINE, control for CUBIC"
+    assert values[0, 0, 0] == pytest.approx(100 * 72.0 / (codec.coordinate_bins - 1))
