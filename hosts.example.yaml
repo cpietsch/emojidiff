@@ -4,16 +4,17 @@ version: 1
 # paths and must be gitignored. Do not put private keys, tokens, passwords, or cloud
 # credentials in either file.
 
+# The orchestrator is now the owned GPU box itself: development, training, and the
+# canonical worktree all live on one trusted machine. Entries under `workers` describe
+# only rented or shared machines, which keep the stricter authorization rules.
 orchestrator:
-  name: gtc
-  role: control-plane
+  name: gpubox-4080
+  role: development-and-execution
   tailscale: true
-  image_source: https://github.com/cpietsch/code-server-cpu
   repo_path: /home/dev/workspace/mojidiff
   state_dir: state
-  codex_mode: yolo
-  host_docker_socket_mounted: false
-  vast_api_credentials_present: false
+  gpu: NVIDIA GeForce RTX 4080
+  local_execution: true
 
 artifact_store:
   # No substantial training should begin until this is configured and a write/read/hash

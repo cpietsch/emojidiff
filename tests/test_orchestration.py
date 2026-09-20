@@ -5,6 +5,7 @@ import io
 import json
 import os
 import shlex
+import socket
 import subprocess
 import tarfile
 from pathlib import Path
@@ -101,7 +102,7 @@ def _decoded_remote_config(command: str) -> dict[str, Any]:
 def test_example_inventory_fails_closed() -> None:
     inventory = load_inventory(Path("hosts.example.yaml"))
 
-    assert inventory.orchestrator_name == "gtc"
+    assert inventory.orchestrator_name == "gpubox-4080"
     assert inventory.artifact_store.missing_fields() == (
         "artifact_store.type",
         "artifact_store.uri",
@@ -531,7 +532,10 @@ def test_local_probe_is_sanitized() -> None:
     probe = collect_local_probe(Path.cwd())
     serialized = json.dumps(probe)
 
-    assert probe["hostname"] == "gtc"
+    # The probe reports whichever machine it runs on. It must not assert a particular
+    # hostname: development moved from the `gtc` control plane to the owned GPU box.
+    assert probe["hostname"] == socket.gethostname()
+    assert probe["hostname"]
     assert probe["repo_path"].endswith("/mojidiff")
     assert "environment" not in probe
     assert "DOCKER_CERT_PATH" not in serialized
