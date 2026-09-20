@@ -1,0 +1,11 @@
+# Renders for the capacity retest arm at its own derived threshold.
+schema_version: 1
+study_version: openmoji-g1-retest-capacity-renders
+pilot_config: configs/learning/openmoji-g1-retest-capacity.yaml
+checkpoint: /home/dev/.cache/render-retest-capacity/checkpoint.zip
+checkpoint_sha256: 172aa1bec6082dd99aa01ef0296e4dbcabbd39245113154101f69686b4161d2d
+report_root: reports/learning/openmoji-g1-retest-capacity-renders
+icons: 12
+render_sizes: [72, 18]
+render_timeout_seconds: 20
+decision_threshold: 0.65

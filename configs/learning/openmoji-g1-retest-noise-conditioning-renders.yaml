@@ -1,0 +1,11 @@
+# Renders for the noise-conditioning retest arm at its own derived threshold.
+schema_version: 1
+study_version: openmoji-g1-retest-noise-conditioning-renders
+pilot_config: configs/learning/openmoji-g1-retest-noise-conditioning.yaml
+checkpoint: /home/dev/.cache/render-retest-noise-conditioning/checkpoint.zip
+checkpoint_sha256: 334f8304403f2cf88f1828516981086f572ba5aa0a5f8e55ba0e4c5f07078dc6
+report_root: reports/learning/openmoji-g1-retest-noise-conditioning-renders
+icons: 12
+render_sizes: [72, 18]
+render_timeout_seconds: 20
+decision_threshold: 0.735

@@ -1,0 +1,20 @@
+{
+  "base_v16": 0.2511,
+  "capacity": {
+    "abs_diff": 0.026773234678836078,
+    "mean": 0.27787323467883607,
+    "verdict": "restores_v3"
+  },
+  "data_volume": {
+    "below_base_by": 0.1744869882842127,
+    "mean": 0.0766130117157873,
+    "verdict": "restores_v2"
+  },
+  "interval_half_width": 0.1103,
+  "noise_conditioning": {
+    "abs_diff": 0.04146029411672569,
+    "mean": 0.2096397058832743,
+    "verdict": "restores_v4"
+  },
+  "note": "criteria applied as predeclared; the data-volume criterion is directional"
+}

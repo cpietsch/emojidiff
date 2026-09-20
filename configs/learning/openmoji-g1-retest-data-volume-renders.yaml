@@ -1,0 +1,11 @@
+# Renders for the data-volume retest arm at its own derived threshold.
+schema_version: 1
+study_version: openmoji-g1-retest-data-volume-renders
+pilot_config: configs/learning/openmoji-g1-retest-data-volume.yaml
+checkpoint: /home/dev/.cache/render-retest-data-volume/checkpoint.zip
+checkpoint_sha256: 4e25030d3f59a51a242d4bacb6120f639d79a9e900991dd306809b14a2ec54e9
+report_root: reports/learning/openmoji-g1-retest-data-volume-renders
+icons: 12
+render_sizes: [72, 18]
+render_timeout_seconds: 20
+decision_threshold: 0.715
