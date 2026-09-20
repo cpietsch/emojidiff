@@ -14,6 +14,8 @@ import numpy as np
 import pytest
 import torch
 
+from mojidiff.learning.ar_corpus import _Split
+from mojidiff.learning.ar_data_scaling import _subset_view
 from mojidiff.learning.ar_overfit import _distinct_subgroup_rows
 from mojidiff.learning.autoregressive import (
     CausalProgramModel,
@@ -351,3 +353,29 @@ def test_a_growing_prefix_forward_works_under_metric_coordinates(pieces: Pieces)
                 shifted[:, : position + 1], None, kinds=kinds[:, : position + 1]
             )
             assert torch.allclose(logits[:, position], full[:, position], atol=1e-5)
+
+
+def test_the_scaling_subsets_are_nested_and_the_floor_follows_them(pieces: Pieces) -> None:
+    """Two properties the scaling verdict depends on, neither visible in the output.
+
+    Nesting: a larger arm must be a strict superset of a smaller one, so size is the
+    only thing that differs between arms. Three independent samples would differ in
+    composition too, and a subset holding more flags would move the curve for a reason
+    that has nothing to do with scale.
+
+    Subsetting: `_subset_view` must carry the rows, tokens and packed masks together.
+    Slicing one and not another would fit the floor on different icons than the arm
+    trained on, silently.
+    """
+
+    _, _, layout, programs, _, _ = pieces
+    split = _Split(tuple(range(len(programs))), layout)  # type: ignore[arg-type]
+    split.tokens = torch.stack([flatten_program(program, layout) for program in programs])
+    order = np.random.default_rng(7).permutation(len(programs))
+    subsets = [np.sort(order[: max(int(round(f * len(programs))), 1)]) for f in (0.5, 1.0)]
+    assert set(subsets[0]).issubset(set(subsets[1]))
+
+    view = _subset_view(split, subsets[0])
+    assert len(view.rows) == len(subsets[0])
+    assert torch.equal(view.tokens, split.tokens[subsets[0]])
+    assert view.packed.shape[0] == len(subsets[0])

@@ -978,52 +978,35 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Start Gate I: the cached autoregressive baseline on the same codec. It is
-PROJECT_PLAN.md section 12 branch 4, it has been named as the remaining branch since the
-Gate G sequence began going wrong, and it is now the only untried route to a generation
-result rather than a denoising one. Every training-side factor in Gate G is settled and
-none of them was the binding constraint on generation, because denoising is not
-generation.
+Read Gate I arm 3 against arm 2, then decide between two named branches. Arm 2
+(`ar-corpus-i2`) is committed and falsified: at a budget matched to v16 on every term
+the plan names, the autoregressive model reaches 3.6249 nats per free token against a
+zero-parameter position-marginal floor of 3.9290 - a ratio of 0.923 where the
+predeclared criterion was 0.500 - and from step 1200 it is worse than the floor while
+its training loss keeps falling. Arm 3 changes exactly one thing, the coordinate
+encoding, because the causal model inherited the defect Gate G verified on this same
+codec: coordinate tokens as unordered categories on a quarter-unit lattice, Spearman
+-0.136 against bin distance.
 
-What exists to build on: the codec is exact, render-safe and capacity-audited through
-Gates C and D; the splits are family-disjoint and hashed; the isolated renderer, the
-run registry, the audit script and the weblog all work; and `scripts/detector_report.py`
-and `pilot_renders.py` establish the measurement patterns. Nothing in the repository
-implements a causal model - `grep -rl "autoregressive\|causal\|kv_cache" src/` returns
-nothing - so this is a build rather than a modification.
+If arm 3 moves the ratio materially, the next arm is the output side, which carries the
+matching defect: the head is an unordered 418-way softmax where a one-bin miss costs
+what a far one does, and Gate G's answer was a distance kernel with tau in view units.
+If arm 3 does not move it, the evidence points at data volume rather than
+representation - 2,681 sequences of 1,376 tokens is very little, Gate G already found
+data volume to be the one training-side factor that mattered, and the overfitting
+signature here is unambiguous.
 
-PROJECT_PLAN.md section 8 sets the terms and they should be predeclared: legal-token
-masks, KV caching, batched decoding, the same serializer, safety checks and evaluation
-suite, and a comparable parameter and training budget. The plan is explicit that nominal
-step counts are not a speed result - the comparison must be end-to-end latency,
-throughput, peak VRAM and quality on the same named GPU.
+Either way the comparison Gate I owes PROJECT_PLAN.md section 8 is not yet on a common
+axis. The denoiser is scored by paired render recovery against identity and the sampler
+by likelihood against a marginal floor, and neither metric applies to the other model.
+There is one task both can do: given a real icon with its tail removed, complete it -
+the AR model by construction, the denoiser by being handed the same icon with that tail
+corrupted - and score both by render MAE against the truth. That is the honest
+head-to-head and it should be built once one of the arms is worth comparing.
 
-Predeclare quality against what this gate produced, not against nothing: paired render
-recovery is the primary metric, the identity baseline sits beside every recovery number,
-and unconditional samples need their own criterion since identity is meaningless there.
-Begin with a tiny overfit test on the Gate E fixtures before anything at corpus scale,
-as Gate E did for the denoiser.
+Measured on gpubox-4080 and reportable now: 301 s to train, 3.63 GiB peak, 1.232 s to
+decode one icon through the cache against 1.435 s re-reading the whole prefix at every
+position. The cache is worth 16%, not an order of magnitude - at 524,674 parameters the
+decode is bound by kernel launches rather than arithmetic. Both paths agree at every one
+of 1,376 positions.
 
-The one piece of declared work that remains from Gate G is the corpus-scale
-corruption-process comparison, cancelled when no trained model could learn detection on
-any process; that blocker cleared at v10. Its configs and criteria are committed under
-`openmoji-g1-corruption-process-corpus-76f41a3-2arms-9b9b1699` and it needs the
-marginal-respecting process as a third arm and the gated metric switched to paired render
-recovery. It is worth running, but it compares corruption processes for a denoiser, and
-Gate I asks whether the representation supports generation at all.
-
-Standing rules from this session, for every later run:
-
-- Report the identity baseline beside every recovery number.
-- Measure detection under marginal-respecting corruption; a zero-parameter marginal
-  detector scores 2.84 under uniform corruption and 0.771 under marginal.
-- Never fit a decode threshold on the data it is reported on. Derive it, or estimate it
-  on icons withheld from training.
-- On paired data, compare the pairs; and at low corruption prefer absolute differences,
-  since relative recovery divides by a denominator that goes to zero.
-- Primary metrics are mean absolute view-unit error and paired render recovery.
-  Exact-token accuracy is secondary and points the wrong way.
-- Report results per corruption level. A single level hid the main finding of this gate
-  for its entire history.
-- Twelve icons is too few. One bad case prevented a significant result; 32 resolved it.
-- Run `python scripts/audit_run_records.py` before committing a run record.

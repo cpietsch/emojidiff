@@ -133,15 +133,19 @@ gates:
       How does the denoiser compare with a matched, KV-cached autoregressive baseline -
       and does the representation support generation at all?
     evidence: >-
-      Now the project's leading question. Gate G settled every training-side factor it
-      identified without producing a generator, because denoising is not generation, and
-      this is PROJECT_PLAN.md section 12 branch 4 - the only untried route to a
-      generation result. Nothing in the repository implements a causal model, so it is a
-      build rather than a modification, on foundations that are sound: an exact
-      render-safe codec, hashed family-disjoint splits, an isolated renderer, and the
-      measurement patterns Gate G established. The comparison must be at matched
-      parameter count, data, codec and engineering effort, measured end to end on one
-      named GPU; nominal step counts are not a speed result.
+      The causal model is built and learns: it memorises four icons exactly through the
+      KV cache and the dynamic legal-token masks, all four predeclared criteria passing.
+      At corpus scale, matched to v16 at 524,674 parameters against 525,152 on the same
+      hashed corpus and the same 100,800 icon presentations, it is falsified - 3.6249
+      nats per free token against a zero-parameter position-marginal floor of 3.9290, a
+      ratio of 0.923 where the criterion was 0.500, and worse than the floor from step
+      1200 while its training loss keeps falling. Samples are all valid and all distinct,
+      so there is no class collapse. Measured on gpubox-4080: 301 s to train, 3.63 GiB
+      peak, and the cache is worth 16% rather than an order of magnitude because at this
+      size the decode is bound by kernel launches rather than arithmetic. That is a real
+      measurement contradicting the asymptotic argument. The verdict on autoregression is
+      not in: the model inherited the categorical coordinate defect Gate G verified on
+      this same codec, and the arm that corrects it is running.
 
   - id: Gate J
     title: Deployment optimization

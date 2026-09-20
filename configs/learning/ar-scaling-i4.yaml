@@ -1,0 +1,52 @@
+# Gate I arm 4: a scaling curve, because two arms have now landed in the same place and
+# guessing why is the expensive mistake.
+#
+# i2 cleared its zero-parameter position-marginal floor by 7.7% in nats against a
+# predeclared 50%. i3 corrected the coordinate encoding - the defect that was decisive
+# for the denoiser on this exact codec, Spearman -0.136 against bin distance - and
+# landed at 6.0%, indistinguishable and slightly worse while carrying 1,824 more
+# parameters. Both peak within two to four epochs and then get worse while their
+# training loss keeps falling.
+#
+# That signature reads two ways. Either 2,681 sequences of 1,376 tokens is too little
+# data, in which case the next work is Gate H and more of it; or more OpenMoji icons
+# will not help and the constraint is the representation or the model. The two answers
+# point at entirely different months of work.
+#
+# Three nested training sets settle it. Nesting matters: three independent samples would
+# differ in composition as well as size, and a subset that happened to hold more flags
+# would move the curve for a reason that has nothing to do with scale.
+#
+# The floor is refitted on each arm's own icons. A marginal policy given the whole
+# corpus while the model sees a quarter of it is not a floor, it is a different
+# experiment.
+schema_version: 1
+study_version: ar-scaling-i4
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+report_root: reports/learning/ar-scaling-i4
+
+fractions: [0.25, 0.5, 1.0]
+
+# i2's model exactly. The coordinate option is off because i3 showed it changes nothing
+# here, and the cleaner baseline is the one with fewer moving parts.
+model: {d_model: 96, heads: 4, layers: 4, feedforward: 192, metric_coordinates: 0}
+
+training:
+  steps: 6300
+  batch_size: 16
+  learning_rate: 0.001
+  seed: 3301
+  eval_every: 300
+  patience_evals: 8
+  marginal_alpha: 1.0
+
+criteria:
+  # Declared before the runs. Data-limited means two things together: held-out
+  # likelihood improves at every doubling, and the second doubling still buys a real
+  # fraction of what the first did. A curve that improves but is clearly saturating
+  # would satisfy monotonicity alone and would not support spending Gate H on more
+  # data, which is the decision this study exists to inform.
+  #
+  # A quarter of this share is a low bar deliberately. The question is not whether
+  # returns are diminishing - they always are - but whether they have stopped.
+  min_second_doubling_share: 0.25
