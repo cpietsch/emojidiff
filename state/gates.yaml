@@ -12,11 +12,11 @@ updated: 2026-09-20
 # the Current hypothesis section of state/CURRENT.md; the weblog falls back to that
 # section's newest paragraph if this is absent.
 headline: >-
-  The representation is learnable and the 256-icon overfit was data-limited: the full
-  2,681-icon split cuts held-out loss 25.1% and narrows the train/held-out gap 39.7%.
-  But changed-token recovery improved only 1.307x against a predeclared 1.5x, so data
-  volume is no longer the binding constraint - and held-out loss and held-out accuracy
-  now disagree about when to stop.
+  The 256-icon overfit was data-limited: the full 2,681-icon split cuts held-out loss
+  25.1% and narrows the train/held-out gap 39.7%. But changed-token recovery improved
+  only 1.307x against a predeclared 1.5x, and rendering that checkpoint shows none of
+  twelve held-out predictions is a recognizable icon. Data volume is no longer the
+  binding constraint, and the scalars were overselling the picture.
 gates:
   - id: Gate A
     title: Orchestration and recovery
@@ -82,7 +82,10 @@ gates:
       256-icon subsample was falsified by overfitting. The v2 data-scale run on the full
       2,681-icon split substantially improves generalization but misses its
       changed-token recovery bar, so changed-field recovery, not data volume, is now the
-      open question. Still fixed-topology and geometry-only.
+      open question. Rendering that checkpoint shows none of twelve held-out predictions
+      is a recognizable icon, so the token-accuracy scalars oversell the visual result
+      and the fixed 0.35 corruption probability may be the wrong regime entirely. Still
+      fixed-topology and geometry-only.
   - id: Gate H
     title: Broad pretraining question
     status: not-started

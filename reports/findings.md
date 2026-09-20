@@ -1009,3 +1009,31 @@ loss/accuracy disagreement as its own question rather than resolving it by conve
 after v1 this project declared held-out loss the more honest scalar, and v2 shows that
 choice costs 15.6% of the relative changed-token recovery available at the cap. The next
 run must declare which scalar governs selection, and why, before it starts.
+
+## 2026-09-20 — The Gate G scalars oversell the picture, and 0.35 may be the wrong regime
+
+**Hypothesis.** Descriptive rather than predictive: at the v2 selected checkpoint's
+0.2886 held-out aggregate and 0.0573 changed-token accuracy, what does the predicted
+clean state actually look like, and how much does it improve the render over the raw
+corrupted state the model was given?
+
+**Observation.** Run `openmoji-g1-train-v2-renders-eff0038-9573bc74-9b9b1699` restored
+the hash-verified v2 checkpoint and rendered `x_0`, `x_t`, and `x_hat_0` for twelve
+held-out icons under the pilot's own held-out corruption draw. Median RGBA error against
+the clean render falls from 0.169546 for `x_t` to 0.142433 for `x_hat_0` at 72 px, a
+16.0% reduction, and from 0.182875 to 0.152770 at 18 px. None of the twelve predictions
+is a recognizable icon; both `x_t` and `x_hat_0` read as scribble at both sizes. Because
+this corruption touches only geometry, fills and topology survive, so several icons keep
+a correct palette — `26A0` stays yellow, `1F943` orange, `1F199` green — while the stroke
+geometry is destroyed in every case. The rerun reproduced every artifact hash.
+
+**Decision.** Two corrections. First, stop treating Gate G token accuracy as a proxy for
+visual recovery: a 16% reduction in render error is not a recovered icon, and no future
+Gate G recovery claim should be recorded without a render beside it. Second, and more
+consequential, `x_t` at corruption probability 0.35 is already visually destroyed, so
+the model is trained and evaluated in a regime where the visual task may be unachievable
+at any model size. That probability has been fixed since the Gate F four-icon fixtures
+and has never been varied at corpus scale. Promote the corruption schedule to a
+first-class candidate factor alongside model capacity, and consider training across a
+range of corruption levels rather than at one fixed point — which is also what a
+denoiser facing many corruption levels at sampling time would need.

@@ -229,6 +229,19 @@ shows that choice costs 15.6% of the relative changed-token recovery available a
 cap. Which scalar governs checkpoint selection is now an open question that the next run
 must declare, with a reason, before it starts.
 
+Rendering the v2 checkpoint corrects how those scalars should be read. The read-only
+probe `openmoji-g1-train-v2-renders-eff0038-9573bc74-9b9b1699` restored the
+hash-verified checkpoint and rendered `x_0`, `x_t` and `x_hat_0` for twelve held-out
+icons under the pilot's own held-out corruption draw. Median RGBA error against the
+clean render improves only from 0.169546 to 0.142433 at 72 px, a 16.0% reduction, and
+none of the twelve predictions is a recognizable icon. Fills and topology are not
+corrupted, so several icons keep a correct palette while their stroke geometry is
+destroyed. Gate G token accuracy is therefore a poor proxy for visual recovery and no
+future recovery claim should be recorded without a render beside it. The probe also
+shows that at probability 0.35 the corrupted input is already visually destroyed, so
+the corruption schedule - fixed since the Gate F four-icon fixtures and never varied at
+corpus scale - is now a first-class candidate factor.
+
 
 
 ## Last completed action and verification
@@ -578,6 +591,11 @@ files. Its `summary.json`, `metrics.jsonl` and `validation.jsonl`, about 200 KB 
 are copied into the run directory in the repository; the checkpoint deliberately stays
 on the durable sink. Nothing was deleted, and nothing was pushed.
 
+The v2 render probe's 336 KB contact sheet, 16 KB render metrics, and summary are
+versioned in the repository under `reports/learning/openmoji-g1-train-v2-renders/`, with
+the metrics and summary also copied into its run directory. It is reproducible from the
+durable v2 checkpoint in about a minute on CPU.
+
 The weblog's generated `site/` directory is derived output and is Git-ignored: it is
 rebuilt from the committed record in about a second by `python -m mojidiff.weblog.build`.
 The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
@@ -626,10 +644,17 @@ corruption probability 0.35, batch size 16, and learning rate 0.001 fixed, and p
 a changed-token recovery threshold against v2's 0.0573 at its selected step. Keep the
 0.90 retained-preservation bar standing and expect it to remain falsified.
 
-The corruption schedule is the other candidate factor and should be a separate run, not
-folded into the capacity test. A single fixed 0.35 corruption probability may be a poor
-training distribution for a denoiser that must handle many corruption levels at sampling
-time; that is a one-factor change of its own.
+The corruption schedule is now the co-equal candidate, not a secondary one, and it
+should be a separate one-factor run rather than folded into the capacity test. The
+render probe showed that at probability 0.35 the corrupted input is already visually
+destroyed, so a third of the geometry is simply gone and the visual task may be
+unachievable at any model size. That probability has been fixed since the Gate F
+four-icon fixtures and has never been varied at corpus scale. Vary it, or train across
+a range of levels, which is also what a denoiser facing many corruption levels at
+sampling time would need.
+
+Whichever factor goes first, render the result. The scalars oversold the v2 output by a
+wide margin, and `python -m mojidiff.learning.pilot_renders` now makes the check cheap.
 
 Two augmentation ideas remain measured and queued but deliberately unapplied, since data
 volume is no longer the binding constraint. Left-right mirroring is exactly
