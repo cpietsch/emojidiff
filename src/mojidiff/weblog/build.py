@@ -95,7 +95,7 @@ def build_site(root: Path, out: Path) -> dict[str, Any]:
     _write(out / "state.html", _document_page("Current research state", current, "state"))
     _write(out / "gallery.html", _gallery_page(gallery))
     for run in runs:
-        _write(out / "run" / f"{run.run_id}.html", _run_page(run))
+        _write(out / "run" / f"{run.run_id}.html", _run_page(run, root))
     manifest = {
         "runs": len(runs),
         "pages": 5 + len(runs),
@@ -154,10 +154,29 @@ def _collect_runs(root: Path) -> list[RunPage]:
         pages.append(page)
 
     # A run may exist only in the append-only registry, for instance one recorded
-    # retroactively. It still belongs on the timeline.
+    # retroactively. It still belongs on the timeline, and if its rows name a config the
+    # page can reach that config's report root - which is where the summary, the metric
+    # trace and any renders live. Without this such a run shows as a bare row with no
+    # evidence attached, which is the opposite of what this site is for.
     for run_id, rows in transitions.items():
-        if run_id not in seen:
-            pages.append(RunPage(run_id=run_id, record={"run_id": run_id}, transitions=rows))
+        if run_id in seen:
+            continue
+        merged: dict[str, Any] = {"run_id": run_id}
+        for row in rows:
+            for key in ("config", "outputs"):
+                if key in row:
+                    merged[key] = row[key]
+        page = RunPage(run_id=run_id, record=merged, transitions=rows)
+        report_root = _report_root(root, merged)
+        if report_root is not None:
+            page.summary = _read_json(report_root / "summary.json")
+            page.metrics = _read_jsonl(report_root / "metrics.jsonl")
+            page.images = sorted(
+                item.relative_to(root)
+                for item in report_root.rglob("*")
+                if item.suffix.lower() in _IMAGE_SUFFIXES and item.is_file()
+            )
+        pages.append(page)
     pages.sort(key=lambda page: (page.timestamp, page.run_id))
     return pages
 
@@ -406,7 +425,7 @@ def _outcome_badge(run: RunPage) -> str:
     return "<span class='muted'>&mdash;</span>"
 
 
-def _run_page(run: RunPage) -> str:
+def _run_page(run: RunPage, root: Path) -> str:
     sections = [
         f"<section class='run-head'><p class='eyebrow'><a href='../runs.html'>"
         f"&larr; experiments</a></p><h1 class='mono'>{escape(run.run_id)}</h1>"
@@ -429,6 +448,14 @@ def _run_page(run: RunPage) -> str:
     charts = _run_charts(run)
     if charts:
         sections.append(f"<section><h2>Measured behaviour</h2>{charts}</section>")
+    # The result itself. Some runs carry their whole outcome here - predeclared
+    # criteria, which of them passed, the timings - and without this section the page
+    # showed a chart and a state transition and never said what happened.
+    if run.summary:
+        sections.append(
+            "<section><h2>Measured result</h2><p class='note'>Verbatim from the run's "
+            f"<code>summary.json</code>.</p>{_tree(run.summary)}</section>"
+        )
     if run.images:
         sections.append(
             "<section><h2>Visual output</h2>"
@@ -441,10 +468,22 @@ def _run_page(run: RunPage) -> str:
         )
     if run.transitions:
         sections.append(f"<section><h2>State transitions</h2>{_transitions(run)}</section>")
+    # Most runs carry a committed run.yaml; a registry-only run does not, and saying
+    # otherwise would point the reader at a file that is not there.
+    if (root / "runs" / run.run_id / "run.yaml").is_file():
+        provenance = (
+            f"Verbatim from <code>runs/{escape(run.run_id)}/run.yaml</code>, "
+            "the record committed before launch."
+        )
+    else:
+        provenance = (
+            "This run has no <code>run.yaml</code>. What follows is the identity and "
+            "configuration carried by its rows in <code>state/runs.jsonl</code>, the "
+            "append-only registry."
+        )
     sections.append(
-        "<section><h2>Run record</h2><p class='note'>Verbatim from "
-        f"<code>runs/{escape(run.run_id)}/run.yaml</code>, the record committed before "
-        f"launch.</p>{_tree(run.record)}</section>"
+        f"<section><h2>Run record</h2><p class='note'>{provenance}</p>"
+        f"{_tree(run.record)}</section>"
     )
     return _shell(run.run_id, "runs", "".join(sections), depth=1)
 
@@ -463,6 +502,8 @@ def _run_charts(run: RunPage) -> str:
     selection = summary.get("selection")
     if isinstance(selection, dict) and isinstance(selection.get("selected_step"), int):
         selected = [("selected", float(selection["selected_step"]))]
+    elif isinstance(summary.get("selected_step"), int):
+        selected = [("selected", float(summary["selected_step"]))]
 
     if run.validation:
         steps = [float(row["step"]) for row in run.validation if "step" in row]
@@ -503,6 +544,49 @@ def _run_charts(run: RunPage) -> str:
                     y_label="accuracy",
                     y_zero=True,
                     markers=selected,
+                )
+            )
+    # Gate I reports likelihood rather than a denoising score, and its floor belongs on
+    # the same axis as the model. Plotted apart, a model tracking the marginal policy
+    # looks like a model that is learning.
+    if run.metrics and any("held_out_nll" in row for row in run.metrics):
+        likelihood = []
+        for label, key in (
+            ("model", "held_out_nll"),
+            ("position-marginal floor", "marginal_nll"),
+        ):
+            points = tuple(
+                (float(row["step"]), float(row[key]))
+                for row in run.metrics
+                if "step" in row and isinstance(row.get(key), (int, float))
+            )
+            if points:
+                likelihood.append(Series(label, points))
+        if likelihood:
+            charts.append(
+                metric_chart(
+                    "Held-out negative log likelihood per free token",
+                    likelihood,
+                    x_label="optimizer step",
+                    y_label="nats per token",
+                    y_zero=True,
+                    markers=selected,
+                )
+            )
+    if run.metrics and any("free_token_accuracy" in row for row in run.metrics):
+        points = tuple(
+            (float(row["step"]), float(row["free_token_accuracy"]))
+            for row in run.metrics
+            if "step" in row and "free_token_accuracy" in row
+        )
+        if points:
+            charts.append(
+                metric_chart(
+                    "Next-token accuracy over unforced positions",
+                    [Series("free-token accuracy", points)],
+                    x_label="optimizer step",
+                    y_label="accuracy",
+                    y_zero=True,
                 )
             )
     if run.metrics and any("train_token_accuracy" in row for row in run.metrics):
@@ -557,9 +641,17 @@ def _tree(value: Any, level: int = 0) -> str:
         )
         return f"<div class='tree'>{rows}</div>"
     if isinstance(value, list):
+        # A long list is almost always per-sample detail - 32 digests, 128 coverage
+        # figures - and printing it whole buries the numbers that carry the result.
+        # The full list stays in the committed artifact, which this only summarises.
+        head, rest = value[:6], len(value) - 6
         if all(not isinstance(item, (dict, list)) for item in value):
-            return escape(", ".join(str(item) for item in value))
-        return "".join(f"<div class='li'>{_tree(item, level + 1)}</div>" for item in value)
+            text = ", ".join(str(item) for item in head)
+            return escape(text if rest <= 0 else f"{text} … and {rest} more")
+        rendered = "".join(f"<div class='li'>{_tree(item, level + 1)}</div>" for item in head)
+        if rest > 0:
+            rendered += f"<div class='li note'>… and {rest} more</div>"
+        return rendered
     if isinstance(value, bool):
         return f"<span class='bool bool-{str(value).lower()}'>{str(value).lower()}</span>"
     text = str(value)

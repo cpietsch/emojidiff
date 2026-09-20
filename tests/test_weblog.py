@@ -147,3 +147,47 @@ def test_a_chart_refuses_more_series_than_the_validated_palette_supports() -> No
             x_label="step",
             y_label="value",
         )
+
+
+def test_a_registry_only_run_still_shows_its_evidence(tmp_path: Path) -> None:
+    """A run with no run.yaml must still reach its summary, metrics and renders.
+
+    Gate I's runs are registered in `state/runs.jsonl` alone. Before this, such a run
+    rendered as a bare row with nothing attached and a caption pointing at a run.yaml
+    that does not exist - a page that looked like evidence and carried none, which is
+    the one failure mode this site cannot have.
+    """
+
+    root = tmp_path / "repo"
+    (root / "state").mkdir(parents=True)
+    (root / "reports" / "demo").mkdir(parents=True)
+    (root / "runs").mkdir()
+    (root / "configs").mkdir()
+    (root / "configs" / "demo.yaml").write_text("report_root: reports/demo\n")
+    (root / "reports" / "demo" / "summary.json").write_text('{"held_out_nll_per_free_token": 2.5}')
+    (root / "reports" / "demo" / "metrics.jsonl").write_text(
+        '{"step": 1, "held_out_nll": 3.0, "marginal_nll": 4.0}\n'
+        '{"step": 2, "held_out_nll": 2.5, "marginal_nll": 4.0}\n'
+    )
+    (root / "reports" / "findings.md").write_text("# Findings\n")
+    (root / "state" / "CURRENT.md").write_text("# State\n")
+    (root / "state" / "gates.yaml").write_text("gates: []\n")
+    (root / "state" / "runs.jsonl").write_text(
+        json.dumps(
+            {
+                "run_id": "demo-run",
+                "state": "completed",
+                "timestamp": "2026-01-01T00:00:00Z",
+                "config": "configs/demo.yaml",
+                "selected_step": 2,
+            }
+        )
+        + "\n"
+    )
+
+    build_site(root, tmp_path / "site")
+    page = (tmp_path / "site" / "run" / "demo-run.html").read_text()
+    assert "held_out_nll_per_free_token" in page
+    assert "position-marginal floor" in page, "the floor must be plotted beside the model"
+    assert "runs/demo-run/run.yaml" not in page, "it must not cite a file that is absent"
+    assert "append-only registry" in page
