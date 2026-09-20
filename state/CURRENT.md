@@ -264,6 +264,21 @@ favoured the loss arm by 6.5%; at 128 icons they favour the accuracy arm by 4.7%
 opposite direction, while the paired difference stayed near zero in both samples. On
 paired data, compare the pairs.
 
+Model capacity is now eliminated as well. Run
+`openmoji-g1-capacity-v3-3c252d5-ee32665b-9b9b1699` scales the denoiser 3.53x to
+2,040,976 parameters, changing nothing else, and falsifies all three of its primary
+criteria. Held-out loss at the selected checkpoint is 7.3790 against v2's 7.3333, 0.6%
+worse rather than better; changed-token recovery is 0.0639, a 1.115x improvement against
+a 1.25x bar; and on the full 128-icon draw the mean paired render difference is +0.001853
+with a 95% interval of -0.0026 to +0.0063, against a detection threshold of roughly
+0.0064 established on that same draw. The larger model reached the same held-out loss
+floor in 360 steps instead of 840 and then overfitted, which is the signature of a
+task-limited rather than capacity-limited problem; both models converge near 7.35.
+
+Two of the three candidate factors are therefore eliminated on matched, predeclared
+comparisons - data volume by v2, capacity by v3 - and the remaining candidate is the
+corruption schedule, exactly where the render probe pointed.
+
 
 
 ## Last completed action and verification
@@ -276,6 +291,18 @@ and metrics byte-identically, summary SHA-256
 cover the unchanged fixed-budget shape, argmin selection with a matching written
 checkpoint, deterministic patience exhaustion, and rejection of a policy without
 periodic evaluation. The full suite passes 112/112; Ruff and strict mypy pass.
+
+Registered and completed the capacity run
+`openmoji-g1-capacity-v3-3c252d5-ee32665b-9b9b1699` at commit `3c252d5`, 72.1 s and
+342.5 MiB peak CUDA memory, with an identical rerun and a powered 128-icon render check.
+Its predeclared criteria are falsified and the negative result is retained.
+
+Registered and completed the selection-scalar comparison
+`openmoji-g1-selection-scalar-c4e6a8c-3a34e64b-9b9b1699` and its powered follow-up
+`openmoji-g1-selection-scalar-full-c4e6a8c-powered-9b9b1699`. The twelve-icon run
+falsified its hypothesis and carried a recorded design defect; the 128-icon run met its
+bound criterion and settled the project's selection scalar by a rule declared before the
+numbers were read. Both probes reproduce identical artifacts.
 
 Predeclared the data-scale criteria at `a50b2e0` and registered
 `openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699` as planned before launch. A
@@ -618,6 +645,12 @@ versioned in the repository under `reports/learning/openmoji-g1-train-v2-renders
 the metrics and summary also copied into its run directory. It is reproducible from the
 durable v2 checkpoint in about a minute on CPU.
 
+The capacity run's artifacts are durable under
+`/home/dev/.cache/openmoji-g1-capacity-v3-3c252d5-ee32665b-9b9b1699/` with checkpoint
+SHA-256 `93344f19969eb06eb2d99a16967201bd4bb1e7e330cb690551118d81aca17e5c`. Its summary,
+metrics, trace, and 128-icon render metrics are copied into the run directory, and its
+128-icon contact sheet is versioned under `reports/learning/`.
+
 The selection-scalar comparison's durable checkpoint is
 `/home/dev/.cache/openmoji-g1-selection-scalar-c4e6a8c-3a34e64b-9b9b1699/checkpoint/`
 at SHA-256 `359b11a1020ea07b43bca82be254cac791793dc9166f7828c9038d5ca5b830af`. Its four
@@ -665,26 +698,27 @@ The selection scalar is settled: held-out loss, by convention, with the effect o
 quality bounded below 0.0032 RGBA MAE. Runs no longer need to argue the point; they
 record the rule and move on.
 
-The next controlled experiment is model capacity, not more data. v2 showed that
-10.5x the data narrows the generalization gap 39.7% but lifts changed-token recovery
-only 1.307x, and its train/held-out gap at the selected step is down to 0.0942, so the
-577,552-parameter denoiser is close to fitting what it can express. Change only
-`d_model`, `layers`, and `feedforward`, hold the full 2,681-icon split, seed 3101,
-corruption probability 0.35, batch size 16, and learning rate 0.001 fixed, and predeclare
-a changed-token recovery threshold against v2's 0.0573 at its selected step. Keep the
-0.90 retained-preservation bar standing and expect it to remain falsified.
+Vary the corruption schedule. It is the only one of the three candidate factors still
+standing: v2 eliminated data volume and v3 eliminated model capacity, both on matched
+predeclared comparisons, and both converge to a held-out loss floor near 7.35 that looks
+like a property of the regime rather than of either model. The render probe showed why:
+at probability 0.35 the corrupted input is already visually destroyed, a third of the
+geometry is simply gone, and no model or dataset recovers information that is not there.
+That probability was chosen for the Gate F four-icon fixtures and has never been
+revisited at corpus scale.
 
-The corruption schedule is now the co-equal candidate, not a secondary one, and it
-should be a separate one-factor run rather than folded into the capacity test. The
-render probe showed that at probability 0.35 the corrupted input is already visually
-destroyed, so a third of the geometry is simply gone and the visual task may be
-unachievable at any model size. That probability has been fixed since the Gate F
-four-icon fixtures and has never been varied at corpus scale. Vary it, or train across
-a range of levels, which is also what a denoiser facing many corruption levels at
-sampling time would need.
+The smallest version is a one-factor sweep of `corruption_probability` on the v2 model
+and split - everything else fixed - to find where held-out recovery and render error
+stop being dominated by information loss. The better version, and probably the right
+one, samples a corruption level per example from a range rather than fixing it, which is
+also what a denoiser facing many levels at sampling time actually needs; that is a
+change to the training distribution and should be its own predeclared run rather than
+folded into the sweep.
 
-Whichever factor goes first, render the result. The scalars oversold the v2 output by a
-wide margin, and `python -m mojidiff.learning.pilot_renders` now makes the check cheap.
+Render every result on the 128-icon draw. The paired-difference interval's half-width
+there is 0.0032, so any claim of a render improvement above roughly 0.0064 is testable
+and anything smaller should not be claimed. `python -m mojidiff.learning.pilot_renders`
+makes the check about five minutes of CPU.
 
 Two augmentation ideas remain measured and queued but deliberately unapplied, since data
 volume is no longer the binding constraint. Left-right mirroring is exactly

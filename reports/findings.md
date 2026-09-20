@@ -1076,3 +1076,43 @@ render quality even under argmax decoding, which reinforces the render-probe rul
 Gate G recovery claim without a render beside it. The conclusion is conditional on
 argmax decoding; a sampler that draws from the distribution reopens the calibration
 question.
+
+## 2026-09-20 — Capacity is not the constraint either; the corruption schedule is what is left
+
+**Hypothesis.** v2 left the 577,552-parameter denoiser with a train/held-out gap of only
+0.0942, suggesting it was close to fitting what it could express. At 3.53x the
+parameters — 2,040,976, scaling width and depth together with head dimension and the
+feedforward ratio held constant — the same denoiser on the same 2,681-icon split should
+reach a lower held-out loss, recover at least 1.25x the changed tokens, and render
+measurably closer to `x_0`.
+
+**Observation.** Run `openmoji-g1-capacity-v3-3c252d5-ee32665b-9b9b1699` falsified all
+three. Held-out loss at the selected checkpoint is 7.3790 against v2's 7.3333 — 0.6%
+*worse*, not better. Changed-token recovery is 0.0639, a 1.115x improvement against a
+1.25x bar. On the complete 128-icon held-out draw with identical corruption seeds and a
+verified identical `x_t` control, the mean paired render difference is +0.001853 with a
+95% interval of -0.0026 to +0.0063; the selection-scalar comparison had measured this
+interval's half-width at 0.0032 on the same draw, so an effect above roughly 0.0064
+would have been detected. Structural safety and byte-identical reproducibility hold.
+
+The shape of the failure is the informative part. The larger model reached essentially
+the same held-out loss floor and reached it in 360 steps instead of 840, then
+overfitted. More capacity bought faster fitting of the same ceiling, not a lower one.
+Both models converge to a floor near 7.35, which looks like a property of the regime
+rather than of either model.
+
+**Decision.** Two of three candidate factors are now eliminated on matched, predeclared
+comparisons: data volume by v2, model capacity by this run. The remaining candidate is
+the corruption schedule, which is where the render probe already pointed: `x_t` at
+probability 0.35 is visually destroyed, a third of the geometry is simply gone, and no
+model or dataset recovers information that is not there. That probability was chosen for
+the Gate F four-icon fixtures and never revisited at corpus scale. The next experiment
+varies it, preferably training across a range of levels rather than one fixed point,
+which is also what a denoiser facing many levels at sampling time would need.
+
+Worth recording separately: this run's changed-token recovery climbs from 0.0639 at the
+loss minimum to 0.0831 by step 840, a 30% relative gain entirely past the point where
+held-out loss stopped improving, and 0.0831 would have cleared the criterion. It is
+reported and not gated because the selection rule was settled before this run existed.
+That is precisely the post-hoc freedom the scalar comparison was run to remove, and it
+would have been available here.

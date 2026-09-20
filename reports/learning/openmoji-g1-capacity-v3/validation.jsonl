@@ -1,0 +1,15 @@
+{"accuracy":0.0034993001399720057,"changed_accuracy":0.0033624266704821862,"changed_total":13978,"loss":15.728937149047852,"retained_accuracy":0.0035728006146753745,"retained_total":26030,"step":0,"trained":false}
+{"accuracy":0.16079284143171366,"changed_accuracy":0.03412505365574474,"changed_total":13978,"loss":9.494174003601074,"retained_accuracy":0.22881290818286593,"retained_total":26030,"step":60,"trained":true}
+{"accuracy":0.2484503099380124,"changed_accuracy":0.043210759765345545,"changed_total":13978,"loss":8.158086776733398,"retained_accuracy":0.358663081060315,"retained_total":26030,"step":120,"trained":true}
+{"accuracy":0.27516996600679866,"changed_accuracy":0.04736013735870654,"changed_total":13978,"loss":7.650117874145508,"retained_accuracy":0.3975028812908183,"retained_total":26030,"step":180,"trained":true}
+{"accuracy":0.28724255148970207,"changed_accuracy":0.05437115467162684,"changed_total":13978,"loss":7.593762397766113,"retained_accuracy":0.4122935074913561,"retained_total":26030,"step":240,"trained":true}
+{"accuracy":0.2981903619276145,"changed_accuracy":0.06066676205465732,"changed_total":13978,"loss":7.510613918304443,"retained_accuracy":0.4257395313100269,"retained_total":26030,"step":300,"trained":true}
+{"accuracy":0.3035642871425715,"changed_accuracy":0.06388610673916154,"changed_total":13978,"loss":7.379046440124512,"retained_accuracy":0.43227045716480983,"retained_total":26030,"step":360,"trained":true}
+{"accuracy":0.30546390721855626,"changed_accuracy":0.06803548433252253,"changed_total":13978,"loss":7.6706132888793945,"retained_accuracy":0.4329619669611986,"retained_total":26030,"step":420,"trained":true}
+{"accuracy":0.3054389122175565,"changed_accuracy":0.06796394333953355,"changed_total":13978,"loss":7.506655693054199,"retained_accuracy":0.4329619669611986,"retained_total":26030,"step":480,"trained":true}
+{"accuracy":0.3134623075384923,"changed_accuracy":0.07146945199599371,"changed_total":13978,"loss":7.510890483856201,"retained_accuracy":0.4434114483288513,"retained_total":26030,"step":540,"trained":true}
+{"accuracy":0.3114377124575085,"changed_accuracy":0.07547574760337673,"changed_total":13978,"loss":7.667691230773926,"retained_accuracy":0.43814829043411446,"retained_total":26030,"step":600,"trained":true}
+{"accuracy":0.3144871025794841,"changed_accuracy":0.07712119044212333,"changed_total":13978,"loss":7.562100410461426,"retained_accuracy":0.4419515943142528,"retained_total":26030,"step":660,"trained":true}
+{"accuracy":0.31643671265746853,"changed_accuracy":0.07719273143511232,"changed_total":13978,"loss":7.6621809005737305,"retained_accuracy":0.44490971955436037,"retained_total":26030,"step":720,"trained":true}
+{"accuracy":0.3138872225554889,"changed_accuracy":0.08234368293031907,"changed_total":13978,"loss":7.826178073883057,"retained_accuracy":0.43822512485593546,"retained_total":26030,"step":780,"trained":true}
+{"accuracy":0.3170865826834633,"changed_accuracy":0.08313063385319788,"changed_total":13978,"loss":7.691944599151611,"retained_accuracy":0.44271993853246255,"retained_total":26030,"step":840,"trained":true}

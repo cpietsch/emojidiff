@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-capacity-v3-3c252d5-ee32665b-9b9b1699
-state: planned
+state: completed
 parent_run: openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
 hypothesis: >-
   The bottleneck v2 exposed is model capacity. At 2,040,976 parameters, 3.53x v2's
@@ -107,3 +107,56 @@ outputs:
   report_root: reports/learning/openmoji-g1-capacity-v3
   durable_artifacts: /home/dev/.cache/openmoji-g1-capacity-v3-3c252d5-ee32665b-9b9b1699
 planned_at: 2026-09-20T18:30:00Z
+completed_at: 2026-09-20T18:45:00Z
+result:
+  device: cuda
+  wall_seconds: 72.1
+  peak_cuda_mib: 342.5
+  model_parameters: 2040976
+  ended_by: early_stopping
+  completed_steps: 840
+  selected_step: 360
+  selected_held_out_loss: 7.379046440124512
+  selected_held_out_aggregate_accuracy: 0.3035642871425715
+  selected_held_out_changed_accuracy: 0.06388610673916154
+  selected_held_out_retained_accuracy: 0.43227045716480983
+  final_step_held_out_changed_accuracy: 0.08313063385319788
+  checkpoint_sha256: 93344f19969eb06eb2d99a16967201bd4bb1e7e330cb690551118d81aca17e5c
+  identical_rerun: true
+  render_128_icons:
+    control_inputs_identical: true
+    median_rgba_mae_72px: 0.136983
+    baseline_median_rgba_mae_72px: 0.141215
+    mean_paired_difference_72px: 0.001853
+    ci95_72px: [-0.002643, 0.006349]
+    v3_better_on_72px: 68
+    of: 128
+    mean_paired_difference_18px: 0.001758
+    ci95_18px: [-0.003065, 0.006581]
+predeclared_outcome:
+  overall: falsified
+  capacity_lowers_held_out_loss: {passed: false, observed: 7.379046440124512, threshold: 7.3332648277282715}
+  changed_recovery_improves: {passed: false, observed: 0.06388610673916154, observed_ratio: 1.115, threshold: 0.071630, threshold_ratio: 1.25}
+  renders_measurably_closer:
+    passed: false
+    observed_mean_paired_difference: 0.001853
+    ci95: [-0.002643, 0.006349]
+    detectable_above: 0.0064
+    note: >-
+      Powered against a half-width of 0.0032 measured on this exact 128-icon draw by the
+      selection-scalar comparison, so an effect above roughly 0.0064 would have been
+      detected. The interval spans zero.
+  structural_safety: {passed: true}
+  reproducibility: {passed: true}
+  retained_preservation: {passed: false, observed: 0.43227045716480983, threshold: 0.90, note: standing bar, not a prediction}
+  conclusion: >-
+    3.53x the parameters did not reach a lower held-out loss. It reached the same floor
+    within 0.6%, in 360 steps instead of 840, then overfitted - the signature of a
+    task-limited rather than capacity-limited problem. The powered render check agrees.
+    Data volume was eliminated by v2 and model capacity by this run, both on matched
+    predeclared comparisons, leaving the corruption schedule as the remaining candidate,
+    exactly as this run's predeclared falsification_meaning anticipated.
+artifact_durability:
+  durable_root: /home/dev/.cache/openmoji-g1-capacity-v3-3c252d5-ee32665b-9b9b1699
+  checkpoint_sha256: 93344f19969eb06eb2d99a16967201bd4bb1e7e330cb690551118d81aca17e5c
+  copied_to_repo: [summary.json, metrics.jsonl, validation.jsonl, render-metrics-128.jsonl]

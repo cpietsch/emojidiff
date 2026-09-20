@@ -1,0 +1,12 @@
+# Powered render check for the capacity v3 run, on the complete 128-icon held-out draw.
+# Identical icons, sizes, corruption seeds and probability to the v2 probes, so the
+# paired difference against v2's loss-selected checkpoint is attributable to capacity.
+schema_version: 1
+study_version: openmoji-g1-capacity-v3-renders-full
+pilot_config: configs/learning/openmoji-g1-capacity-v3.yaml
+checkpoint: /home/dev/.cache/openmoji-g1-capacity-v3-3c252d5-ee32665b-9b9b1699/checkpoint/checkpoint.zip
+checkpoint_sha256: 93344f19969eb06eb2d99a16967201bd4bb1e7e330cb690551118d81aca17e5c
+report_root: reports/learning/openmoji-g1-capacity-v3-renders-full
+icons: 128
+render_sizes: [72, 18]
+render_timeout_seconds: 20
