@@ -1,0 +1,16 @@
+{
+  "auc": 0.7491632770837534,
+  "base_rate": 0.349217907227616,
+  "note": "negative log token frequency per role, estimated on 512 clean train icons",
+  "operating_points": {
+    "0.05": {
+      "precision": 0.9962243797195254
+    },
+    "0.08573": {
+      "precision": 0.9886756841774142
+    },
+    "0.34922": {
+      "precision": 0.5768012973974824
+    }
+  }
+}

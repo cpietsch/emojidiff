@@ -1,0 +1,14 @@
+{
+  "auc": 0.6604249191109949,
+  "base_rate": 0.349217907227616,
+  "checkpoint": "data/processed/openmoji-g1-sound-optimisation-v8/checkpoint.zip",
+  "config": "configs/learning/openmoji-g1-sound-optimisation-v8.yaml",
+  "heldout_rows": 37080,
+  "matched_flag_rate": {
+    "lift_over_base_rate": 1.658313954147943,
+    "precision": 0.5791129285938974,
+    "recall": 0.14217314078307206
+  },
+  "probe_dimensions": 102,
+  "train_rows": 27838
+}

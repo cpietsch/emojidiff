@@ -1342,3 +1342,52 @@ argument predicts: a replaced block is inconsistent with its neighbours in a way
 single resampled coordinate is not. Gate F selected factorized on four-icon fixtures
 where recovery was memorization, and this is independent, training-free evidence that
 the selection should be revisited at corpus scale.
+
+## 2026-09-21 — Two bugs, not a wall: the Gate G plateaus were measurement artifacts
+
+**Hypothesis.** A five-lens diagnostic panel over this codebase, with judges, was run
+because the sequence had eliminated five explanations and was about to conclude against
+the model class. Two lenses independently identified a defect I had missed, and I
+verified it before acting.
+
+**Observation.** Two defects, present through the entire Gate G sequence:
+
+The loss averaged cross-entropy over per-(segment kind, coordinate slot) **groups**, not
+fields. QUAD is 0.93% of the corpus, so on the 128-icon held-out draw its four groups
+hold one field each and carried 4/13 of the coordinate loss against 40,004 other fields
+— a measured 5,287x per-field weight ratio — while the group count flipped between 9 and
+13 by batch. And no attention padding mask was passed, so 29.4% of the sequence was
+attended as content. Because the evaluation path uses the same loss, held-out loss — the
+checkpoint-selection and early-stopping signal — was roughly 31% four individual fields.
+
+Correcting both, with no new parameters and no architectural change, took the trained
+corrupted-field detector from **1.365 to 2.806** precision lift and the selected step
+from 660 to **6,180 of a 6,300 cap with no early stop at all**. Both lenses' predictions
+— 1.70 and 1.75, recorded before the run — were exceeded. The run reproduces identically.
+
+**Decision, part one.** Every plateau in the Gate G sequence was declared by that broken
+scalar, on runs stopped at 6–24% of their step cap: v3 at 360, v7 at 660, v2 at 840, v4
+at 1,020, v6 at 1,380, v5 at 1,500. The eliminations of **data volume, model capacity,
+the corruption regime and noise-level conditioning** are no longer admissible as
+measured. Their numbers stand; their reading as plateaus does not, and none should be
+cited again without a re-run under sound optimisation. Two of my own conclusions fall
+with them: "the encoder does not represent the signal" used a frozen-encoder probe that
+shares one weight vector across all six slots, which is mis-specified and a lower bound,
+and the architecture lens's ceiling ladder predicted ~1.30 lift at 16 dims per field,
+which v8 exceeds at that same width.
+
+**Decision, part two, and it matters more.** A judge found what all five lenses missed.
+A detector scoring each field purely by **how rare its own token is for its own role** —
+zero parameters, zero context, no neighbours — reaches 0.9887 precision and **2.831 lift**
+at the same flag rate, and 0.9962 at a 5% flag rate. v8's 2.806 matches it rather than
+beating it. Corruption draws uniformly from the full legal vocabulary, so a large share
+of replacements land on tokens real icons essentially never use, and detecting them needs
+no geometry whatsoever.
+
+So precision lift under factorized role-uniform corruption is **largely a
+marginal-density test**, and v8 has most likely learned the corpus marginal. The
+detection metric leaks, which means the corruption process leaks. The next experiment is
+to remove the leak: draw replacements from the **corpus marginal for that role** rather
+than uniformly, so that a corrupted token is in-distribution by construction and
+detecting it actually requires the surrounding geometry. Everything measured on the
+uniform process — including v8 — should be re-read against that.

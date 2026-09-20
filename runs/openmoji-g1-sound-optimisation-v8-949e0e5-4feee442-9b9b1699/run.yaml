@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-sound-optimisation-v8-949e0e5-4feee442-9b9b1699
-state: planned
+state: completed
 parent_run: openmoji-g1-detection-only-v7-856230a-9d2db303-9b9b1699
 diagnosis: five-lens diagnostic panel over this codebase, with both defects verified independently
 hypothesis: >-
@@ -107,3 +107,54 @@ outputs:
   report_root: reports/learning/openmoji-g1-sound-optimisation-v8
   durable_artifacts: /home/dev/.cache/openmoji-g1-sound-optimisation-v8-949e0e5-4feee442-9b9b1699
 planned_at: 2026-09-20T23:40:00Z
+completed_at: 2026-09-21T00:10:00Z
+result:
+  device: cuda
+  model_parameters: 579872
+  selected_step: 6180
+  completed_steps: 6300
+  ended_by: reached_the_cap_still_improving
+  held_out_field_pooled_loss: 0.4488285779953003
+  identical_rerun: true
+  detector_at_matched_flag_rate:
+    precision: 0.9805
+    lift_over_base_rate: 2.806
+    recall: 0.2406
+  detector_at_base_flag_rate: {precision: 0.7059, lift_over_base_rate: 2.020, recall: 0.7059}
+  frozen_encoder_linear_probe: {auc: 0.6604, lift: 1.658, note: shares one weight vector across slots, so a lower bound}
+predeclared_outcome:
+  overall: passed
+  beats_the_broken_baseline: {passed: true, observed: 2.806, threshold: 1.365}
+  reaches_the_panel_lower_bound: {passed: true, observed: 2.806, threshold: 1.55}
+  uses_more_of_its_budget: {passed: true, selected_step: 6180, completed_steps: 6300, early_stopped: false}
+  reproducibility: {passed: true}
+  matches_the_free_detector: {passed: true, observed: 2.806, reference: 2.13, note: standing reference, not predicted by either lens}
+  panel_predictions_exceeded:
+    optimization_lens: {predicted: 1.70, interval: [1.55, 1.95], observed: 2.806}
+    objective_lens: {predicted: 1.75, interval: [1.6, 1.9], observed: 2.806}
+  conclusion: >-
+    Two verified defect fixes, no new parameters and no architectural change, took the
+    trained detector from 1.365 to 2.806 and the selected step from 660 to 6,180 with no
+    early stop. Both lenses' intervals were exceeded.
+  caveat_that_matters_more:
+    statement: >-
+      A zero-parameter, zero-context detector that scores each field by how rare its own
+      token is for its own role reaches 0.9887 precision and 2.831 lift at the same flag
+      rate, and 0.9962 at a 5% flag rate. v8 matches it rather than beating it.
+      Corruption draws uniformly from the full legal vocabulary, so many replacements
+      land on tokens real icons never use: precision lift under factorized role-uniform
+      corruption is mostly a marginal-density test, and v8 has most likely learned the
+      corpus marginal rather than the geometry.
+    evidence: reports/learning/marginal-density-detector.json
+  invalidates: >-
+    Every plateau in the Gate G sequence was declared by a held-out scalar that was ~31%
+    four fields, on runs stopped at 6-24% of their step cap. The eliminations of data
+    volume (v2), model capacity (v3), the corruption regime (sweep) and noise-level
+    conditioning (v4) are no longer admissible as measured. Their numbers stand; their
+    interpretation as plateaus does not.
+  withdraws: >-
+    Two of my own earlier conclusions. "The encoder does not represent the signal" rested
+    on a frozen-encoder probe that shares one weight vector across all six slots, which is
+    mis-specified and a lower bound, and on v7's broken training; the same probe on v8
+    reaches AUC 0.6604 against 0.5797. And the architecture lens's ceiling ladder
+    predicted ~1.30 lift at 16 dims per field, which v8 exceeds at that same width.
