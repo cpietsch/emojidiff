@@ -113,8 +113,12 @@ gates:
       probability 0.05 and 0.10 the predictions are recognizable icons and visibly
       repaired, with recovery +0.0308 and +0.3902 against the earlier checkpoint's
       -4.6517 and -1.2024. The ceiling was the corruption schedule, not the
-      representation, the model or the objective. It remains a denoiser that removes
-      stray strokes from a mostly intact icon, not a generator. Every earlier plateau in
+      representation, the model or the objective. Training across corruption levels was
+      then tested and is not the lever either - indistinguishable at low levels and
+      measurably worse at 0.35 - so every training-side factor this gate identified is
+      settled. At 32 icons both models improve lightly corrupted inputs significantly,
+      26 and 29 of 32 at p=0.05. It remains a denoiser that removes stray strokes from a
+      mostly intact icon, not a generator, and generation is Gate I's question. Every earlier plateau in
       this gate was measured under the broken loss and is no longer admissible as read.
 
   - id: Gate H
@@ -124,11 +128,21 @@ gates:
     evidence: Gated on a stable OpenMoji pipeline.
   - id: Gate I
     title: Cached AR comparison
-    status: not-started
-    question: How does the denoiser compare with a matched, KV-cached autoregressive baseline?
+    status: open
+    question: >-
+      How does the denoiser compare with a matched, KV-cached autoregressive baseline -
+      and does the representation support generation at all?
     evidence: >-
-      Not begun. The comparison must be at matched parameter count, data, codec, and
-      engineering effort, measured end to end on one named GPU.
+      Now the project's leading question. Gate G settled every training-side factor it
+      identified without producing a generator, because denoising is not generation, and
+      this is PROJECT_PLAN.md section 12 branch 4 - the only untried route to a
+      generation result. Nothing in the repository implements a causal model, so it is a
+      build rather than a modification, on foundations that are sound: an exact
+      render-safe codec, hashed family-disjoint splits, an isolated renderer, and the
+      measurement patterns Gate G established. The comparison must be at matched
+      parameter count, data, codec and engineering effort, measured end to end on one
+      named GPU; nominal step counts are not a speed result.
+
   - id: Gate J
     title: Deployment optimization
     status: not-started

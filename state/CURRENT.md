@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T07:05:00Z
+Updated: 2026-09-21T07:50:00Z
 
 ## Current hypothesis and evidence
 
@@ -496,6 +496,24 @@ mostly intact. It is not a generator, it does not reconstruct destroyed geometry
 26A0 shows it can still damage a near-perfect input. v16 trained only at 0.35, so every
 level below is off-distribution, which makes the result stronger rather than weaker.
 
+Training across corruption levels was then tested directly and is not the lever. On 32
+icons, both models at four levels with the same seeds and per-level derived gates, the
+paired difference between a range-trained model and v16 is -0.00125 at 0.05, -0.00087 at
+0.10 and -0.00324 at 0.20, every interval spanning zero, and -0.01400 at 0.35 with the
+interval excluding zero. It buys nothing at the low levels it was meant to help and costs
+performance at the level it was meant to trade away. That run's record predicted it
+beforehand from the calibration figures, which makes the calibration estimate a usable
+cheap predictor of the render outcome.
+
+Those 32 icons also resolve the sample-size limit that falsified `never_damages`. Both
+models now improve lightly corrupted inputs significantly - v16 on 26 of 32 icons at
+p=0.05, the range-trained model on 29 of 32, both intervals excluding zero - so the
+sweep's headline is properly supported rather than suggestive.
+
+Every training-side factor this gate identified is therefore settled: data volume
+matters, capacity does not, noise conditioning does not, and the corruption schedule does
+not.
+
 Every plateau the sequence had declared - data volume, capacity, the corruption regime,
 noise conditioning - was measured under the broken loss and is no longer admissible as
 read. The numbers stand; the interpretation does not.
@@ -960,31 +978,39 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Train across a range of corruption levels and report at each, rather than training and
-reporting at a single destructive point. Everything needed already exists: the pilot
-takes `corruption_probability_max` to sample a level per example, and
-`noise_level_features` to tell the model which level it is seeing. Both were added and
-tested earlier in this session, and the retest showed the pair changes nothing at 0.35 -
-but 0.35 is exactly the level at which nothing could help, and the sweep has now shown
-that lower levels are where this model works.
+Start Gate I: the cached autoregressive baseline on the same codec. It is
+PROJECT_PLAN.md section 12 branch 4, it has been named as the remaining branch since the
+Gate G sequence began going wrong, and it is now the only untried route to a generation
+result rather than a denoising one. Every training-side factor in Gate G is settled and
+none of them was the binding constraint on generation, because denoising is not
+generation.
 
-Take v16 as the base, sample the level over 0.05 to 0.50 with noise conditioning on, and
-report paired render recovery at 0.05, 0.10, 0.20 and 0.35 separately rather than
-collapsing them. Predeclare against this run's per-level numbers - +0.0308, +0.3902,
-+0.2469, +0.2511 - and against the 9 of 12 icons helped at 0.05, since damaging a nearly
-clean input is the failure mode that matters there. Use more than twelve icons: this run
-was prevented from a significant result at 0.05 by a single bad case.
+What exists to build on: the codec is exact, render-safe and capacity-audited through
+Gates C and D; the splits are family-disjoint and hashed; the isolated renderer, the
+run registry, the audit script and the weblog all work; and `scripts/detector_report.py`
+and `pilot_renders.py` establish the measurement patterns. Nothing in the repository
+implements a causal model - `grep -rl "autoregressive\|causal\|kv_cache" src/` returns
+nothing - so this is a build rather than a modification.
 
-Then the two pieces of declared work that remain, each larger than one run:
+PROJECT_PLAN.md section 8 sets the terms and they should be predeclared: legal-token
+masks, KV caching, batched decoding, the same serializer, safety checks and evaluation
+suite, and a comparable parameter and training budget. The plan is explicit that nominal
+step counts are not a speed result - the comparison must be end-to-end latency,
+throughput, peak VRAM and quality on the same named GPU.
 
-- The corpus-scale corruption-process comparison, whose configs and criteria are already
-  committed under `openmoji-g1-corruption-process-corpus-76f41a3-2arms-9b9b1699`,
-  cancelled when no trained model could learn detection on any process. That blocker
-  cleared at v10. It needs the marginal-respecting process as a third arm and the gated
-  metric switched to paired render recovery.
-- Gate I, the cached autoregressive baseline on the same codec - PROJECT_PLAN.md section
-  12 branch 4 - which is still the only untried route to a generation result rather than
-  a denoising one.
+Predeclare quality against what this gate produced, not against nothing: paired render
+recovery is the primary metric, the identity baseline sits beside every recovery number,
+and unconditional samples need their own criterion since identity is meaningless there.
+Begin with a tiny overfit test on the Gate E fixtures before anything at corpus scale,
+as Gate E did for the denoiser.
+
+The one piece of declared work that remains from Gate G is the corpus-scale
+corruption-process comparison, cancelled when no trained model could learn detection on
+any process; that blocker cleared at v10. Its configs and criteria are committed under
+`openmoji-g1-corruption-process-corpus-76f41a3-2arms-9b9b1699` and it needs the
+marginal-respecting process as a third arm and the gated metric switched to paired render
+recovery. It is worth running, but it compares corruption processes for a denoiser, and
+Gate I asks whether the representation supports generation at all.
 
 Standing rules from this session, for every later run:
 
@@ -999,4 +1025,5 @@ Standing rules from this session, for every later run:
   Exact-token accuracy is secondary and points the wrong way.
 - Report results per corruption level. A single level hid the main finding of this gate
   for its entire history.
+- Twelve icons is too few. One bad case prevented a significant result; 32 resolved it.
 - Run `python scripts/audit_run_records.py` before committing a run record.
