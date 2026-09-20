@@ -151,6 +151,14 @@ class OpenMojiPilotConfig:
     more identifiable - AUC 0.9333 against 0.7698 - so the selection is being re-run at
     corpus scale. Defaults to `factorized`, so every earlier config is unchanged.
     """
+    detection_only: bool = False
+    """Train only the keep head, dropping the value term from the loss.
+
+    The value objective is a 289- or 417-class problem against the keep head's 2-class
+    one, and they share an encoder, so the encoder is shaped almost entirely by the
+    value task. This asks whether the detection signal is learnable at all when nothing
+    competes for the representation.
+    """
     edit_mask: bool = False
     """Predict a per-field keep-or-change decision and copy the input where it says keep.
 
@@ -238,6 +246,7 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
         corruption_process=_corruption_process(training.get("corruption_process", "factorized")),
         slot_binding=_flag(model.get("slot_binding", False), "slot_binding"),
         edit_mask=_flag(model.get("edit_mask", False), "edit_mask"),
+        detection_only=_flag(training.get("detection_only", False), "detection_only"),
     )
     if result.d_model % result.heads:
         raise OpenMojiPilotError("model.d_model must be divisible by model.heads")
@@ -247,6 +256,8 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
         raise OpenMojiPilotError("training.device must be auto, cpu, or cuda")
     if result.eval_every > result.steps:
         raise OpenMojiPilotError("training.eval_every cannot exceed training.steps")
+    if result.detection_only and not result.edit_mask:
+        raise OpenMojiPilotError("detection_only requires model.edit_mask")
     if result.selection_policy is not None and not result.eval_every:
         raise OpenMojiPilotError("selection_policy requires a nonzero training.eval_every")
     if (
@@ -486,7 +497,12 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
         start_logits, coordinate_logits, keep = model.forward_with_edits(noisy_batch, condition)
         if keep is not None:
             loss, counts = edit_mask_loss_and_accuracy(
-                (start_logits, coordinate_logits), keep, noisy_batch, clean_batch, codec
+                (start_logits, coordinate_logits),
+                keep,
+                noisy_batch,
+                clean_batch,
+                codec,
+                detection_only=config.detection_only,
             )
         else:
             loss, counts = geometry_loss_and_accuracy(
@@ -671,7 +687,12 @@ def _evaluate(
         value_logits = (start_logits, coordinate_logits)
         if keep is not None:
             loss, counts = edit_mask_loss_and_accuracy(
-                value_logits, keep, noisy_batch, clean_batch, codec
+                value_logits,
+                keep,
+                noisy_batch,
+                clean_batch,
+                codec,
+                detection_only=config.detection_only,
             )
             split = edit_mask_accuracy_by_corruption(
                 value_logits, keep, noisy_batch, clean_batch, codec

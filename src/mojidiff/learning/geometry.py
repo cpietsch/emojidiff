@@ -656,11 +656,19 @@ def edit_mask_loss_and_accuracy(
     noisy: dict[str, Tensor],
     clean: dict[str, Tensor],
     codec: CodecConfig,
+    *,
+    detection_only: bool = False,
 ) -> tuple[Tensor, dict[str, int]]:
     """Keep-or-change cross-entropy plus value cross-entropy on changed fields only.
 
     Accuracy is measured on the gated prediction, so it stays directly comparable with
     `geometry_loss_and_accuracy` and with the identity baseline.
+
+    With `detection_only` the value term is dropped entirely. The two terms have very
+    different scales - a 2-class decision against a 289- or 417-class one - and they
+    share an encoder, so the value objective dominates what the encoder learns to
+    represent. Dropping it asks whether this model can learn the detection signal at
+    all when nothing competes for the representation.
     """
 
     keep_losses: list[Tensor] = []
@@ -685,7 +693,7 @@ def edit_mask_loss_and_accuracy(
         correct += int((predictions == targets).sum().item())
         total += int(targets.numel())
     loss = torch.stack(keep_losses).mean()
-    if value_losses:
+    if value_losses and not detection_only:
         loss = loss + torch.stack(value_losses).mean()
     return loss, {"correct": correct, "total": total}
 
