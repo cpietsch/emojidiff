@@ -12,16 +12,12 @@ updated: 2026-09-20
 # the Current hypothesis section of state/CURRENT.md; the weblog falls back to that
 # section's newest paragraph if this is absent.
 headline: >-
-  The 256-icon overfit was data-limited: the full 2,681-icon split cuts held-out loss
-  25.1% and narrows the train/held-out gap 39.7%. But changed-token recovery improved
-  only 1.307x against a predeclared 1.5x, and rendering that checkpoint shows none of
-  twelve held-out predictions is a recognizable icon. Data volume is no longer the
-  binding constraint, and neither is model capacity. The denoiser barely reads its
-  input: it learned a prior over icons, not a conditional denoiser. A provable encoder
-  defect - six coordinate lookups summed from one shared table, so a segment was an
-  unordered bag of its values - accounts for part of it, and fixing it for 768
-  parameters beats a 3.53x capacity increase. What remains is the prediction objective,
-  which has no cheap way to say "leave this field alone".
+  Gate G has a negative result, and a specific one. Seven explanations were eliminated by
+  predeclared comparison, ending at the decisive one: a coordinate resampled uniformly
+  from a 289-value vocabulary is a plausible coordinate, so a corrupted-field detector
+  reaches only 0.1058 recall at barely-above-chance precision. The corruption is not
+  identifiable, so it is not invertible, and every trained model scores below the trivial
+  policy of emitting its input unchanged. The codec and renderer are unaffected.
 gates:
   - id: Gate A
     title: Orchestration and recovery
@@ -78,34 +74,26 @@ gates:
       held-out fields, so it is retained as a lighter feasibility ablation.
   - id: Gate G
     title: OpenMoji generation and editing
-    status: open
+    status: complete
     question: >-
       Does the selected formulation actually generate and edit OpenMoji well, under
       structured conditioning and locked-path inpainting?
     evidence: >-
-      Pipeline mechanics pass on CPU and on the owned RTX 4080. Training v1 on a
-      256-icon subsample was falsified by overfitting. The v2 data-scale run on the full
-      2,681-icon split substantially improves generalization but misses its
-      changed-token recovery bar, so changed-field recovery, not data volume, is now the
-      open question. Rendering that checkpoint shows none of twelve held-out predictions
-      is a recognizable icon, so the token-accuracy scalars oversell the visual result
-      and the fixed 0.35 corruption probability may be the wrong regime entirely. The
-      checkpoint-selection scalar is settled as held-out loss, by convention: on the
-      full 128-icon held-out draw the loss-selected and accuracy-selected checkpoints
-      differ by less than 0.0032 RGBA MAE in render error. A 3.53x capacity run then
-      falsified capacity as the constraint too, reaching the same held-out loss floor
-      sooner and then overfitting. A corruption-level sweep over one fixed checkpoint
-      then found the cause: the model's output is near-independent of its input,
-      correlating at r = 0.91 between 5% and 35% corruption, so it learned a
-      group-conditioned prior over icon geometry rather than a conditional denoiser. At
-      5% corruption it makes its input 2.8x worse. Noise-level conditioning was falsified
-      as the explanation; the encoder was the defect, summing six coordinate lookups
-      from one shared table so a segment was an unordered bag of its values, provably
-      permutation-invariant in float64. Binding each value to its slot costs 768
-      parameters and beats a 3.53x capacity increase on every measure, but leaves the
-      prediction correlation unchanged at 0.86. Five candidates are eliminated by
-      predeclared comparison; the prediction objective remains. Still fixed-topology and
-      geometry-only.
+      Answered negatively, and specifically. Seven candidate explanations were
+      eliminated by predeclared comparison: data volume, model capacity, the corruption
+      level, noise-level information, an encoder defect that made the model blind to
+      which coordinate was which, the objective's inability to express identity, and
+      finally the separability of detection from denoising. The decisive measurement is
+      that a corrupted-field detector reaches only 0.1058 recall at 0.4312 precision
+      against a 0.3494 base rate: a coordinate resampled uniformly from a 289-value
+      legal vocabulary is a plausible coordinate, so finding it requires already knowing
+      the icon. Factorized role-uniform corruption at p=0.35 therefore produces states
+      that are not identifiable and so not invertible by a model of this class, and
+      every trained model scores below the trivial policy of emitting its input
+      unchanged. Gate F selected this process on four-icon fixtures where 96-99%
+      recovery was memorization; that comparison needs re-running at corpus scale with
+      the identity baseline attached. Fixed-topology and geometry-only throughout.
+
   - id: Gate H
     title: Broad pretraining question
     status: not-started

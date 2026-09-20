@@ -331,6 +331,38 @@ defect which would confound every later result. Five candidates are now eliminat
 predeclared comparison - data volume, capacity, the corruption regime, noise-level
 information, and encoder slot-blindness - leaving the prediction objective.
 
+The prediction objective was the last candidate, and testing it produced a control that
+should have existed since v1. Under argmax decoding, emitting `x_t` unchanged is a legal
+policy: the identity function scores 1.0 retained, 0.0 changed and 0.6506 aggregate at
+corruption 0.35. Every trained model scores below it, the best by 0.2713. v1 reported
+recovery as 18x its *untrained* control, which made weak learning look like progress
+because random is the wrong floor.
+
+Run `openmoji-g1-edit-mask-v6-0228c3b-0f6ce115-9b9b1699` added per-field keep-or-change
+heads so identity is predict-keep-everywhere, 1,552 parameters on v5. All four primary
+criteria are falsified and the predeclared degenerate-collapse watch fired. Aggregate
+rises to 0.6119, still below identity; retained to 0.9335, below identity's 1.0; and
+changed recovery *falls* from 0.0787 to 0.0132. The model predicts keep on 91.4% of
+fields, landing strictly worse than both v5 and identity. Render recovery is near zero
+at every level: the edit mask converted an actively harmful model into a nearly inert
+one.
+
+Measuring the keep head as a corrupted-field detector gives the answer. Recall is 0.1058
+and precision 0.4312 against a 0.3494 base rate, a lift of 1.23x - barely better than
+guessing. A coordinate resampled uniformly from a 289-value legal vocabulary is a
+plausible coordinate, so identifying it requires already knowing the icon. Detection is
+not an easier sub-problem than denoising; it is the same problem, and with 65% of fields
+uncorrupted predicting keep is loss-minimising.
+
+Gate G therefore has a negative result rather than an open question. Factorized
+role-uniform categorical corruption at p=0.35 over a 289/417-value coordinate vocabulary
+produces states from which the corruption is not identifiable, and so not invertible, by
+a model of this class. Gate F selected this process as primary on four-icon fixtures at
+96-99% held-out recovery; that does not survive 2,681 icons, and the Gate F comparison
+should be re-read as a memorization comparison. Gate C and Gate D are untouched: the
+codec is exact and render-safe, and the negative result is about the corruption process,
+not the representation.
+
 
 
 ## Last completed action and verification
@@ -343,6 +375,12 @@ and metrics byte-identically, summary SHA-256
 cover the unchanged fixed-budget shape, argmin selection with a matching written
 checkpoint, deterministic patience exhaustion, and rejection of a policy without
 periodic evaluation. The full suite passes 112/112; Ruff and strict mypy pass.
+
+Registered and completed the edit-mask run v6 at commit `0228c3b`. All four primary
+criteria are falsified, the degenerate-collapse watch fired, and the keep-head detector
+diagnostics were measured directly. Its artifacts reproduce identically. The identity
+baseline was computed from already-committed metrics at no cost and is recorded in
+`reports/learning/identity-baseline.json`.
 
 Registered and completed the noise-conditioned run v4 and the slot-bound run v5, at
 commits `6b935b2` and `f502df1`. v4 is falsified; v5 is partially falsified and its
@@ -762,45 +800,35 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-The selection scalar is settled: held-out loss, by convention, with the effect on render
-quality bounded below 0.0032 RGBA MAE. Runs no longer need to argue the point; they
-record the rule and move on.
+Re-run the Gate F corruption comparison at corpus scale with the identity baseline
+attached. That comparison chose factorized role-uniform corruption as the primary
+process on four-icon fixtures where held-out recovery ran at 96-99%, which the Gate G
+sequence has since shown to be memorization rather than denoising. Path-correlated and
+whole-path replacement were set aside on that basis and deserve re-examination on the
+2,681-icon split, with the v5 encoder fix and the v6 edit mask both switched on, since
+each is a strict improvement independent of the corruption process.
 
-Change the prediction objective so that copying is the default. It is the only candidate
-left after five predeclared eliminations, and the argument for it is concrete: every
-field is predicted by an independent single-shot softmax over a 289- or 417-way
-vocabulary, so "leave this one alone" costs exactly as much as inventing a new value.
-At corruption 0.35, 65% of fields are uncorrupted, so most of what the model is asked to
-do is reproduce tokens it was already given - and v5 shows it still cannot, even now
-that it can read them.
+The falsifiable question is whether any of the three processes yields corrupted states
+whose corrupted fields are actually detectable. The measurement already exists: the
+keep head's recall and precision against the base rate, which for factorized corruption
+is 0.1058 and 0.4312 against 0.3494. A process whose corruption is detectable should
+show a materially higher lift, and that is the criterion to predeclare - not held-out
+accuracy, which the identity policy already dominates.
 
-The smallest version predicts a per-field keep-or-change decision alongside the value,
-and takes the input token wherever the decision is keep. A residual formulation - predict
-an offset against `x_t` rather than an absolute token - is the alternative and may suit
-the quarter-unit coordinate lattice better, since most corrections are probably small.
-Build on v5, keep slot binding, hold the split, seed, corruption probability, batch size
-and learning rate fixed, and predeclare retained-token accuracy against v5's 0.5408 and
-the recovery fraction at 0.10 against its -0.7607, where a change of sign remains the
-qualitative test.
+A cheaper preliminary, worth doing first because it costs no training: measure
+detectability directly. For each candidate corruption process, train nothing and instead
+ask whether a corrupted field is distinguishable from a legitimate one at all - for
+instance by comparing the likelihood a simple local-geometry statistic assigns to real
+versus resampled coordinates. If factorized corruption is genuinely non-identifiable
+that should be visible without a model, and it would bound how much any denoiser can
+achieve under it.
 
-One diagnostic worth running first, because it is cheap and bounds the rest: condition on
-which fields were corrupted. That is not a realistic sampling-time signal, so it is an
-upper bound rather than a candidate design, but it separates inability to identify
-corrupted fields from inability to predict their values, and that determines which of
-the two formulations above is worth building.
+If none of the three processes produces identifiable corruption at corpus scale, that is
+the Gate G answer for this formulation, and PROJECT_PLAN.md section 12's fallback
+interpretations become the live branch rather than a contingency. Note that both
+remaining processes replace larger correlated blocks, which is a reason to expect them
+to be *more* detectable, not less: a whole path replaced by a donor is structurally
+inconsistent with its neighbours in a way a single resampled coordinate is not.
 
-Render every result on the 128-icon draw. The paired-difference interval's half-width
-there is 0.0032, so any claim of a render improvement above roughly 0.0064 is testable
-and anything smaller should not be claimed. `python -m mojidiff.learning.pilot_renders`
-makes the check about five minutes of CPU.
-
-Two augmentation ideas remain measured and queued but deliberately unapplied, since data
-volume is no longer the binding constraint. Left-right mirroring is exactly
-representable: the quarter-unit lattice is closed under x to 72-x, endpoint token t maps
-to 290-t for all 289 bins, and observed control-x spans only 2.00 to 70.00, so nothing
-overflows the -8 to 96 control vocabulary. Content also occupies a median 0.753 of the
-72-unit box, so rescaling would recover about 1.33x coordinate resolution, though
-coordinate precision is not currently the limiting factor.
-
-Regenerate the weblog with `python -m mojidiff.weblog.build` after any material result,
-so the served view does not drift from the committed record.
+Render every result on the 128-icon draw, and report the identity baseline beside every
+recovery number from now on.

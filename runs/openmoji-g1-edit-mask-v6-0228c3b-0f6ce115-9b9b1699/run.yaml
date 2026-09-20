@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-edit-mask-v6-0228c3b-0f6ce115-9b9b1699
-state: planned
+state: completed
 parent_run: openmoji-g1-slot-bound-v5-f502df1-d8af55ea-9b9b1699
 hypothesis: >-
   Every Gate G model so far scores below the identity policy on held-out token accuracy
@@ -126,3 +126,56 @@ outputs:
   report_root: reports/learning/openmoji-g1-edit-mask-v6
   durable_artifacts: /home/dev/.cache/openmoji-g1-edit-mask-v6-0228c3b-0f6ce115-9b9b1699
 planned_at: 2026-09-20T21:00:00Z
+completed_at: 2026-09-20T21:20:00Z
+result:
+  device: cuda
+  model_parameters: 579872
+  selected_step: 1380
+  completed_steps: 1860
+  ended_by: early_stopping
+  held_out_loss: 5.8577985763549805
+  held_out_loss_note: not comparable with v1-v5; the edit-mask objective is a different loss
+  held_out_aggregate_accuracy: 0.6119276144771045
+  held_out_changed_accuracy: 0.013163542709972815
+  held_out_retained_accuracy: 0.9334613907030349
+  identical_rerun: true
+  keep_head_diagnostics:
+    fields_predicted_keep: 0.9143
+    corrupted_field_recall: 0.1058
+    corrupted_field_precision: 0.4312
+    base_rate_of_corrupted_fields: 0.3494
+    precision_lift_over_base_rate: 1.23
+    false_alarm_rate_on_uncorrupted: 0.0750
+  mean_recovery_fraction_72px: {"0.05": -0.3473, "0.10": -0.1087, "0.20": -0.0101, "0.35": 0.0147}
+  mean_x_hat_0_error_72px: {"0.05": 0.0580, "0.10": 0.08947, "0.20": 0.13619, "0.35": 0.17673}
+predeclared_outcome:
+  overall: falsified
+  beats_identity: {passed: false, observed: 0.6119276144771045, threshold: 0.6506198760247951}
+  retains_what_identity_retains: {passed: false, observed: 0.9334613907030349, threshold: 0.95}
+  recovers_more_than_identity: {passed: false, observed: 0.013163542709972815, threshold: 0.07869509228788095}
+  stops_damaging_light_corruption: {passed: false, observed: -0.1087, threshold: 0.0}
+  structural_safety: {passed: true}
+  reproducibility: {passed: true}
+  degenerate_pass_watch:
+    fired: true
+    statement: >-
+      The model predicts keep on 91.4% of held-out fields. It moved most of the way to
+      the trivial policy and stopped just short, landing strictly worse than both v5 and
+      identity: six times fewer corrupted fields recovered than v5, while still not
+      keeping as reliably as doing nothing.
+  conclusion: >-
+    The edit mask did what it was built to do and stopped the model destroying its
+    input, converting an actively harmful model into a nearly inert one. It collapsed
+    onto keep because corrupted fields are not detectable: recall 0.1058, precision
+    0.4312 against a 0.3494 base rate, a lift of 1.23x. A coordinate resampled uniformly
+    from a 289-value legal vocabulary is a plausible coordinate, so telling it apart
+    requires already knowing the icon - detection is not an easier sub-problem than
+    denoising, it is the same problem. With 65% of fields uncorrupted and no reliable
+    way to find the rest, predicting keep is loss-minimising and the model found it.
+  gate_level_finding: >-
+    Factorized role-uniform categorical corruption at p=0.35 over a 289/417-value
+    coordinate vocabulary produces states from which the corruption is not identifiable,
+    and therefore not invertible, by a model of this class. Gate F selected this process
+    as primary on four-icon fixtures at 96-99% held-out recovery, which does not survive
+    contact with 2,681 icons; that comparison should be re-read as a memorization
+    comparison rather than a denoising one.

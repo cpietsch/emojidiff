@@ -1,0 +1,12 @@
+# Corruption sweep over the edit-mask v6 checkpoint. Same 32 icons, sizes and seeds as
+# the v2, v4 and v5 sweeps.
+schema_version: 1
+study_version: openmoji-g1-v6-sweep-p010
+pilot_config: configs/learning/openmoji-g1-edit-mask-v6.yaml
+checkpoint: /home/dev/.cache/openmoji-g1-edit-mask-v6-0228c3b-0f6ce115-9b9b1699/checkpoint/checkpoint.zip
+checkpoint_sha256: fc656537e4e749a67987d5f93d00256d303cd1c5975bcdd8ee80716b359188a5
+report_root: reports/learning/openmoji-g1-v6-sweep-p010
+icons: 32
+render_sizes: [72, 18]
+render_timeout_seconds: 20
+corruption_probability: 0.10

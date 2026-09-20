@@ -1251,3 +1251,51 @@ requires reconstructing all 26,030 uncorrupted tokens exactly. The next run make
 identity the default by predicting a per-field keep-or-change decision, and its primary
 criterion is to beat 0.6506 aggregate - the first Gate G criterion set against the
 trivial policy rather than against noise.
+
+## 2026-09-20 — Gate G negative result: the corruption is not identifiable, so it is not invertible
+
+**Hypothesis.** Every trained model scored below the identity policy because the
+objective made identity expensive: each field is an independent softmax over a 289- or
+417-value vocabulary, so "leave this one alone" costs as much as inventing a value.
+Adding a per-field keep-or-change decision, and copying the input where it says keep,
+should let the model clear the trivial policy.
+
+**Observation.** Run `openmoji-g1-edit-mask-v6-0228c3b-0f6ce115-9b9b1699` falsified all
+four primary criteria and fired the predeclared degenerate-collapse watch. Aggregate
+held-out accuracy rose from v5's 0.3793 to 0.6119, still below identity's 0.6506;
+retained accuracy rose from 0.5408 to 0.9335, below identity's 1.0; and changed-token
+recovery *fell* from 0.0787 to 0.0132. The model predicts keep on 91.4% of held-out
+fields. It moved most of the way to the trivial policy and stopped just short, landing
+strictly worse than both v5 and identity. Render recovery is near zero at every
+corruption level, against v5's -3.1470 at 0.05: the edit mask converted an actively
+harmful model into a nearly inert one.
+
+The keep head is a corrupted-field detector, and measuring it directly answers the
+question this sequence has been circling. Recall is **0.1058** — one corrupted field in
+ten — and precision is 0.4312 against a base rate of 0.3494, a lift of 1.23x. It is
+barely better than guessing. That is not an architectural shortcoming. A coordinate
+resampled uniformly from a 289-value legal vocabulary lands on a perfectly plausible
+coordinate, so telling it apart from a legitimate one requires already knowing what the
+icon should look like. Detection is not an easier sub-problem than denoising; it is the
+same problem. With 65% of fields uncorrupted and no reliable way to find the rest,
+predicting keep is loss-minimising, and the model found it.
+
+**Decision.** Record this as a Gate G-level negative result, as the run's predeclared
+falsification meaning required, rather than patching it. Seven candidates have now been
+eliminated by predeclared comparison: data volume, model capacity, the corruption level,
+noise-level information, encoder slot-blindness, the objective's inability to express
+identity, and finally the separability of detection from denoising.
+
+Factorized role-uniform categorical corruption at p=0.35 over a 289/417-value coordinate
+vocabulary produces states from which the corruption is not identifiable, and therefore
+not invertible, by a model of this class. This bears directly on the project's working
+hypothesis, which names *structure-aware* categorical corruption: Gate F selected the
+factorized process as primary on four-icon fixtures at 96-99% held-out recovery, and
+that selection does not survive contact with 2,681 icons. The Gate F comparison should
+be re-read as a memorization comparison rather than a denoising one, and the
+path-correlated and whole-path processes it set aside deserve re-examination at corpus
+scale with the identity baseline attached.
+
+What this does not touch: Gate C and Gate D stand, the codec is exact and render-safe,
+and v5 showed the encoder fix was worth keeping. The negative result is about the
+corruption process, not the representation.
