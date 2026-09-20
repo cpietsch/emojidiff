@@ -921,3 +921,56 @@ change only the train-split size, moving to the full 2,681-icon family-disjoint 
 while holding model, seed, corruption, batch, and learning rate fixed, and should select
 on held-out loss instead of a fixed step budget. Loading that split costs about three
 minutes of CPU at the measured 60 ms per icon, so it remains a bounded run.
+
+
+## 2026-09-20 — Development moved to gpubox-4080, with a matched environment control
+
+**Hypothesis.** Moving development and execution off the `gtc` control plane onto the
+owned RTX 4080 changes the numerical environment from torch 2.8.0a0+5228986c39.nv25.06
+with CUDA 12.9, inside a pinned container, to torch 2.14.0a0+4fdf77b940.nv26.08 with
+CUDA 13.4, natively. Results obtained before and after the move are therefore not
+comparable by assumption, and a matched control is required before the next experiment.
+
+**Method.** Transferred the canonical worktree, full Git history, the 405 MB immutable
+raw checkout, reports, and the run registry. Verified the transfer by comparing HEAD,
+the tracked tree hash, the 4,495-file count, the read-only mode of the raw checkout, and
+an aggregate SHA-256 over every raw file. Built a native virtual environment inheriting
+the system NGC torch, installed the project dependencies and the missing Cairo runtime,
+and ran the full suite, Ruff, and strict mypy. Then re-executed the **identical** v1
+config, `f2a06ca5…`, natively and compared it field by field with the container run.
+
+**Observation.** Every integrity check matched exactly, including the raw aggregate hash
+`fe76333c011104a4523635b3946fdc348a3aba8a1f5fb94bf67513938d0a99c4`. The suite passes
+108/108 on the box. The native control reproduces the container run closely enough that
+no conclusion changes:
+
+| metric | container 2.8 / 12.9 | native 2.14 / 13.4 |
+| --- | ---: | ---: |
+| final train token accuracy | 0.455046275892 | 0.455046275892 |
+| held-out changed accuracy | 0.055229646587 | 0.055229646587 |
+| held-out aggregate accuracy | 0.231128774245 | 0.231153769246 |
+| held-out retained accuracy | 0.325585862466 | 0.325624279677 |
+| held-out loss | 11.148523330688 | 11.148344039917 |
+
+Final train token accuracy and held-out changed-token accuracy are bit-identical.
+Exactly one retained token of 26,030 differs. Checkpoint bytes differ, as expected
+across framework versions; no cross-environment artifact identity was claimed.
+
+**Decision.** The migration is accepted, and
+`openmoji-g1-train-v1-native-c9bf1b9-f2a06ca5-9b9b1699` replaces the container run as
+the baseline for the next data-scale experiment. `AGENTS.md` was rewritten for the new
+single-machine topology: the strict authorization and immutable-staging rules now apply
+only to rented or shared machines, which is what they were designed for, while the run
+registry, predeclared criteria, data immutability, and experimental discipline are kept.
+The `gtc` copy is retained untouched as a backup.
+
+Two data ideas were measured during this session and deliberately queued rather than
+applied, because the corpus already holds ten times the data v1 used. Left-right
+mirroring is exactly representable in token space: the quarter-unit lattice is closed
+under x to 72-x, endpoint token t maps to 290-t for all 289 bins, and observed control-x
+values span only 2.00 to 70.00 across 35,483 samples, so none overflow the -8 to 96
+control vocabulary. Separately, content occupies a median 0.753 of the 72-unit box, with
+a median bounding box of x [12.00, 60.00] and y [10.62, 61.00] and only 0.5% of icons
+using more than 95% of the box, so rescaling would recover roughly 1.33x coordinate
+resolution. Coordinate precision is not currently the limiting factor, so neither change
+is justified before the full-split run.

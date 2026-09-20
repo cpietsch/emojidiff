@@ -1,0 +1,11 @@
+{"accuracy":0.003699260147970406,"changed_accuracy":0.003004721705537273,"changed_total":13978,"loss":15.390789985656738,"retained_accuracy":0.004072224356511717,"retained_total":26030,"step":0,"trained":false}
+{"accuracy":0.0684113177364527,"changed_accuracy":0.0218915438546287,"changed_total":13978,"loss":10.715534210205078,"retained_accuracy":0.09339223972339608,"retained_total":26030,"step":60,"trained":true}
+{"accuracy":0.14532093581283742,"changed_accuracy":0.034625840606667624,"changed_total":13978,"loss":9.971138000488281,"retained_accuracy":0.2047637341529005,"retained_total":26030,"step":120,"trained":true}
+{"accuracy":0.1893371325734853,"changed_accuracy":0.041994562884532835,"changed_total":13978,"loss":9.799665451049805,"retained_accuracy":0.2684594698424894,"retained_total":26030,"step":180,"trained":true}
+{"accuracy":0.20908318336332735,"changed_accuracy":0.043854628702246386,"changed_total":13978,"loss":9.793182373046875,"retained_accuracy":0.29781021897810217,"retained_total":26030,"step":240,"trained":true}
+{"accuracy":0.21865626874625074,"changed_accuracy":0.04578623551294892,"changed_total":13978,"loss":10.13706111907959,"retained_accuracy":0.31148674606223586,"retained_total":26030,"step":300,"trained":true}
+{"accuracy":0.22165566886622676,"changed_accuracy":0.046501645442838746,"changed_total":13978,"loss":10.279869079589844,"retained_accuracy":0.31571263926238957,"retained_total":26030,"step":360,"trained":true}
+{"accuracy":0.22687962407518497,"changed_accuracy":0.049935613106309916,"changed_total":13978,"loss":10.550699234008789,"retained_accuracy":0.3218978102189781,"retained_total":26030,"step":420,"trained":true}
+{"accuracy":0.23110377924415118,"changed_accuracy":0.053083416797825154,"changed_total":13978,"loss":10.751239776611328,"retained_accuracy":0.3266999615827891,"retained_total":26030,"step":480,"trained":true}
+{"accuracy":0.23077884423115377,"changed_accuracy":0.05594505651738446,"changed_total":13978,"loss":11.12664794921875,"retained_accuracy":0.32466384940453324,"retained_total":26030,"step":540,"trained":true}
+{"accuracy":0.23115376924615078,"changed_accuracy":0.05522964658749464,"changed_total":13978,"loss":11.148344039916992,"retained_accuracy":0.3256242796772954,"retained_total":26030,"step":600,"trained":true}

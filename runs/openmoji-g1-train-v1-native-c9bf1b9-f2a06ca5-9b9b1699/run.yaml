@@ -1,0 +1,55 @@
+schema_version: 1
+run_id: openmoji-g1-train-v1-native-c9bf1b9-f2a06ca5-9b9b1699
+state: completed
+parent_run: openmoji-g1-train-ec2436b-f2a06ca5-9b9b1699
+hypothesis: >-
+  The identical v1 config reproduces its qualitative result natively on gpubox-4080
+  under the new torch 2.14 / CUDA 13.4 environment, establishing a matched control so
+  that the next data-scale run is not confounded by the environment migration.
+expected_information_gain: >-
+  Development moved from the gtc control plane and its pinned torch 2.8 / CUDA 12.9
+  container to native execution on the owned box. Exact tensor identity across that
+  change is not expected; the point is a same-environment baseline for v2.
+code:
+  git_commit: c9bf1b95ec43fb90011368a093c5f388a1a42a30
+  execution_mode: native-local
+config:
+  path: configs/learning/openmoji-g1-dominant-bucket-train-v1.yaml
+  sha256: f2a06ca55cd18a36d0fc5f5f86f29d34c94bccddcf3c65a716f02f9656bec0ef
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  bucket: bucket-p32-t128
+  train_samples: 256
+  validation_samples: 128
+environment_change:
+  from: {image: mojidiff/owned-gpu-smoke:cd3250e, torch: 2.8.0a0+5228986c39.nv25.06, cuda: "12.9"}
+  to: {execution: native, torch: 2.14.0a0+4fdf77b940.nv26.08, cuda: "13.4"}
+  note: >-
+    Cross-environment artifact identity is explicitly not claimed. Compare the parent
+    run and this control on held-out behaviour, not on checkpoint hashes.
+outputs:
+  local_metadata: runs/openmoji-g1-train-v1-native-c9bf1b9-f2a06ca5-9b9b1699
+  durable_artifacts: /home/dev/.cache/openmoji-g1-train-v1-native-c9bf1b9-f2a06ca5-9b9b1699
+planned_at: 2026-09-20T14:42:44Z
+completed_at: 2026-09-20T14:43:52Z
+result:
+  device: cuda
+  wall_seconds: 18
+  torch: 2.14.0a0+4fdf77b940.nv26.08
+  cuda: "13.4"
+  held_out_changed_accuracy: 0.05522964658749464
+  held_out_retained_accuracy: 0.3256242796772954
+  held_out_aggregate_accuracy: 0.23115376924615078
+  checkpoint_sha256: e6b538e7da401e6f76f6519dd1f06cb2d1ae31b18afa8965020d6f6e8d8e7a9b
+comparison_to_parent:
+  train_token_accuracy_identical: true
+  held_out_changed_accuracy_identical: true
+  held_out_retained_tokens_differing: 1
+  held_out_retained_total: 26030
+  checkpoint_hash_differs: true
+  conclusion: >-
+    The environment migration preserves the scientific result. Held-out changed-token
+    accuracy and final train token accuracy are bit-identical across torch 2.8/CUDA 12.9
+    in a container and torch 2.14/CUDA 13.4 native; exactly one retained token of 26,030
+    differs. Checkpoint bytes differ, as expected, so this control - not the container
+    parent - is the baseline for the next run.

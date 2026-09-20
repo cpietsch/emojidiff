@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-20T11:28:49Z
+Updated: 2026-09-20T14:43:52Z
 
 ## Current hypothesis and evidence
 
@@ -197,6 +197,16 @@ now data scale.
 A recorded caveat: held-out changed accuracy kept rising while held-out loss worsened,
 so the monotone criterion passed during degrading generalization. Held-out loss is the
 more honest scalar and the monotone criterion should not be reused unqualified.
+
+
+Development has moved off the `gtc` control plane onto `gpubox-4080` itself, and the
+migration is verified rather than assumed. Re-running the identical v1 config natively
+under torch 2.14.0a0+4fdf77b940.nv26.08 and CUDA 13.4, replacing the container
+environment of torch 2.8.0a0+5228986c39.nv25.06 and CUDA 12.9, reproduces final train
+token accuracy and held-out changed-token accuracy bit-identically. Exactly one retained
+token of 26,030 differs, moving aggregate accuracy only in the fifth decimal. Every
+conclusion drawn from v1 survives the move, including its falsified
+retained-preservation criterion.
 
 
 ## Last completed action and verification
@@ -423,6 +433,27 @@ retuned. Two complete invocations returned identical checkpoint
 `b892acbf28078405a5954b7fa4e0db3704dd0675bebddd2ba53522add77fd14d`.
 
 
+Moved the canonical worktree, full Git history, the 405 MB immutable raw checkout,
+reports, and the run registry to `/home/dev/workspace/mojidiff` on `gpubox-4080`. The
+move was verified rather than trusted: identical HEAD and tracked tree hash, identical
+4,495-file count, preserved read-only mode on the raw checkout, and an identical
+aggregate SHA-256 over every raw file (`fe76333c011104a4523635b3946fdc348a3aba8a1f5fb94bf67513938d0a99c4`).
+Built a native `.venv` that inherits the system NGC torch through
+`--system-site-packages`, installed the project dependencies and the missing Cairo
+runtime, and confirmed 108/108 tests, Ruff, and strict mypy on the box.
+
+Rewrote `AGENTS.md` for the new single-machine topology and repointed the inventory
+orchestrator to `gpubox-4080`. The stricter authorization rules now apply only to rented
+or shared machines, which is what they were written for. The run registry, predeclared
+criteria, data immutability, and experimental discipline are kept. One test that asserted
+`hostname == "gtc"` now asserts sanitization instead of a specific machine.
+
+Registered and completed `openmoji-g1-train-v1-native-c9bf1b9-f2a06ca5-9b9b1699` in
+about 18 seconds as the matched environment control described above.
+
+The `gtc` copy is left intact and untouched as a backup. Nothing was deleted.
+
+
 ## Active jobs
 
 None. The owned-worker smoke ran in foreground containers with `--rm`; no container or
@@ -514,15 +545,20 @@ originals; the 7,075,310-byte checkpoint deliberately stays on the worker sink.
 
 ## Next smallest evidence-producing action
 
-Run the controlled data-scale follow-up: change only the train-split size from the
-256-icon subsample to the full 2,681-icon family-disjoint split, holding the model,
-seed, corruption probability, batch size, and learning rate fixed. Loading that split
-costs about three minutes of CPU at the measured 60 ms per icon, so it stays a bounded
-run inside the recorded 20,000-step and 50 GB cap.
+Run the controlled data-scale follow-up natively: change only the train-split size from
+the 256-icon subsample to the full 2,681-icon family-disjoint split, holding the model,
+seed, corruption probability, batch size, and learning rate fixed. Compare against
+`openmoji-g1-train-v1-native-c9bf1b9-f2a06ca5-9b9b1699`, not the container parent.
 
-Two harness decisions belong to that run. Select on held-out loss with a best-checkpoint
-or early-stopping policy instead of a fixed step budget, since v1 showed the fixed
-budget trains well past the held-out minimum. And note that the owned adapter still has
-no detached `launch`, `status`, or `sync`: v1 fit in 22 seconds inside the 600-second
-foreground SSH timeout, but a longer full-split run will need detached execution with a
-stable job identity before it is safe to start.
+Select on held-out loss with a best-checkpoint or early-stopping policy instead of a
+fixed step budget, since v1 trained well past its held-out minimum at step 240. Loading
+the full split costs about three minutes of CPU at the measured 60 ms per icon, so use
+`tmux` or a detached process rather than a foreground shell.
+
+Two further ideas are measured and queued but deliberately not yet applied, because the
+corpus already holds ten times the data v1 used. Left-right mirroring is exactly
+representable: the quarter-unit lattice is closed under x to 72-x, endpoint token t maps
+to 290-t for all 289 bins, and observed control-x spans only 2.00 to 70.00, so nothing
+overflows the -8 to 96 control vocabulary. Content also occupies a median 0.753 of the
+72-unit box, so rescaling would recover about 1.33x coordinate resolution, though
+coordinate precision is not currently the limiting factor.
