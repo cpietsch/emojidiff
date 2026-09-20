@@ -504,3 +504,64 @@ def test_the_continuity_statistic_separates_a_planted_outlier() -> None:
     assert roc_auc([1.0, 1.0], [1.0, 1.0]) == pytest.approx(0.5)
     assert roc_auc([2.0, 3.0], [0.0, 1.0]) == pytest.approx(1.0)
     assert np.isnan(roc_auc([], [1.0]))
+
+
+def test_the_detector_reference_learns_from_local_features_alone() -> None:
+    """The cheap-feature reference must beat chance, and must never see the clean program.
+
+    It exists to bound how much detection headroom there is above the zero-parameter
+    continuity statistic, so if it silently had access to the answer its numbers would
+    be meaningless.
+    """
+
+    import inspect
+
+    import numpy as np
+
+    from mojidiff.learning import detector_reference
+    from mojidiff.learning.detectability import roc_auc
+    from mojidiff.learning.detector_reference import (
+        FEATURE_NAMES,
+        features_and_labels,
+        fit_logistic,
+        score,
+    )
+    from mojidiff.learning.geometry import corrupt_factorized_geometry
+    from mojidiff.learning.openmoji_pilot import (
+        _load_program,
+        _select_rows,
+        _selected_codec,
+        load_openmoji_pilot_config,
+        load_pilot_index,
+    )
+
+    # Features are read from the corrupted program only; `clean` is used solely for the
+    # label. Pin that structurally rather than trusting the comment.
+    source = inspect.getsource(detector_reference.features_and_labels)
+    body = source.split("offset = 0", 1)[1]
+    assert "clean." not in body.replace("clean.coordinates[segment_index, slot])", "")
+
+    config = load_openmoji_pilot_config(
+        Path("configs/learning/openmoji-g1-dominant-bucket-train-v2-data-scale.yaml")
+    )
+    codec = _selected_codec(config)
+    by_split, _, _ = load_pilot_index(config)
+    rows = _select_rows(by_split["primary/validation"], 16, config.seed + 1)
+
+    features, labels = [], []
+    for index, row in enumerate(rows):
+        clean = _load_program(row, config, codec)
+        noisy = corrupt_factorized_geometry(
+            clean, codec, 0.35, np.random.default_rng(config.seed + 9_000_000 + index)
+        )
+        f, y = features_and_labels(clean, noisy, codec)
+        features.append(f)
+        labels.append(y)
+    x = np.concatenate(features)
+    y = np.concatenate(labels)
+    assert x.shape[1] == len(FEATURE_NAMES)
+    assert 0.2 < y.mean() < 0.5
+
+    weight, bias, norm = fit_logistic(x, y, steps=100)
+    s = score(x, weight, bias, norm)
+    assert roc_auc(list(s[y == 1]), list(s[y == 0])) > 0.65

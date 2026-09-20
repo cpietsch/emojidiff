@@ -1,0 +1,35 @@
+{
+  "auc": 0.7734665498482123,
+  "base_rate": 0.349217907227616,
+  "config": "configs/learning/openmoji-g1-dominant-bucket-train-v2-data-scale.yaml",
+  "corruption_process": "factorized",
+  "evaluation_corruption_probability": 0.35,
+  "heldout_fields": 37080,
+  "operating_points": {
+    "flag_base_rate": {
+      "flag_rate": 0.349217907227616,
+      "lift_over_base_rate": 1.7861476092302229,
+      "precision": 0.623754730094988,
+      "recall": 0.623754730094988
+    },
+    "matched_flag_rate": {
+      "flag_rate": 0.08573354908306365,
+      "lift_over_base_rate": 2.6869910511805077,
+      "precision": 0.9383453916325889,
+      "recall": 0.23036527917213684
+    }
+  },
+  "parameters": 9,
+  "standardised_weights": {
+    "abs_delta_next": 0.49156209835041487,
+    "abs_delta_other_slot_same_segment": 0.05634649049022196,
+    "abs_delta_previous": 0.46752257873939607,
+    "abs_deviation_from_neighbour_midpoint": 0.08275173984709695,
+    "distance_from_viewbox_centre": 0.83576287875128,
+    "has_both_neighbours": -0.31515491582756106,
+    "is_control_handle": -0.18409685051537164,
+    "value": 0.07567701747557719
+  },
+  "train_fields": 77924,
+  "train_icons": 256
+}
