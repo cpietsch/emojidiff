@@ -1,0 +1,89 @@
+schema_version: 1
+run_id: openmoji-g1-selection-scalar-c4e6a8c-3a34e64b-9b9b1699
+state: planned
+parent_run: openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
+hypothesis: >-
+  Held-out accuracy, not held-out loss, is the correct checkpoint-selection scalar for
+  this project as it currently decodes. `predict_clean_geometry` takes an argmax over
+  the legal vocabulary, so the rendered artifact depends only on which token wins and
+  not on the probability mass cross-entropy measures. The accuracy-selected step-1,320
+  checkpoint has strictly higher held-out aggregate, changed, and retained accuracy
+  than the loss-selected step-840 checkpoint, so it should render closer to `x_0` on
+  the identical held-out icons and corruption draw.
+expected_information_gain: >-
+  v2's primary criterion passed under one reading and failed under the other, and
+  CURRENT.md records settling the scalar question, with a declared reason, as the next
+  action. Deciding it by measuring the thing the project actually delivers - the render
+  - rather than by arguing about metrics removes a recurring source of post-hoc
+  freedom from every later Gate G run. It costs about two minutes of GPU and CPU.
+scope_limits: >-
+  The conclusion is conditional on the decode rule. Under argmax decoding the
+  distribution beyond the winning token is discarded, so calibration cannot affect the
+  artifact. If a later sampler draws from the distribution instead, calibration becomes
+  relevant again and this result does not transfer. Twelve held-out icons at one
+  corruption draw and one probability; a single seed.
+  Both checkpoints are expected to render as scribble. A win here means one rule picks
+  a measurably closer checkpoint, not that either output is usable.
+method: >-
+  Train the identical v2 configuration at a fixed 1,320-step budget with no selection
+  policy, reproducing v2's own trajectory and writing its final-step checkpoint. Then
+  run the read-only render probe over both checkpoints with identical icons, sizes,
+  and corruption seeds, and compare median RGBA error against `x_0`.
+code:
+  git_commit: c4e6a8ccc01b1807f77706b4ff977fd1cbe16418
+  execution_mode: native-local
+config:
+  path: configs/learning/openmoji-g1-dominant-bucket-train-v2-final-step.yaml
+  sha256: 3a34e64b14bb86be707ce119b527dff2a2644c2c47e7be72da6be9ee251d7a52
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  bucket: bucket-p32-t128
+  train_samples: 2681
+  validation_samples: 128
+arms:
+  loss_selected:
+    checkpoint_step: 840
+    source_run: openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
+    checkpoint_sha256: e791493769907ac428db6a081310c0beacc4b88d2072b24fc07df0287e0295b4
+    held_out: {loss: 7.3332648277282715, accuracy: 0.28861727654469105, changed: 0.057304335384175134, retained: 0.41283134844410296}
+    rendered_median_rgba_mae: {x_hat_0_72: 0.14243325995521666, x_hat_0_18: 0.15277021302348098}
+  accuracy_selected:
+    checkpoint_step: 1320
+    held_out: {loss: 7.527534484863281, accuracy: 0.29994001199760045, changed: 0.06624695950779796, retained: 0.425432193622743}
+    rendered_median_rgba_mae: to be measured
+predeclared_criteria:
+  note: >-
+    Declared before the run. The held-out scalars for both arms are already known from
+    v2's committed trace and are restated above; what is not known is how either
+    checkpoint renders. No preflight was run.
+  primary:
+    - id: trajectory_reproduces
+      statement: >-
+        The fixed-budget run's metrics.jsonl matches the first 1,320 rows of v2's
+        metrics.jsonl exactly. This is a precondition: if it fails, the two arms are not
+        the same training trajectory and the comparison is void.
+    - id: accuracy_selected_renders_better_72
+      statement: >-
+        Median RGBA MAE of `x_hat_0` against `x_0` at 72 px is below 0.14243325995521666,
+        the loss-selected arm's value on the identical icons and corruption draw.
+    - id: accuracy_selected_renders_better_18
+      statement: Median RGBA MAE at 18 px is below 0.15277021302348098.
+    - id: direction_is_consistent
+      statement: >-
+        At 72 px the accuracy-selected arm has lower RGBA MAE on at least 7 of the 12
+        icons, so a median win is not carried by a single outlier.
+    - id: reproducibility
+      statement: Both the training run and the render probe reproduce identical artifacts.
+  falsification_meaning: >-
+    If the loss-selected checkpoint renders better despite lower token accuracy, the
+    argmax argument is wrong or incomplete, held-out loss stays the selection scalar,
+    and v2's changed-token criterion remains correctly recorded as falsified. That
+    outcome is as useful as the predicted one and must not be tuned away.
+  reported_not_gated:
+    - absolute render error for both arms, and whether either output is recognizable
+    - per-icon render error, so a split decision is visible rather than averaged away
+outputs:
+  local_metadata: runs/openmoji-g1-selection-scalar-c4e6a8c-3a34e64b-9b9b1699
+  report_root: reports/learning/openmoji-g1-dominant-bucket-train-v2-final-step
+  durable_artifacts: /home/dev/.cache/openmoji-g1-selection-scalar-c4e6a8c-3a34e64b-9b9b1699
+planned_at: 2026-09-20T17:52:00Z
