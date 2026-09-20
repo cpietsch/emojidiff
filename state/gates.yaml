@@ -12,12 +12,13 @@ updated: 2026-09-20
 # the Current hypothesis section of state/CURRENT.md; the weblog falls back to that
 # section's newest paragraph if this is absent.
 headline: >-
-  Gate G has a negative result, and a precise one. Every trained model scores below the
-  trivial policy of emitting its input unchanged, and the 580K-parameter denoiser never
-  learns to spot a corrupted field - yet a parameter-free local-continuity statistic
-  does, at AUC 0.7698 and 73% better precision at the same flag rate. The failure is one
-  of learning, not of information. Path-correlated corruption is markedly more
-  identifiable at 0.9333, which puts Gate F's choice of process back in question.
+  Four verified defects, none of them tuning knobs, had been distorting every Gate G
+  result: a loss that gave four fields 31% of its weight, no attention padding mask, a
+  corruption process whose replacements were detectable from a token marginal alone, and
+  coordinates encoded as unordered categories on what is actually a metric lattice.
+  Fixing them produced the first trained model here to beat a zero-parameter heuristic on
+  a leak-free task - and with fewer parameters. Reconstruction is now the open problem:
+  detection and value prediction compete for one encoder, and identity still wins.
 gates:
   - id: Gate A
     title: Orchestration and recovery
@@ -74,30 +75,25 @@ gates:
       held-out fields, so it is retained as a lighter feasibility ablation.
   - id: Gate G
     title: OpenMoji generation and editing
-    status: complete
+    status: open
     question: >-
       Does the selected formulation actually generate and edit OpenMoji well, under
       structured conditioning and locked-path inpainting?
     evidence: >-
-      Answered negatively, and specifically. Seven candidate explanations were
-      eliminated by predeclared comparison: data volume, model capacity, the corruption
-      level, noise-level information, an encoder defect that made the model blind to
-      which coordinate was which, the objective's inability to express identity, and
-      finally the separability of detection from denoising. The decisive measurement is
-      that a corrupted-field detector reaches only 0.1058 recall at 0.4312 precision
-      against a 0.3494 base rate: a coordinate resampled uniformly from a 289-value
-      legal vocabulary is a plausible coordinate, so finding it requires already knowing
-      the icon. A training-free check then corrected that inference: a parameter-free
-      local-continuity statistic separates corrupted from retained fields at AUC 0.7698
-      and, at the trained detector's own flag rate, reaches 0.7451 precision against its
-      0.4312. The corruption is identifiable and the failure is one of learning, not of
-      information. What stands is that every trained model scores below the trivial
-      policy of emitting its input unchanged, and that a 580K-parameter transformer does
-      not learn a detector a trivial statistic already provides. Path-correlated
-      corruption is markedly more identifiable, 0.9333, and Gate F chose factorized on
-      four-icon fixtures where 96-99% recovery was memorization, so that comparison
-      needs re-running at corpus scale with the identity baseline attached.
-      Fixed-topology and geometry-only throughout.
+      Reopened. A five-lens diagnostic panel found four verified defects that had been
+      present throughout: the loss averaged over per-(kind, slot) groups so four fields
+      carried 31% of it and early stopping fired on noise; no attention padding mask, so
+      29.4% of the sequence was attended as content; corruption drew replacements
+      uniformly, so a zero-parameter marginal detector scored 2.84 and detection was
+      largely a density test; and coordinates were encoded as unordered categories, so
+      the difference the winning heuristic computes had no operand. Fixing all four
+      produced the project's first trained model to beat a zero-parameter heuristic on a
+      leak-free task - detector lift 2.781 against 1.893, with 54,720 FEWER parameters.
+      Turning the value head back on loses it again: it costs 1.064 of detector lift and
+      aggregate accuracy stays at 0.5839 against the identity policy's 0.6515. Detection
+      is solved; reconstruction is not; the two cannot yet be learned together. Every
+      earlier plateau in this gate was measured under the broken loss and is no longer
+      admissible as read.
 
   - id: Gate H
     title: Broad pretraining question

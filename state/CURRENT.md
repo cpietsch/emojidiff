@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-20T17:20:00Z
+Updated: 2026-09-21T02:15:00Z
 
 ## Current hypothesis and evidence
 
@@ -354,6 +354,49 @@ plausible coordinate, so identifying it requires already knowing the icon. Detec
 not an easier sub-problem than denoising; it is the same problem, and with 65% of fields
 uncorrupted predicting keep is loss-minimising.
 
+A five-lens diagnostic panel over this codebase then overturned most of the sequence, and
+four verified defects were found and fixed. None was a tuning knob.
+
+The loss averaged cross-entropy over per-(segment kind, coordinate slot) GROUPS rather
+than fields. QUAD is 0.93% of the corpus, so its four groups hold one field each and
+carried 4/13 of the coordinate loss against 40,004 others - a measured 5,287x per-field
+weight ratio - while the group count flipped between 9 and 13 by batch. No attention
+padding mask was passed, so 29.4% of the sequence was attended as content. Because the
+evaluation path uses the same loss, held-out loss - the selection and early-stopping
+signal - was ~31% four individual fields, which is why every run stopped at 6-24% of its
+cap. Fixing both took the detector from 1.365 to 2.806 and the selected step from 660 to
+6,180 of 6,300 with no early stop.
+
+The corruption process leaked. Replacements were drawn uniformly from the full legal
+vocabulary, so many landed on tokens real icons never use, and a zero-parameter detector
+knowing only the corpus marginal reached 2.84 lift with no context at all - above v8's
+2.806. Drawing replacements from the corpus marginal for the field's role instead drops
+that detector to 0.771 while the local-continuity signal survives at 1.893. On that
+honest task the categorical model reaches only 1.506.
+
+Coordinates entered as unordered categories. The trained input table carried no order -
+Spearman -0.136 between embedding distance and bin distance, adjacent bins at 0.989 of
+the all-pairs mean - while the output head, which gets a direct gradient from the corpus
+marginal, reached +0.143 and 0.882. Decoding each token to its view-unit value with the
+role-correct affine map and projecting Fourier features of it takes the detector from
+1.506 to 2.781, past the free statistic's 1.893, with 54,720 FEWER parameters. That is
+the project's first trained model to beat a zero-parameter heuristic on a leak-free task.
+
+Turning the value head back on then loses it again. v11 reaches changed-token recovery
+of 0.0296, 2.24x the best any earlier model managed, but aggregate 0.5839 against
+identity's 0.6515, because the value objective costs 1.064 of detector lift - 2.781 down
+to 1.717. The two heads share one encoder and a 289/417-way exact-token objective against
+a 2-class decision is not a fair fight. No decode threshold rescues it: break-even
+detection confidence is 1/(1+0.1087) = 0.9019 and every flag rate loses to identity
+monotonically.
+
+Both ingredients that would beat identity have now been demonstrated. Never at the same
+time.
+
+Every plateau the sequence had declared - data volume, capacity, the corruption regime,
+noise conditioning - was measured under the broken loss and is no longer admissible as
+read. The numbers stand; the interpretation does not.
+
 That inference was then checked without training, and it was wrong on its decisive
 point. Run `openmoji-g1-detectability-877feff-4processes-9b9b1699` scores every legal
 field by a parameter-free local-continuity statistic - mean absolute distance to the
@@ -684,15 +727,15 @@ The `gtc` copy is left intact and untouched as a backup. Nothing was deleted.
 
 ## Active jobs
 
-One, and it is not compute. The research weblog is served by
-`scripts/serve_weblog.py` in tmux session `mojidiff-weblog`, bound to
-`100.69.189.78:8787` on the Tailscale interface only, not to `0.0.0.0`. It is a
-read-only static file server over `site/` and holds no GPU or lock; stop it with
-`tmux kill-session -t mojidiff-weblog`.
+One, and it is not compute. The research weblog is served by `scripts/serve_weblog.py`
+in tmux session `mojidiff-weblog`, bound to `100.69.189.78:8787` on the Tailscale
+interface only. It is a read-only static file server over `site/` and holds no GPU or
+lock; stop it with `tmux kill-session -t mojidiff-weblog`. Rebuild its content with
+`python -m mojidiff.weblog.build` after any material result.
 
-No training job is active. The v2 data-scale run and its reproducibility rerun both
-finished in tmux sessions that have exited. The owned worker is enabled for bounded work
-under its recorded 20,000-step and 50 GB cap. Vast and A100 workers remain disabled.
+No training job is active. Every run and rerun in this session finished in tmux sessions
+that have exited. The owned worker is enabled for bounded work under its recorded
+20,000-step and 50 GB cap. Vast and A100 workers remain disabled.
 
 ## Artifact durability
 
@@ -814,27 +857,35 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Run the registered corpus-scale corruption-process comparison,
-`openmoji-g1-corruption-process-corpus-*`, whose criteria are committed in its run
-record. It re-runs the Gate F choice on the 2,681-icon split rather than four-icon
-fixtures, with the v5 slot-binding fix and the v6 edit mask both on, and with the
-identity baseline attached to every number. The training-free probe already shows
-path-correlated corruption is far more identifiable than factorized, 0.9333 against
-0.7698, so the falsifiable question is whether that carries into learned recovery.
+Stop the two objectives competing, then make reconstruction learnable. They are
+separable and both are measured rather than guessed.
 
-The gated criterion is deliberately not held-out accuracy, which the identity policy
-already dominates at 0.6506. It is the keep head's corrupted-field precision lift over
-the base rate, measured against both the trained factorized detector's 1.23x and the
-training-free statistic's 2.13x at a matched flag rate. A process is worth pursuing only
-if a trained model on it can at least match what a zero-parameter heuristic achieves.
+First, weight the keep and value losses by field count rather than letting a 289/417-way
+exact-token softmax dominate a 2-class decision through a shared encoder - or give the
+heads separate encoders. v10 and v11 bracket exactly what is at stake on an otherwise
+identical setup: detector lift 2.781 against 1.717. Predeclare the detector lift against
+v11's 1.717 and the aggregate against identity's 0.6515, and report the keep fraction so
+a collapse to the trivial policy is visible.
 
-Two things to carry into every later run regardless of that outcome. Report the identity
-baseline beside every recovery number; v1 through v5 were all reported against an
-untrained control instead, which flattered them. And render on the 128-icon draw, where
-the paired-difference interval's half-width is 0.0032, so a claimed render improvement
-above roughly 0.0064 is testable and anything smaller should not be claimed.
+Second, replace the value head's exact-token target with a distance kernel over the
+quarter-unit lattice - mass spread over nearby bins in proportion to distance - so being
+close earns gradient. The value head currently reaches 0.1087 exact-token accuracy, and
+the break-even detection confidence scales as 1/(1+q); lifting q is what makes flagging
+pay at reachable confidence. The task-formulation lens measured that the model is a
+calibrated localiser graded pass/fail at plus or minus 0.125 units, and argued for mean
+absolute view-unit error as a reported secondary metric alongside exact-token accuracy.
 
-If a trained model still cannot beat the trivial local statistic on any of the three
-processes, the honest reading is that this model class is the wrong instrument for the
-task rather than that the task is impossible, and PROJECT_PLAN.md section 12's fallback
-interpretations become the live branch.
+Three standing rules from this session, to carry into every later run:
+
+- Report the identity baseline beside every recovery number. v1 through v5 were reported
+  against an untrained control instead, which flattered them.
+- Measure detection under marginal-respecting corruption, not uniform. Every number
+  measured under uniform corruption is partly a density test.
+- Render the result on the 128-icon draw, where the paired-difference interval's
+  half-width is 0.0032, so a claimed render improvement above roughly 0.0064 is testable
+  and anything smaller should not be claimed.
+
+The four earlier eliminations - data volume, capacity, the corruption regime, noise
+conditioning - should be re-run under the fixed loss before any of them is cited again.
+They are cheap now that a run uses its whole budget, and the registered corruption-process
+comparison is ready to re-register once detection and reconstruction coexist.
