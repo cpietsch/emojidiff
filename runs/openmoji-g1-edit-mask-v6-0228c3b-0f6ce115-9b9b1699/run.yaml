@@ -1,0 +1,128 @@
+schema_version: 1
+run_id: openmoji-g1-edit-mask-v6-0228c3b-0f6ce115-9b9b1699
+state: planned
+parent_run: openmoji-g1-slot-bound-v5-f502df1-d8af55ea-9b9b1699
+hypothesis: >-
+  Every Gate G model so far scores below the identity policy on held-out token accuracy
+  because the objective makes identity expensive: each field is an independent softmax
+  over a 289- or 417-way vocabulary, so "leave this one alone" costs as much as
+  inventing a new value, and 26,030 of 40,008 held-out fields are uncorrupted. Adding a
+  per-field keep-or-change decision, and copying the input wherever it says keep, makes
+  identity reachable as predict-keep-everywhere. The model should then clear the
+  identity baseline rather than fall 0.27 short of it.
+expected_information_gain: >-
+  This is the first Gate G criterion set against the trivial policy rather than against
+  noise, and it tests the last candidate standing after data volume, capacity, the
+  corruption regime, noise-level information and encoder slot-blindness were each
+  eliminated by a predeclared comparison. Clearing identity would be the first evidence
+  in the sequence that the model does something useful rather than something harmful.
+scope_limits: >-
+  Fixed-topology and geometry-only, single seed. Exactly v5 plus 1,552 parameters of
+  keep heads, +0.27%, which is not a plausible capacity effect given v3 showed a 3.53x
+  increase does nothing. Beating identity in token space would not mean the output is a
+  recognizable icon; no run in this sequence has produced one.
+changed_factors:
+  primary: model.edit_mask false -> true. 578,320 -> 579,872 parameters.
+  objective_change: >-
+    Training loss becomes keep-or-change cross-entropy plus value cross-entropy on
+    changed fields only, and decoding copies the input token wherever the model predicts
+    keep. Accuracy is measured on the gated prediction, so it stays directly comparable
+    with v1 through v5 and with the identity baseline.
+  held_fixed: >-
+    slot binding on, the full 2,681-icon split, the 128-icon validation draw and its
+    corruption seeds, seed 3101, corruption fixed at 0.35, batch size 16, learning rate
+    0.001, eval_every 60, the 6,300-step cap, the held-out-loss selection policy with
+    patience 8, the codec, and the bucket. Noise conditioning stays off, since v4
+    falsified it.
+code:
+  git_commit: 0228c3be2b9ab81399842f14a438557e796d10df
+  execution_mode: native-local
+config:
+  path: configs/learning/openmoji-g1-edit-mask-v6.yaml
+  sha256: 0f6ce115c1409288815e3e10198cfdb1e589383a7616b8b63442ee182e4dc78f
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  bucket: bucket-p32-t128
+  train_samples: 2681
+  validation_samples: 128
+baselines:
+  identity:
+    note: Emit x_t unchanged. A legal policy under argmax decoding.
+    aggregate: 0.6506198760247951
+    changed: 0.0
+    retained: 1.0
+    render_recovery_fraction: 0.0
+  v5_slot_bound:
+    aggregate: 0.3793491301739652
+    changed: 0.07869509228788095
+    retained: 0.5407990779869382
+    held_out_loss: 7.178236961364746
+    mean_recovery_fraction_72px: {"0.05": -3.1470, "0.10": -0.7607, "0.20": -0.0253, "0.35": 0.2098}
+    per_icon_pearson_r_p005_vs_p035: 0.8621
+execution:
+  seed_set: [3101]
+  deterministic_algorithms: true
+  cublas_workspace_config: ":4096:8"
+  optimizer_step_cap: 6300
+  early_stopping: {objective: held_out_loss, patience_evals: 8, min_delta: 0.0}
+  resource_cap: {max_steps: 20000, max_storage_gb: 50}
+  network: none
+predeclared_criteria:
+  note: >-
+    Declared before launch. No preflight. Held-out loss is not comparable across this
+    change, because the edit-mask objective is a different loss; it is reported, and
+    still used for checkpoint selection, but not gated.
+  evaluated_at: the checkpoint selected by held-out loss at corruption 0.35
+  primary:
+    - id: beats_identity
+      statement: >-
+        Held-out aggregate token accuracy exceeds 0.6506198760247951, the identity
+        policy. This is the criterion every earlier run should have carried.
+    - id: retains_what_identity_retains
+      statement: >-
+        Held-out retained-token accuracy is at least 0.95, against v5's 0.5408 and
+        identity's 1.0. A model that can say keep should keep almost everything that
+        was never corrupted.
+    - id: recovers_more_than_identity
+      statement: >-
+        Held-out changed-token accuracy exceeds v5's 0.07869509228788095, so the gain
+        is not bought purely by copying. Identity scores 0.0 here, so beating identity
+        on aggregate while scoring 0 on changed would be a degenerate pass and this
+        criterion exists to catch it.
+    - id: stops_damaging_light_corruption
+      statement: >-
+        Mean per-icon recovery fraction at corruption 0.10 and 72 px is at least 0,
+        against v5's -0.7607. Identity scores exactly 0, so this is the render-space
+        form of "no worse than doing nothing".
+    - id: structural_safety
+      statement: Locked-path exactness holds and the canonical checkpoint round-trips.
+    - id: reproducibility
+      statement: A second complete invocation returns an identical JSON result.
+  standing_gate_not_a_prediction:
+    - id: retained_preservation_full
+      statement: Held-out retained-token accuracy is at least 0.90.
+      note: >-
+        The original Gate G bar, unmet since v1 at 0.3256 through 0.5408. This run is
+        the first with a mechanism that could plausibly meet it, which is why the
+        primary criterion above is set higher still at 0.95.
+  degenerate_pass_watch: >-
+    A model that predicts keep everywhere scores exactly identity: 0.6506 aggregate,
+    1.0 retained, 0.0 changed. That would pass beats_identity and
+    retains_what_identity_retains while failing recovers_more_than_identity, and must
+    be reported as a degenerate collapse to the trivial policy rather than as a win.
+    The fraction of fields predicted keep is reported for exactly this reason.
+  falsification_meaning: >-
+    If the model still cannot clear the trivial policy even when identity is one
+    prediction away, the problem is not the objective's expressiveness and the
+    fixed-topology geometry-denoising formulation itself is in question. That would be a
+    Gate G-level negative result and should be written up as one rather than patched.
+  reported_not_gated:
+    - the fraction of held-out fields the model predicts keep, to detect collapse
+    - held-out loss, which is not comparable across the objective change
+    - the full four-level recovery sweep against v2, v4, v5 and identity
+    - the selected step, wall time, and peak memory
+outputs:
+  local_metadata: runs/openmoji-g1-edit-mask-v6-0228c3b-0f6ce115-9b9b1699
+  report_root: reports/learning/openmoji-g1-edit-mask-v6
+  durable_artifacts: /home/dev/.cache/openmoji-g1-edit-mask-v6-0228c3b-0f6ce115-9b9b1699
+planned_at: 2026-09-20T21:00:00Z
