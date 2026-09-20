@@ -44,3 +44,25 @@ def test_wrapper_reads_the_summary_the_pilot_actually_writes(tmp_path: Path) -> 
     # The wrapper previously digested `output / summary.json`, which never exists. A
     # complete GPU run then failed only on its result contract.
     assert not (output / SUMMARY_FILENAME).exists()
+
+
+def test_every_supported_smoke_id_pins_a_loadable_committed_config() -> None:
+    wrapper = _load_wrapper()
+
+    assert set(wrapper._CONFIGS) == {"openmoji-g1-pipeline-v1", "openmoji-g1-train-v1"}
+    for smoke_id, relative in wrapper._CONFIGS.items():
+        path = _REPO_ROOT / relative
+        assert path.is_file(), smoke_id
+        pilot = load_openmoji_pilot_config(path)
+        assert pilot.steps > 0
+
+
+def test_unknown_smoke_id_fails_closed_before_touching_the_filesystem() -> None:
+    wrapper = _load_wrapper()
+
+    try:
+        wrapper._run({"smoke_id": "not-a-registered-experiment"})
+    except Exception as exc:  # noqa: BLE001 - the wrapper's own bounded error type
+        assert type(exc).__name__ == "SmokeError"
+    else:  # pragma: no cover - the guard must reject an unknown id
+        raise AssertionError("unknown smoke id was accepted")

@@ -45,6 +45,9 @@ from mojidiff.representation.program import CodecConfig, encode_program
 SUMMARY_FILENAME = "summary.json"
 """Name of the compact summary a pilot run writes under its report root."""
 
+TRACE_FILENAME = "validation.jsonl"
+"""Name of the periodic held-out trace, written only when `eval_every` is set."""
+
 
 class OpenMojiPilotError(RuntimeError):
     """The bounded Gate G pilot is invalid or failed closed."""
@@ -97,6 +100,7 @@ class OpenMojiPilotConfig:
     corruption_probability: float
     seed: int
     device: str
+    eval_every: int = 0
 
 
 def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
@@ -149,6 +153,7 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
         ),
         seed=_nonnegative_int(training.get("seed"), "seed"),
         device=_string(training, "device"),
+        eval_every=_nonnegative_int(training.get("eval_every", 0), "eval_every"),
     )
     if result.d_model % result.heads:
         raise OpenMojiPilotError("model.d_model must be divisible by model.heads")
@@ -156,6 +161,8 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
         raise OpenMojiPilotError("batch_size cannot exceed train_samples")
     if result.device not in {"auto", "cpu", "cuda"}:
         raise OpenMojiPilotError("training.device must be auto, cpu, or cuda")
+    if result.eval_every > result.steps:
+        raise OpenMojiPilotError("training.eval_every cannot exceed training.steps")
     return result
 
 
@@ -248,6 +255,27 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
     optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
     parameter_count = sum(parameter.numel() for parameter in model.parameters())
 
+    def _validate() -> dict[str, float | int | None]:
+        return _evaluate(
+            model,
+            validation_rows,
+            validation_programs,
+            groups,
+            subgroups,
+            codec,
+            config,
+            device,
+        )
+
+    # Metric-only tracing. `_evaluate` draws its corruption from an independent numpy
+    # generator under `no_grad`, and the denoiser has no dropout, so tracing cannot
+    # perturb the training stream. Configs without `eval_every` behave exactly as before.
+    trace: list[dict[str, Any]] = []
+    untrained: dict[str, float | int | None] | None = None
+    if config.eval_every:
+        untrained = _validate()
+        trace.append({"step": 0, "trained": False, **untrained})
+
     metrics: list[dict[str, Any]] = []
     for step in range(1, config.steps + 1):
         indices = [
@@ -278,17 +306,12 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
                 "train_token_accuracy": counts["correct"] / counts["total"],
             }
         )
+        if config.eval_every and step % config.eval_every == 0 and step != config.steps:
+            trace.append({"step": step, "trained": True, **_validate()})
 
-    validation = _evaluate(
-        model,
-        validation_rows,
-        validation_programs,
-        groups,
-        subgroups,
-        codec,
-        config,
-        device,
-    )
+    validation = _validate()
+    if config.eval_every:
+        trace.append({"step": config.steps, "trained": True, **validation})
     lock_verified = _verify_locked_path(
         model,
         validation_rows[0],
@@ -337,6 +360,12 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
         "checkpoint_round_trip": checkpoint_round_trip,
         "metrics_sha256": hashlib.sha256(metrics_payload).hexdigest(),
     }
+    if config.eval_every:
+        trace_payload = _jsonl_bytes(trace)
+        summary["eval_every"] = config.eval_every
+        summary["validation_untrained"] = untrained
+        summary["validation_trace_sha256"] = hashlib.sha256(trace_payload).hexdigest()
+        _write_bytes_artifact(config.report_root / TRACE_FILENAME, trace_payload)
     _write_bytes_artifact(config.report_root / "metrics.jsonl", metrics_payload)
     _write_bytes_artifact(config.report_root / SUMMARY_FILENAME, _json_bytes(summary))
     _write_bytes_artifact(config.report_root / "README.md", _markdown(summary).encode())

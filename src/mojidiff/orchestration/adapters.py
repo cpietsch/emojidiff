@@ -480,7 +480,7 @@ inner_payload = json.dumps(inner, sort_keys=True, separators=(",", ":")).encode(
 inner_encoded = base64.urlsafe_b64encode(inner_payload).decode().rstrip("=")
 script_name = (
     "openmoji_pilot_smoke.py"
-    if config["smoke_id"] == "openmoji-g1-pipeline-v1"
+    if config["smoke_id"] in ("openmoji-g1-pipeline-v1", "openmoji-g1-train-v1")
     else "vast_tiny_smoke.py"
 )
 command = [

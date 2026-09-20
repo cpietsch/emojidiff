@@ -26,8 +26,16 @@ from mojidiff.learning.openmoji_pilot import (  # noqa: E402
     run_openmoji_pilot,
 )
 
-_SMOKE_ID = "openmoji-g1-pipeline-v1"
-_CONFIG_RELATIVE = Path("configs/learning/openmoji-g1-dominant-bucket-smoke.yaml")
+# Each supported smoke id pins exactly one committed config. The id therefore names
+# the experiment, and an unknown id fails closed rather than defaulting to a config.
+_CONFIGS = {
+    "openmoji-g1-pipeline-v1": Path(
+        "configs/learning/openmoji-g1-dominant-bucket-smoke.yaml"
+    ),
+    "openmoji-g1-train-v1": Path(
+        "configs/learning/openmoji-g1-dominant-bucket-train-v1.yaml"
+    ),
+}
 _MIN_FREE_OUTPUT_BYTES = 256 * 1024 * 1024
 
 
@@ -38,12 +46,13 @@ def _parse_args() -> argparse.Namespace:
 
 
 def _run(config: dict[str, Any]) -> dict[str, Any]:
-    if config["smoke_id"] != _SMOKE_ID:
+    smoke_id = config["smoke_id"]
+    if smoke_id not in _CONFIGS:
         raise base.SmokeError("unexpected OpenMoji pipeline smoke id")
     source = base._path(config["source_root"], "source_root")
     artifact = base._path(config["artifact_root"], "artifact_root")
     stage, staged_bytes = base._verify_stage(source, config)
-    config_path = source / _CONFIG_RELATIVE
+    config_path = source / _CONFIGS[smoke_id]
     if hashlib.sha256(config_path.read_bytes()).hexdigest() != config["config_sha256"]:
         raise base.SmokeError("pipeline config hash does not match staged identity")
     os.chdir(source)
@@ -55,7 +64,7 @@ def _run(config: dict[str, Any]) -> dict[str, Any]:
     if existing + _MIN_FREE_OUTPUT_BYTES > storage_cap:
         raise base.SmokeError("pipeline smoke lacks bounded artifact capacity")
 
-    output = artifact / config["run_id"] / "smoke" / _SMOKE_ID
+    output = artifact / config["run_id"] / "smoke" / smoke_id
     if output.is_symlink():
         raise base.SmokeError("pipeline smoke output root is a symbolic link")
     summary, configured = run_openmoji_pilot_with_roots(pilot, config_path, output)
@@ -72,7 +81,7 @@ def _run(config: dict[str, Any]) -> dict[str, Any]:
         "operation": "pipeline-smoke",
         "run_id": config["run_id"],
         "schema_version": 1,
-        "smoke_id": _SMOKE_ID,
+        "smoke_id": smoke_id,
         "stage": stage,
         "summary_sha256": hashlib.sha256(
             (configured.report_root / SUMMARY_FILENAME).read_bytes()

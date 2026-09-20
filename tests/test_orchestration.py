@@ -463,21 +463,22 @@ def test_owned_smoke_remote_launcher_uses_valid_scoped_volume_mounts(tmp_path: P
     assert "python3" not in run_argv[entrypoint + 3 :]
     assert run_argv[-3].endswith("/scripts/remote/vast_tiny_smoke.py")
 
-    config["smoke_id"] = "openmoji-g1-pipeline-v1"
-    encoded = base64.urlsafe_b64encode(
-        json.dumps(config, sort_keys=True, separators=(",", ":")).encode()
-    ).decode().rstrip("=")
-    result = subprocess.run(
-        ["python3", "-I", "-c", REMOTE_OWNED_DOCKER_SMOKE, encoded],
-        capture_output=True,
-        check=False,
-        env=environment,
-        text=True,
-    )
+    for smoke_id in ("openmoji-g1-pipeline-v1", "openmoji-g1-train-v1"):
+        config["smoke_id"] = smoke_id
+        encoded = base64.urlsafe_b64encode(
+            json.dumps(config, sort_keys=True, separators=(",", ":")).encode()
+        ).decode().rstrip("=")
+        result = subprocess.run(
+            ["python3", "-I", "-c", REMOTE_OWNED_DOCKER_SMOKE, encoded],
+            capture_output=True,
+            check=False,
+            env=environment,
+            text=True,
+        )
 
-    assert result.returncode == 0, result.stderr
-    pipeline_argv = log.read_text(encoding="utf-8").splitlines()[-1].split("\0")
-    assert pipeline_argv[-3].endswith("/scripts/remote/openmoji_pilot_smoke.py")
+        assert result.returncode == 0, result.stderr
+        pipeline_argv = log.read_text(encoding="utf-8").splitlines()[-1].split("\0")
+        assert pipeline_argv[-3].endswith("/scripts/remote/openmoji_pilot_smoke.py")
 
 
 def test_owned_smoke_requires_docker_execution() -> None:
