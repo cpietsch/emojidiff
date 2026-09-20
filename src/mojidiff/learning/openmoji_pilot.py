@@ -164,6 +164,16 @@ class OpenMojiPilotConfig:
     signal - roughly 31% four individual fields. Opt-in so v1 through v7 stay exactly
     reproducible.
     """
+    value_distance_tau: float = 0.0
+    """View-unit scale of the distance-kernel value target; 0 keeps exact-token targets.
+
+    The value head predicts an exact bin on a quarter-unit lattice through a 289/417-way
+    softmax, so being one bin out scores exactly as badly as being a hundred out. It
+    reaches 0.222 on withheld corrupted fields, and that accuracy sets the break-even
+    decode threshold at 1/(1+q) = 0.818 - which is why the model edits only 4% of fields
+    despite a detector running at 2.569 lift. Spreading the target mass by distance gives
+    proximity gradient.
+    """
     calibration_samples: int = 0
     """Train-split icons withheld from training, used only to estimate the value accuracy.
 
@@ -309,6 +319,9 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
         ),
         calibration_samples=_nonnegative_int(
             training.get("calibration_samples", 0), "calibration_samples"
+        ),
+        value_distance_tau=_nonnegative_float(
+            training.get("value_distance_tau", 0.0), "value_distance_tau"
         ),
     )
     if result.d_model % result.heads:
@@ -623,6 +636,7 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
                 detection_only=config.detection_only,
                 pool_over_fields=config.pool_loss_over_fields,
                 value_loss_weight=config.value_loss_weight,
+                value_distance_tau=config.value_distance_tau,
             )
         else:
             loss, counts = geometry_loss_and_accuracy(
@@ -756,6 +770,7 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
         summary["decision_threshold"] = decision_threshold
         summary["train_value_accuracy"] = value_accuracy_train
         summary["calibration_samples"] = config.calibration_samples
+        summary["value_distance_tau"] = config.value_distance_tau
         summary["calibration_withheld_from_training"] = bool(config.calibration_samples)
     if policy is not None:
         # `steps` above stays the declared cap; `completed_steps` is what actually ran.
@@ -857,6 +872,7 @@ def _evaluate(
                 pool_over_fields=config.pool_loss_over_fields,
                 value_loss_weight=config.value_loss_weight,
                 threshold=threshold,
+                value_distance_tau=config.value_distance_tau,
             )
             split = edit_mask_accuracy_by_corruption(
                 value_logits, keep, noisy_batch, clean_batch, codec, threshold=threshold
@@ -1221,6 +1237,12 @@ def _nonnegative_int(value: object, field: str) -> int:
     if isinstance(value, bool) or not isinstance(value, int) or value < 0:
         raise OpenMojiPilotError(f"{field} must be a nonnegative integer")
     return value
+
+
+def _nonnegative_float(value: object, field: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or value < 0:
+        raise OpenMojiPilotError(f"{field} must be nonnegative")
+    return float(value)
 
 
 def _positive_float(value: object, field: str) -> float:

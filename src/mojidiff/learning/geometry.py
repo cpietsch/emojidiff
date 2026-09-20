@@ -866,6 +866,27 @@ def _legal_fields(
     return groups
 
 
+def distance_kernel_loss(
+    logits: Tensor, targets: Tensor, bins: int, tau: float, step: float = 0.25
+) -> Tensor:
+    """Cross-entropy against a soft target that decays with distance on the lattice.
+
+    Coordinates live on a quarter-unit lattice, but an exact-token softmax scores being
+    one bin out exactly as badly as being a hundred out, so a model that has localised a
+    coordinate to within a view unit earns nothing for it. This spreads the target mass
+    as `exp(-|b - t| * step / tau)`, normalised over the legal bins, so proximity earns
+    gradient. `tau` is in view units.
+
+    Returns per-field losses; the caller reduces them.
+    """
+
+    positions = torch.arange(bins, device=logits.device, dtype=torch.float32)
+    distance = (positions[None, :] - (targets - 1).to(torch.float32)[:, None]).abs()
+    weights = torch.exp(-distance * step / tau)
+    weights = weights / weights.sum(dim=-1, keepdim=True)
+    return -(weights * torch.log_softmax(logits.float(), dim=-1)).sum(dim=-1)
+
+
 def break_even_threshold(value_accuracy: float) -> float:
     """Confidence above which changing a field beats keeping it.
 
@@ -911,6 +932,7 @@ def edit_mask_loss_and_accuracy(
     pool_over_fields: bool = False,
     value_loss_weight: float = 1.0,
     threshold: float = 0.5,
+    value_distance_tau: float = 0.0,
 ) -> tuple[Tensor, dict[str, int]]:
     """Keep-or-change cross-entropy plus value cross-entropy on changed fields only.
 
@@ -945,11 +967,18 @@ def edit_mask_loss_and_accuracy(
         )
         changed = keep_targets == 0
         if bool(changed.any()):
-            value_losses.append(
-                nn.functional.cross_entropy(
-                    value_logits[changed], targets[changed] - 1, reduction=reduction
+            if value_distance_tau > 0:
+                per_field = distance_kernel_loss(
+                    value_logits[changed], targets[changed], value_logits.shape[-1],
+                    value_distance_tau,
                 )
-            )
+                value_losses.append(per_field if pool_over_fields else per_field.mean())
+            else:
+                value_losses.append(
+                    nn.functional.cross_entropy(
+                        value_logits[changed], targets[changed] - 1, reduction=reduction
+                    )
+                )
         predictions = edit_mask_predictions(value_logits, keep_logits, noisy_tokens, threshold)
         correct += int((predictions == targets).sum().item())
         total += int(targets.numel())

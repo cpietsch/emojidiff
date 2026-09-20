@@ -890,3 +890,40 @@ def test_the_break_even_threshold_matches_its_decision_rule() -> None:
     # Confident enough, and it edits again.
     confident = torch.log(torch.tensor([[0.95, 0.05]]))
     assert edit_mask_predictions(values, confident, tokens, cautious).item() == 5
+
+
+def test_the_distance_kernel_rewards_being_close() -> None:
+    """An exact-token softmax scores a one-bin miss as badly as a hundred-bin one.
+
+    Coordinates live on a quarter-unit lattice, so a model that has localised a value to
+    within a view unit has done most of the work and earns nothing for it under
+    cross-entropy. The kernel spreads the target by distance.
+    """
+
+    import pytest
+    import torch
+
+    from mojidiff.learning.geometry import distance_kernel_loss
+
+    bins = 417
+    logits = torch.zeros(3, bins)
+    logits[0, 100] = 10.0  # exactly right
+    logits[1, 104] = 10.0  # one view unit out, four quarter-unit bins
+    logits[2, 400] = 10.0  # far away
+    targets = torch.tensor([101, 101, 101])
+
+    kernel = distance_kernel_loss(logits, targets, bins, tau=1.0)
+    exact = torch.nn.functional.cross_entropy(logits, targets - 1, reduction="none")
+
+    # Cross-entropy cannot tell the near miss from the far one.
+    assert exact[1].item() == pytest.approx(exact[2].item(), abs=1e-4)
+    # The kernel can, and still prefers being exactly right.
+    assert kernel[0] < kernel[1] < kernel[2]
+
+    # A smaller tau is sharper: it penalises the near miss more.
+    sharp = distance_kernel_loss(logits, targets, bins, tau=0.25)
+    assert (sharp[1] - sharp[0]) > (kernel[1] - kernel[0])
+
+    # The target is a normalised distribution, so the loss is bounded below by its
+    # entropy rather than reaching zero.
+    assert kernel[0] > 0
