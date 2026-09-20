@@ -1,0 +1,86 @@
+schema_version: 1
+run_id: openmoji-g1-detection-only-v7-856230a-9d2db303-9b9b1699
+state: planned
+parent_run: openmoji-g1-edit-mask-v6-0228c3b-0f6ce115-9b9b1699
+blocks: openmoji-g1-corruption-process-corpus-76f41a3-2arms-9b9b1699
+hypothesis: >-
+  The v6 keep head reached only 1.23x precision lift because the value objective
+  dominated the shared encoder, not because the detection signal is unlearnable. The
+  value term is a 289- or 417-class problem the model demonstrably cannot solve; the
+  keep head is a 2-class problem a zero-parameter local-continuity statistic solves at
+  2.13x lift. Removing the value term should let the encoder learn representations that
+  serve detection, and the trained detector should then at least match the free one.
+expected_information_gain: >-
+  The registered corpus-scale process comparison assumes a trained model can learn
+  detection on some corruption process. That assumption has never been tested. If the
+  model cannot match a zero-parameter statistic even with nothing competing for the
+  representation, comparing corruption processes is premature and the conclusion is
+  about the model class. This costs one training run and blocks a two-arm comparison.
+scope_limits: >-
+  Fixed-topology and geometry-only, single seed, factorized corruption at p=0.35. A
+  detection-only model cannot reconstruct anything, so it is a diagnostic and not a
+  candidate design; held-out accuracy is meaningless here because the value head is
+  untrained. The gated quantity is detector quality alone.
+changed_factors:
+  primary: training.detection_only false -> true, dropping the value term from the loss.
+  held_fixed: >-
+    v6 exactly otherwise: slot binding and edit mask on, the full 2,681-icon split, the
+    128-icon validation draw and its corruption seeds, seed 3101, corruption 0.35,
+    batch size 16, learning rate 0.001, eval_every 60, the 6,300-step cap, and the
+    held-out-loss selection policy with patience 8. Model size is unchanged at 579,872.
+code:
+  git_commit: 856230a
+  execution_mode: native-local
+config:
+  path: configs/learning/openmoji-g1-detection-only-v7.yaml
+  sha256: 9d2db303814d609af143adf852ea186d8e435038e9d3e32711132fe6826630cd
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  bucket: bucket-p32-t128
+  train_samples: 2681
+  validation_samples: 128
+baselines:
+  measured_at_a_matched_8.573_percent_flag_rate:
+    training_free_continuity_statistic: {precision: 0.7451, lift: 2.13, recall: 0.1824}
+    v6_trained_keep_head: {precision: 0.4312, lift: 1.234, recall: 0.1058}
+  base_rate_of_corrupted_fields: 0.3494
+execution:
+  seed_set: [3101]
+  deterministic_algorithms: true
+  cublas_workspace_config: ":4096:8"
+  optimizer_step_cap: 6300
+  early_stopping: {objective: held_out_loss, patience_evals: 8, min_delta: 0.0}
+  resource_cap: {max_steps: 20000, max_storage_gb: 50}
+  network: none
+predeclared_criteria:
+  note: >-
+    Declared before launch. Measured by scripts/detector_report.py, which reproduces
+    v6's published precision and recall exactly.
+  evaluated_at: the checkpoint selected by held-out loss, at a matched 8.573% flag rate
+  primary:
+    - id: beats_the_previous_trained_detector
+      statement: Precision lift over the base rate exceeds v6's 1.234.
+    - id: matches_the_free_detector
+      statement: >-
+        Precision lift reaches at least 2.13, the training-free local-continuity
+        statistic's lift on the same corruption at the same flag rate. This is the real
+        bar: a trained model that cannot match a zero-parameter heuristic on a signal
+        the heuristic extracts is not learning the structure of the problem.
+    - id: reproducibility
+      statement: A second complete invocation returns an identical JSON result.
+  falsification_meaning: >-
+    If detection-only still cannot match the free statistic, the shared-encoder
+    explanation is wrong and the failure is not about objective balance. The conclusion
+    then concerns this model class and training setup rather than any corruption
+    process, the registered two-arm comparison is premature and should be deferred, and
+    the highest-value remaining move is PROJECT_PLAN.md section 12 branch 4 - the cached
+    autoregressive model on the same codec, which is also Gate I and which tests whether
+    the representation supports generation independent of any corruption process.
+  reported_not_gated:
+    - recall and precision at the model's own threshold and at the base flag rate
+    - the selected step, whether the cap or early stopping ended it, wall time
+outputs:
+  local_metadata: runs/openmoji-g1-detection-only-v7-856230a-9d2db303-9b9b1699
+  report_root: reports/learning/openmoji-g1-detection-only-v7
+  durable_artifacts: /home/dev/.cache/openmoji-g1-detection-only-v7-856230a-9d2db303-9b9b1699
+planned_at: 2026-09-20T22:30:00Z
