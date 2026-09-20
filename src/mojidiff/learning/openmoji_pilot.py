@@ -23,6 +23,7 @@ from picosvg.svg import SVG
 from mojidiff.learning.geometry import (
     GeometryDenoiser,
     corrupt_factorized_geometry,
+    corrupt_path_correlated_geometry,
     edit_mask_accuracy_by_corruption,
     edit_mask_loss_and_accuracy,
     geometry_accuracy_by_corruption,
@@ -142,6 +143,14 @@ class OpenMojiPilotConfig:
     """Sinusoidal conditioning features for the corruption level; 0 disables it."""
     evaluation_corruption_probability: float | None = None
     """Level the held-out evaluation uses. Defaults to `corruption_probability`."""
+    corruption_process: str = "factorized"
+    """Which fixed-topology corruption process to train and evaluate against.
+
+    Gate F selected `factorized` on four-icon fixtures where held-out recovery was
+    memorization. A training-free probe since found path-correlated corruption markedly
+    more identifiable - AUC 0.9333 against 0.7698 - so the selection is being re-run at
+    corpus scale. Defaults to `factorized`, so every earlier config is unchanged.
+    """
     edit_mask: bool = False
     """Predict a per-field keep-or-change decision and copy the input where it says keep.
 
@@ -226,6 +235,7 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
             training.get("evaluation_corruption_probability"),
             "evaluation_corruption_probability",
         ),
+        corruption_process=_corruption_process(training.get("corruption_process", "factorized")),
         slot_binding=_flag(model.get("slot_binding", False), "slot_binding"),
         edit_mask=_flag(model.get("edit_mask", False), "edit_mask"),
     )
@@ -247,6 +257,29 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
             "corruption_probability_max must exceed training.corruption_probability"
         )
     return result
+
+
+CORRUPTION_PROCESSES = {
+    "factorized": corrupt_factorized_geometry,
+    "path_correlated": corrupt_path_correlated_geometry,
+}
+
+CORRUPTION_LABELS = {
+    "factorized": "factorized_role_uniform_geometry",
+    "path_correlated": "path_correlated_geometry_blocks",
+}
+"""Reported names. `factorized` keeps the string v1 through v6 wrote, so their summaries
+stay byte-identical."""
+"""Processes with a matching signature. Whole-path replacement needs a donor pool and a
+coverage audit, so it is not selectable here; see the comparison run record."""
+
+
+def _corruption_process(value: object) -> str:
+    if not isinstance(value, str) or value not in CORRUPTION_PROCESSES:
+        raise OpenMojiPilotError(
+            f"corruption_process must be one of {sorted(CORRUPTION_PROCESSES)}"
+        )
+    return value
 
 
 def _flag(value: object, field: str) -> bool:
@@ -437,7 +470,7 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
         # example is a deterministic function of (seed, step, index).
         levels = [sample_corruption_level(config, generator) for generator in generators]
         noisy = [
-            corrupt_factorized_geometry(program, codec, level, generator)
+            CORRUPTION_PROCESSES[config.corruption_process](program, codec, level, generator)
             for program, level, generator in zip(clean, levels, generators, strict=True)
         ]
         condition = _condition(
@@ -530,7 +563,7 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
         "torch_version": str(torch.__version__),
         "cuda_version": torch.version.cuda,
         "deterministic_algorithms": True,
-        "corruption": "factorized_role_uniform_geometry",
+        "corruption": CORRUPTION_LABELS[config.corruption_process],
         "bucket": config.bucket,
         "bucket_icons": config.expected_bucket_icons,
         "selected_train_rows": [row.source_path for row in train_rows],
@@ -617,7 +650,7 @@ def _evaluate(
 ) -> dict[str, float | int | None]:
     probability = config.evaluation_probability
     noisy = [
-        corrupt_factorized_geometry(
+        CORRUPTION_PROCESSES[config.corruption_process](
             program,
             codec,
             probability,
@@ -678,6 +711,11 @@ def _verify_locked_path(
 ) -> bool:
     locks = np.zeros((codec.max_paths,), dtype=np.bool_)
     locks[0] = True
+    # Deliberately factorized at probability 1.0 regardless of the training process.
+    # This is the structural-safety check, not a training sample: corrupting every
+    # unlocked field independently is the strongest test that a locked path survives
+    # both corruption and prediction, and path-correlated corruption takes no lock
+    # argument.
     noisy = corrupt_factorized_geometry(
         clean,
         codec,
