@@ -1603,3 +1603,43 @@ And what it does not establish, unchanged: no render in this project is a recogn
 icon. At 35% corruption the input is already scribble and recovering a quarter of that
 gap leaves scribble. The direction is measurable and compounding; the generator does not
 yet work.
+
+## 2026-09-21 — The repaired measurement restores all four eliminations
+
+**Hypothesis.** Four conclusions in this gate — data volume matters, capacity does not,
+the corruption regime is not the constraint, noise-level conditioning changes nothing —
+were each declared on a held-out scalar that was ~31% four individual fields, on runs
+stopped at 6–24% of their step cap, under a corruption process leaking a density
+shortcut, with coordinates as unordered categories, graded on a metric now known to point
+the wrong way. All of that is fixed and none had been retested. At least one was expected
+to change, capacity most likely.
+
+**Observation.** Three arms off the v16 base, one factor each, judged on paired per-icon
+render recovery against the base's +0.2511 and its interval half-width of 0.1103:
+
+| arm | recovery | verdict |
+| --- | ---: | --- |
+| capacity, 3.69x parameters | +0.2779 (\|diff\| 0.027) | **restores v3** |
+| data volume, 256 icons | +0.0766 (0.175 below) | **restores v2** |
+| noise conditioning | +0.2096 (\|diff\| 0.042) | **restores v4** |
+
+All three original conclusions survive. The eliminations were right even though they were
+measured badly, and the four are admissible again. The data-volume arm is sharpest:
+256 icons against 2,425 cuts render recovery 70%, with its interval barely clearing zero.
+
+Capacity is the one I expected to move and did not. v3's finding had been recorded as the
+least trustworthy because 768 parameters of slot binding later beat a 3.53x capacity
+increase outright; at 3.69x on a sound setup it is still within noise, and the best model
+this session built remains the smallest. The two were never in tension — one is a
+representational fix, the other raw size.
+
+**Decision.** Restore all four to the record as sound. Two recording notes kept rather
+than tidied: the first noise-conditioning arm evaluated at 0.05 rather than 0.35 because
+`evaluation_corruption_probability` was unset and defaults to `corruption_probability`,
+which the training range had moved — retained under its own identity as failed. And on
+first reading I labelled the data-volume arm as overturning v2 by applying a symmetric
+rule to a directional criterion; the criterion as predeclared is the one applied.
+
+Separately, the audit script written earlier caught a real error in my own bookkeeping:
+the failed arm had been logged under the parent comparison's run_id, marking the whole
+three-arm run failed. Corrected append-only, with the superseded row named.

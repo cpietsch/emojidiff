@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-retest-eliminations-b949fc2-3arms-9b9b1699
-state: planned
+state: completed
 parent_run: openmoji-g1-geometric-gate-v16-85ec724-aaa03592-9b9b1699
 retests:
   - openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
@@ -99,3 +99,42 @@ outputs:
   local_metadata: runs/openmoji-g1-retest-eliminations-b949fc2-3arms-9b9b1699
   report_roots: reports/learning/openmoji-g1-retest-{capacity,data-volume,noise-conditioning}
 planned_at: 2026-09-21T05:20:00Z
+completed_at: 2026-09-21T06:10:00Z
+result:
+  base_v16_render_recovery_72px: 0.2511
+  interval_half_width: 0.1103
+  arms:
+    capacity: {parameters: 1936160, trains_on: 2425, render_recovery_72px: 0.2779, ci95: [0.1606, 0.3951], helped: 10, of: 12, abs_diff_vs_base: 0.0268}
+    data_volume: {parameters: 525152, trains_on: 256, render_recovery_72px: 0.0766, ci95: [0.0012, 0.1520], helped: 8, of: 12, below_base_by: 0.1745}
+    noise_conditioning: {parameters: 528320, trains_on: 2425, render_recovery_72px: 0.2096, ci95: [0.1158, 0.3035], helped: 10, of: 12, abs_diff_vs_base: 0.0415}
+  identical_rerun: true
+predeclared_outcome:
+  overall: passed
+  capacity_retested: {verdict: restores_v3, abs_diff: 0.0268, threshold: 0.1103, meaning: 3.69x parameters changes nothing measurable}
+  data_volume_retested: {verdict: restores_v2, below_base_by: 0.1745, threshold: 0.1103, meaning: data volume matters, 256 icons gives 0.0766 against 2425 giving 0.2511}
+  noise_conditioning_retested: {verdict: restores_v4, abs_diff: 0.0415, threshold: 0.1103, meaning: conditioning changes nothing that matters}
+  structural_safety: {passed: true}
+  reproducibility: {passed: true}
+  conclusion: >-
+    All three original conclusions survive the corrected setup. The eliminations were
+    right even though they were measured badly, and the four are admissible again. The
+    data-volume arm is the sharpest: 256 icons against 2,425 cuts render recovery 70%,
+    from 0.2511 to 0.0766, with its interval barely clearing zero.
+  expectation_not_met: >-
+    Capacity is the one I expected to move and it did not. v3's conclusion had been
+    recorded as the least trustworthy of the four because 768 parameters of slot binding
+    later beat a 3.53x capacity increase outright. At 3.69x on a sound setup it is still
+    within noise of the base, and the best model this session built remains the smallest.
+    The two results were never in tension: one was a representational fix, the other raw
+    size.
+  recording_notes:
+    failed_arm: >-
+      The first noise-conditioning arm evaluated at 0.05 rather than 0.35, because
+      evaluation_corruption_probability was unset and defaults to corruption_probability,
+      which the training range had moved. Its identity baseline came out at 0.9501
+      against the other arms' 0.6515. It is retained under its own identity as failed.
+    directional_criterion: >-
+      On first reading I labelled the data-volume arm as overturning v2, by applying a
+      symmetric "differs by more than the half-width" rule to a criterion predeclared
+      DIRECTIONALLY - below the base by more than the half-width restores v2. The
+      criterion as written is the one applied.
