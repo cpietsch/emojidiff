@@ -1,0 +1,85 @@
+schema_version: 1
+run_id: openmoji-g1-withheld-calibration-v14-dbfc543-359d06bd-9b9b1699
+state: planned
+parent_run: openmoji-g1-derived-threshold-v13-7c73fab-1687c462-9b9b1699
+hypothesis: >-
+  v13 beat identity without any held-out calibration, 0.6519 against 0.6515, but by only
+  0.0003, because it estimated the value head's accuracy on icons the model had trained
+  on. There it scores 0.2751 against 0.1233 held out, so the derived threshold came out
+  at 0.784 where the held-out accuracy implies 0.890 - too permissive, so the model edits
+  more than pays. Estimating that accuracy on 256 train icons withheld from training
+  should give a threshold near 0.89 and a margin closer to the 0.0065 a fitted threshold
+  achieved, while still never touching held-out data.
+expected_information_gain: >-
+  It closes the last gap between the project's first win over the trivial policy and a
+  win that needs no asterisk at all: no sweep, no held-out calibration, and a threshold
+  the model derives from data it never trained on.
+scope_limits: >-
+  Fixed-topology and geometry-only, single seed, marginal-respecting corruption at 0.35,
+  token accuracy rather than renders. Withholding 256 icons also removes them from
+  training, so the model sees 2,425 rather than 2,681 - a 9.6% reduction that works
+  against this run and is disclosed rather than hidden.
+changed_factors:
+  primary: >-
+    training.calibration_samples 0 -> 256. The last 256 icons of the deterministic train
+    selection are withheld from training and used only to estimate the value accuracy
+    that sets the decode threshold.
+  disclosed_side_effect: >-
+    Training data drops from 2,681 to 2,425 icons. That is a real 9.6% reduction and it
+    works against the hypothesis, so a pass is conservative and a narrow failure should
+    be read with it in mind.
+  parameters: unchanged at 525,152
+  held_fixed: v13 exactly otherwise.
+code:
+  git_commit: dbfc543
+  execution_mode: native-local
+config:
+  path: configs/learning/openmoji-g1-withheld-calibration-v14.yaml
+  sha256: 359d06bd2530822e573f44e9861117e0f7003b1da93c5b311d12365c951a422c
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  bucket: bucket-p32-t128
+  train_samples: 2681
+  trained_on: 2425
+  calibration_samples: 256
+  validation_samples: 128
+baselines:
+  identity: 0.6515
+  v12_argmax: 0.6086
+  v12_threshold_fitted_on_held_out_icons: {evaluation_half: 0.6567, identity_there: 0.6502, margin: 0.0065}
+  v13_threshold_from_trained_on_icons: {aggregate: 0.6519, threshold: 0.7842, q: 0.2751, margin: 0.0003}
+  held_out_value_accuracy_implying_threshold_0.890: 0.1233
+predeclared_criteria:
+  evaluated_at: the checkpoint selected by held-out loss, decoded at the derived threshold
+  primary:
+    - id: beats_identity_without_touching_held_out_data
+      statement: >-
+        Held-out aggregate token accuracy exceeds the identity policy's, computed from
+        this run's own totals. Nothing in this run fits anything on held-out data.
+    - id: improves_on_the_trained_on_estimate
+      statement: >-
+        The margin over identity exceeds v13's 0.0003, despite training on 9.6% fewer
+        icons.
+    - id: threshold_reflects_an_honest_estimate
+      statement: >-
+        The derived threshold exceeds v13's 0.7842 and lies below 0.95. A withheld
+        estimate should be lower than the trained-on one and therefore a higher, more
+        cautious threshold.
+    - id: structural_safety
+      statement: Locked-path exactness holds and the canonical checkpoint round-trips.
+    - id: reproducibility
+      statement: A second complete invocation returns an identical JSON result.
+  reported_not_gated:
+    - the withheld value accuracy against v13's trained-on 0.2751 and the held-out 0.1233
+    - changed and retained accuracy, which move in opposite directions by design
+  falsification_meaning: >-
+    If the withheld estimate does not improve the margin, then the gap between the
+    trained-on and held-out value accuracy is not what limits the threshold, and the
+    remaining explanation is that the break-even rule itself is too crude - it assumes
+    changing a retained field is never right. The fix would then be to estimate the full
+    2x2 outcome table on the withheld slice rather than the single scalar q.
+outputs:
+  local_metadata: runs/openmoji-g1-withheld-calibration-v14-dbfc543-359d06bd-9b9b1699
+  report_root: reports/learning/openmoji-g1-withheld-calibration-v14
+  durable_artifacts: /home/dev/.cache/openmoji-g1-withheld-calibration-v14-dbfc543-359d06bd-9b9b1699
+planned_at: 2026-09-21T03:30:00Z
