@@ -11,7 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path, PurePosixPath
 from typing import Any, cast
 
@@ -660,8 +660,18 @@ def _probability(value: object, field: str) -> float:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, required=True)
+    parser.add_argument("--report-root", type=Path)
+    parser.add_argument("--checkpoint-root", type=Path)
     args = parser.parse_args()
     config = load_openmoji_pilot_config(args.config)
+    if (args.report_root is None) != (args.checkpoint_root is None):
+        raise OpenMojiPilotError("report and checkpoint root overrides must be supplied together")
+    if args.report_root is not None and args.checkpoint_root is not None:
+        config = replace(
+            config,
+            report_root=args.report_root,
+            checkpoint_root=args.checkpoint_root,
+        )
     print(json.dumps(run_openmoji_pilot(config, args.config), sort_keys=True))
 
 

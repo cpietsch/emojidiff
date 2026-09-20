@@ -478,6 +478,11 @@ inner = {
 }
 inner_payload = json.dumps(inner, sort_keys=True, separators=(",", ":")).encode()
 inner_encoded = base64.urlsafe_b64encode(inner_payload).decode().rstrip("=")
+script_name = (
+    "openmoji_pilot_smoke.py"
+    if config["smoke_id"] == "openmoji-g1-pipeline-v1"
+    else "vast_tiny_smoke.py"
+)
 command = [
     "docker", "run", "--rm", "--pull=never", "--network=none", "--read-only",
     "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m", "--cap-drop", "ALL", "--gpus", "all",
@@ -489,7 +494,7 @@ command = [
     + ",dst=" + artifact_container + "/" + run_id
     + ",volume-subpath=" + artifact_subpath + "/" + run_id + ",volume-nocopy",
     "--entrypoint", "python3", config["image"], "-I", "-B",
-    source_root + "/scripts/remote/vast_tiny_smoke.py", "--config", inner_encoded,
+    source_root + "/scripts/remote/" + script_name, "--config", inner_encoded,
 ]
 raise SystemExit(subprocess.run(command, check=False, shell=False).returncode)
 """
