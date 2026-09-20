@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-08-31T15:43:06Z
+Updated: 2026-09-20T09:21:22Z
 
 ## Current hypothesis and evidence
 
@@ -109,7 +109,7 @@ loss sequence and final model tensors exactly. An identical full rerun then fail
 artifact contract because legacy `torch.save` container bytes changed, so v1 is retained
 as failed rather than silently accepted or tuned.
 
-Gate F is now active. Commit `333e149` defines render-safe fixed-topology contracts for
+Gate F began at commit `333e149`, which defines render-safe fixed-topology contracts for
 independent role-uniform geometry corruption, path-correlated geometry blocks, and
 compatible whole-path donor replacement; the contracts retain paths, segment types,
 styles, and typed padding. The first registered local run is the matched factorized
@@ -156,6 +156,14 @@ byte-identically. Its held-out aggregate/changed/retained recovery is
 96.77%/92.62%/99.06% across 3,345. Both meet their predeclared thresholds and have
 exact checkpoint continuation. The perfect whole-path result has only 550 changed
 fields, so it demonstrates feasibility but cannot establish a corruption-family win.
+
+The predeclared seed-2701 replication closes Gate F. Factorized recovery is
+97.15%/93.47%/99.16% aggregate/changed/retained versus path-correlated
+92.72%/80.87%/100%; the 12.60-point changed-token advantage agrees with the first
+seed's 12.07 points. Whole-path again reaches 100% but changes only 608 held-out fields,
+versus 3,337 and 3,586, so it remains a lighter feasibility task. All three replicas
+resume exactly and reproduce byte-identically. Factorized role-uniform corruption is
+the Gate G primary; path-correlated and whole-path are retained named ablations.
 
 ## Last completed action and verification
 
@@ -322,12 +330,30 @@ held-out recovery, v4/v5 supply diverse recovery and recognizable renders, and v
 supply exact resume and byte-stable artifacts. The representation is learnable for
 fixed-topology geometry; topology and corruption-family questions remain open.
 
+Adapted the owned-worker contract to its sibling-container topology. The adapter now
+requires and preflights the exact Compose-prefixed workspace and artifact volumes,
+mounts only run-specific subpaths, bypasses the NGC entrypoint for clean machine-readable
+output, and has dry-run/fake-Docker coverage. The complete local suite passes 101/101;
+Ruff and strict mypy pass. The pinned image is
+`mojidiff/owned-gpu-smoke:2c3b248` with image ID
+`sha256:fd065ec98130193b324cf9462fa97e025041bd6df72313249edd902608a2ac00`.
+
+The owned RTX 4080 adapter smoke `owned-gpu-smoke-5da02d3-7c03a644` completed twice.
+It verified immutable staging, typed codec and Cairo rendering, one CUDA forward/backward
+step, checkpoint write/read, transfer into the persistent artifact volume, and exact
+create-or-identical rerun behavior. The 16,179-byte checkpoint SHA-256 is
+`77e93414e04707efb0469718426bb2364d5a7b22e575e519124d5c628442348f`;
+the result JSON SHA-256 is
+`837850bd34e3b82c978989cc229a52db45599c8659e1c0a5b137bc25c1809837`.
+Three preceding adapter failures are preserved with reason codes; one additional parent
+run completed its GPU/artifact work but failed only because the NGC banner violated the
+JSON stdout contract.
+
 ## Active jobs
 
-None. The fixture-matched factorized and path-correlated controls both completed twice
-byte-identically. Every worker remains disabled, the isolated Docker daemon has no
-running container, and no authenticated remote command has been issued. Keep the Vast
-GPU off.
+None. The owned-worker smoke ran in foreground containers with `--rm`; no container or
+detached process was intentionally left active. The owned worker is enabled for bounded
+work under its recorded 20,000-step and 50 GB cap. Vast and A100 workers remain disabled.
 
 ## Artifact durability
 
@@ -339,9 +365,8 @@ at `86f7d03`; the 32 MB full-primary opacity report is versioned at `88532a5`, a
 216 KB OOB compact report at `45ca009`. Nothing was pushed. The OOB probe's 812 KB
 derived SVGs and opacity probe's 260 KB derived SVGs are reproducible but local-only.
 The 152 KB role-typed coordinate report is versioned at `d2b4a1c`; its 500 KB derived
-SVGs are reproducible and local-only. No external artifact sink is
-configured or verified, so bulk artifacts are not durable against loss of the
-control-plane volume and meaningful GPU work remains blocked.
+SVGs are reproducible and local-only. The owned-worker persistent artifact sink is now
+configured and verified; earlier control-plane-only artifacts have not been copied to it.
 
 The compact style-vocabulary, capacity, and packed/render stress evidence is versioned
 locally through `791af1f`; their reproducible bulk SVG/raster derivatives remain ignored.
@@ -351,7 +376,7 @@ resume checkpoint is reproducible in model/optimizer content but not byte-stable
 legacy PyTorch container and remains local-only. Nothing was pushed.
 
 The v2 compact report is versioned locally at `2d75672`. Its canonical 3.0 MB checkpoint
-is verified byte-stable but remains local-only because no external artifact sink exists.
+is verified byte-stable but has not been copied to the newly verified worker sink.
 
 The v3 compact diagnostic is versioned locally at `99106ed`; its canonical 3.0 MB
 checkpoint is byte-stable and remains local-only. The v4 compact report is versioned
@@ -360,33 +385,42 @@ locally at `fecc4c0`; its 3.0 MB canonical checkpoint is also byte-stable and lo
 The v5 compact report is pending a local Git checkpoint. Its canonical 3.0 MB checkpoint
 is byte-identical to v4 because the diverse branch is unchanged; it remains local-only.
 
+The owned worker's `/home/dev/workspace` and `/home/dev/.cache` live on persistent
+Compose volumes. The artifact sink write/read/hash preflight succeeded, and the complete
+smoke checkpoint and result are retained under
+`/home/dev/.cache/owned-gpu-smoke-5da02d3-7c03a644/`. Identical workspace copies are
+retained under `/home/dev/workspace/owned-gpu-smoke-5da02d3-7c03a644/`. No artifact was
+deleted or published.
+
 ## Current blockers and missing authorization
 
 - YOLO checks passed for hostname, persistent repository location, TLS-only isolated
   DinD, absent host Docker sockets, absent worker/cloud/kube/GitHub credentials, and an
   empty running-container inventory. Dedicated Tailscale tag/ACL restrictions and
   external credential scopes cannot be verified from inside this container.
-- `artifact_store.type`, `artifact_store.uri`, and
-  `artifact_store.credentials_source` are unset.
+- The owned worker is authorized and its persistent paths are verified. Its SSH endpoint
+  is a devbox controlling sibling Docker containers: use only the recorded
+  `code-server-gpu_gpubox-workspace` and `code-server-gpu_gpubox-home` volumes. An
+  unprefixed volume name silently creates the wrong volume, and devbox-local bind paths
+  do not resolve in sibling containers.
 - `vast_5090` is disabled; `resource_cap.max_steps`, `max_spend_usd`, and
   `max_storage_gb` are null.
-- The prior Vast endpoint may be stale after shutdown. Once the next server exists, the
-  exact current SSH username, public host, and one exact SSH port are required. Under
-  the current contract, per-alias `StrictHostKeyChecking accept-new` is sufficient for
-  first use; no out-of-band fingerprint is required. No host key has been trusted and
-  no login has been attempted.
-- The reported 100 GB attached volume has no recorded mount path or persistence
-  guarantee and therefore is not yet treated as the configured durable artifact sink.
-- `owned_gpu` is disabled; `resource_cap.max_steps` and `max_storage_gb` are null.
+- The prior Vast endpoint may be stale after shutdown. A future Vast launch still needs
+  its exact current SSH endpoint and complete billed resource cap before use.
 - `a100_cluster` is disabled; `workspace_root`, `namespace`, `service_account`, `pvc`,
   `resource_cap.max_jobs`, `max_steps_per_job`, and `max_storage_gb` are null.
-- The template SSH alias names exist in local authorization state, but no real named
-  Vast alias exists in `~/.ssh/config`. A local SSH key is present, but its username and
-  endpoint have not been recorded or used.
+- The owned-GPU endpoint was explicitly replaced by the operator. The hardened
+  `owned-gpu` alias now resolves to `dev@100.69.189.78:22`; first-use pinning recorded
+  ED25519 fingerprint `SHA256:kBhpBUsFqhneFvZUdwEnqt7URk/7+MaiJ7FxUBA09vA`.
+  A probe identifies host `gpubox-4080`, Linux 6.17.0-41, NVIDIA GeForce RTX 4080
+  (16,376 MiB), driver 595.71.05, and 714 GiB free on `/`. This remains an RTX 4080
+  result, not a 4090 result. The sibling Docker daemon is reachable and its NVIDIA
+  runtime successfully executed the complete project smoke using the pinned image.
 
 ## Next smallest evidence-producing action
 
-Commit the compact v3 matched-control evidence, then run one predeclared additional
-seed across the three corruption families to measure whether the observed factorized
-advantage survives seed variation. Keep the GPU off until remote artifact authorization
-is complete.
+Implement the first Gate G packed factorized training configuration and harness locally,
+with deterministic dry-run and checkpoint/resume tests. Then run that exact training
+pipeline as a tiny bounded worker smoke before deciding whether the evidence justifies
+a larger RTX 4080 training run. The generic adapter smoke authorizes the worker path but
+does not substitute for the required pipeline-specific smoke.

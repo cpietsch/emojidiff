@@ -767,3 +767,29 @@ one seed. Commit the compact evidence and add a predeclared additional-seed repl
 across all three arms before deciding whether the observed factorized advantage is
 robust. This remains a custom iterative denoiser result, not an exact D3PM claim or
 evidence for topology generation.
+
+## 2026-08-31 — Gate F independent-seed replication and primary choice
+
+**Hypothesis.** The factorized changed-token advantage over path-correlated corruption
+on the capacity-safe v3 fixture persists under the predeclared independent seed, while
+whole-path replacement remains a supported but lighter feasibility task.
+
+**Method.** Change only the training/corruption seed from 1702 to 2701 in all three v3
+arms. Keep the fixture, packed P16/S32/T128 codec, 241,072-parameter model, optimizer,
+online resampling, 0.35 gate probability, 320/160-step schedule, held-out protocol, and
+renderer fixed. Repeat all three complete studies through create-or-identical guards.
+
+**Observation.** Every arm passes its predeclared criteria, resumes exactly, renders
+safely, and reproduces byte-identically. Factorized held-out aggregate/changed/retained
+accuracy is 97.15%/93.47%/99.16%; path-correlated is 92.72%/80.87%/100%. The 12.60-point
+factorized changed-token advantage agrees with the first seed's 12.07-point advantage.
+Whole-path again reaches 100%, but only 608 held-out fields change versus 3,337 for
+factorized and 3,586 for path-correlated.
+
+**Decision.** Close Gate F with factorized role-uniform corruption as the Gate G primary.
+It wins changed-token recovery on both predeclared seeds while preserving render safety
+and exact recovery. Retain path-correlated and whole-path as named ablations: the former
+is a reproducible negative result on this diagnostic, and the latter proves compatible
+donor learning but is not a matched-difficulty quality win. This choice applies only to
+the current custom iterative-denoiser formulation; it is not an exact D3PM claim and
+does not yet establish topology or style generation.

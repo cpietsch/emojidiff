@@ -1,0 +1,21 @@
+{
+  "artifacts": [
+    {
+      "bytes": 16179,
+      "durable_path": "/home/dev/.cache/owned-gpu-smoke-5da02d3-7c03a644/smoke/tiny-smoke-v1/checkpoint.pt",
+      "kind": "checkpoint",
+      "sha256": "77e93414e04707efb0469718426bb2364d5a7b22e575e519124d5c628442348f",
+      "workspace_copy_identical": true
+    },
+    {
+      "bytes": 1538,
+      "durable_path": "/home/dev/.cache/owned-gpu-smoke-5da02d3-7c03a644/smoke/tiny-smoke-v1/result.json",
+      "kind": "result",
+      "sha256": "837850bd34e3b82c978989cc229a52db45599c8659e1c0a5b137bc25c1809837",
+      "workspace_copy_identical": true
+    }
+  ],
+  "artifact_identity_rerun": true,
+  "schema_version": 1,
+  "status": "completed"
+}

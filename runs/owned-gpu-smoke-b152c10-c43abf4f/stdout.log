@@ -1,0 +1,3 @@
+2026-09-20T09:04:18Z planned; remote execution not yet started
+2026-09-20T09:05:42Z immutable stage verified
+2026-09-20T09:06:14Z smoke failed before container creation: invalid --mount field 'rw'

@@ -1,0 +1,56 @@
+schema_version: 1
+run_id: owned-gpu-smoke-05ef529-c43abf4f
+state: failed
+parent_run: owned-gpu-smoke-b152c10-c43abf4f
+hypothesis: >-
+  Removing the invalid bare rw mount field allows the verified named-volume topology
+  to execute the complete tiny adapter smoke and recover an identical checkpoint.
+expected_information_gain: >-
+  Falsifies or confirms GPU execution, immutable staging, scoped named-volume mounts,
+  tokenizer/renderer execution, one CUDA forward/backward pass, and durable artifact
+  write/read/hash recovery before larger training.
+code:
+  git_commit: 05ef52940b24f97fde530384527fcb955131a2a7
+  source_patch_sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+  snapshot_mode: git-archive
+  untracked_experiment_outputs_included: false
+config:
+  path: state/hosts.local.yaml
+  sha256: c43abf4fc213e67cce13024be4ef70d44c4850315abe929da734ddfcde8e59cb
+dataset:
+  fixture: embedded-opacity-smoke-fixture
+  source: scripts/remote/vast_tiny_smoke.py
+worker:
+  alias: owned-gpu
+  gpu: NVIDIA GeForce RTX 4080
+  driver: "595.71.05"
+  image: nvcr.io/nvidia/pytorch:25.06-py3
+  image_digest: sha256:025d9b102b5436d4af8af58f12c6a46b7e5d16f19543b1d2cc4446bf2650b4f1
+  torch: 2.8.0a0+5228986c39.nv25.06
+  cuda: "12.9"
+  cudnn: 91002
+  workspace_root: /home/dev/workspace
+  workspace_volume: code-server-gpu_gpubox-workspace
+  artifact_root: /home/dev/.cache
+  artifact_volume: code-server-gpu_gpubox-home
+  artifact_volume_subpath: .cache
+execution:
+  seed_set: [20250823]
+  deterministic_algorithms: true
+  resource_cap:
+    max_steps: 20000
+    max_storage_gb: 50
+  smoke_steps: 1
+  network: none
+  command: owned Docker adapter stage then smoke; encoded remote configuration redacted
+  checkpoint_policy: retain smoke checkpoint and result in the persistent artifact volume
+outputs:
+  local_metadata: runs/owned-gpu-smoke-05ef529-c43abf4f
+  remote_workspace: /home/dev/workspace/owned-gpu-smoke-05ef529-c43abf4f
+  durable_artifacts: /home/dev/.cache/owned-gpu-smoke-05ef529-c43abf4f
+planned_at: 2026-09-20T09:07:35Z
+failed_at: 2026-09-20T09:09:28Z
+failure_reason: >-
+  The sibling container and scoped named-volume mounts started successfully, but the
+  pinned upstream NGC image lacks CairoSVG 2.9.0. Tokenizer/renderer imports failed
+  before the CUDA forward/backward step.

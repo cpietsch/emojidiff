@@ -1,0 +1,18 @@
+{
+  "artifacts": [
+    {
+      "bytes": 16179,
+      "path": "/home/dev/.cache/owned-gpu-smoke-2c3b248-7c03a644/smoke/tiny-smoke-v1/checkpoint-77e93414e04707efb0469718426bb2364d5a7b22e575e519124d5c628442348f.pt",
+      "sha256": "77e93414e04707efb0469718426bb2364d5a7b22e575e519124d5c628442348f",
+      "verified_read_back": true
+    },
+    {
+      "bytes": 1538,
+      "path": "/home/dev/.cache/owned-gpu-smoke-2c3b248-7c03a644/smoke/tiny-smoke-v1/result.json",
+      "sha256": "379d8f1c14f4a2d5f51c5a016d906c1e13f7b37260162332a9cedfea9bae82d2",
+      "verified_read_back": true
+    }
+  ],
+  "schema_version": 1,
+  "status": "durable-but-run-failed"
+}

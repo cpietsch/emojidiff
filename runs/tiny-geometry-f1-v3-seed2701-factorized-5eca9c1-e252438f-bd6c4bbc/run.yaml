@@ -1,0 +1,16 @@
+schema_version: 1
+run_id: tiny-geometry-f1-v3-seed2701-factorized-5eca9c1-e252438f-bd6c4bbc
+state: completed
+hypothesis: factorized geometry corruption baseline is reproducible under independent seed 2701
+git_commit: 5eca9c118a4ec184a8299e9617c8e4bbe233b827
+config: configs/learning/tiny-geometry-f1-v3-seed2701-factorized.yaml
+config_sha256: e252438f19479bd8c31825ca5097b3985a36596f5e512cd6f4e20e2527df25bc
+dataset_manifest: data/manifests/openmoji-17.0.0-whole-path-fixture-v3.json
+dataset_manifest_sha256: bd6c4bbc3440aeec7096b2084a8bdf4ae1b13997c83b962536ac30784753f969
+worker: gtc-local-cpu
+resource_cap: {external_spend_usd: 0, optimizer_steps: 320, max_local_storage_gb: 0.1}
+command: .venv/bin/python -m mojidiff.learning.tiny_study --config configs/learning/tiny-geometry-f1-v3-seed2701-factorized.yaml
+artifact_durability: compact-report-pending-local-git;checkpoint-local-only
+active_job_id: null
+result: heldout accuracy 0.9714558574; changed-token accuracy 0.9346718610; exact checkpoint continuation
+summary_sha256: d8eb3976f5c580db8a5f2f23af4d8c3dbb7854b64ab181c2705a3e7570526645

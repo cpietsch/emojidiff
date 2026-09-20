@@ -1,0 +1,16 @@
+schema_version: 1
+run_id: tiny-geometry-f1-v3-seed2701-path-correlated-5eca9c1-19c3257f-bd6c4bbc
+state: completed
+hypothesis: path-correlated geometry corruption treatment is reproducible under independent seed 2701
+git_commit: 5eca9c118a4ec184a8299e9617c8e4bbe233b827
+config: configs/learning/tiny-geometry-f1-v3-seed2701-path-correlated.yaml
+config_sha256: 19c3257faeb9aa546fef48ba7f860cfc973b06a1de5c291c958913179e4a6da9
+dataset_manifest: data/manifests/openmoji-17.0.0-whole-path-fixture-v3.json
+dataset_manifest_sha256: bd6c4bbc3440aeec7096b2084a8bdf4ae1b13997c83b962536ac30784753f969
+worker: gtc-local-cpu
+resource_cap: {external_spend_usd: 0, optimizer_steps: 320, max_local_storage_gb: 0.1}
+command: .venv/bin/python -m mojidiff.learning.tiny_study --config configs/learning/tiny-geometry-f1-v3-seed2701-path-correlated.yaml
+artifact_durability: compact-report-pending-local-git;checkpoint-local-only
+active_job_id: null
+result: heldout accuracy 0.9272071307; changed-token accuracy 0.8087005020; exact checkpoint continuation
+summary_sha256: 562c8b7f595b1465bfaf4f7b39f6c028f8658368d02ba06a2df48702eac7493e
