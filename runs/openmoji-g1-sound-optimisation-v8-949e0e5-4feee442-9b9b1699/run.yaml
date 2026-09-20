@@ -1,0 +1,109 @@
+schema_version: 1
+run_id: openmoji-g1-sound-optimisation-v8-949e0e5-4feee442-9b9b1699
+state: planned
+parent_run: openmoji-g1-detection-only-v7-856230a-9d2db303-9b9b1699
+diagnosis: five-lens diagnostic panel over this codebase, with both defects verified independently
+hypothesis: >-
+  The Gate G sequence was optimised and model-selected on a broken signal. The loss
+  averaged cross-entropy over per-(segment kind, coordinate slot) groups rather than
+  over fields, so the four single-field QUAD groups carried 4/13 of the coordinate loss
+  against 40,004 other fields - a measured 5,287x per-field weight ratio - and held-out
+  loss, which is the checkpoint-selection and early-stopping signal, was roughly 31%
+  four individual fields. Separately, no attention padding mask was passed, so about
+  29% of the sequence was attended as content. Correcting both should raise the trained
+  detector's precision lift above v7's 1.365 and let the run use materially more of its
+  6,300-step budget than v7's 1,140.
+expected_information_gain: >-
+  Every plateau claim in this series - that data, capacity, the corruption regime and
+  noise-level information were each eliminated - was declared by a held-out scalar that
+  was 31% four fields, on runs stopped at 6 to 24% of their step cap. This run
+  establishes whether those plateaus were real or were noise-triggered early stops. It
+  is a prerequisite for any representational conclusion, and it costs one training run.
+scope_limits: >-
+  Detection-only, so it reconstructs nothing and held-out accuracy is meaningless here;
+  the gated quantity is detector quality. Field-pooled held-out loss is a different
+  scalar from v7's group-pooled one and the two are NOT comparable in value - only the
+  detector metrics and the selected step are. Single seed, factorized p=0.35.
+changed_factors:
+  primary: >-
+    Two verified defect corrections applied together: training.pool_loss_over_fields
+    and model.mask_padding. They are bundled deliberately and this is disclosed rather
+    than presented as one factor. Neither is a tuning knob; both are bugs. Separating
+    them would need two runs to establish a baseline that is sound in neither arm, and
+    the padding mask cannot be assessed under a loss that is 31% four fields.
+  parameters: unchanged at 579,872
+  held_fixed: >-
+    v7 exactly otherwise: detection_only, slot binding on, edit-mask heads, the full
+    2,681-icon split, the 128-icon validation draw and its corruption seeds, seed 3101,
+    corruption 0.35, batch 16, lr 0.001, eval_every 60, the 6,300-step cap, and the
+    held-out-loss selection policy with patience 8.
+code:
+  git_commit: 949e0e5
+  execution_mode: native-local
+config:
+  path: configs/learning/openmoji-g1-sound-optimisation-v8.yaml
+  sha256: 4feee4429570a2771e0ecb2229fd9d164e18c9c96d44d8b74c973dcb0471f6cf
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  bucket: bucket-p32-t128
+  train_samples: 2681
+  validation_samples: 128
+baselines:
+  detector_precision_lift_at_8.573_percent_flag_rate:
+    v7_detection_only: 1.365
+    v6_joint_objective: 1.234
+    frozen_v7_encoder_linear_probe: 1.330
+    zero_parameter_continuity_statistic: 2.13
+    nine_parameter_local_feature_model: 2.69
+  selected_step_of_a_6300_cap:
+    v2: 840
+    v3: 360
+    v4: 1020
+    v5: 1500
+    v6: 1380
+    v7: 660
+panel_predictions:
+  note: >-
+    Recorded before the run because they are falsifiable and it would be dishonest to
+    report them afterwards as if they had been anticipated.
+  optimization_lens: {point: 1.70, interval: [1.55, 1.95], selected_step: [2000, 6300]}
+  objective_lens: {point: 1.75, interval: [1.6, 1.9]}
+predeclared_criteria:
+  note: Measured by scripts/detector_report.py at the matched 8.573% flag rate.
+  evaluated_at: the checkpoint selected by held-out loss
+  primary:
+    - id: beats_the_broken_baseline
+      statement: Precision lift over the base rate exceeds v7's 1.365.
+    - id: reaches_the_panel_lower_bound
+      statement: >-
+        Precision lift is at least 1.55, the lower end of both lenses' intervals. Below
+        this the corrections did not materially change what the model learns, whatever
+        they did to the measurement.
+    - id: uses_more_of_its_budget
+      statement: >-
+        The selected step exceeds v7's 660 and the run does not stop before step 1,140.
+        A sound early-stopping signal should not fire as quickly as a noisy one.
+    - id: reproducibility
+      statement: A second complete invocation returns an identical JSON result.
+  standing_reference_not_a_prediction:
+    - id: matches_the_free_detector
+      statement: Precision lift reaches 2.13, the zero-parameter continuity statistic.
+      note: >-
+        Neither lens predicts this and I do not either; both expect the residual gap to
+        be representational. Recorded so the real bar stays visible.
+  falsification_meaning: >-
+    If the corrections do not move the detector, then the defects were real but not
+    load-bearing, the earlier plateaus stand as measured, and the remaining candidate is
+    representational - either the six-fields-summed-into-one-slot bottleneck that the
+    architecture lens measured a ceiling ladder for, or the non-ordinal coordinate
+    embedding the representation lens measured directly. Those are the next two runs and
+    they are separable.
+  reported_not_gated:
+    - detector recall and precision at the model's own threshold and at the base flag rate
+    - held-out field-pooled loss, which is a new scalar and not comparable with v7's
+    - whether early stopping or the cap ended the run, wall time, peak memory
+outputs:
+  local_metadata: runs/openmoji-g1-sound-optimisation-v8-949e0e5-4feee442-9b9b1699
+  report_root: reports/learning/openmoji-g1-sound-optimisation-v8
+  durable_artifacts: /home/dev/.cache/openmoji-g1-sound-optimisation-v8-949e0e5-4feee442-9b9b1699
+planned_at: 2026-09-20T23:40:00Z
