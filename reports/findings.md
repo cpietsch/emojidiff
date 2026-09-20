@@ -1643,3 +1643,52 @@ rule to a directional criterion; the criterion as predeclared is the one applied
 Separately, the audit script written earlier caught a real error in my own bookkeeping:
 the failed arm had been logged under the parent comparison's run_id, marking the whole
 three-arm run failed. Corrected append-only, with the superseded row named.
+
+## 2026-09-21 — It produces recognizable icons; the corruption schedule was the ceiling
+
+**Hypothesis.** Every result in this gate has been at corruption probability 0.35, where
+the input is already scribble, and every report has carried the line that no render in
+this project is a recognizable icon. Was that a statement about the model or about the
+regime?
+
+**Observation.** About the regime. v16, rendered at four corruption levels and gated at
+the threshold derived for each on the withheld calibration icons:
+
+| p | median `x_t` | median `x_hat_0` | mean recovery | helped |
+| ---: | ---: | ---: | ---: | ---: |
+| 0.05 | 0.03730 | 0.02235 | +0.0308 (median +0.3496) | 9/12 |
+| 0.10 | 0.08247 | 0.04206 | **+0.3902** | 11/12 |
+| 0.20 | 0.12568 | 0.10014 | +0.2469 | 10/12 |
+| 0.35 | 0.16955 | 0.13373 | +0.2511 | 11/12 |
+
+The same sweep over the v2 checkpoint gave −4.6517, −1.2024, −0.1315, +0.1800 and helped
+zero of 32 icons at 0.05.
+
+At **0.05** the predictions are recognizable icons and visibly repaired — the hedgehog's
+stray diagonal removed, the first-aid kit's slash gone, "WC" cleaned to near-perfect, the
+vampire's face restored from under a scribble. At **0.10** the repairs are larger and
+still land: `1F3CB` goes from heavy scribble to a clean, recognizable weightlifter, and
+`1F199` returns as a clean "UP!" badge. At 0.20 and 0.35 neither input nor output is
+recognizable, which is exactly what every earlier report described — correctly, for those
+levels.
+
+The `never_damages` criterion is falsified. At 0.05 nine of twelve icons improve, two are
+untouched, and one — `26A0` — worsens by 0.05018 absolute; because its `x_t` error was
+only 0.01390 the relative statistic turns that into −3.61 and drags the mean to +0.0308
+from a median of +0.3496. The absolute difference does not rescue it either, so at twelve
+icons one bad case genuinely prevents significance.
+
+**Decision.** Retire the standing line. "No render in this project is a recognizable
+icon" was true of probability 0.35 — the only level this gate ever trained or reported at
+— and is obsolete as a general claim. The ceiling was set by the corruption schedule, not
+by the representation, the model or the objective, each of which was suspected in turn
+and none of which was the binding constraint at the end.
+
+Keep the framing narrow. This is a denoiser that removes a handful of stray strokes from
+an icon that is mostly intact. It is not a generator, it does not reconstruct destroyed
+geometry, and `26A0` shows it can still damage a near-perfect input. But it is the first
+result here whose output a person would recognise, and v16 trained only at 0.35, so every
+level below is off-distribution — which makes the result stronger rather than weaker.
+
+The next run follows directly: train across a range of corruption levels and report at
+each, rather than training and reporting at a single destructive point.
