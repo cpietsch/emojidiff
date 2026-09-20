@@ -1,0 +1,90 @@
+schema_version: 1
+run_id: openmoji-g1-geometric-gate-v16-85ec724-aaa03592-9b9b1699
+state: planned
+parent_run: openmoji-g1-distance-kernel-v15-6a52c12-744bad0a-9b9b1699
+hypothesis: >-
+  v15 localises 27% better than v14 in view units and recovers nearly three times as much
+  render error, yet gates itself more tightly - 0.8604 against 0.8183 - and edits fewer
+  fields. The reason is that the break-even rule p > 1/(1+q) counts a field as recovered
+  only when the predicted token is exact, so a model that is closer but not exacter is
+  punished for it. Choosing the threshold by absolute view-unit error saved on the
+  withheld calibration icons instead should lower it, let v15 act on more of what it
+  already localises well, and raise its paired render recovery further.
+expected_information_gain: >-
+  It is the last step in the chain this session established, and it tests the correction
+  v15 forced: that the project's decode rule, like its criteria, was written in
+  exact-token terms that point the wrong way. Every quantity it is judged on is
+  geometric and was measured before the run.
+scope_limits: >-
+  Fixed-topology and geometry-only, single seed, marginal-respecting corruption at 0.35.
+  The threshold is chosen to maximise error saved on 256 withheld icons, so it is fitted
+  - but never on held-out data, and on icons the model did not train on. Twelve icons for
+  renders. No run in this project has produced a recognizable icon.
+changed_factors:
+  primary: >-
+    training.geometric_gate false -> true. The decode threshold is swept on the withheld
+    calibration icons and set to the value that saves the most absolute view-unit error,
+    replacing the exact-token break-even rule.
+  parameters: unchanged at 525,152
+  weights_unchanged: >-
+    This alters decoding and reporting only. Training is identical to v15, so the
+    checkpoint should match and any difference is attributable entirely to the gate.
+  held_fixed: v15 exactly otherwise.
+code:
+  git_commit: 85ec724
+  execution_mode: native-local
+config:
+  path: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+  sha256: aaa03592a404740b0d5611497bd4491792bba7501c424d7bf90ef9f152328904
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  bucket: bucket-p32-t128
+  trained_on: 2425
+  calibration_samples: 256
+  validation_samples: 128
+baselines:
+  note: >-
+    Primary metrics are geometric, per the correction v15 forced. Exact-token accuracy is
+    reported as secondary and is known to point the wrong way.
+  v15: {threshold: 0.8604, paired_render_recovery_72px: 0.1246, paired_render_recovery_18px: 0.1306, mean_abs_view_units: 6.0282, aggregate: 0.6529, identity: 0.6515}
+  v14: {threshold: 0.8183, paired_render_recovery_72px: 0.0447, mean_abs_view_units: 8.2871, aggregate: 0.6543}
+predeclared_criteria:
+  evaluated_at: the checkpoint selected by held-out loss, decoded at the geometric threshold
+  primary:
+    - id: lowers_the_threshold
+      statement: >-
+        The geometric threshold is below v15's break-even 0.8604. A rule that credits
+        closeness should permit more editing than one that demands exactness.
+    - id: improves_paired_render_recovery
+      statement: >-
+        Mean paired per-icon render recovery at 72 px exceeds v15's +0.1246, with the
+        95% interval excluding zero. This is the primary metric.
+    - id: saves_error_on_calibration
+      statement: >-
+        The reported view-unit error saved per field on the calibration icons is
+        positive, which is a consistency check on the estimator rather than a result.
+    - id: structural_safety
+      statement: Locked-path exactness holds and the canonical checkpoint round-trips.
+    - id: reproducibility
+      statement: A second complete invocation returns an identical JSON result.
+  reported_not_gated:
+    - held-out aggregate against identity, which may fall since the gate no longer optimises it
+    - exact-token changed and retained accuracy, secondary by the v15 correction
+    - the break-even threshold alongside, for direct comparison
+  expected_tension: >-
+    Editing more fields should lower exact-token aggregate accuracy while improving
+    geometry, because most edits land near rather than on the true bin. If aggregate
+    falls below identity's 0.6515 while render recovery rises, that is the v15 finding
+    repeating itself one level down, and it should be reported as such rather than as a
+    regression.
+  falsification_meaning: >-
+    If a geometric gate does not improve render recovery, then the threshold was not what
+    limited v15, and the remaining constraint is the value head's absolute accuracy
+    rather than how its output is gated. That would point back at the model - a single
+    encoder serving both heads, or a categorical parameterisation of a metric quantity
+    that might be better regressed - and both are larger changes to predeclare separately.
+outputs:
+  local_metadata: runs/openmoji-g1-geometric-gate-v16-85ec724-aaa03592-9b9b1699
+  report_root: reports/learning/openmoji-g1-geometric-gate-v16
+  durable_artifacts: /home/dev/.cache/openmoji-g1-geometric-gate-v16-85ec724-aaa03592-9b9b1699
+planned_at: 2026-09-21T04:40:00Z
