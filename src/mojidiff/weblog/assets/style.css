@@ -200,3 +200,27 @@ footer p { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
   .kv { grid-template-columns: 1fr; gap: 2px; }
   h1 { font-size: 1.55rem; }
 }
+
+/* Latest decisions: the newest entries of the trail, on the page people open first. */
+.decision-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: 1rem;
+}
+.decision {
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--series-1);
+  border-radius: 6px;
+  padding: 0.9rem 1rem;
+  background: var(--surface-1);
+}
+.decision h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.95rem;
+  line-height: 1.35;
+}
+.decision p {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+}

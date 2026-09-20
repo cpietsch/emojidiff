@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from html import escape
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -191,3 +192,18 @@ def test_a_registry_only_run_still_shows_its_evidence(tmp_path: Path) -> None:
     assert "position-marginal floor" in page, "the floor must be plotted beside the model"
     assert "runs/demo-run/run.yaml" not in page, "it must not cite a file that is absent"
     assert "append-only registry" in page
+
+
+def test_the_front_page_carries_the_newest_decisions(site: Path) -> None:
+    """The newest entry of the trail must be reachable without reading it end to end.
+
+    The trail is written oldest-first and is now many screens long, so the entry that
+    says what the project currently believes was the hardest thing on the site to find.
+    """
+
+    index = (site / "index.html").read_text()
+    findings = (_ROOT / "reports" / "findings.md").read_text()
+    titles = [line[3:].strip() for line in findings.splitlines() if line.startswith("## ")]
+    assert titles, "the trail has no entries to surface"
+    assert escape(titles[-1]) in index, "the newest decision is not on the front page"
+    assert escape(titles[0]) not in index, "the oldest decision should not lead the page"

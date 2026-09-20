@@ -89,7 +89,10 @@ def build_site(root: Path, out: Path) -> dict[str, Any]:
         _write(out / name, _asset(name))
 
     copied = _copy_assets(root, out, gallery, runs)
-    _write(out / "index.html", _index_page(runs, gates, headline or _headline(current), gallery))
+    _write(
+        out / "index.html",
+        _index_page(runs, gates, headline or _headline(current), gallery, findings),
+    )
     _write(out / "runs.html", _runs_page(runs))
     _write(out / "findings.html", _document_page("Decision trail", findings, "findings"))
     _write(out / "state.html", _document_page("Current research state", current, "state"))
@@ -270,11 +273,55 @@ def _read_jsonl(path: Path) -> list[dict[str, Any]]:
 # -------------------------------------------------------------------------- output
 
 
+def _latest_decisions(findings: str | None, count: int = 3) -> str:
+    """The newest entries of the decision trail, on the page people actually open.
+
+    The trail is written oldest-first and is now long enough that its newest entry -
+    the one that says what the project currently believes - is several screens down a
+    separate page. The point of this site is that someone can see where the research
+    stands without reading it end to end.
+    """
+
+    if not findings:
+        return ""
+    entries: list[tuple[str, list[str]]] = []
+    for line in findings.splitlines():
+        if line.startswith("## "):
+            entries.append((line[3:].strip(), []))
+        elif entries:
+            entries[-1][1].append(line)
+    if not entries:
+        return ""
+    cards = []
+    for title, body in entries[-count:][::-1]:
+        summary = next(
+            (
+                paragraph
+                for paragraph in " ".join(body).split("  ")
+                if paragraph.strip()
+            ),
+            "",
+        ).strip()
+        cards.append(
+            f'<article class="decision"><h3>{escape(title)}</h3>'
+            f"<p>{render_inline(summary[:420])}</p></article>"
+        )
+    return (
+        "<section><h2>Latest decisions</h2>"
+        "<p class='note'>Newest first, verbatim openings from "
+        "<code>reports/findings.md</code>.</p>"
+        f"<div class='decision-grid'>{''.join(cards)}</div>"
+        '<p><a class="more" href="findings.html">Full decision trail &rarr;</a></p>'
+        "</section>"
+    )
+
+
 def _index_page(
     runs: list[RunPage],
     gates: list[dict[str, Any]],
     headline: str,
     gallery: dict[str, list[Path]],
+    findings: str | None = None,
 ) -> str:
     counts: dict[str, int] = {}
     for run in runs:
@@ -302,6 +349,7 @@ def _index_page(
   <p class="lede">{render_inline(headline)}</p>
   <div class="tiles">{tiles}</div>
 </section>
+{_latest_decisions(findings)}
 {_gate_board(gates)}
 <section>
   <h2>Recent experiments</h2>
