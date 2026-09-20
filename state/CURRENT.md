@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T02:15:00Z
+Updated: 2026-09-21T02:55:00Z
 
 ## Current hypothesis and evidence
 
@@ -390,8 +390,24 @@ a 2-class decision is not a fair fight. No decode threshold rescues it: break-ev
 detection confidence is 1/(1+0.1087) = 0.9019 and every flag rate loses to identity
 monotonically.
 
-Both ingredients that would beat identity have now been demonstrated. Never at the same
-time.
+Balancing the two objectives lets them coexist, and the identity baseline finally falls.
+The keep head decides 2 classes and the value head 289 or 417, so at chance they are log
+2 and log 417 nats - a factor of 8.7 - and an unweighted sum lets the value task dominate
+a shared encoder. Scaling it by log(2)/log(417) = 0.1149, a derived weight rather than a
+tuned one, recovers the detector to 2.569 while changed-token recovery rises to 0.0738,
+2.5x v11's and 5.6x the best any earlier model managed.
+
+At the model's own 0.5 gate aggregate is 0.6086, so v12's predeclared beats-identity
+criterion is falsified as written. But with the decode threshold chosen on 64 held-out
+icons and reported on the disjoint other 64 - so the figure is not selection on its own
+evaluation set, and the primary/test split stays untouched - the model reaches 0.6567
+against identity's 0.6502 by flagging its most confident 5%. That is the first time
+anything in this project has beaten the trivial policy of emitting its input unchanged.
+
+Both qualifications belong with it: the margin is about 1% relative, and it depends on
+the calibration, because the model's own decode still loses by 0.0406. What changed is
+not that the model is good but that it is finally better than nothing, and the remaining
+gap is calibration and reconstruction rather than representation.
 
 Every plateau the sequence had declared - data volume, capacity, the corruption regime,
 noise conditioning - was measured under the broken loss and is no longer admissible as
@@ -857,15 +873,13 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Stop the two objectives competing, then make reconstruction learnable. They are
-separable and both are measured rather than guessed.
+Two measured steps remain, and the first is now the binding one.
 
-First, weight the keep and value losses by field count rather than letting a 289/417-way
-exact-token softmax dominate a 2-class decision through a shared encoder - or give the
-heads separate encoders. v10 and v11 bracket exactly what is at stake on an otherwise
-identical setup: detector lift 2.781 against 1.717. Predeclare the detector lift against
-v11's 1.717 and the aggregate against identity's 0.6515, and report the keep fraction so
-a collapse to the trivial policy is visible.
+Calibrate the gate during training rather than after it. The model beats identity only
+with a threshold fitted post hoc on held-out icons; its own 0.5 decode loses by 0.0406.
+The break-even confidence is 1/(1+q) in the value head's accuracy q, so the threshold is
+derivable rather than arbitrary - predeclare it from the training-split estimate of q and
+report the model's own gate against identity with no sweep at all.
 
 Second, replace the value head's exact-token target with a distance kernel over the
 quarter-unit lattice - mass spread over nearby bins in proportion to distance - so being

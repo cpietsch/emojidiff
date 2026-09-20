@@ -12,13 +12,14 @@ updated: 2026-09-20
 # the Current hypothesis section of state/CURRENT.md; the weblog falls back to that
 # section's newest paragraph if this is absent.
 headline: >-
-  Four verified defects, none of them tuning knobs, had been distorting every Gate G
+  Five verified defects, none of them tuning knobs, had been distorting every Gate G
   result: a loss that gave four fields 31% of its weight, no attention padding mask, a
-  corruption process whose replacements were detectable from a token marginal alone, and
-  coordinates encoded as unordered categories on what is actually a metric lattice.
-  Fixing them produced the first trained model here to beat a zero-parameter heuristic on
-  a leak-free task - and with fewer parameters. Reconstruction is now the open problem:
-  detection and value prediction compete for one encoder, and identity still wins.
+  corruption process whose replacements were detectable from a token marginal alone,
+  coordinates encoded as unordered categories on what is actually a metric lattice, and
+  two objectives of wildly different scale sharing one encoder. Fixing them produced the
+  first trained model here to beat a zero-parameter heuristic on a leak-free task, and
+  then the first to beat the identity policy of emitting its input unchanged - by about
+  1% relative, with a calibrated decode, and with fewer parameters than it started with.
 gates:
   - id: Gate A
     title: Orchestration and recovery
@@ -91,9 +92,13 @@ gates:
       leak-free task - detector lift 2.781 against 1.893, with 54,720 FEWER parameters.
       Turning the value head back on loses it again: it costs 1.064 of detector lift and
       aggregate accuracy stays at 0.5839 against the identity policy's 0.6515. Detection
-      is solved; reconstruction is not; the two cannot yet be learned together. Every
-      earlier plateau in this gate was measured under the broken loss and is no longer
-      admissible as read.
+      is solved. Balancing the two objectives by their chance entropies then let both
+      survive - detector 2.569, changed-token recovery 0.0738 - and with a decode
+      threshold calibrated on a disjoint half of the held-out icons the model reaches
+      0.6567 against the identity policy's 0.6502. That is the first time anything in
+      this project has beaten emitting its input unchanged, by about 1% relative and
+      only with that calibration; its own decode still loses. Every earlier plateau in
+      this gate was measured under the broken loss and is no longer admissible as read.
 
   - id: Gate H
     title: Broad pretraining question
