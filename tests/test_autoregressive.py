@@ -328,3 +328,26 @@ def test_the_earlier_arm_is_unaffected_by_the_coordinate_option(pieces: Pieces) 
         with_wrong, _ = model(shifted, condition, kinds=torch.full_like(kinds, 3))
     assert torch.equal(without, with_kinds)
     assert torch.equal(without, with_wrong), "kinds must be inert without the option"
+
+
+def test_a_growing_prefix_forward_works_under_metric_coordinates(pieces: Pieces) -> None:
+    """The uncached comparison path: one call per position, re-reading the whole prefix.
+
+    This is the shape that broke. Full-sequence and single-token forwards were both
+    covered and both passed, and the prefix path - only used to measure what the cache
+    is worth - was not, so a run trained for eight minutes and then died on a
+    diagnostic.
+    """
+
+    _, _, layout, programs, _, _ = pieces
+    model = _metric_model(layout)
+    model.eval()
+    tokens = flatten_program(programs[0], layout)[None]
+    shifted, kinds = teacher_forcing_inputs(tokens, layout)
+    with torch.no_grad():
+        full, _ = model(shifted, None, kinds=kinds)
+        for position in (0, 1, 7, 64, layout.length - 1):
+            logits, _ = model(
+                shifted[:, : position + 1], None, kinds=kinds[:, : position + 1]
+            )
+            assert torch.allclose(logits[:, position], full[:, position], atol=1e-5)

@@ -1754,3 +1754,43 @@ is the standing reminder of why the distinction is worth stating: a number that 
 like progress is not progress until something honest is standing next to it.
 
 **Decision.** The plumbing is sound, so Gate I proceeds to corpus scale.
+
+## 2026-09-21 — Gate I at corpus scale: the AR baseline barely clears its floor
+
+**Hypothesis.** At a budget matched to Gate G's v16 on every term the plan names —
+524,674 parameters against 525,152, the same bucket and hashed corpus, the same
+family-disjoint splits, 100,800 icon presentations — an autoregressive model over this
+codec should halve the negative log likelihood of a zero-parameter floor.
+
+The floor is not nothing, deliberately. Paired render recovery needs a corrupted input
+to recover from and a sampler has none, so identity is meaningless here and quoting it
+would be worse than admitting the gap. The floor is a position-marginal policy instead:
+it knows the grammar and the empirical token frequency at every position, is
+renormalised over exactly the legal set the model is restricted to, and knows nothing
+about which icon it is writing.
+
+**Observation. Falsified.** The model reaches **3.6249 nats per free token against the
+floor's 3.9290** — a ratio of **0.923** where the predeclared criterion was 0.500. It
+gets there at **step 600 of 6,300** and then goes backwards: held-out likelihood rises
+monotonically while training loss falls from 3.22 to 1.96, and from **step 1200 the
+model is worse than the zero-parameter floor**. Early stopping fired at step 3000.
+
+Everything else it was asked for, it did. All 32 samples validate and render, all 32 are
+distinct, so there is no class collapse. Median ink coverage is 0.414 against a corpus
+interquartile range of [0.261, 0.387] — outside, but not by much, and that figure was
+measured rather than gated.
+
+**The cache buys 16%, not an order of magnitude.** 1.232 s against 1.435 s for a decode
+that re-runs the whole prefix at every one of 1,376 positions, with the two paths
+agreeing at every position. At 524,674 parameters and d_model 96 the decode is bound by
+kernel launches rather than by arithmetic, so re-reading the prefix costs almost nothing.
+This is a real measurement on a named GPU and it contradicts the asymptotic argument;
+the cache is worth having at scale and is close to free to skip here. Peak VRAM 3.63 GiB,
+301 s to train.
+
+**What this is not yet.** It is not a verdict on autoregression over this codec. The
+model inherited a defect Gate G already verified on this exact codec — coordinate tokens
+encoded as unordered categories on a quarter-unit lattice, where the denoiser's trained
+embedding table scored Spearman −0.136 against bin distance. Calling i2 a limit before
+testing that would repeat Gate G's mistake with the sign flipped. Arm 3 changes that one
+thing and nothing else.

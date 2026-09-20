@@ -292,6 +292,15 @@ def run_ar_corpus(config: ARCorpusConfig, config_path: Path) -> dict[str, Any]:
     model.load_state_dict(best_state)
     model.eval()
 
+    # The metric trace and the checkpoint are the expensive part and they are complete
+    # here; sampling and latency are diagnostics over a model that is already trained.
+    # Writing at the end once cost a full run to a bug in the latency path, so the
+    # training result is committed before anything that can still fail runs.
+    _write_bytes_artifact(config.report_root / "metrics.jsonl", _jsonl(metrics))
+    _write_bytes_artifact(
+        config.checkpoint_root / "checkpoint.zip", _save_checkpoint(model, optimizer, best_step)
+    )
+
     sample_report = _sample(model, config, pilot, codec, layout, by_split, groups, subgroups)
     latency = _latency(model, by_split, pilot, codec, layout, groups, subgroups, device)
 
@@ -305,7 +314,7 @@ def run_ar_corpus(config: ARCorpusConfig, config_path: Path) -> dict[str, Any]:
         "all_valid": sample_report["all_valid"] or not config.require_all_valid,
     }
 
-    checkpoint = _save_checkpoint(model, optimizer, best_step)
+    checkpoint = (config.checkpoint_root / "checkpoint.zip").read_bytes()
     summary = {
         "schema_version": 1,
         "study_version": config.version,
@@ -344,9 +353,7 @@ def run_ar_corpus(config: ARCorpusConfig, config_path: Path) -> dict[str, Any]:
         "checkpoint_round_trip": _decode_checkpoint(checkpoint)["step"] == best_step,
         "metrics_sha256": hashlib.sha256(_jsonl(metrics)).hexdigest(),
     }
-    _write_bytes_artifact(config.report_root / "metrics.jsonl", _jsonl(metrics))
     _write_bytes_artifact(config.report_root / "summary.json", _json(summary))
-    _write_bytes_artifact(config.checkpoint_root / "checkpoint.zip", checkpoint)
     return summary
 
 
@@ -480,13 +487,17 @@ def _latency(
     # and the comparison stops being about the cache at all - which is what the first
     # version of this measured.
     reference = flatten_program(cached_program, layout)
+    _, kinds_full = teacher_forcing_inputs(reference[None], layout)
+    kinds_full = kinds_full.to(device)
     divergences = 0
     smallest_margin = float("inf")
     started = time.perf_counter()
     with torch.no_grad():
         for position in range(layout.length):
             prefix = torch.cat((torch.zeros(1, dtype=torch.long), reference[:position]))
-            logits, _ = model(prefix[None].to(device), condition)
+            logits, _ = model(
+                prefix[None].to(device), condition, kinds=kinds_full[:, : position + 1]
+            )
             mask = legal_mask(position, reference, layout).to(device)
             scores = logits[0, -1].masked_fill(~mask, float("-inf"))
             token = int(scores.argmax())
