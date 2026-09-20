@@ -1,0 +1,64 @@
+# Gate I at corpus scale: the autoregressive baseline against Gate G's v16 denoiser.
+#
+# PROJECT_PLAN.md section 8 asks for matched parameter count, data, codec and
+# engineering effort, measured end to end on a named GPU. Each of those is pinned here.
+#
+# Parameters: 524,674 against v16's 525,152, a 0.09% difference. d_model, heads and
+# feedforward are v16's exactly; only depth differs, 4 layers against 2, which is where
+# the budget goes in a sequence model. Nothing was tuned to reach the match - the shape
+# was chosen by enumerating the grid and taking the nearest.
+#
+# Data: the same bucket, the same hashed corpus, the same family-disjoint splits. The
+# model never sees primary/test.
+#
+# Budget: 6,300 steps at batch 16 is 100,800 icon presentations, exactly v16's.
+#
+# What it cannot match is the metric. Paired render recovery needs a corrupted input to
+# recover from, and an unconditional sampler has none, so identity is not a floor here
+# and would be meaningless if quoted. The floor below is a position-marginal policy
+# instead: zero parameters, full knowledge of the grammar and of the empirical token
+# frequency at every position, no knowledge of which icon it is writing.
+schema_version: 1
+study_version: ar-corpus-i2
+source_revision: d26203143aeec41758900ef433842ab2dbf794a4
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+report_root: reports/learning/ar-corpus-i2
+checkpoint_root: data/processed/ar-corpus-i2
+
+model: {d_model: 96, heads: 4, layers: 4, feedforward: 192}
+
+training:
+  steps: 6300
+  batch_size: 16
+  learning_rate: 0.001
+  seed: 3301
+  eval_every: 300
+  # v1 trained a fixed budget and reported its last step, but its held-out loss had
+  # bottomed out a third of the way in. Selection is on held-out likelihood, as in v16.
+  patience_evals: 8
+  # Add-one smoothing on the position marginals. Without it the floor assigns zero
+  # probability to any token unseen at a position in train and its likelihood is
+  # infinite, which would hand the model an unearned win.
+  marginal_alpha: 1.0
+
+sampling:
+  count: 32
+  seed: 5501
+  # The ink-coverage reference comes from real icons, so "looks like an icon" has a
+  # measured range rather than an opinion behind it.
+  reference_icons: 128
+  render_timeout_seconds: 20
+
+# Predeclared, and hashed into the run identity with the rest of this file.
+criteria:
+  # Half the floor's negative log likelihood per free token. A model that only learns
+  # position marginals sits at 1.0 and has learned the shape of the sequence rather
+  # than anything about icons; this is the Gate G identity-baseline discipline applied
+  # to a generator.
+  max_nll_ratio_to_marginal: 0.5
+  # The standard collapse of a conditional model on a corpus this small is one program
+  # per class, which scores well on likelihood and is not a generator.
+  min_distinct_sample_rate: 0.9
+  # Free by construction, so a failure here is a bug in the legal-token masks rather
+  # than a fact about the model - which is exactly why it is worth checking.
+  require_all_valid: true

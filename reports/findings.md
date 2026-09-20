@@ -1725,3 +1725,32 @@ That leaves **Gate I** — the cached autoregressive baseline on the same codec,
 PROJECT_PLAN.md section 12 branch 4 — as the only untried route to a generation result
 rather than a denoising one. Nothing in the project blocks it, and it has been named as
 the remaining branch since the Gate G sequence began going wrong.
+
+## 2026-09-21 — Gate I: the causal model learns the codec
+
+**Hypothesis.** Before anything runs at corpus scale, the causal model should be able to
+memorise four icons and reproduce them exactly. Gate E asked this of the denoiser first,
+and Gate G then spent months reading plateaus that turned out to be seven defects rather
+than limits — every one of which would have shown up here as a model that could not
+overfit.
+
+**Observation.** All four predeclared criteria pass. Over the 464 positions per icon
+where the grammar leaves more than one legal token, next-token accuracy reaches **1.000**
+and the loss falls by **19,902×**, from 4.602 to 0.00023. Greedy decoding through the
+KV cache and the dynamic legal-token masks reproduces **4 of 4** programs token for
+token, and every sample survives the packed validator and the isolated renderer.
+Accuracy hit 1.000 by step 200 of 2,000.
+
+The four icons are drawn from four different subgroups on purpose. The model is
+conditioned on group and subgroup only, so two icons sharing a subgroup are literally the
+same prompt and no model could reproduce both greedily; a test pins that property,
+because if the selector ever broke it the criterion would become unsatisfiable and the
+study would read as a model failure rather than a harness one.
+
+**What this is not.** It is a learnability diagnostic and nothing more. Four sequences
+into 375,106 parameters is far inside capacity, so this measures whether the objective,
+the masks and the cache are wired correctly — not whether the model can generate. Gate G
+is the standing reminder of why the distinction is worth stating: a number that looks
+like progress is not progress until something honest is standing next to it.
+
+**Decision.** The plumbing is sound, so Gate I proceeds to corpus scale.
