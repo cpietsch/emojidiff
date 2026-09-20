@@ -1,0 +1,109 @@
+schema_version: 1
+run_id: openmoji-g1-capacity-v3-3c252d5-ee32665b-9b9b1699
+state: planned
+parent_run: openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
+hypothesis: >-
+  The bottleneck v2 exposed is model capacity. At 2,040,976 parameters, 3.53x v2's
+  577,552, the same denoiser on the same 2,681-icon split recovers materially more
+  corrupted geometry and renders measurably closer to `x_0` than v2's selected
+  checkpoint.
+expected_information_gain: >-
+  v2 showed that 10.5x the data narrows the train/held-out gap 39.7% but lifts
+  changed-token recovery only 1.307x, and leaves that gap at 0.0942 - the model is close
+  to fitting what it can express. If capacity is the constraint, this is the cheapest
+  test that shows it. If it is not, the remaining candidate is the corruption schedule,
+  and that is a different experiment.
+scope_limits: >-
+  Fixed-topology and geometry-only, single seed, single corruption probability of 0.35.
+  Not unconditional generation, not topology generation, not an AR comparison. Capacity
+  is varied by width and depth together, which is how a transformer's capacity is
+  conventionally expressed; head dimension stays at 24 and the feedforward ratio at 2x
+  d_model, so no other shape parameter moves.
+changed_factors:
+  primary: >-
+    d_model 96->192, heads 4->8, layers 2->4, feedforward 192->384. 577,552 -> 2,040,976
+    parameters, 3.53x.
+  held_fixed: >-
+    the full 2,681-icon family-disjoint train split, the 128-icon validation draw and
+    its corruption seeds, seed 3101, corruption probability 0.35, batch size 16,
+    learning rate 0.001, eval_every 60, the 6,300-step cap, the held-out-loss selection
+    policy with patience 8, the codec, and the bucket.
+  selection_scalar: >-
+    Held-out loss, the project's settled rule. Adopted by convention after the 128-icon
+    comparison bounded the render-quality difference between loss-selected and
+    accuracy-selected checkpoints below 0.0032 RGBA MAE. Declared here so no reading is
+    chosen after the fact.
+code:
+  git_commit: 3c252d5
+  execution_mode: native-local
+config:
+  path: configs/learning/openmoji-g1-capacity-v3.yaml
+  sha256: ee32665be9e3fda5d8d1cd3322fe9f82dd6b42e348f790c5de904fbd83f20cb0
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  bucket: bucket-p32-t128
+  train_samples: 2681
+  validation_samples: 128
+baseline:
+  run: openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
+  read_at: its held-out loss minimum, step 840, the same selection rule this run uses
+  held_out_loss: 7.3332648277282715
+  held_out_aggregate_accuracy: 0.28861727654469105
+  held_out_changed_accuracy: 0.057304335384175134
+  held_out_retained_accuracy: 0.41283134844410296
+  rendered_median_rgba_mae_72px_128_icons: 0.141215
+worker: {alias: gpubox-4080, gpu: NVIDIA GeForce RTX 4080, driver: "595.71.05", torch: 2.14.0a0+4fdf77b940.nv26.08, cuda: "13.4"}
+execution:
+  seed_set: [3101]
+  deterministic_algorithms: true
+  cublas_workspace_config: ":4096:8"
+  optimizer_step_cap: 6300
+  early_stopping: {objective: held_out_loss, patience_evals: 8, min_delta: 0.0}
+  resource_cap: {max_steps: 20000, max_storage_gb: 50}
+  network: none
+predeclared_criteria:
+  note: >-
+    Declared before launch. No preflight was run; v2's wall time of 75.6 s at 290.1 MiB
+    peak CUDA memory for a 3.53x smaller model is ample evidence that this fits the
+    bounds.
+  evaluated_at: the checkpoint selected by held-out loss
+  primary:
+    - id: capacity_lowers_held_out_loss
+      statement: Held-out loss at the selected step is below v2's 7.3332648277282715.
+    - id: changed_recovery_improves
+      statement: >-
+        Held-out changed-token accuracy is at least 1.25x v2's 0.057304335384175134,
+        that is at least 0.071630.
+    - id: renders_measurably_closer
+      statement: >-
+        On the complete 128-icon held-out draw, with identical corruption seeds, the
+        mean per-icon RGBA MAE of `x_hat_0` against `x_0` at 72 px is lower than v2's
+        selected checkpoint and the 95% confidence interval on that paired difference
+        excludes zero. The selection-scalar comparison measured this interval's
+        half-width at 0.0032 on the same draw, so an effect above roughly 0.0064 is
+        detectable and this is a powered test rather than a hopeful one.
+    - id: structural_safety
+      statement: Locked-path exactness holds and the canonical checkpoint round-trips.
+    - id: reproducibility
+      statement: A second complete invocation returns an identical JSON result.
+  standing_gate_not_a_prediction:
+    - id: retained_preservation
+      statement: Held-out retained-token accuracy is at least 0.90.
+      note: >-
+        Carried from v1 and v2, where it read 0.3256 and 0.4128. Recorded so the bar is
+        not quietly dropped; 3.53x parameters is not predicted to close it.
+  falsification_meaning: >-
+    If capacity does not move these numbers, the model was not the binding constraint
+    either, and the corruption schedule becomes the leading candidate: the render probe
+    showed x_t at probability 0.35 is already visually destroyed, so the training
+    distribution may simply sit in an unachievable regime. That outcome redirects the
+    next experiment and must not be tuned away.
+  reported_not_gated:
+    - the complete held-out trace, the selected step, and whether the cap or early stopping ended it
+    - held-out aggregate and retained accuracy at the selected step
+    - wall time, peak CUDA memory, and parameter count
+outputs:
+  local_metadata: runs/openmoji-g1-capacity-v3-3c252d5-ee32665b-9b9b1699
+  report_root: reports/learning/openmoji-g1-capacity-v3
+  durable_artifacts: /home/dev/.cache/openmoji-g1-capacity-v3-3c252d5-ee32665b-9b9b1699
+planned_at: 2026-09-20T18:30:00Z
