@@ -1,0 +1,102 @@
+schema_version: 1
+run_id: openmoji-g1-full-denoiser-v11-27e9956-b9343dcc-9b9b1699
+state: planned
+parent_run: openmoji-g1-metric-coordinates-v10-abec130-d7044dc2-9b9b1699
+hypothesis: >-
+  Every trained model in this project scores below the identity policy - emit the
+  corrupted input unchanged - on held-out token accuracy, the best by 0.27. Four
+  verified defects have since been fixed: the loss averaged over groups so four fields
+  carried 31% of it, no attention padding mask so 29.4% of the sequence was attended as
+  content, corruption drew uniformly so a token-marginal detector scored 2.84 with no
+  context, and coordinates were encoded as unordered categories so no difference was
+  computable. With all four fixed, the detector now beats every free reference at 2.781
+  against a continuity statistic's 1.893. Running the full objective - the value head
+  training alongside the keep head, with the keep decision gating the decode - should
+  for the first time clear the identity baseline.
+expected_information_gain: >-
+  This is the bar the whole Gate G sequence has failed, and the first time it is
+  attempted with a working detector and a sound training setup. Clearing it would mean
+  the project has a denoiser that does something rather than nothing. Failing it with a
+  detector this good would localise the remaining problem to reconstruction - knowing
+  WHICH field is wrong but not WHAT belongs there - which is a different and narrower
+  question than any asked so far.
+scope_limits: >-
+  Fixed-topology and geometry-only, single seed, marginal-respecting corruption at
+  probability 0.35. Beating identity on token accuracy is not the same as producing a
+  recognizable icon; the render probe is run separately and no run in this project has
+  produced one yet.
+changed_factors:
+  primary: training.detection_only true -> false, so the value head trains.
+  parameters: unchanged at 525,152
+  held_fixed: >-
+    v10 exactly otherwise: metric coordinates, marginal corruption, pooled loss, padding
+    mask, edit-mask heads, no slot binding, the full 2,681-icon split, the 128-icon
+    validation draw and its corruption seeds, seed 3101, probability 0.35, batch 16,
+    lr 0.001, eval_every 60, the 6,300-step cap, held-out-loss selection, patience 8.
+code:
+  git_commit: 27e9956
+  execution_mode: native-local
+config:
+  path: configs/learning/openmoji-g1-full-denoiser-v11.yaml
+  sha256: b9343dcc4a2e0012e8e783330595736cc2b843fb7b3a29b206771655cb3d22cf
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  bucket: bucket-p32-t128
+  train_samples: 2681
+  validation_samples: 128
+baselines:
+  identity:
+    definition: >-
+      Emit x_t unchanged. Legal under argmax decoding, and exactly representable here as
+      predict-keep-everywhere. Its aggregate accuracy is retained_total divided by
+      (changed_total + retained_total) for this run's own corruption draw, so it is
+      computed from the run's reported totals rather than assumed. Under uniform
+      corruption at this probability it was 0.6506; under marginal corruption the
+      corrupted rate is 0.3482, so it is expected near 0.6518.
+    changed_accuracy: 0.0
+    retained_accuracy: 1.0
+  best_prior_model: {run: v6, aggregate: 0.6119, changed: 0.0132, retained: 0.9335}
+  v10_detector_same_setup: {lift: 2.781, note: detection only, no value head}
+predeclared_criteria:
+  evaluated_at: the checkpoint selected by held-out loss
+  primary:
+    - id: beats_identity
+      statement: >-
+        Held-out aggregate token accuracy exceeds the identity policy's, computed as
+        retained_total / (changed_total + retained_total) from this run's own totals.
+        No model in this project has done this.
+    - id: recovers_more_than_identity
+      statement: >-
+        Held-out changed-token accuracy exceeds v6's 0.0132, the best any edit-mask
+        model achieved. Identity scores 0.0 here, so passing beats_identity while
+        scoring near zero on changed fields would be collapse, not success.
+    - id: preserves_what_identity_preserves
+      statement: Held-out retained-token accuracy is at least 0.90.
+    - id: structural_safety
+      statement: Locked-path exactness holds and the canonical checkpoint round-trips.
+    - id: reproducibility
+      statement: A second complete invocation returns an identical JSON result.
+  standing_gate_not_a_prediction:
+    - id: retained_preservation_full
+      statement: Held-out retained-token accuracy is at least 0.95.
+      note: A stricter form of the original Gate G bar, unmet since v1.
+  degenerate_pass_watch: >-
+    Predicting keep everywhere scores exactly identity. Report the fraction of held-out
+    fields predicted keep; a pass on beats_identity with that fraction approaching 1.0
+    is collapse to the trivial policy and must be reported as such.
+  falsification_meaning: >-
+    If a model that detects corrupted fields at 2.781 lift still cannot beat emitting its
+    input unchanged, the remaining problem is reconstruction rather than detection: it
+    knows which field is wrong and not what belongs there. That is narrower than anything
+    asked so far and points at the value head's 289- or 417-way exact-token softmax over
+    a metric lattice, which the task-formulation lens argued should be a distance-kernel
+    target instead.
+  reported_not_gated:
+    - the keep fraction, detector lift, and the full held-out breakdown beside identity
+    - the selected step and whether early stopping or the cap ended the run
+    - renders, which are run separately and reported whatever the token numbers say
+outputs:
+  local_metadata: runs/openmoji-g1-full-denoiser-v11-27e9956-b9343dcc-9b9b1699
+  report_root: reports/learning/openmoji-g1-full-denoiser-v11
+  durable_artifacts: /home/dev/.cache/openmoji-g1-full-denoiser-v11-27e9956-b9343dcc-9b9b1699
+planned_at: 2026-09-21T01:55:00Z
