@@ -8,11 +8,13 @@ legal-token masks make an invalid program unreachable by construction.
 from __future__ import annotations
 
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
 import torch
 
+from mojidiff.learning.ar_overfit import _distinct_subgroup_rows
 from mojidiff.learning.autoregressive import (
     CausalProgramModel,
     SequenceLayout,
@@ -22,6 +24,7 @@ from mojidiff.learning.autoregressive import (
     unflatten_program,
 )
 from mojidiff.learning.openmoji_pilot import (
+    OpenMojiPilotError,
     _load_program,
     _select_rows,
     _selected_codec,
@@ -99,8 +102,13 @@ def _model(
 ) -> CausalProgramModel:
     torch.manual_seed(0)
     return CausalProgramModel(
-        layout, d_model=32, heads=4, layers=2, feedforward=64,
-        group_vocab_size=len(groups) + 1, subgroup_vocab_size=len(subgroups) + 1,
+        layout,
+        d_model=32,
+        heads=4,
+        layers=2,
+        feedforward=64,
+        group_vocab_size=len(groups) + 1,
+        subgroup_vocab_size=len(subgroups) + 1,
     ).eval()
 
 
@@ -193,3 +201,23 @@ def test_no_position_is_ever_left_without_a_legal_token(pieces: Pieces) -> None:
             assert bool(mask.any()), (path, within)
             legal = torch.nonzero(mask).flatten()
             decoded[base + within] = int(legal[-1])  # always take the largest legal token
+
+
+def test_overfit_selection_draws_distinct_subgroups() -> None:
+    """The conditioning must be able to tell the overfit icons apart.
+
+    Exact reproduction is the study's strongest criterion, and it is only meetable if
+    no two training icons share a prompt. This is the guard on that assumption: if the
+    selector ever returned two icons from one subgroup, the criterion would be
+    unsatisfiable and the study would read as a model failure.
+    """
+
+    rows = tuple(
+        SimpleNamespace(source_path=f"icon-{index}.svg", subgroup=f"sub-{index % 3}")
+        for index in range(12)
+    )
+    chosen = _distinct_subgroup_rows(rows, 3, seed=11)
+    assert len({row.subgroup for row in chosen}) == 3
+    assert _distinct_subgroup_rows(rows, 3, seed=11) == chosen
+    with pytest.raises(OpenMojiPilotError):
+        _distinct_subgroup_rows(rows, 4, seed=11)

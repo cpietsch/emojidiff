@@ -1,0 +1,49 @@
+# Gate I's first evidence, and deliberately the smallest one: can the causal model
+# learn anything at all through this codec?
+#
+# Gate E asked the same question of the denoiser before anything ran at corpus scale,
+# and it was worth the day it cost - Gate G then spent a long time reading plateaus that
+# turned out to be defects rather than limits. A model that cannot memorise four icons
+# has a broken objective, a broken mask, or a broken cache, and none of those are worth
+# discovering at 2,681 icons.
+#
+# The four icons come from four different subgroups on purpose. The model is conditioned
+# on group and subgroup only, so two icons sharing a subgroup are literally the same
+# prompt and no model could reproduce both under greedy decoding. Drawing from distinct
+# subgroups makes exact reproduction a criterion that a working model can actually meet.
+schema_version: 1
+study_version: ar-overfit-i1
+source_revision: 0f3ca51783afedf5beac0d9e12b974c64499a89e
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+report_root: reports/learning/ar-overfit-i1
+checkpoint_root: data/processed/ar-overfit-i1
+icons: 4
+
+model: {d_model: 96, heads: 4, layers: 2, feedforward: 192}
+
+training:
+  steps: 2000
+  learning_rate: 0.001
+  seed: 3301
+  device: auto
+
+# Predeclared, and hashed into the run identity with the rest of this file.
+#
+# The accuracy is measured only over positions where the grammar leaves more than one
+# legal token. Roughly a third of the 1,376 positions are forced - an inactive path's
+# padding, a segment kind that only CLOSE can follow - and counting those would report
+# a high number for a model that had learned nothing.
+criteria:
+  # Memorisation, not generalisation. Four sequences into ~500k parameters is far
+  # inside capacity, so anything below this is a defect rather than a limit.
+  min_free_token_accuracy: 0.99
+  # A flat loss is the Gate G failure mode: a signal that looks like training and is
+  # not. Two orders of magnitude is unambiguous.
+  min_loss_reduction_factor: 100.0
+  # The strong one. It exercises the whole decode path - cache, dynamic masks, greedy
+  # argmax - against a known target, so a pass here means the plumbing is sound and a
+  # pass on accuracy alone would localise the fault to decoding.
+  min_exact_match_rate: 1.0
+  # Every sample must survive the packed validator and the isolated renderer. A model
+  # that memorises through an illegal program has told us nothing about the codec.
+  require_all_valid: true
