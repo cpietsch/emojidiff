@@ -1,0 +1,81 @@
+schema_version: 1
+run_id: openmoji-g1-balanced-objective-v12-9bf3fe9-499c2436-9b9b1699
+state: planned
+parent_run: openmoji-g1-full-denoiser-v11-27e9956-b9343dcc-9b9b1699
+hypothesis: >-
+  v10 beat every free detector at 2.781 lift with detection alone. v11 added the value
+  head and the detector fell to 1.717, below the free continuity statistic at 1.893,
+  leaving aggregate accuracy at 0.5839 against identity's 0.6515. The two heads share an
+  encoder and are unequal at chance - log 2 nats for a 2-class keep decision against log
+  417 for the value head, a factor of 8.7 - so an unweighted sum lets the value task
+  dominate the representation. Scaling the value term by log(2)/log(417) = 0.1149 should
+  restore most of the detector while keeping a usable value head, and that combination is
+  what the break-even algebra says is needed to beat identity.
+expected_information_gain: >-
+  Both ingredients required to beat the identity baseline have been demonstrated - a
+  2.781 detector in v10 and a 0.1087 value head in v11 - but never together. This tests
+  whether they can coexist, which is the single question standing between the project and
+  its first model that does something rather than nothing.
+scope_limits: >-
+  Fixed-topology and geometry-only, single seed, marginal-respecting corruption at 0.35.
+  The weight is derived from chance entropies rather than tuned, and is declared here
+  before the run; if it turns out to need tuning, that is a different and weaker result
+  and must be reported as such.
+changed_factors:
+  primary: training.value_loss_weight 1.0 -> 0.1149, the ratio of the two chance entropies.
+  parameters: unchanged at 525,152
+  held_fixed: v11 exactly otherwise.
+code:
+  git_commit: 9bf3fe9
+  execution_mode: native-local
+config:
+  path: configs/learning/openmoji-g1-balanced-objective-v12.yaml
+  sha256: 499c243616fea0ccc19239dd546e0851e00a303639c661affced93b290cd3ff9
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  bucket: bucket-p32-t128
+  train_samples: 2681
+  validation_samples: 128
+baselines:
+  identity: {aggregate: 0.6515, changed: 0.0, retained: 1.0}
+  v11_joint_unweighted: {aggregate: 0.5839, changed: 0.0296, retained: 0.8803, detector_lift: 1.717, value_head_accuracy: 0.1087}
+  v10_detection_only: {detector_lift: 2.781}
+  free_continuity_statistic: {detector_lift: 1.893}
+predeclared_criteria:
+  evaluated_at: the checkpoint selected by held-out loss
+  primary:
+    - id: restores_the_detector
+      statement: Detector precision lift exceeds v11's 1.717 and the free statistic's 1.893.
+    - id: keeps_a_usable_value_head
+      statement: >-
+        Held-out changed-token accuracy is at least 0.0296, v11's value. Restoring the
+        detector by crippling the value head would be a hollow pass.
+    - id: beats_identity
+      statement: >-
+        Held-out aggregate token accuracy exceeds the identity policy's, computed as
+        retained_total / (changed_total + retained_total) from this run's own totals,
+        expected near 0.6515. No model in this project has done this.
+    - id: structural_safety
+      statement: Locked-path exactness holds and the canonical checkpoint round-trips.
+    - id: reproducibility
+      statement: A second complete invocation returns an identical JSON result.
+  degenerate_pass_watch: >-
+    Predicting keep everywhere scores exactly identity. Report the keep fraction; a pass
+    on beats_identity with it approaching 1.0 is collapse, not success, and
+    keeps_a_usable_value_head exists to catch the related failure of a good detector
+    paired with a useless value head.
+  falsification_meaning: >-
+    If balancing the objectives does not let both survive, then one shared encoder cannot
+    serve both heads at this scale, and the next step is structural rather than a
+    weighting: separate encoders, or a two-stage model that detects first and
+    reconstructs conditioned on the detection. Failing instead on beats_identity while
+    the detector recovers would mean the value head at ~0.11 is simply too weak, which
+    points at the distance-kernel target over the quarter-unit lattice.
+  reported_not_gated:
+    - the keep fraction, the full held-out breakdown beside identity, the value head's own accuracy
+    - the selected step and whether early stopping or the cap ended the run
+outputs:
+  local_metadata: runs/openmoji-g1-balanced-objective-v12-9bf3fe9-499c2436-9b9b1699
+  report_root: reports/learning/openmoji-g1-balanced-objective-v12
+  durable_artifacts: /home/dev/.cache/openmoji-g1-balanced-objective-v12-9bf3fe9-499c2436-9b9b1699
+planned_at: 2026-09-21T02:30:00Z
