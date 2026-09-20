@@ -1794,3 +1794,41 @@ encoded as unordered categories on a quarter-unit lattice, where the denoiser's 
 embedding table scored Spearman −0.136 against bin distance. Calling i2 a limit before
 testing that would repeat Gate G's mistake with the sign flipped. Arm 3 changes that one
 thing and nothing else.
+
+## 2026-09-21 — The coordinate encoding is not the AR model's constraint
+
+**Hypothesis.** Gate G verified a specific defect on this codec: coordinate tokens
+encoded as unordered categories on a quarter-unit lattice, where the denoiser's trained
+embedding table scored Spearman −0.136 against bin distance. Correcting it took render
+recovery from 0.0447 to 0.2511 *while shrinking the model*. The causal model inherited
+the defect verbatim, so it should respond the same way.
+
+**Observation. Falsified, and cleanly.** One change from i2, nothing else moved. Best
+held-out likelihood **3.6946 nats per free token against i2's 3.6249** — a ratio to the
+floor of **0.940 against 0.923**. Not an improvement; a shade worse, while carrying
+**1,824 more parameters** than i2, which favoured it. It peaks at step 300 rather than
+600 and overfits on the same trajectory.
+
+The features themselves are correct — a test pins that they are monotone in bin distance
+at initialisation, being a fixed function of the decoded value rather than something
+trained. So the ordering the denoiser needed is present here and the model does not
+benefit from it.
+
+That asymmetry is worth stating rather than explaining away. A denoiser is asked to put
+back a value *near* the true one, so a representation that knows which values are near
+each other is doing most of the work. A generator asked to write 1,376 tokens from a
+class label is not failing at precision; the 7.7% it does clear the floor by is not
+lost to coordinate arithmetic.
+
+**Method note.** This arm trained for eight minutes and then died at the last step: the
+uncached latency diagnostic never passed the segment kinds and raised under metric
+coordinates, taking the run with it. Full-sequence and single-token forwards were both
+tested and both passed; the growing-prefix shape, used only to measure what the cache is
+worth, was not. The failed attempt is preserved under its own run id. Artifacts are now
+written before the diagnostics, so a fault in a measurement can no longer destroy the
+training it was measuring.
+
+**Decision.** Two arms, the same place. Both peak within two to four epochs and then get
+worse while training loss keeps falling, which reads either as too little data or as a
+constraint more data will not lift — and those point at entirely different months of
+work. Arm 4 measures it with three nested training sets rather than guessing.
