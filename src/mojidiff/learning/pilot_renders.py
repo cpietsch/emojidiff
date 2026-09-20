@@ -74,6 +74,16 @@ class PilotRenderConfig:
     icons: int
     render_sizes: tuple[int, ...]
     render_timeout_seconds: int
+    corruption_probability: float | None = None
+    """Evaluate at a different corruption level than the checkpoint trained at.
+
+    Held-out recovery is reported at whatever probability the training config used, so
+    a model trained at 0.35 has only ever been measured on a task where a third of its
+    geometry is gone. Overriding this sweeps one fixed checkpoint across corruption
+    levels, which separates what the model cannot do from what the corruption regime
+    has already destroyed. `None` keeps the training probability, so existing probe
+    configs are unaffected.
+    """
 
 
 def load_pilot_render_config(path: Path) -> PilotRenderConfig:
@@ -94,7 +104,16 @@ def load_pilot_render_config(path: Path) -> PilotRenderConfig:
         render_timeout_seconds=_positive_int(
             root.get("render_timeout_seconds", 20), "render_timeout_seconds"
         ),
+        corruption_probability=_optional_probability(root.get("corruption_probability")),
     )
+
+
+def _optional_probability(value: object) -> float | None:
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not 0 < value <= 1:
+        raise PilotRenderError("corruption_probability must be within (0, 1]")
+    return float(value)
 
 
 def run_pilot_renders(config: PilotRenderConfig, config_path: Path) -> dict[str, Any]:
@@ -124,6 +143,11 @@ def run_pilot_renders(config: PilotRenderConfig, config_path: Path) -> dict[str,
     limits = RenderLimits(
         max_paths=pilot.max_paths, timeout_seconds=config.render_timeout_seconds
     )
+    probability = (
+        pilot.corruption_probability
+        if config.corruption_probability is None
+        else config.corruption_probability
+    )
     rows: list[dict[str, Any]] = []
     tiles: list[tuple[str, dict[str, np.ndarray[Any, Any]]]] = []
     for index in range(config.icons):
@@ -134,7 +158,7 @@ def run_pilot_renders(config: PilotRenderConfig, config_path: Path) -> dict[str,
         noisy = corrupt_factorized_geometry(
             clean,
             codec,
-            pilot.corruption_probability,
+            probability,
             np.random.default_rng(pilot.seed + _EVAL_SEED_OFFSET + index),
         )
         with torch.no_grad():
@@ -165,7 +189,9 @@ def run_pilot_renders(config: PilotRenderConfig, config_path: Path) -> dict[str,
         "checkpoint_step": int(document["step"]),
         "icons": config.icons,
         "render_sizes": list(config.render_sizes),
-        "corruption_probability": pilot.corruption_probability,
+        "corruption_probability": probability,
+        "trained_corruption_probability": pilot.corruption_probability,
+        "corruption_probability_overridden": config.corruption_probability is not None,
         "corruption": "factorized_role_uniform_geometry, the pilot's held-out draw",
         "rendered_rows": [row.source_path for row in validation_rows[: config.icons]],
         "aggregate": _aggregate(rows),
@@ -236,7 +262,12 @@ def _markdown(summary: dict[str, Any]) -> str:
         "# Held-out render probe",
         "",
         f"Checkpoint step {summary['checkpoint_step']}, {summary['icons']} held-out icons, "
-        f"corruption probability {summary['corruption_probability']}.",
+        f"corruption probability {summary['corruption_probability']}"
+        + (
+            f" (trained at {summary['trained_corruption_probability']})."
+            if summary.get("corruption_probability_overridden")
+            else "."
+        ),
         "",
         "`x_0` is the clean program, `x_t` the raw corrupted state the model is given, "
         "and `x_hat_0` the model's predicted clean state. No safety projection or "

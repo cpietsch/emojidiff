@@ -86,3 +86,26 @@ def test_the_written_summary_labels_the_raw_corrupted_state() -> None:
     # is x_hat_0, and any projection would have to be labelled.
     assert "`x_t` the raw corrupted state" in markdown
     assert "No safety projection or constrained decoding is applied." in markdown
+
+
+def test_the_corruption_level_can_be_overridden_for_a_sweep(tmp_path: Path) -> None:
+    source = yaml.safe_load(_CONFIG.read_bytes())
+    source["corruption_probability"] = 0.1
+    path = tmp_path / "probe.yaml"
+    path.write_text(yaml.safe_dump(source))
+
+    assert load_pilot_render_config(path).corruption_probability == pytest.approx(0.1)
+    # Absent, the probe stays at whatever the checkpoint trained at, so every existing
+    # probe config keeps its meaning.
+    assert load_pilot_render_config(_CONFIG).corruption_probability is None
+
+
+@pytest.mark.parametrize("value", [0, 1.5, -0.2, "0.3", True])
+def test_an_illegal_corruption_level_is_rejected(tmp_path: Path, value: object) -> None:
+    source = yaml.safe_load(_CONFIG.read_bytes())
+    source["corruption_probability"] = value
+    path = tmp_path / "probe.yaml"
+    path.write_text(yaml.safe_dump(source))
+
+    with pytest.raises(PilotRenderError, match="corruption_probability"):
+        load_pilot_render_config(path)
