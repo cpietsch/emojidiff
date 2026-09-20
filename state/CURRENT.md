@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T02:55:00Z
+Updated: 2026-09-21T03:45:00Z
 
 ## Current hypothesis and evidence
 
@@ -404,10 +404,21 @@ evaluation set, and the primary/test split stays untouched - the model reaches 0
 against identity's 0.6502 by flagging its most confident 5%. That is the first time
 anything in this project has beaten the trivial policy of emitting its input unchanged.
 
-Both qualifications belong with it: the margin is about 1% relative, and it depends on
-the calibration, because the model's own decode still loses by 0.0406. What changed is
-not that the model is good but that it is finally better than nothing, and the remaining
-gap is calibration and reconstruction rather than representation.
+The calibration asterisk is then removed. The threshold is derivable: changing a field
+pays only above p = 1/(1+q) in the value head's accuracy q on corrupted fields. v13
+derived it from train icons and beat identity with nothing fitted on held-out data,
+0.6519 against 0.6515, but by only 0.0003 - the value head scores 0.2751 on what it
+trained on against 0.1233 held out, so q was inflated and the threshold came out at 0.784
+where 0.890 was implied. v14 estimates q on 256 icons withheld from training: q 0.2220,
+threshold 0.8183, aggregate 0.6543 against identity's 0.6515, margin +0.0027, all four
+predeclared criteria passed. Retained-token accuracy is 0.9815, the highest here, and the
+run is handicapped by its own design - it trains on 2,425 icons rather than 2,681 - so
+the margin is conservative.
+
+Nothing in v14 is fitted on held-out data. The project has a denoiser that does better
+than doing nothing, with no caveat about how the number was obtained. It is also +0.0027
+on token accuracy, about 0.4% relative: not a good model, but one that has stopped being
+worse than useless.
 
 Every plateau the sequence had declared - data volume, capacity, the corruption regime,
 noise conditioning - was measured under the broken loss and is no longer admissible as
@@ -873,33 +884,42 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Two measured steps remain, and the first is now the binding one.
+Give the value head a distance-kernel target. It is the one measured step left, and every
+term in the chain it acts on is now quantified.
 
-Calibrate the gate during training rather than after it. The model beats identity only
-with a threshold fitted post hoc on held-out icons; its own 0.5 decode loses by 0.0406.
-The break-even confidence is 1/(1+q) in the value head's accuracy q, so the threshold is
-derivable rather than arbitrary - predeclare it from the training-split estimate of q and
-report the model's own gate against identity with no sweep at all.
+The value head predicts an exact bin on a quarter-unit metric lattice through a
+289/417-way categorical softmax, so being one bin out scores exactly the same as being a
+hundred out. It reaches 0.222 on withheld corrupted fields. That accuracy sets the
+break-even decode threshold at 1/(1+q) = 0.818, which is why the model edits only 4% of
+fields even though its detector runs at 2.569 lift - far above the free continuity
+statistic's 1.893. Lift q and the threshold falls, and the model can act on more of what
+it already detects correctly.
 
-Second, replace the value head's exact-token target with a distance kernel over the
-quarter-unit lattice - mass spread over nearby bins in proportion to distance - so being
-close earns gradient. The value head currently reaches 0.1087 exact-token accuracy, and
-the break-even detection confidence scales as 1/(1+q); lifting q is what makes flagging
-pay at reachable confidence. The task-formulation lens measured that the model is a
-calibrated localiser graded pass/fail at plus or minus 0.125 units, and argued for mean
-absolute view-unit error as a reported secondary metric alongside exact-token accuracy.
+Concretely: replace the exact-token cross-entropy on the value heads with a soft target
+over bins, mass proportional to exp(-|bin - true| * 0.25 / tau) with tau about one view
+unit. Hold v14 fixed otherwise - metric coordinates, marginal corruption, pooled loss,
+padding mask, entropy-balanced weight, 256 withheld calibration icons - and predeclare
+the withheld value accuracy against 0.222 and the identity margin against +0.0027. The
+task-formulation lens measured that the model is a calibrated localiser being graded
+pass/fail at plus or minus 0.125 units, and recommended reporting mean absolute
+view-unit error alongside exact-token accuracy; do both.
 
-Three standing rules from this session, to carry into every later run:
+Then render. No run in this project has produced a recognizable icon, and the standing
+rule is that no recovery claim is made without a render beside it. The 128-icon draw has
+a paired-difference interval half-width of 0.0032, so a claimed render improvement above
+roughly 0.0064 is testable and anything smaller should not be claimed.
+
+Three standing rules from this session, for every later run:
 
 - Report the identity baseline beside every recovery number. v1 through v5 were reported
-  against an untrained control instead, which flattered them.
-- Measure detection under marginal-respecting corruption, not uniform. Every number
-  measured under uniform corruption is partly a density test.
-- Render the result on the 128-icon draw, where the paired-difference interval's
-  half-width is 0.0032, so a claimed render improvement above roughly 0.0064 is testable
-  and anything smaller should not be claimed.
+  against an untrained control, which flattered them.
+- Measure detection under marginal-respecting corruption. Every number measured under
+  uniform corruption is partly a density test, because a zero-parameter marginal detector
+  scores 2.84 there and 0.771 here.
+- Never fit a decode threshold on the data it is reported on. Derive it, or estimate it
+  on icons withheld from training.
 
 The four earlier eliminations - data volume, capacity, the corruption regime, noise
-conditioning - should be re-run under the fixed loss before any of them is cited again.
-They are cheap now that a run uses its whole budget, and the registered corruption-process
-comparison is ready to re-register once detection and reconstruction coexist.
+conditioning - were all measured under the broken loss and should be re-run before any is
+cited again. They are cheap now that a run uses its whole budget. The registered
+corruption-process comparison is ready to re-register.

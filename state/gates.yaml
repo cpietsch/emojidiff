@@ -96,8 +96,11 @@ gates:
       survive - detector 2.569, changed-token recovery 0.0738 - and with a decode
       threshold calibrated on a disjoint half of the held-out icons the model reaches
       0.6567 against the identity policy's 0.6502. That is the first time anything in
-      this project has beaten emitting its input unchanged, by about 1% relative and
-      only with that calibration; its own decode still loses. Every earlier plateau in
+      this project has beaten emitting its input unchanged. The calibration asterisk was
+      then removed: the threshold is derivable as 1/(1+q) in the value head's accuracy,
+      and estimating q on 256 icons withheld from training gives 0.6543 against 0.6515
+      with nothing fitted on held-out data at all. The margin is +0.0027, about 0.4%
+      relative - not a good model, but one that has stopped being worse than useless. Every earlier plateau in
       this gate was measured under the broken loss and is no longer admissible as read.
 
   - id: Gate H
