@@ -1,0 +1,105 @@
+schema_version: 1
+run_id: openmoji-g1-slot-bound-v5-f502df1-d8af55ea-9b9b1699
+state: planned
+parent_run: openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
+diagnosis_runs:
+  - openmoji-g1-corruption-sweep-71a080a-4levels-9b9b1699
+  - openmoji-g1-noise-conditioned-v4-6b935b2-5a9eaf44-9b9b1699
+hypothesis: >-
+  The Gate G denoiser could not read its own input because the encoder destroyed which
+  coordinate held which value. It summed six lookups from one shared embedding table
+  into a single vector per segment, so a segment was an unordered bag of its
+  coordinates; in float64 a program and its coordinate-swapped variant produce
+  byte-identical logits. Binding each value to its slot restores that information, and
+  the model should then be able to preserve fields that were never corrupted, which is
+  what held-out retained-token accuracy has been measuring at 0.33 to 0.43 since v1.
+expected_information_gain: >-
+  This is the first run to address a proven defect rather than a suspected factor. Data
+  volume, model capacity, the corruption regime and noise-level information have each
+  been eliminated by a predeclared comparison. If binding moves retained-token accuracy
+  and the recovery sweep, the Gate G sequence has its explanation and a working
+  baseline. If it does not, the defect is real but not the binding constraint, and the
+  remaining candidate is the prediction objective itself.
+scope_limits: >-
+  Fixed-topology and geometry-only, single seed. Exactly the v2 configuration plus 768
+  parameters, which is +0.13% and not a plausible capacity effect - v3 already showed a
+  3.53x capacity increase does nothing. Success would mean the model reads its input,
+  not that its output is usable; no run has yet produced a recognizable icon.
+changed_factors:
+  primary: model.slot_binding false -> true. 577,552 -> 578,320 parameters.
+  held_fixed: >-
+    the full 2,681-icon split, the 128-icon validation draw and its corruption seeds,
+    seed 3101, corruption probability fixed at 0.35, batch size 16, learning rate 0.001,
+    eval_every 60, the 6,300-step cap, the held-out-loss selection policy with patience
+    8, the codec, and the bucket. Noise-level conditioning is deliberately off, since
+    v4 falsified it; this isolates binding against the v2 baseline.
+code:
+  git_commit: f502df19af727d182e278ccfe6b885690c44a75d
+  execution_mode: native-local
+config:
+  path: configs/learning/openmoji-g1-slot-bound-v5.yaml
+  sha256: d8af55eab0eec1ac76dd56157c412d740a1eb257dee58d1cb4c1b2609e749217
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  bucket: bucket-p32-t128
+  train_samples: 2681
+  validation_samples: 128
+baseline:
+  run: openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
+  held_out_loss: 7.3332648277282715
+  held_out_aggregate_accuracy: 0.28861727654469105
+  held_out_changed_accuracy: 0.057304335384175134
+  held_out_retained_accuracy: 0.41283134844410296
+  mean_recovery_fraction_72px: {"0.05": -4.6517, "0.10": -1.2024, "0.20": -0.1315, "0.35": 0.1800}
+  per_icon_pearson_r_p005_vs_p035: 0.9122
+execution:
+  seed_set: [3101]
+  deterministic_algorithms: true
+  cublas_workspace_config: ":4096:8"
+  optimizer_step_cap: 6300
+  early_stopping: {objective: held_out_loss, patience_evals: 8, min_delta: 0.0}
+  resource_cap: {max_steps: 20000, max_storage_gb: 50}
+  network: none
+predeclared_criteria:
+  note: Declared before launch. No preflight. Baselines above are v2's, on identical draws.
+  evaluated_at: the checkpoint selected by held-out loss at corruption 0.35
+  primary:
+    - id: retained_preservation_moves
+      statement: >-
+        Held-out retained-token accuracy is at least 0.70, against v2's 0.41283. This is
+        the direct consequence of being able to read the input: a field that was never
+        corrupted should be easy to keep once the model can tell which field it is. The
+        bar is deliberately ambitious rather than a safe margin above 0.41.
+    - id: loss_improves
+      statement: Held-out loss at the selected checkpoint is below v2's 7.3332648277282715.
+    - id: stops_destroying_light_corruption
+      statement: >-
+        Mean per-icon recovery fraction at corruption 0.10 and 72 px is above zero,
+        against v2's -1.2024 and v4's -1.0385. A change of sign, not a margin.
+    - id: output_depends_on_input
+      statement: >-
+        Per-icon Pearson correlation between x_hat_0 render error at corruption 0.05 and
+        at 0.35 falls below 0.70, against v2's 0.9122 and v4's 0.8619.
+    - id: structural_safety
+      statement: Locked-path exactness holds and the canonical checkpoint round-trips.
+    - id: reproducibility
+      statement: A second complete invocation returns an identical JSON result.
+  standing_gate_not_a_prediction:
+    - id: retained_preservation_full
+      statement: Held-out retained-token accuracy is at least 0.90.
+      note: The original Gate G bar, unmet since v1 at 0.3256, 0.4128, 0.4323 and 0.4282.
+  falsification_meaning: >-
+    If binding fixes the proven invariance but not the behaviour, the encoder defect was
+    real and worth fixing on its own terms, yet not the binding constraint. The next
+    candidate would then be the prediction objective: a single-shot independent softmax
+    over every field cannot express "leave this alone" cheaply, and an edit-mask or
+    residual formulation would be the change to test.
+  reported_not_gated:
+    - the full four-level recovery sweep, against v2's and v4's
+    - held-out aggregate and changed accuracy, the selected step, wall time, peak memory
+    - whether any render is recognizable, which none has been so far
+outputs:
+  local_metadata: runs/openmoji-g1-slot-bound-v5-f502df1-d8af55ea-9b9b1699
+  report_root: reports/learning/openmoji-g1-slot-bound-v5
+  durable_artifacts: /home/dev/.cache/openmoji-g1-slot-bound-v5-f502df1-d8af55ea-9b9b1699
+planned_at: 2026-09-20T20:15:00Z
