@@ -242,6 +242,28 @@ shows that at probability 0.35 the corrupted input is already visually destroyed
 the corruption schedule - fixed since the Gate F four-icon fixtures and never varied at
 corpus scale - is now a first-class candidate factor.
 
+The selection-scalar question v2 opened is now closed, as a convention rather than a
+finding. `predict_clean_geometry` decodes by argmax, which suggested the strictly more
+accurate checkpoint should render better; that prediction is falsified. Training the
+identical v2 configuration at a fixed 1,320-step budget reproduces v2's first 1,320
+metric rows exactly and yields its final-step checkpoint, so the loss-selected step 840
+and accuracy-selected step 1,320 are two points on one trajectory, and `x_t` render
+error is identical across arms. On the complete 128-icon held-out draw the mean paired
+difference in `x_hat_0` render error is -0.001638 at 72 px, 95% interval -0.004867 to
++0.001590, with a 65/128 sign test at p = 0.930. The scalars are not separable, but any
+true difference is bounded below about 0.0032 RGBA MAE against a median render error
+near 0.14. By the decision rule committed before the numbers were read, held-out loss
+governs checkpoint selection from now on, chosen as the standard early-stopping signal
+rather than on evidence of superiority, and the record states that the choice is
+immaterial for render quality at this stage. This is conditional on argmax decoding; a
+sampler drawing from the distribution would reopen it.
+
+A methodological correction worth carrying: the twelve-icon predecessor compared each
+arm's median independently, which is the wrong test for paired data. Its medians
+favoured the loss arm by 6.5%; at 128 icons they favour the accuracy arm by 4.7%, the
+opposite direction, while the paired difference stayed near zero in both samples. On
+paired data, compare the pairs.
+
 
 
 ## Last completed action and verification
@@ -596,6 +618,18 @@ versioned in the repository under `reports/learning/openmoji-g1-train-v2-renders
 the metrics and summary also copied into its run directory. It is reproducible from the
 durable v2 checkpoint in about a minute on CPU.
 
+The selection-scalar comparison's durable checkpoint is
+`/home/dev/.cache/openmoji-g1-selection-scalar-c4e6a8c-3a34e64b-9b9b1699/checkpoint/`
+at SHA-256 `359b11a1020ea07b43bca82be254cac791793dc9166f7828c9038d5ca5b830af`. Its four
+render reports cover the 12-icon and 128-icon probes for both arms and are versioned
+under `reports/learning/`: about 8.3 MB, dominated by the two 128-icon contact sheets at
+3.7 MB each. That is large for a render but well inside this repository's precedent for
+versioned evidence, and the sheets are the visual record the conclusion rests on, so
+they are kept rather than reduced to their metrics. They are duplicated on the durable
+sink under
+`/home/dev/.cache/openmoji-g1-selection-scalar-full-c4e6a8c-powered-9b9b1699/` and are
+reproducible from the two durable checkpoints on CPU in about ten minutes.
+
 The weblog's generated `site/` directory is derived output and is Git-ignored: it is
 rebuilt from the committed record in about a second by `python -m mojidiff.weblog.build`.
 The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
@@ -627,15 +661,11 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Decide, and declare, which held-out scalar governs checkpoint selection before running
-anything else. v2 made this unavoidable: held-out loss and held-out accuracy disagreed
-about when to stop, and the primary criterion passed under one reading and failed under
-the other. The cheapest way to settle it is analysis, not GPU time - v2's committed
-`validation.jsonl` and `metrics.jsonl` already contain both curves, so the calibration
-question can be examined directly on the existing artifacts. Write the choice and its
-justification into the next run's `run.yaml` before launch.
+The selection scalar is settled: held-out loss, by convention, with the effect on render
+quality bounded below 0.0032 RGBA MAE. Runs no longer need to argue the point; they
+record the rule and move on.
 
-Then the next controlled experiment is model capacity, not more data. v2 showed that
+The next controlled experiment is model capacity, not more data. v2 showed that
 10.5x the data narrows the generalization gap 39.7% but lifts changed-token recovery
 only 1.307x, and its train/held-out gap at the selected step is down to 0.0942, so the
 577,552-parameter denoiser is close to fitting what it can express. Change only

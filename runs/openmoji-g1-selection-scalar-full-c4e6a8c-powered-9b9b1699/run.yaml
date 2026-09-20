@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-selection-scalar-full-c4e6a8c-powered-9b9b1699
-state: running
+state: completed
 parent_run: openmoji-g1-selection-scalar-c4e6a8c-3a34e64b-9b9b1699
 hypothesis: >-
   No directional hypothesis. The twelve-icon comparison falsified the only prediction
@@ -79,3 +79,59 @@ outputs:
     - reports/learning/openmoji-g1-v2-renders-full
     - reports/learning/openmoji-g1-v2-final-step-renders-full
 planned_at: 2026-09-20T18:02:00Z
+completed_at: 2026-09-20T18:20:00Z
+result:
+  icons: 128
+  control_inputs_identical: true
+  px72:
+    median_rgba_mae_loss_selected: 0.141215
+    median_rgba_mae_accuracy_selected: 0.134577
+    mean_paired_difference: -0.001638
+    ci95: [-0.004867, 0.001590]
+    ci95_half_width: 0.003228
+    excludes_zero: false
+    loss_selected_better_on: 65
+    of: 128
+    sign_test_p: 0.930
+  px18:
+    median_rgba_mae_loss_selected: 0.144372
+    median_rgba_mae_accuracy_selected: 0.138735
+    mean_paired_difference: -0.001392
+    ci95: [-0.004982, 0.002198]
+    ci95_half_width: 0.003590
+    excludes_zero: false
+    loss_selected_better_on: 61
+    of: 128
+    sign_test_p: 0.659
+  identical_rerun: true
+predeclared_outcome:
+  overall: passed
+  control_inputs_identical: {passed: true}
+  separation_or_bound:
+    passed: true
+    branch: bound
+    observed_ci_half_width_72px: 0.003228
+    threshold: 0.01
+    note: >-
+      The interval does not exclude zero and the sign test is a coin flip at both sizes,
+      so the scalars are not separable. The bound branch of the criterion is met: any
+      true difference is below about 0.0032 RGBA MAE against a median render error near
+      0.14, at most 2.3% of the error already present.
+  reproducibility: {passed: true}
+  decision_applied:
+    rule: if_effect_bounded_below_0.01
+    outcome: >-
+      Held-out loss is the project's checkpoint-selection scalar from now on, chosen as
+      the standard early-stopping signal and the rule v1 and v2 already used, not on
+      evidence of superiority. The record states that the choice is immaterial for
+      render quality at this stage.
+  corroborates_predecessor_design_defect: >-
+    The twelve-icon medians favoured the loss arm by 6.5%; the 128-icon medians favour
+    the accuracy arm by 4.7%, the opposite direction, while the paired difference stays
+    near zero in both samples. The median was an unstable statistic on paired data,
+    exactly as the predecessor's defect note recorded.
+artifact_durability:
+  durable_root: /home/dev/.cache/openmoji-g1-selection-scalar-full-c4e6a8c-powered-9b9b1699
+  versioned: >-
+    Both 128-icon contact sheets, summaries, and per-icon render metrics under
+    reports/learning/, about 8.3 MB, duplicated on the durable sink.

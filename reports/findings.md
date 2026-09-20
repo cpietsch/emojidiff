@@ -1037,3 +1037,42 @@ and has never been varied at corpus scale. Promote the corruption schedule to a
 first-class candidate factor alongside model capacity, and consider training across a
 range of corruption levels rather than at one fixed point — which is also what a
 denoiser facing many corruption levels at sampling time would need.
+
+## 2026-09-20 — The checkpoint-selection scalar is a convention, not a finding
+
+**Hypothesis.** v2 left held-out loss and held-out accuracy disagreeing about when to
+stop, with its primary criterion passing under one reading and failing under the other.
+Because `predict_clean_geometry` decodes by argmax, the artifact depends only on which
+token wins and not on the probability mass cross-entropy measures, so the strictly more
+accurate step-1,320 checkpoint should render closer to `x_0` than the loss-selected
+step-840 one.
+
+**Observation.** The fixed-budget 1,320-step arm reproduces v2's first 1,320 metric rows
+exactly and its held-out block matches v2's recorded final step, so both arms are one
+trajectory; `x_t` render error is identical across arms, so both saw identical inputs.
+The hypothesis is false. On twelve icons the accuracy-selected checkpoint rendered
+*worse* by median (0.151687 against 0.142433 at 72 px) despite higher aggregate, changed
+and retained accuracy. That run also carried a design defect: comparing each arm's
+median independently is the wrong test for paired data, and the per-icon difference was
+approximately zero (p = 0.774).
+
+The powered 128-icon rerun settles the magnitude. The mean paired difference is
+-0.001638 at 72 px with a 95% interval of -0.004867 to +0.001590, and -0.001392 at 18 px;
+the sign test is 65/128 (p = 0.930) and 61/128 (p = 0.659). The scalars are not
+separable, but any true difference is now bounded below about 0.0032 RGBA MAE against a
+median render error near 0.14 — at most 2.3% of the error already present. The medians
+confirmed the defect diagnosis by flipping direction between the two samples: they
+favoured the loss arm by 6.5% at twelve icons and the accuracy arm by 4.7% at 128, while
+the paired difference stayed near zero in both.
+
+**Decision.** By the decision rule committed before the numbers were read: held-out loss
+is the project's checkpoint-selection scalar, chosen by convention as the standard
+early-stopping signal and the rule v1 and v2 already used, with the record stating
+plainly that it is immaterial for render quality at this stage. Two consequences. v2's
+changed-token criterion remains correctly recorded as falsified, and reading it at the
+final step would not have been justified by render quality either, because render
+quality does not distinguish the checkpoints. And token accuracy is not a stand-in for
+render quality even under argmax decoding, which reinforces the render-probe rule: no
+Gate G recovery claim without a render beside it. The conclusion is conditional on
+argmax decoding; a sampler that draws from the distribution reopens the calibration
+question.

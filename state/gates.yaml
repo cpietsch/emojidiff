@@ -16,7 +16,8 @@ headline: >-
   25.1% and narrows the train/held-out gap 39.7%. But changed-token recovery improved
   only 1.307x against a predeclared 1.5x, and rendering that checkpoint shows none of
   twelve held-out predictions is a recognizable icon. Data volume is no longer the
-  binding constraint, and the scalars were overselling the picture.
+  binding constraint, the scalars were overselling the picture, and the next factors
+  to test are model capacity and the corruption schedule.
 gates:
   - id: Gate A
     title: Orchestration and recovery
@@ -84,8 +85,11 @@ gates:
       changed-token recovery bar, so changed-field recovery, not data volume, is now the
       open question. Rendering that checkpoint shows none of twelve held-out predictions
       is a recognizable icon, so the token-accuracy scalars oversell the visual result
-      and the fixed 0.35 corruption probability may be the wrong regime entirely. Still
-      fixed-topology and geometry-only.
+      and the fixed 0.35 corruption probability may be the wrong regime entirely. The
+      checkpoint-selection scalar is settled as held-out loss, by convention: on the
+      full 128-icon held-out draw the loss-selected and accuracy-selected checkpoints
+      differ by less than 0.0032 RGBA MAE in render error. Still fixed-topology and
+      geometry-only.
   - id: Gate H
     title: Broad pretraining question
     status: not-started
