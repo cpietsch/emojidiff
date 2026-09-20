@@ -52,6 +52,7 @@ class GeometryDenoiser(nn.Module):
         noise_level_features: int = 0,
         slot_binding: bool = False,
         edit_mask: bool = False,
+        mask_padding: bool = False,
     ) -> None:
         super().__init__()
         self.max_paths = codec.max_paths
@@ -116,6 +117,7 @@ class GeometryDenoiser(nn.Module):
         # so the identity policy - which beats every trained model so far - costs the
         # model as much as inventing new values. With it, identity is predict-keep
         # everywhere, and the value heads only have to handle fields marked changed.
+        self.mask_padding = mask_padding
         self.edit_mask = edit_mask
         self.start_keep_head = nn.Linear(d_model, 2 * 2) if edit_mask else None
         self.coordinate_keep_head = nn.Linear(d_model, 6 * 2) if edit_mask else None
@@ -189,7 +191,19 @@ class GeometryDenoiser(nn.Module):
                     )
                 )
             hidden = hidden + conditioning[:, None, :]
-        encoded = self.encoder(hidden)
+        # Mask typed padding. Without this the encoder attends to empty path and
+        # segment slots, which for a sparsely packed bucket is a large share of the
+        # sequence. Opt-in for the same reason as the loss pooling: runs v1 through v7
+        # must stay reproducible under the behaviour they were run with.
+        padding_mask = None
+        if self.mask_padding:
+            padding_mask = torch.cat(
+                (batch["path_length"] == 0, batch["segment_type"] == 0), dim=1
+            )
+            # A row that is entirely padding would make softmax produce NaN, so keep at
+            # least the first position live; its output is discarded by the heads anyway.
+            padding_mask[:, 0] = False
+        encoded = self.encoder(hidden, src_key_padding_mask=padding_mask)
         path_encoded = encoded[:, : self.max_paths]
         segment_encoded = encoded[:, self.max_paths :]
         start = self.start_head(path_encoded).reshape(
@@ -487,9 +501,25 @@ def packed_batch(programs: list[PackedTensorProgram], device: torch.device) -> d
 
 
 def geometry_loss_and_accuracy(
-    logits: tuple[Tensor, Tensor], clean: dict[str, Tensor], codec: CodecConfig
+    logits: tuple[Tensor, Tensor],
+    clean: dict[str, Tensor],
+    codec: CodecConfig,
+    *,
+    pool_over_fields: bool = False,
 ) -> tuple[Tensor, dict[str, int]]:
-    """Cross-entropy over active legal coordinate fields only."""
+    """Cross-entropy over active legal coordinate fields only.
+
+    The default averages over per-(segment kind, coordinate slot) GROUPS, which is a
+    defect: QUAD segments are 0.93% of the corpus, so on the 128-icon held-out draw the
+    four QUAD groups hold one field each and carry 4/13 of the loss against 40,004 other
+    fields - a 5,287x per-field weight ratio. It also renormalises between 9 and 13
+    groups depending on whether a batch happens to contain a QUAD segment. Because
+    `_evaluate` uses this same function, held-out loss - the checkpoint-selection and
+    early-stopping signal - was ~31% four individual fields.
+
+    `pool_over_fields` weights every field equally instead. It is opt-in so that runs
+    v1 through v7 stay exactly reproducible under the behaviour they were run with.
+    """
 
     start_logits, coordinate_logits = logits
     active_paths = clean["path_length"] > 0
@@ -497,7 +527,9 @@ def geometry_loss_and_accuracy(
     start_targets = clean["start"][start_mask]
     selected_start = start_logits[start_mask]
     selected_start = selected_start[:, 1 : codec.coordinate_bins + 1]
-    start_loss = nn.functional.cross_entropy(selected_start, start_targets - 1)
+    start_loss = nn.functional.cross_entropy(
+        selected_start, start_targets - 1, reduction="none" if pool_over_fields else "mean"
+    )
     start_correct = int((selected_start.argmax(dim=-1) + 1 == start_targets).sum().item())
 
     coordinate_losses: list[Tensor] = []
@@ -518,12 +550,19 @@ def geometry_loss_and_accuracy(
                 else codec.coordinate_bins
             )
             field_logits = field_logits[:, 1 : bins + 1]
-            coordinate_losses.append(nn.functional.cross_entropy(field_logits, targets - 1))
+            coordinate_losses.append(
+                nn.functional.cross_entropy(
+                    field_logits, targets - 1, reduction="none" if pool_over_fields else "mean"
+                )
+            )
             coordinate_correct += int(
                 (field_logits.argmax(dim=-1) + 1 == targets).sum().item()
             )
             coordinate_total += int(targets.numel())
-    loss = start_loss + torch.stack(coordinate_losses).mean()
+    if pool_over_fields:
+        loss = torch.cat([start_loss, *coordinate_losses]).mean()
+    else:
+        loss = start_loss + torch.stack(coordinate_losses).mean()
     return loss, {
         "correct": start_correct + coordinate_correct,
         "total": int(start_targets.numel()) + coordinate_total,
@@ -658,6 +697,7 @@ def edit_mask_loss_and_accuracy(
     codec: CodecConfig,
     *,
     detection_only: bool = False,
+    pool_over_fields: bool = False,
 ) -> tuple[Tensor, dict[str, int]]:
     """Keep-or-change cross-entropy plus value cross-entropy on changed fields only.
 
@@ -681,20 +721,28 @@ def edit_mask_loss_and_accuracy(
         if keep_logits is None or not targets.numel():
             continue
         keep_targets = (noisy_tokens == targets).long()
-        keep_losses.append(nn.functional.cross_entropy(keep_logits, keep_targets))
+        reduction = "none" if pool_over_fields else "mean"
+        keep_losses.append(
+            nn.functional.cross_entropy(keep_logits, keep_targets, reduction=reduction)
+        )
         changed = keep_targets == 0
         if bool(changed.any()):
             value_losses.append(
                 nn.functional.cross_entropy(
-                    value_logits[changed], targets[changed] - 1
+                    value_logits[changed], targets[changed] - 1, reduction=reduction
                 )
             )
         predictions = edit_mask_predictions(value_logits, keep_logits, noisy_tokens)
         correct += int((predictions == targets).sum().item())
         total += int(targets.numel())
-    loss = torch.stack(keep_losses).mean()
-    if value_losses and not detection_only:
-        loss = loss + torch.stack(value_losses).mean()
+    if pool_over_fields:
+        loss = torch.cat(keep_losses).mean()
+        if value_losses and not detection_only:
+            loss = loss + torch.cat(value_losses).mean()
+    else:
+        loss = torch.stack(keep_losses).mean()
+        if value_losses and not detection_only:
+            loss = loss + torch.stack(value_losses).mean()
     return loss, {"correct": correct, "total": total}
 
 

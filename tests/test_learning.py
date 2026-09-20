@@ -565,3 +565,128 @@ def test_the_detector_reference_learns_from_local_features_alone() -> None:
     weight, bias, norm = fit_logistic(x, y, steps=100)
     s = score(x, weight, bias, norm)
     assert roc_auc(list(s[y == 1]), list(s[y == 0])) > 0.65
+
+
+def test_group_pooled_loss_lets_four_fields_dominate_and_field_pooling_fixes_it() -> None:
+    """QUAD is 0.93% of the corpus, so its groups hold one field and carry 4/13 of the loss.
+
+    `_legal_fields` emits one group per (segment kind, coordinate slot), and the default
+    loss averages over groups. On the held-out draw that gives four single-field QUAD
+    groups the same weight as six 5,287-field CUBIC groups. Because the evaluation path
+    uses the same function, held-out loss - the checkpoint-selection and early-stopping
+    signal - inherits it.
+    """
+
+    import numpy as np
+    import torch
+
+    from mojidiff.learning.geometry import (
+        _legal_fields,
+        corrupt_factorized_geometry,
+        geometry_loss_and_accuracy,
+        packed_batch,
+    )
+    from mojidiff.learning.openmoji_pilot import (
+        _load_program,
+        _select_rows,
+        _selected_codec,
+        load_openmoji_pilot_config,
+        load_pilot_index,
+    )
+
+    config = load_openmoji_pilot_config(
+        Path("configs/learning/openmoji-g1-dominant-bucket-train-v2-data-scale.yaml")
+    )
+    codec = _selected_codec(config)
+    by_split, _, _ = load_pilot_index(config)
+    rows = _select_rows(by_split["primary/validation"], 24, config.seed + 1)
+    clean = [_load_program(row, config, codec) for row in rows]
+    noisy = [
+        corrupt_factorized_geometry(
+            program, codec, 0.35, np.random.default_rng(config.seed + 9_000_000 + index)
+        )
+        for index, program in enumerate(clean)
+    ]
+    device = torch.device("cpu")
+    noisy_batch, clean_batch = packed_batch(noisy, device), packed_batch(clean, device)
+
+    sizes = [
+        int(targets.numel())
+        for _, _, targets, _ in _legal_fields(
+            (
+                torch.zeros(*clean_batch["start"].shape, codec.coordinate_bins + 1),
+                torch.zeros(
+                    *clean_batch["coordinates"].shape,
+                    codec.effective_control_coordinate_bins + 1,
+                ),
+            ),
+            None,
+            noisy_batch,
+            clean_batch,
+            codec,
+        )
+    ]
+    # The defect in one line: the smallest group is orders of magnitude smaller than the
+    # largest, yet the group average gives them identical weight.
+    assert max(sizes) / min(sizes) > 100
+
+    torch.manual_seed(0)
+    logits = (
+        torch.randn(*clean_batch["start"].shape, codec.coordinate_bins + 1),
+        torch.randn(
+            *clean_batch["coordinates"].shape, codec.effective_control_coordinate_bins + 1
+        ),
+    )
+    grouped, counts_grouped = geometry_loss_and_accuracy(logits, clean_batch, codec)
+    pooled, counts_pooled = geometry_loss_and_accuracy(
+        logits, clean_batch, codec, pool_over_fields=True
+    )
+    # Accuracy counting is untouched; only the weighting changes.
+    assert counts_grouped == counts_pooled
+    assert torch.isfinite(grouped) and torch.isfinite(pooled)
+    assert not torch.allclose(grouped, pooled)
+
+
+def test_padding_is_hidden_from_attention_only_when_asked() -> None:
+    """Typed padding is about 29% of the sequence and was always attended to."""
+
+    import torch
+
+    from mojidiff.learning.geometry import GeometryDenoiser, packed_batch
+    from mojidiff.learning.openmoji_pilot import (
+        _load_program,
+        _select_rows,
+        _selected_codec,
+        load_openmoji_pilot_config,
+        load_pilot_index,
+    )
+
+    config = load_openmoji_pilot_config(
+        Path("configs/learning/openmoji-g1-dominant-bucket-smoke.yaml")
+    )
+    codec = _selected_codec(config)
+    by_split, _, _ = load_pilot_index(config)
+    row = _select_rows(by_split["primary/validation"], 1, config.seed + 1)[0]
+    batch = packed_batch([_load_program(row, config, codec)], torch.device("cpu"))
+    padding = int((batch["path_length"] == 0).sum() + (batch["segment_type"] == 0).sum())
+    assert padding > 0, "fixture must contain typed padding"
+
+    outputs = {}
+    for mask_padding in (False, True):
+        torch.manual_seed(0)
+        model = GeometryDenoiser(
+            codec,
+            config.total_segment_slots,
+            d_model=32,
+            heads=4,
+            layers=1,
+            feedforward=64,
+            mask_padding=mask_padding,
+        ).eval()
+        with torch.no_grad():
+            _, coordinates = model(batch)
+        # No NaN even though most of the sequence is masked out.
+        assert torch.isfinite(coordinates).all()
+        outputs[mask_padding] = coordinates
+
+    assert not torch.allclose(outputs[False], outputs[True])

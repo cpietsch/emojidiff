@@ -151,6 +151,16 @@ class OpenMojiPilotConfig:
     more identifiable - AUC 0.9333 against 0.7698 - so the selection is being re-run at
     corpus scale. Defaults to `factorized`, so every earlier config is unchanged.
     """
+    pool_loss_over_fields: bool = False
+    """Weight every legal field equally in the loss instead of averaging over groups.
+
+    The group average gives the four single-field QUAD groups 4/13 of the loss against
+    40,004 other fields, and makes held-out loss - the selection and early-stopping
+    signal - roughly 31% four individual fields. Opt-in so v1 through v7 stay exactly
+    reproducible.
+    """
+    mask_padding: bool = False
+    """Hide typed padding slots from attention; about 29% of the sequence."""
     detection_only: bool = False
     """Train only the keep head, dropping the value term from the loss.
 
@@ -247,6 +257,10 @@ def load_openmoji_pilot_config(path: Path) -> OpenMojiPilotConfig:
         slot_binding=_flag(model.get("slot_binding", False), "slot_binding"),
         edit_mask=_flag(model.get("edit_mask", False), "edit_mask"),
         detection_only=_flag(training.get("detection_only", False), "detection_only"),
+        pool_loss_over_fields=_flag(
+            training.get("pool_loss_over_fields", False), "pool_loss_over_fields"
+        ),
+        mask_padding=_flag(model.get("mask_padding", False), "mask_padding"),
     )
     if result.d_model % result.heads:
         raise OpenMojiPilotError("model.d_model must be divisible by model.heads")
@@ -503,10 +517,14 @@ def run_openmoji_pilot(config: OpenMojiPilotConfig, config_path: Path) -> dict[s
                 clean_batch,
                 codec,
                 detection_only=config.detection_only,
+                pool_over_fields=config.pool_loss_over_fields,
             )
         else:
             loss, counts = geometry_loss_and_accuracy(
-                (start_logits, coordinate_logits), clean_batch, codec
+                (start_logits, coordinate_logits),
+                clean_batch,
+                codec,
+                pool_over_fields=config.pool_loss_over_fields,
             )
         loss.backward()  # type: ignore[no-untyped-call]
         optimizer.step()
@@ -641,6 +659,7 @@ def _new_model(
         noise_level_features=config.noise_level_features,
         slot_binding=config.slot_binding,
         edit_mask=config.edit_mask,
+        mask_padding=config.mask_padding,
     )
 
 
@@ -693,12 +712,15 @@ def _evaluate(
                 clean_batch,
                 codec,
                 detection_only=config.detection_only,
+                pool_over_fields=config.pool_loss_over_fields,
             )
             split = edit_mask_accuracy_by_corruption(
                 value_logits, keep, noisy_batch, clean_batch, codec
             )
         else:
-            loss, counts = geometry_loss_and_accuracy(value_logits, clean_batch, codec)
+            loss, counts = geometry_loss_and_accuracy(
+                value_logits, clean_batch, codec, pool_over_fields=config.pool_loss_over_fields
+            )
             split = geometry_accuracy_by_corruption(
                 value_logits, noisy_batch, clean_batch, codec
             )
