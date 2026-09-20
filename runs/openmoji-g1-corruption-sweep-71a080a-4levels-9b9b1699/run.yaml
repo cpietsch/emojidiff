@@ -1,0 +1,92 @@
+schema_version: 1
+run_id: openmoji-g1-corruption-sweep-71a080a-4levels-9b9b1699
+state: planned
+parent_run: openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
+hypothesis: >-
+  Two mechanisms are in tension and this run adjudicates between them. The regime
+  hypothesis says the fixed 0.35 corruption probability destroys information no model
+  can recover, so one fixed checkpoint evaluated at lower corruption should close a much
+  larger fraction of the render gap between `x_t` and `x_0`. The damage hypothesis says
+  the opposite: held-out retained-token accuracy is only 0.4128, meaning the model
+  overwrites about 59% of the fields that were already correct, and at low corruption
+  there are far more correct fields to damage, so the recovered fraction could fall to
+  zero or go negative and the model could make its input measurably worse.
+  The prediction registered here is the regime hypothesis, because it is the one the
+  render probe motivated and the one the project's next experiment depends on.
+expected_information_gain: >-
+  v2 eliminated data volume and v3 eliminated model capacity, leaving the corruption
+  schedule as the only standing candidate. Before spending training runs on it, this
+  establishes whether the model has any regime in which it is useful at all. It needs no
+  training: one fixed checkpoint, four evaluation levels, CPU only. If recovery improves
+  sharply at lower corruption, a training-schedule experiment is justified. If the model
+  damages its input instead, the binding problem is retained-token preservation and no
+  corruption schedule will fix it.
+scope_limits: >-
+  One checkpoint, one seed, 32 held-out icons per level, one corruption draw per icon.
+  The model trained only at 0.35, so evaluating it at 0.05 is off-distribution by
+  construction; that is the point, but it means a poor result at low corruption does not
+  by itself condemn a model trained there.
+method: >-
+  Evaluate and render the v2 loss-selected step-840 checkpoint at corruption
+  probabilities 0.05, 0.10, 0.20 and 0.35, with 0.35 as the control since it is the
+  trained level. Identical icons, sizes and corruption seeds at every level, so only the
+  Bernoulli rate differs.
+  The reported statistic is the per-icon recovery fraction,
+  `(MAE(x_t) - MAE(x_hat_0)) / MAE(x_t)`, the share of the render gap the model closes.
+  Absolute render error is not comparable across levels because `x_t` itself gets closer
+  to `x_0` as corruption falls.
+code:
+  git_commit: 71a080a
+  execution_mode: native-local-cpu
+config:
+  paths:
+    - configs/learning/openmoji-g1-corruption-sweep-p005.yaml
+    - configs/learning/openmoji-g1-corruption-sweep-p010.yaml
+    - configs/learning/openmoji-g1-corruption-sweep-p020.yaml
+    - configs/learning/openmoji-g1-corruption-sweep-p035.yaml
+inputs:
+  checkpoint_sha256: e791493769907ac428db6a081310c0beacc4b88d2072b24fc07df0287e0295b4
+  checkpoint_step: 840
+  trained_corruption_probability: 0.35
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+execution:
+  icons_per_level: 32
+  levels: [0.05, 0.10, 0.20, 0.35]
+  render_sizes: [72, 18]
+  network: none
+predeclared_criteria:
+  note: >-
+    Declared before launch. The 12-icon probe at 0.35 measured a median recovery of
+    about 16% of the render gap; the per-icon mean recovery fraction at 0.35 is not yet
+    known and is measured here as the control.
+  primary:
+    - id: recovery_improves_at_lower_corruption
+      statement: >-
+        At 72 px, the mean per-icon recovery fraction at probability 0.10 is at least
+        twice the mean recovery fraction at the control probability 0.35.
+    - id: monotone_in_corruption
+      statement: >-
+        At 72 px, the mean recovery fraction is non-increasing across the levels in the
+        order 0.05, 0.10, 0.20, 0.35.
+    - id: a_useful_regime_exists
+      statement: >-
+        At some level the mean recovery fraction exceeds 0.50, meaning the model closes
+        more than half the render gap between the corrupted input and the clean program.
+    - id: reproducibility
+      statement: Every level reproduces identical artifacts on a second invocation.
+  falsification_meaning: >-
+    A negative or near-zero recovery fraction at low corruption supports the damage
+    hypothesis: the binding problem is that the model overwrites correct fields, which
+    the standing 0.90 retained-preservation bar has been measuring all along at 0.41.
+    In that case the next experiment is not a corruption schedule but an objective or
+    architecture that can leave correct fields alone - for example predicting an edit
+    mask, or conditioning on which fields were corrupted. That redirection would be the
+    most valuable outcome available here and must not be tuned away.
+  reported_not_gated:
+    - absolute median RGBA MAE for `x_t` and `x_hat_0` at every level
+    - the 18 px figures as a consistency check
+    - whether any level produces visually recognizable output
+outputs:
+  local_metadata: runs/openmoji-g1-corruption-sweep-71a080a-4levels-9b9b1699
+  report_roots: reports/learning/openmoji-g1-corruption-sweep-p{005,010,020,035}
+planned_at: 2026-09-20T19:00:00Z
