@@ -1,0 +1,12 @@
+# Read-only render probe over the completed v2 data-scale checkpoint. It restores a
+# committed checkpoint, reuses the pilot's own held-out corruption draw, and writes only
+# renders and render metrics. It trains nothing.
+schema_version: 1
+study_version: openmoji-g1-train-v2-renders
+pilot_config: configs/learning/openmoji-g1-dominant-bucket-train-v2-data-scale.yaml
+checkpoint: /home/dev/.cache/openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699/checkpoint/checkpoint.zip
+checkpoint_sha256: e791493769907ac428db6a081310c0beacc4b88d2072b24fc07df0287e0295b4
+report_root: reports/learning/openmoji-g1-train-v2-renders
+icons: 12
+render_sizes: [72, 18]
+render_timeout_seconds: 20
