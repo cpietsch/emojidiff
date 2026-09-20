@@ -1692,3 +1692,36 @@ level below is off-distribution — which makes the result stronger rather than 
 
 The next run follows directly: train across a range of corruption levels and report at
 each, rather than training and reporting at a single destructive point.
+
+## 2026-09-21 — The training schedule is not the lever either
+
+**Hypothesis.** The sweep showed v16, trained at probability 0.35 alone, producing
+recognizable icons at 0.05 and 0.10 — levels it had never seen. A model sampling its
+corruption level over 0.05–0.50 and told the level should do better there.
+
+**Observation.** It does not. On 32 icons, both models at four levels with the same
+corruption seeds and per-level derived gates, the paired difference (range minus v16) is
+−0.00125 at 0.05, −0.00087 at 0.10 and −0.00324 at 0.20, every interval spanning zero —
+and **−0.01400 at 0.35 with the interval excluding zero**. Training across levels is
+indistinguishable at the low levels it was supposed to help and measurably worse at the
+level it was supposed to trade away.
+
+This run's record predicted it before the run: the range-trained model saves fewer view
+units per field on its calibration icons at every level, 0.4134 against 0.4636 at 0.05
+and 1.9435 against 3.0133 at 0.35, and that was flagged as arguing against the
+hypothesis. The calibration estimate is therefore a usable cheap predictor of the render
+outcome.
+
+Separately, 32 icons resolves the sample-size limit that falsified `never_damages` last
+time. **Both models now improve lightly corrupted inputs significantly** — v16 on 26 of
+32 icons at p=0.05, the range model on 29 of 32, both intervals excluding zero. The
+sweep's headline is properly supported rather than suggestive.
+
+**Decision.** Every training-side factor this gate identified is now settled: data volume
+matters, capacity does not, noise conditioning does not, and the corruption schedule does
+not. v16's extrapolation from a single level is as good as training for the regime.
+
+That leaves **Gate I** — the cached autoregressive baseline on the same codec,
+PROJECT_PLAN.md section 12 branch 4 — as the only untried route to a generation result
+rather than a denoising one. Nothing in the project blocks it, and it has been named as
+the remaining branch since the Gate G sequence began going wrong.

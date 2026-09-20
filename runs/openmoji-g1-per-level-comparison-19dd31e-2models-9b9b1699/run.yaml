@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-per-level-comparison-19dd31e-2models-9b9b1699
-state: planned
+state: completed
 parent_runs:
   - openmoji-g1-geometric-gate-v16-85ec724-aaa03592-9b9b1699
   - openmoji-g1-retest-eliminations-b949fc2-3arms-9b9b1699
@@ -85,3 +85,48 @@ outputs:
   local_metadata: runs/openmoji-g1-per-level-comparison-19dd31e-2models-9b9b1699
   report_roots: reports/learning/openmoji-g1-levels-{v16,range}-p{005,010,020,035}
 planned_at: 2026-09-21T07:20:00Z
+completed_at: 2026-09-21T07:45:00Z
+result:
+  identical_rerun: true
+  icons: 32
+  statistic: paired per-icon absolute improvement in RGBA MAE at 72 px
+  mean_absolute_improvement:
+    v16: {"0.05": 0.01797, "0.10": 0.02987, "0.20": 0.03684, "0.35": 0.03846}
+    range: {"0.05": 0.01671, "0.10": 0.02899, "0.20": 0.03360, "0.35": 0.02446}
+  helped_of_32:
+    v16: {"0.05": 26, "0.10": 30, "0.20": 28, "0.35": 27}
+    range: {"0.05": 29, "0.10": 31, "0.20": 30, "0.35": 28}
+  paired_difference_range_minus_v16:
+    "0.05": {mean: -0.00125, ci95: [-0.00921, 0.00670]}
+    "0.10": {mean: -0.00087, ci95: [-0.00675, 0.00500]}
+    "0.20": {mean: -0.00324, ci95: [-0.01378, 0.00730]}
+    "0.35": {mean: -0.01400, ci95: [-0.02644, -0.00156]}
+predeclared_outcome:
+  overall: falsified
+  range_model_wins_at_low_corruption: {passed: false, observed: -0.00125, ci95: [-0.00921, 0.00670]}
+  range_model_does_not_lose_at_the_trained_level: {passed: false, observed: -0.01400, ci95: [-0.02644, -0.00156]}
+  both_models_help_at_every_level: {passed: true}
+  reproducibility: {passed: true}
+  conclusion: >-
+    Training across corruption levels is indistinguishable from single-level training at
+    0.05, 0.10 and 0.20, and measurably worse at 0.35 - the level it was supposed to
+    trade away. It buys nothing and costs something. v16's extrapolation from a single
+    level is as good as training for the regime.
+  prediction_recorded_before_the_run: >-
+    This run's record noted beforehand that the range-trained model saves fewer view
+    units per field on calibration at every level, 0.4134 against 0.4636 at 0.05 and
+    1.9435 against 3.0133 at 0.35, and flagged that as arguing against the hypothesis. It
+    was right, so the calibration estimate is a usable cheap predictor of the render
+    outcome.
+  resolves_the_previous_sample_size_limit: >-
+    The 12-icon sweep could not clear zero at p=0.05 because one bad case dragged the
+    interval across it. At 32 icons both models improve lightly corrupted inputs
+    significantly - v16 on 26 of 32, the range model on 29 of 32, both intervals
+    excluding zero. The sweep's headline is now properly supported rather than
+    suggestive.
+  what_is_left: >-
+    Every training-side factor this gate identified is now settled: data volume matters,
+    capacity does not, noise conditioning does not, and the corruption schedule does not.
+    That leaves Gate I, the cached autoregressive baseline on the same codec -
+    PROJECT_PLAN.md section 12 branch 4 - as the only untried route to a generation
+    result rather than a denoising one.
