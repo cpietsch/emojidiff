@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-selection-scalar-c4e6a8c-3a34e64b-9b9b1699
-state: planned
+state: completed
 parent_run: openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
 hypothesis: >-
   Held-out accuracy, not held-out loss, is the correct checkpoint-selection scalar for
@@ -50,7 +50,8 @@ arms:
   accuracy_selected:
     checkpoint_step: 1320
     held_out: {loss: 7.527534484863281, accuracy: 0.29994001199760045, changed: 0.06624695950779796, retained: 0.425432193622743}
-    rendered_median_rgba_mae: to be measured
+    rendered_median_rgba_mae: {x_hat_0_72: 0.15168741300532557, x_hat_0_18: 0.16536250302590172}
+    checkpoint_sha256: 359b11a1020ea07b43bca82be254cac791793dc9166f7828c9038d5ca5b830af
 predeclared_criteria:
   note: >-
     Declared before the run. The held-out scalars for both arms are already known from
@@ -87,3 +88,42 @@ outputs:
   report_root: reports/learning/openmoji-g1-dominant-bucket-train-v2-final-step
   durable_artifacts: /home/dev/.cache/openmoji-g1-selection-scalar-c4e6a8c-3a34e64b-9b9b1699
 planned_at: 2026-09-20T17:52:00Z
+completed_at: 2026-09-20T17:58:00Z
+result:
+  trajectory_reproduces_exactly: true
+  reproduced_metric_rows: 1320
+  final_step_validation_matches_v2_record: true
+  control_identical_x_t_render_error: true
+  paired_difference_72px: {mean: -0.00030, ci95_low: -0.01943, ci95_high: 0.01883, loss_better_on: 7, of: 12, sign_test_p: 0.774}
+  paired_difference_18px: {mean: 0.00083, ci95_low: -0.01964, ci95_high: 0.02130, loss_better_on: 7, of: 12, sign_test_p: 0.774}
+predeclared_outcome:
+  overall: falsified
+  trajectory_reproduces: {passed: true}
+  accuracy_selected_renders_better_72: {passed: false, observed: 0.15168741300532557, threshold: 0.14243325995521666}
+  accuracy_selected_renders_better_18: {passed: false, observed: 0.16536250302590172, threshold: 0.15277021302348098}
+  direction_is_consistent: {passed: false, observed: 5, threshold: 7, of: 12}
+  reproducibility: {passed: true}
+  design_defect:
+    statement: >-
+      The three render criteria compared each arm's median independently, which is the
+      wrong test for paired data: both probes render the same twelve icons under the
+      same corruption draw, so the per-icon difference is the informative quantity.
+      That difference is approximately zero at both sizes, with a 95% interval spanning
+      about plus or minus 0.02 and a two-sided sign test of p = 0.774. The 6.5% gap
+      between the medians is an artifact of an asymmetric per-icon error distribution.
+    consequence: >-
+      The falsification of the hypothesis stands - selecting the strictly more accurate
+      checkpoint did not produce better renders - but the converse is not established.
+      At twelve icons the two checkpoints are statistically indistinguishable and this
+      run licenses no preference between the scalars.
+  conclusion: >-
+    Token accuracy is not a reliable stand-in for render quality even under argmax
+    decoding, so the argument that motivated this run is wrong or incomplete, and v2's
+    changed-token criterion remains correctly recorded as falsified. Which scalar
+    should govern selection is not settled by twelve icons; a full 128-icon follow-up
+    shrinks the interval about 3.3x and either separates the arms or bounds the effect
+    small enough to choose on other grounds.
+artifact_durability:
+  durable_root: /home/dev/.cache/openmoji-g1-selection-scalar-c4e6a8c-3a34e64b-9b9b1699
+  checkpoint_sha256: 359b11a1020ea07b43bca82be254cac791793dc9166f7828c9038d5ca5b830af
+  checkpoint_bytes: 7075312

@@ -1,0 +1,81 @@
+schema_version: 1
+run_id: openmoji-g1-selection-scalar-full-c4e6a8c-powered-9b9b1699
+state: running
+parent_run: openmoji-g1-selection-scalar-c4e6a8c-3a34e64b-9b9b1699
+hypothesis: >-
+  No directional hypothesis. The twelve-icon comparison falsified the only prediction
+  there were grounds for - that the strictly more accurate checkpoint renders better -
+  and left the two scalars statistically indistinguishable. This run re-measures the
+  same paired quantity on the complete 128-icon held-out draw, which shrinks the
+  confidence interval by about 3.3x, to find out whether the scalars can be separated
+  at all or whether the effect is simply small.
+expected_information_gain: >-
+  Checkpoint selection is a knob that every later Gate G run turns. Leaving the rule
+  undecided leaves post-hoc freedom in every one of them. This settles it or bounds it
+  at a cost of CPU render time and no GPU.
+scope_limits: >-
+  One training trajectory, one seed, one corruption probability of 0.35, one corruption
+  draw per icon. Conditional on argmax decoding; a sampler that draws from the
+  distribution would reopen the calibration question. Both checkpoints render as
+  scribble, so this bounds a selection rule, not output quality.
+disclosure: >-
+  The two render jobs were launched before these criteria were written. The results had
+  not been produced or inspected when the criteria below were committed, which was
+  verified by checking that neither report directory existed. The probe is a
+  deterministic re-measurement with no tunable parameter beyond the icon count, but the
+  ordering is disclosed rather than presented as a clean predeclaration.
+code:
+  git_commit: c4e6a8ccc01b1807f77706b4ff977fd1cbe16418
+  execution_mode: native-local-cpu
+config:
+  loss_arm: configs/learning/openmoji-g1-v2-renders-full.yaml
+  accuracy_arm: configs/learning/openmoji-g1-v2-final-step-renders-full.yaml
+arms:
+  loss_selected: {checkpoint_step: 840, checkpoint_sha256: e791493769907ac428db6a081310c0beacc4b88d2072b24fc07df0287e0295b4}
+  accuracy_selected: {checkpoint_step: 1320, checkpoint_sha256: 359b11a1020ea07b43bca82be254cac791793dc9166f7828c9038d5ca5b830af}
+execution:
+  icons: 128
+  render_sizes: [72, 18]
+  statistic: >-
+    Mean per-icon difference in RGBA MAE of `x_hat_0` against `x_0`, accuracy arm minus
+    loss arm, so a positive value favours the loss-selected checkpoint. This replaces
+    the twelve-icon run's independent medians, which were the wrong test for paired
+    data.
+  network: none
+predeclared_criteria:
+  primary:
+    - id: control_inputs_identical
+      statement: >-
+        `x_t` render error is identical across the two arms for all 128 icons at both
+        sizes. A failure voids the comparison.
+    - id: separation_or_bound
+      statement: >-
+        At 72 px, either the 95% confidence interval on the mean paired difference
+        excludes zero, or its half-width is below 0.01 RGBA MAE. If neither holds the
+        question is not settled at this sample size either.
+    - id: reproducibility
+      statement: Both probes reproduce identical artifacts on a second invocation.
+  decision_rule:
+    note: >-
+      Declared before the numbers are read, so the conclusion cannot be chosen after
+      seeing them.
+    if_interval_excludes_zero: >-
+      The favoured scalar governs checkpoint selection from now on, and is recorded in
+      state/CURRENT.md as the project's selection rule.
+    if_effect_bounded_below_0.01: >-
+      Held-out loss governs selection by default, on the separate ground that it is the
+      standard early-stopping signal and the rule v1 and v2 already used, and the record
+      states explicitly that the choice is immaterial for render quality at this stage.
+    if_neither: >-
+      The question stays open, and no later run may cite whichever reading favours its
+      result. Any run reporting a recovery number must report both readings.
+  reported_not_gated:
+    - the 18 px interval, as a consistency check on the 72 px decision
+    - per-icon differences and their spread
+    - absolute render error for both arms
+outputs:
+  local_metadata: runs/openmoji-g1-selection-scalar-full-c4e6a8c-powered-9b9b1699
+  report_roots:
+    - reports/learning/openmoji-g1-v2-renders-full
+    - reports/learning/openmoji-g1-v2-final-step-renders-full
+planned_at: 2026-09-20T18:02:00Z

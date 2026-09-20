@@ -1,0 +1,13 @@
+# Accuracy-selected arm of the checkpoint-selection scalar comparison. Identical icons,
+# sizes, corruption seeds, and probability to the loss-selected probe; only the
+# checkpoint differs, so any difference in render error is attributable to the
+# selection rule alone.
+schema_version: 1
+study_version: openmoji-g1-train-v2-final-step-renders
+pilot_config: configs/learning/openmoji-g1-dominant-bucket-train-v2-final-step.yaml
+checkpoint: /home/dev/.cache/openmoji-g1-selection-scalar-c4e6a8c-3a34e64b-9b9b1699/checkpoint/checkpoint.zip
+checkpoint_sha256: 359b11a1020ea07b43bca82be254cac791793dc9166f7828c9038d5ca5b830af
+report_root: reports/learning/openmoji-g1-train-v2-final-step-renders
+icons: 12
+render_sizes: [72, 18]
+render_timeout_seconds: 20

@@ -1,0 +1,12 @@
+# Full held-out draw, accuracy-selected-1320 arm of the powered selection-scalar comparison.
+# The 12-icon comparison could not distinguish the two checkpoints; this renders all
+# 128 held-out icons so the paired difference has a usable confidence interval.
+schema_version: 1
+study_version: openmoji-g1-v2-final-step-renders-full
+pilot_config: configs/learning/openmoji-g1-dominant-bucket-train-v2-final-step.yaml
+checkpoint: /home/dev/.cache/openmoji-g1-selection-scalar-c4e6a8c-3a34e64b-9b9b1699/checkpoint/checkpoint.zip
+checkpoint_sha256: 359b11a1020ea07b43bca82be254cac791793dc9166f7828c9038d5ca5b830af
+report_root: reports/learning/openmoji-g1-v2-final-step-renders-full
+icons: 128
+render_sizes: [72, 18]
+render_timeout_seconds: 20
