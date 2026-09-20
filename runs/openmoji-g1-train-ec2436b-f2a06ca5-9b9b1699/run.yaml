@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-train-ec2436b-f2a06ca5-9b9b1699
-state: planned
+state: completed
 parent_run: openmoji-g1-gpu-7ba1aa4-0bafd5c-9b9b1699
 hypothesis: >-
   With the selected packed representation, factorized role-uniform geometry corruption,
@@ -92,3 +92,41 @@ outputs:
   remote_workspace: /home/dev/workspace/openmoji-g1-train-ec2436b-f2a06ca5-9b9b1699
   durable_artifacts: /home/dev/.cache/openmoji-g1-train-ec2436b-f2a06ca5-9b9b1699
 planned_at: 2026-09-20T11:25:37Z
+staged_at: 2026-09-20T11:26:52Z
+completed_at: 2026-09-20T11:28:49Z
+result:
+  device: cuda
+  wall_seconds_including_stage_verification: 22
+  final_train_loss: 2.7220990657806396
+  final_train_token_accuracy: 0.45504627589246366
+  held_out_untrained_changed_accuracy: 0.003004721705537273
+  held_out_changed_accuracy: 0.05522964658749464
+  held_out_retained_accuracy: 0.32558586246638493
+  held_out_aggregate_accuracy: 0.2311
+  held_out_changed_total: 13978
+  held_out_retained_total: 26030
+  held_out_loss_minimum_step: 240
+  held_out_loss_minimum: 9.7932
+  held_out_loss_final: 11.1485
+  checkpoint_sha256: ac696b81b3c9cd6f01f4cfba0adc5301b3db59a189f7cd007dc41778ad45a49d
+  summary_sha256: b892acbf28078405a5954b7fa4e0db3704dd0675bebddd2ba53522add77fd14d
+  identical_rerun: true
+  artifact_bytes: 7140279
+predeclared_outcome:
+  overall: falsified
+  held_out_recovery_above_control:
+    passed: true
+    observed_ratio: 18.38
+    threshold: 10
+  retained_preservation:
+    passed: false
+    observed: 0.32558586246638493
+    threshold: 0.90
+  monotone_learning:
+    passed: true
+    observed_increasing_intervals: 9
+    threshold: 8
+  structural_safety:
+    passed: true
+  reproducibility:
+    passed: true

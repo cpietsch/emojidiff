@@ -877,3 +877,47 @@ failures were wrapper defects rather than research defects. A CPU regression tes
 pins the wrapper to the artifact layout the pilot actually writes. The next step is to
 define a bounded dominant-bucket training run with predeclared thresholds, since the
 pipeline itself is no longer the open question.
+
+## 2026-09-20 — Gate G dominant-bucket training v1: learnable but overfits 256 icons
+
+**Hypothesis.** Predeclared before launch in
+`runs/openmoji-g1-train-ec2436b-f2a06ca5-9b9b1699/run.yaml`. With the selected packed
+representation, factorized role-uniform geometry corruption, and group/subgroup
+conditioning, a 577,552-parameter denoiser trained on a 256-icon family-disjoint
+subsample of the dominant P32/T128 bucket would recover corrupted geometry fields on 128
+held-out icons at least 10x its untrained same-input control, preserve at least 0.90 of
+already-correct fields, improve monotonically in at least 8 of 10 trace intervals, keep
+locked paths exact, and reproduce identically.
+
+**Method.** 600 bounded steps at batch 16, learning rate 0.001, corruption probability
+0.35, seed 3101, on the owned RTX 4080 under declared deterministic algorithms. Held-out
+evaluation every 60 steps plus an untrained step-0 control on the identical corruption
+draw. The tracing is metric-only: `_evaluate` draws from an independent numpy generator
+under `no_grad` and the denoiser has no dropout, and a test asserts that a traced and an
+untraced run of the same config produce byte-identical checkpoints. A 60-step CPU
+preflight preceded the run to size memory and wall time; it is disclosed in the run
+record because it informed the thresholds.
+
+**Observation.** The run completed in about 22 seconds and reproduced identically.
+Held-out changed-token accuracy rose from 0.003005 untrained to 0.055230, which is
+18.38x the control, monotone in 9 of 10 intervals. Held-out retained-token accuracy
+reached only 0.325586 against the predeclared 0.90. Held-out loss reached its minimum of
+9.7932 at step 240 and then rose steadily to 11.1485, while training token accuracy
+climbed to 0.4550 and training loss fell to 2.7221; held-out aggregate accuracy was flat
+near 0.231 from step 240. Locked-path exactness and the canonical checkpoint round trip
+both held. Totals were 13,978 changed and 26,030 retained held-out fields.
+
+One nuance is recorded rather than smoothed over: held-out changed accuracy continued to
+rise across the same interval in which held-out loss worsened, so the monotone criterion
+passed while generalization was already degrading. Held-out loss is the more honest
+scalar for this comparison, and the monotone criterion should not be reused unqualified.
+
+**Decision.** Predeclared outcome: **falsified**, retained as a negative result rather
+than retuned. Two claims survive. The representation is genuinely learnable at 256
+diverse icons spanning 10 groups and 75 subgroups, well beyond the 4-icon Gate F
+fixtures. And the failure is a data-scale failure, not an optimization or plumbing
+failure: the model overfits after roughly 240 steps. The next controlled run should
+change only the train-split size, moving to the full 2,681-icon family-disjoint split,
+while holding model, seed, corruption, batch, and learning rate fixed, and should select
+on held-out loss instead of a fixed step budget. Loading that split costs about three
+minutes of CPU at the measured 60 ms per icon, so it remains a bounded run.

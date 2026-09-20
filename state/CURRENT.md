@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-20T11:12:32Z
+Updated: 2026-09-20T11:28:49Z
 
 ## Current hypothesis and evidence
 
@@ -182,6 +182,21 @@ validation loss is 15.344566 with 0.009404 aggregate, 0.008850 changed over 226 
 fields, and 0.009709 retained over 412 retained fields. These first-step accuracies are
 near random by construction and are explicitly not learning evidence. Gate G is
 therefore unblocked on pipeline mechanics but not passed.
+
+
+The first predeclared Gate G learning run is falsified, and informatively so. Training
+the selected 577,552-parameter denoiser for 600 steps on a 256-icon family-disjoint
+subsample lifts held-out changed-token recovery from 0.003005 untrained to 0.055230,
+18.38x its own same-input control and monotone in 9 of 10 intervals. But held-out
+retained-token accuracy reaches only 0.325586 against the predeclared 0.90, and held-out
+loss bottoms out at 9.7932 at step 240 before rising to 11.1485 while training accuracy
+climbs to 0.4550. That is overfitting to 256 icons, not an optimization or plumbing
+failure. The representation is learnable at real icon diversity; the open question is
+now data scale.
+
+A recorded caveat: held-out changed accuracy kept rising while held-out loss worsened,
+so the monotone criterion passed during degrading generalization. Held-out loss is the
+more honest scalar and the monotone criterion should not be reused unqualified.
 
 
 ## Last completed action and verification
@@ -391,6 +406,23 @@ Two of the three failures were `scripts/remote/` wrapper defects, which had no t
 coverage before this session.
 
 
+Added metric-only held-out tracing to the pilot: a new `eval_every` config field, an
+untrained step-0 control on the identical corruption draw, and a `validation.jsonl`
+trace. The change is provably inert. Configs without `eval_every` reproduce the recorded
+local CPU checkpoint `d11efa00...` exactly, and a test asserts that a traced and an
+untraced run of the same config produce byte-identical checkpoints. Also generalized the
+staged wrapper so each smoke id pins exactly one committed config and an unknown id
+fails closed. The full suite passes 108/108; Ruff and strict mypy pass.
+
+Predeclared and completed `openmoji-g1-train-ec2436b-f2a06ca5-9b9b1699` on the owned
+RTX 4080 in about 22 seconds, with criteria committed to Git before launch at `63074d9`.
+Four of five predeclared criteria passed; retained preservation failed at 0.325586
+against 0.90, so the overall outcome is recorded as falsified and retained rather than
+retuned. Two complete invocations returned identical checkpoint
+`ac696b81b3c9cd6f01f4cfba0adc5301b3db59a189f7cd007dc41778ad45a49d` and summary
+`b892acbf28078405a5954b7fa4e0db3704dd0675bebddd2ba53522add77fd14d`.
+
+
 ## Active jobs
 
 None. The owned-worker smoke ran in foreground containers with `--rm`; no container or
@@ -448,6 +480,13 @@ originals. The 7,075,309-byte GPU checkpoint deliberately stays on the worker si
 third attempt's identical artifacts are also retained on the worker; nothing was deleted.
 
 
+The training run's artifacts are durable on the owned worker under
+`/home/dev/.cache/openmoji-g1-train-ec2436b-f2a06ca5-9b9b1699/`, totalling 7,140,279
+bytes. Its compact `summary.json`, `validation.jsonl`, and `metrics.jsonl` were copied
+to the control plane under that run's directory and verified by hash against the worker
+originals; the 7,075,310-byte checkpoint deliberately stays on the worker sink.
+
+
 ## Current blockers and missing authorization
 
 - YOLO checks passed for hostname, persistent repository location, TLS-only isolated
@@ -475,10 +514,15 @@ third attempt's identical artifacts are also retained on the worker; nothing was
 
 ## Next smallest evidence-producing action
 
-Define and register a bounded dominant-bucket training run on the owned RTX 4080 with
-predeclared accuracy thresholds, a step budget well inside the recorded 20,000-step cap,
-and a checkpoint/evacuation policy. The pipeline itself is no longer the open question:
-staging, determinism, conditioning, checkpointing, and locked-edit semantics are all
-verified on that GPU and reproduce across containers. The open question is whether the
-representation learns on the 2,681-icon train split, so the next run must declare its
-falsifiable held-out recovery criteria before launch.
+Run the controlled data-scale follow-up: change only the train-split size from the
+256-icon subsample to the full 2,681-icon family-disjoint split, holding the model,
+seed, corruption probability, batch size, and learning rate fixed. Loading that split
+costs about three minutes of CPU at the measured 60 ms per icon, so it stays a bounded
+run inside the recorded 20,000-step and 50 GB cap.
+
+Two harness decisions belong to that run. Select on held-out loss with a best-checkpoint
+or early-stopping policy instead of a fixed step budget, since v1 showed the fixed
+budget trains well past the held-out minimum. And note that the owned adapter still has
+no detached `launch`, `status`, or `sync`: v1 fit in 22 seconds inside the 600-second
+foreground SSH timeout, but a longer full-split run will need detached execution with a
+stable job identity before it is safe to start.
