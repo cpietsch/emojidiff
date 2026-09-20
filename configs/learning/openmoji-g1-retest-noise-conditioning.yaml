@@ -64,6 +64,10 @@ training:
   corruption_probability: 0.05
   corruption_probability_max: 0.50
   noise_level_features: 16
+  # Evaluate at 0.35 like every other arm. Without this the evaluation level inherits
+  # corruption_probability, which the training range moved to 0.05 - the first attempt
+  # measured a different task and is retained as a failed arm.
+  evaluation_corruption_probability: 0.35
   # Drop the value term. It is a 289/417-class objective against the keep head's
   # 2-class one and they share an encoder, so the encoder is shaped almost entirely by
   # a task the model cannot do. This asks whether the detection signal - which a
