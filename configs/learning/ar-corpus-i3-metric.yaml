@@ -1,0 +1,62 @@
+# Gate I arm 3: i2 with one change, the coordinate encoding.
+#
+# i2 cleared its position-marginal floor by 7.7% in nats against a predeclared 50%, and
+# overfit below the floor by step 1200. This asks whether that is a limit of
+# autoregression over this codec or the defect Gate G already verified on it: coordinate
+# tokens encoded as unordered categories on a metric lattice, where its trained
+# embedding table scored Spearman -0.136 against bin distance. The denoiser's fix took
+# render recovery from 0.0447 to 0.2511 while shrinking the model.
+#
+# Exactly one thing moves. Depth, width, data, budget, seed, selection policy, floor and
+# every criterion are i2's, so the difference is attributable. The output head is still
+# an unordered 418-way softmax in which a one-bin miss costs what a far one does - that
+# is a separate known defect and a separate arm, not this one.
+#
+# metric_coordinates: 8 matches v16, which is the only setting with evidence behind it.
+# Parameter count rises slightly, to the projection's 18x96 plus bias; that favours this
+# arm, so if it loses the result stands, and if it wins by a little the margin is worth
+# discounting.
+schema_version: 1
+study_version: ar-corpus-i3-metric
+source_revision: b7d803bcc17ed9540e310cff7ddab8fce1b8d6c2
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+report_root: reports/learning/ar-corpus-i3-metric
+checkpoint_root: data/processed/ar-corpus-i3-metric
+
+model: {d_model: 96, heads: 4, layers: 4, feedforward: 192, metric_coordinates: 8}
+
+training:
+  steps: 6300
+  batch_size: 16
+  learning_rate: 0.001
+  seed: 3301
+  eval_every: 300
+  # v1 trained a fixed budget and reported its last step, but its held-out loss had
+  # bottomed out a third of the way in. Selection is on held-out likelihood, as in v16.
+  patience_evals: 8
+  # Add-one smoothing on the position marginals. Without it the floor assigns zero
+  # probability to any token unseen at a position in train and its likelihood is
+  # infinite, which would hand the model an unearned win.
+  marginal_alpha: 1.0
+
+sampling:
+  count: 32
+  seed: 5501
+  # The ink-coverage reference comes from real icons, so "looks like an icon" has a
+  # measured range rather than an opinion behind it.
+  reference_icons: 128
+  render_timeout_seconds: 20
+
+# Predeclared, and hashed into the run identity with the rest of this file.
+criteria:
+  # Half the floor's negative log likelihood per free token. A model that only learns
+  # position marginals sits at 1.0 and has learned the shape of the sequence rather
+  # than anything about icons; this is the Gate G identity-baseline discipline applied
+  # to a generator.
+  max_nll_ratio_to_marginal: 0.5
+  # The standard collapse of a conditional model on a corpus this small is one program
+  # per class, which scores well on likelihood and is not a generator.
+  min_distinct_sample_rate: 0.9
+  # Free by construction, so a failure here is a bug in the legal-token masks rather
+  # than a fact about the model - which is exactly why it is worth checking.
+  require_all_valid: true
