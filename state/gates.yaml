@@ -106,8 +106,10 @@ gates:
       than by exact tokens. Paired per-icon render recovery went 0.0447 to 0.1246 to
       0.2511 at 72 px, helping 11 of 12 icons with the interval excluding zero, while
       exact-token accuracy fell below identity - which settles that exact-token accuracy
-      is the wrong primary metric here. No render is a recognizable icon; at 35%
-      corruption the input is already scribble. Every earlier plateau in
+      is the wrong primary metric here. The four earlier eliminations were then retested
+      off that base and all survive - capacity restores v3, 256 icons restores v2, noise
+      conditioning restores v4 - so they are admissible again. No render is a
+      recognizable icon; at 35% corruption the input is already scribble. Every earlier plateau in
       this gate was measured under the broken loss and is no longer admissible as read.
 
   - id: Gate H

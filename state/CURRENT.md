@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T05:05:00Z
+Updated: 2026-09-21T06:15:00Z
 
 ## Current hypothesis and evidence
 
@@ -457,6 +457,19 @@ quarter of the render gap: identity 0.0000, v14 +0.0447, v15 +0.1246, v16 +0.251
 verified defects and corrections, and the model shrank from 579,872 parameters to
 525,152. No render is a recognizable icon; at 35% corruption the input is already
 scribble and recovering a quarter of that gap leaves scribble.
+
+The four eliminations are then retested off that base and all survive. Judged on paired
+render recovery against v16's +0.2511 and its interval half-width of 0.1103: capacity at
+3.69x parameters gives +0.2779, restoring v3; 256 training icons give +0.0766, 0.175
+below, restoring v2; noise conditioning gives +0.2096, restoring v4. All three reproduce
+identically. The eliminations were right even though they were measured badly, and the
+four are admissible again.
+
+Capacity is the one that was expected to move and did not. It had been recorded as the
+least trustworthy of the four, because 768 parameters of slot binding later beat a 3.53x
+capacity increase outright. At 3.69x on a sound setup it is still within noise, and the
+best model this session built remains the smallest one. The two results were never in
+tension: one is a representational fix, the other raw size.
 
 Every plateau the sequence had declared - data volume, capacity, the corruption regime,
 noise conditioning - was measured under the broken loss and is no longer admissible as
@@ -922,38 +935,41 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Re-run the four eliminations under the corrected setup, on the corrected metrics. They
-are the cheapest remaining evidence and all four are currently inadmissible.
+Re-register and run the corpus-scale corruption-process comparison. It is the last piece
+of declared work whose blocker has cleared, and its configs, matched setup and criteria
+are already committed under
+`openmoji-g1-corruption-process-corpus-76f41a3-2arms-9b9b1699`, cancelled with the reason
+that no trained model could then learn detection on any process. v10 through v16 resolved
+that: the detector runs at 2.569 lift and paired render recovery is +0.2511.
 
-Data volume (v2), model capacity (v3), the corruption regime (the sweep) and noise-level
-conditioning (v4) were each declared a plateau on a held-out scalar that was roughly 31%
-four individual fields, on runs stopped at 6 to 24% of their step cap, under a corruption
-process that leaked a density shortcut, with coordinates encoded as unordered categories,
-and graded on exact-token accuracy which is now known to point the wrong way. Every one of
-those is fixed. None of the four conclusions has been retested, and each is cheap now
-that a run uses its whole budget - v16's recipe trains in minutes.
+Re-register it against the current base and the current metrics. The gated quantity
+should be paired render recovery, not exact-token accuracy, and the arms need the
+marginal-respecting process added alongside factorized and path-correlated - the
+training-free probe put local-continuity detectability at 0.9333 for path-correlated
+against 0.7698 for factorized, so a real difference between the processes is expected
+where the earlier comparison could not have seen one.
 
-Take v16 as the base, change one factor per run, and predeclare against paired render
-recovery of +0.2511 at 72 px and mean absolute view-unit error, not against exact-token
-accuracy. Capacity is the most interesting of the four: v3 concluded that 3.53x
-parameters does nothing, on a setup where 768 parameters of slot binding later beat it
-outright, so that conclusion is the least trustworthy of the set.
+After that the open questions are larger than one run each, and should be predeclared
+separately:
 
-Then the registered corruption-process comparison, which is ready to re-register: it was
-deferred because no trained model could learn detection on any process, and v10 through
-v16 have since resolved that.
+- The corruption-regime sweep, which is an evaluation study over a fixed checkpoint and
+  was excluded from the retests as a different kind of work. v16 has never been swept.
+- Whether any corruption level produces a recognizable render. Every result in this gate
+  is at probability 0.35, where the input is already scribble; the sweep would answer it.
+- Gate I, the cached autoregressive baseline on the same codec, which is PROJECT_PLAN.md
+  section 12 branch 4 and is still the only untried route to a positive generation result.
 
 Standing rules from this session, for every later run:
 
-- Report the identity baseline beside every recovery number. v1 through v5 were reported
-  against an untrained control, which flattered them.
-- Measure detection under marginal-respecting corruption. A zero-parameter marginal
-  detector scores 2.84 under uniform corruption and 0.771 under marginal, so every number
-  measured on the uniform process is partly a density test.
+- Report the identity baseline beside every recovery number.
+- Measure detection under marginal-respecting corruption; a zero-parameter marginal
+  detector scores 2.84 under uniform corruption and 0.771 under marginal.
 - Never fit a decode threshold on the data it is reported on. Derive it, or estimate it
   on icons withheld from training.
-- On paired data, compare the pairs. This session made the median-versus-paired mistake
-  twice and caught it twice; both times the paired statistic reversed the conclusion.
+- On paired data, compare the pairs. This session made that mistake twice and caught it
+  twice; both times the paired statistic reversed the conclusion.
 - Primary metrics are mean absolute view-unit error and paired render recovery.
-  Exact-token accuracy is secondary and is known to point the wrong way - v16 is worse
-  than identity on it and the best denoiser here.
+  Exact-token accuracy is secondary and points the wrong way: v16 is worse than identity
+  on it and the best denoiser here.
+- Run `python scripts/audit_run_records.py` before committing a run record. It caught a
+  real bookkeeping error in this session.
