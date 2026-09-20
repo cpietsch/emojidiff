@@ -1,6 +1,6 @@
 schema_version: 1
 run_id: openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
-state: planned
+state: completed
 parent_run: openmoji-g1-train-v1-native-c9bf1b9-f2a06ca5-9b9b1699
 hypothesis: >-
   The v1 falsification was a data-scale failure, not an optimization or plumbing
@@ -133,3 +133,55 @@ outputs:
   report_root: reports/learning/openmoji-g1-dominant-bucket-train-v2-data-scale
   durable_artifacts: /home/dev/.cache/openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
 planned_at: 2026-09-20T17:05:00Z
+completed_at: 2026-09-20T17:12:40Z
+result:
+  device: cuda
+  wall_seconds: 75.6
+  peak_cuda_mib: 290.1
+  ended_by: early_stopping
+  completed_steps: 1320
+  selected_step: 840
+  selected_held_out_loss: 7.3332648277282715
+  selected_held_out_aggregate_accuracy: 0.28861727654469105
+  selected_held_out_changed_accuracy: 0.057304335384175134
+  selected_held_out_retained_accuracy: 0.41283134844410296
+  final_step_held_out_loss: 7.527534484863281
+  final_step_held_out_changed_accuracy: 0.06624695950779796
+  train_token_accuracy_mean10_at_selected_step: 0.3828216374269006
+  generalization_gap_at_selected_step: 0.09420436088220955
+  checkpoint_sha256: e791493769907ac428db6a081310c0beacc4b88d2072b24fc07df0287e0295b4
+  checkpoint_bytes: 7075311
+  identical_rerun: true
+predeclared_outcome:
+  overall: partially-falsified
+  data_scale_lowers_held_out_loss: {passed: true, observed: 7.3332648277282715, threshold: 9.793182373046875}
+  generalization_gap_narrows: {passed: true, observed: 0.09420436088220955, threshold: 0.1831}
+  held_out_changed_recovery_improves:
+    passed: false
+    observed: 0.057304335384175134
+    observed_ratio: 1.3067
+    threshold: 0.065782
+    threshold_ratio: 1.5
+    note: >-
+      Met at the last trained step, where changed accuracy is 0.06624695950779796, a
+      1.511x ratio. It is recorded as falsified because the criterion was predeclared at
+      the selected checkpoint, and choosing the other reading after seeing the numbers
+      would be selecting the stopping rule to pass the test.
+  later_held_out_optimum: {passed: true, observed: 840, threshold: 240}
+  structural_safety: {passed: true}
+  reproducibility: {passed: true}
+  retained_preservation:
+    passed: false
+    observed: 0.41283134844410296
+    threshold: 0.90
+    note: Standing Gate G bar, not a prediction of this run. Improved from v1's 0.3256.
+  conclusion: >-
+    Ten times the data lowers held-out loss 25.1% and narrows the train/held-out gap
+    39.7% with training accuracy nearly unchanged, so the v1 failure was data-limited.
+    It does not deliver the predicted 1.5x changed-token recovery, so data volume is no
+    longer the binding constraint. Held-out loss and held-out accuracy disagree about
+    when to stop, and that disagreement is now its own open question.
+artifact_durability:
+  durable_root: /home/dev/.cache/openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
+  checkpoint_bytes: 7075311
+  copied_to_repo: [summary.json, metrics.jsonl, validation.jsonl]

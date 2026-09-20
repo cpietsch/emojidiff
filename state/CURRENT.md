@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-20T14:43:52Z
+Updated: 2026-09-20T17:20:00Z
 
 ## Current hypothesis and evidence
 
@@ -208,8 +208,54 @@ token of 26,030 differs, moving aggregate accuracy only in the fifth decimal. Ev
 conclusion drawn from v1 survives the move, including its falsified
 retained-preservation criterion.
 
+The data-scale question v1 left open is now answered, and only partly in the affirmative.
+Run `openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699` changes only the train
+split, 256 icons to the full 2,681-icon family-disjoint split, and replaces the fixed
+step budget with a 6,300-step cap plus held-out-loss early stopping. It stopped at step
+1,320 and selected step 840. Against v1 read at its own held-out optimum, step 240,
+held-out loss falls 25.1% to 7.3333, aggregate accuracy rises 38.0% to 0.2886, retained
+accuracy 38.6% to 0.4128, and the train-minus-held-out gap narrows 39.7% to 0.0942 while
+training accuracy moves only 4.8%. The v1 failure was therefore data-limited. But
+changed-token recovery reaches only 0.0573, a 1.307x improvement against a predeclared
+1.5x, so the primary recovery criterion is falsified and the run is recorded as
+partially falsified. Data volume is no longer the binding constraint.
+
+A second, sharper caveat than v1's. Held-out loss bottoms out at step 840 and never
+recovers, while held-out accuracy - aggregate, changed and retained alike - rises
+monotonically through step 1,320, where changed-token accuracy is 0.0662 and would have
+met the 1.5x bar. The criterion was evaluated as predeclared, at the selected
+checkpoint. After v1 this project declared held-out loss the more honest scalar; v2
+shows that choice costs 15.6% of the relative changed-token recovery available at the
+cap. Which scalar governs checkpoint selection is now an open question that the next run
+must declare, with a reason, before it starts.
+
+
 
 ## Last completed action and verification
+
+Implemented optional held-out checkpoint selection and early stopping in the Gate G
+pilot at `3b7db57`, gated on a `training.selection_policy` block so every config without
+it is untouched: re-running the v1 config reproduces its recorded native summary, trace
+and metrics byte-identically, summary SHA-256
+`f304a381a6ca57106da5cfe4878b1688e3d6fd558c949243dea01704b7bf6453`. Four focused tests
+cover the unchanged fixed-budget shape, argmin selection with a matching written
+checkpoint, deterministic patience exhaustion, and rejection of a policy without
+periodic evaluation. The full suite passes 112/112; Ruff and strict mypy pass.
+
+Predeclared the data-scale criteria at `a50b2e0` and registered
+`openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699` as planned before launch. A
+disclosed 60-step sizing preflight on the full split was run first and is reported in
+`run.yaml`. The run completed natively on the RTX 4080 in 75.6 s at 290.1 MiB peak CUDA
+memory, and a second complete invocation returned an identical JSON result. Locked-path
+exactness and canonical checkpoint round-trip both hold at the selected step. Its
+7,075,311-byte checkpoint SHA-256 is
+`e791493769907ac428db6a081310c0beacc4b88d2072b24fc07df0287e0295b4`.
+
+Added the research weblog: a static site generated from the committed record only -
+`state/CURRENT.md`, the new `state/gates.yaml` gate board, `state/runs.jsonl`,
+`runs/*/run.yaml` and `result.md`, `reports/findings.md`, and every render under
+`reports/`. It invents no status or conclusion and shows failed and superseded runs
+exactly like successful ones. It is served on the machine's Tailscale address only.
 
 Pinned OpenMoji 17.0.0 at commit
 `f9fc506a3f913be9897ab0181d611d4c910a4104`; hashed and made the 4,495-SVG raw checkout
@@ -456,9 +502,15 @@ The `gtc` copy is left intact and untouched as a backup. Nothing was deleted.
 
 ## Active jobs
 
-None. The owned-worker smoke ran in foreground containers with `--rm`; no container or
-detached process was intentionally left active. The owned worker is enabled for bounded
-work under its recorded 20,000-step and 50 GB cap. Vast and A100 workers remain disabled.
+One, and it is not compute. The research weblog is served by
+`scripts/serve_weblog.py` in tmux session `mojidiff-weblog`, bound to
+`100.69.189.78:8787` on the Tailscale interface only, not to `0.0.0.0`. It is a
+read-only static file server over `site/` and holds no GPU or lock; stop it with
+`tmux kill-session -t mojidiff-weblog`.
+
+No training job is active. The v2 data-scale run and its reproducibility rerun both
+finished in tmux sessions that have exited. The owned worker is enabled for bounded work
+under its recorded 20,000-step and 50 GB cap. Vast and A100 workers remain disabled.
 
 ## Artifact durability
 
@@ -518,6 +570,18 @@ to the control plane under that run's directory and verified by hash against the
 originals; the 7,075,310-byte checkpoint deliberately stays on the worker sink.
 
 
+The v2 data-scale run's artifacts are durable under
+`/home/dev/.cache/openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699/`: a
+7,075,311-byte canonical checkpoint at SHA-256
+`e791493769907ac428db6a081310c0beacc4b88d2072b24fc07df0287e0295b4`, plus the report
+files. Its `summary.json`, `metrics.jsonl` and `validation.jsonl`, about 200 KB in all,
+are copied into the run directory in the repository; the checkpoint deliberately stays
+on the durable sink. Nothing was deleted, and nothing was pushed.
+
+The weblog's generated `site/` directory is derived output and is Git-ignored: it is
+rebuilt from the committed record in about a second by `python -m mojidiff.weblog.build`.
+The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
+
 ## Current blockers and missing authorization
 
 - YOLO checks passed for hostname, persistent repository location, TLS-only isolated
@@ -545,20 +609,35 @@ originals; the 7,075,310-byte checkpoint deliberately stays on the worker sink.
 
 ## Next smallest evidence-producing action
 
-Run the controlled data-scale follow-up natively: change only the train-split size from
-the 256-icon subsample to the full 2,681-icon family-disjoint split, holding the model,
-seed, corruption probability, batch size, and learning rate fixed. Compare against
-`openmoji-g1-train-v1-native-c9bf1b9-f2a06ca5-9b9b1699`, not the container parent.
+Decide, and declare, which held-out scalar governs checkpoint selection before running
+anything else. v2 made this unavoidable: held-out loss and held-out accuracy disagreed
+about when to stop, and the primary criterion passed under one reading and failed under
+the other. The cheapest way to settle it is analysis, not GPU time - v2's committed
+`validation.jsonl` and `metrics.jsonl` already contain both curves, so the calibration
+question can be examined directly on the existing artifacts. Write the choice and its
+justification into the next run's `run.yaml` before launch.
 
-Select on held-out loss with a best-checkpoint or early-stopping policy instead of a
-fixed step budget, since v1 trained well past its held-out minimum at step 240. Loading
-the full split costs about three minutes of CPU at the measured 60 ms per icon, so use
-`tmux` or a detached process rather than a foreground shell.
+Then the next controlled experiment is model capacity, not more data. v2 showed that
+10.5x the data narrows the generalization gap 39.7% but lifts changed-token recovery
+only 1.307x, and its train/held-out gap at the selected step is down to 0.0942, so the
+577,552-parameter denoiser is close to fitting what it can express. Change only
+`d_model`, `layers`, and `feedforward`, hold the full 2,681-icon split, seed 3101,
+corruption probability 0.35, batch size 16, and learning rate 0.001 fixed, and predeclare
+a changed-token recovery threshold against v2's 0.0573 at its selected step. Keep the
+0.90 retained-preservation bar standing and expect it to remain falsified.
 
-Two further ideas are measured and queued but deliberately not yet applied, because the
-corpus already holds ten times the data v1 used. Left-right mirroring is exactly
+The corruption schedule is the other candidate factor and should be a separate run, not
+folded into the capacity test. A single fixed 0.35 corruption probability may be a poor
+training distribution for a denoiser that must handle many corruption levels at sampling
+time; that is a one-factor change of its own.
+
+Two augmentation ideas remain measured and queued but deliberately unapplied, since data
+volume is no longer the binding constraint. Left-right mirroring is exactly
 representable: the quarter-unit lattice is closed under x to 72-x, endpoint token t maps
 to 290-t for all 289 bins, and observed control-x spans only 2.00 to 70.00, so nothing
 overflows the -8 to 96 control vocabulary. Content also occupies a median 0.753 of the
 72-unit box, so rescaling would recover about 1.33x coordinate resolution, though
 coordinate precision is not currently the limiting factor.
+
+Regenerate the weblog with `python -m mojidiff.weblog.build` after any material result,
+so the served view does not drift from the committed record.

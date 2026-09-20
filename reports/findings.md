@@ -974,3 +974,38 @@ a median bounding box of x [12.00, 60.00] and y [10.62, 61.00] and only 0.5% of 
 using more than 95% of the box, so rescaling would recover roughly 1.33x coordinate
 resolution. Coordinate precision is not currently the limiting factor, so neither change
 is justified before the full-split run.
+
+## 2026-09-20 — Gate G data-scale v2: the gap closes, the bar does not
+
+**Hypothesis.** The v1 falsification was data-limited, not an optimization or plumbing
+failure. Training the identical 577,552-parameter denoiser on the full 2,681-icon
+family-disjoint split instead of a 256-icon subsample would lower the held-out loss
+minimum, narrow the train/held-out gap, and raise changed-token recovery by at least
+1.5x, all read at the checkpoint selected by held-out loss.
+
+**Observation.** Run `openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699` early
+stopped at step 1,320 and selected step 840. Against v1 read at its own held-out
+optimum, step 240, held-out loss falls 25.1% from 9.7932 to 7.3333, aggregate accuracy
+rises 38.0%, retained accuracy 38.6%, and the train-minus-held-out gap narrows 39.7%
+from 0.1563 to 0.0942 while training accuracy moves only 4.8%. That is a data-scale
+effect, not an optimization one. But changed-token recovery reaches only 0.0573, a
+1.307x improvement against a predeclared 1.5x, so the primary recovery criterion is
+falsified. The standing 0.90 retained-preservation bar improves from 0.3256 to 0.4128
+and remains far out of reach. Structural safety and byte-identical reproducibility both
+hold.
+
+The informative part is a disagreement between two scalars. Held-out loss reaches its
+minimum at step 840 and never recovers, while held-out accuracy — aggregate, changed,
+and retained alike — rises monotonically through the final step 1,320, where
+changed-token accuracy is 0.0662, a 1.511x ratio that *would* have met the bar. The
+criterion was evaluated exactly as predeclared, at the selected checkpoint; reading it
+at the final step after the fact would be picking the stopping rule that passes.
+
+**Decision.** Record v2 as partially falsified and keep it. Data volume is no longer the
+binding constraint at this model size: ten times the data bought a large generalization
+improvement but sub-proportional changed-field recovery, which points at model capacity,
+the corruption schedule, or the single-shot prediction objective instead. Treat the
+loss/accuracy disagreement as its own question rather than resolving it by convenience:
+after v1 this project declared held-out loss the more honest scalar, and v2 shows that
+choice costs 15.6% of the relative changed-token recovery available at the cap. The next
+run must declare which scalar governs selection, and why, before it starts.
