@@ -1,0 +1,101 @@
+schema_version: 1
+run_id: openmoji-g1-retest-eliminations-b949fc2-3arms-9b9b1699
+state: planned
+parent_run: openmoji-g1-geometric-gate-v16-85ec724-aaa03592-9b9b1699
+retests:
+  - openmoji-g1-train-v2-datascale-a50b2e0-c474c94d-9b9b1699
+  - openmoji-g1-capacity-v3-3c252d5-ee32665b-9b9b1699
+  - openmoji-g1-noise-conditioned-v4-6b935b2-5a9eaf44-9b9b1699
+hypothesis: >-
+  Four eliminations in this gate - data volume, model capacity, the corruption regime and
+  noise-level conditioning - were each declared a plateau on a held-out scalar that was
+  roughly 31% four individual fields, on runs stopped at 6 to 24% of their step cap, under
+  a corruption process whose replacements a zero-parameter marginal detector identified at
+  2.84 lift, with coordinates encoded as unordered categories, and graded on exact-token
+  accuracy which v15 and v16 showed points the wrong way. All of that is fixed. None of the
+  four conclusions has been retested. At least one of them is expected to change, and
+  capacity is the most likely: v3 concluded that 3.53x parameters does nothing, on a setup
+  where 768 parameters of slot binding later beat it outright.
+expected_information_gain: >-
+  Four conclusions currently stand in the record as inadmissible-as-read. This either
+  restores them under sound measurement or overturns them, and it is the cheapest
+  remaining evidence in the project - the v16 recipe trains in minutes.
+scope_limits: >-
+  Three arms, not four. The corruption-regime sweep is an evaluation-time study over a
+  fixed checkpoint rather than a training factor, so it is a separate piece of work and is
+  not bundled here. Fixed-topology and geometry-only, single seed, 12 icons for renders.
+arms:
+  capacity:
+    config: configs/learning/openmoji-g1-retest-capacity.yaml
+    sha256: 28e3f1a8a373edba2023101b54b0de560cb4f327a2ca099284d61b00ab2afa9d
+    factor: d_model 96->192, heads 4->8, layers 2->4, feedforward 192->384
+    parameters: 525152 -> 1936160, 3.69x
+    retests: v3, which found 3.53x parameters changed nothing
+  data_volume:
+    config: configs/learning/openmoji-g1-retest-data-volume.yaml
+    sha256: 92c53c85b1a916bbfb39e9113e8f75efe55f3ffc839073d9b8af5e59d327f37f
+    factor: train_samples 2681->512, which after the 256 withheld leaves 256 icons trained on
+    retests: v2, which found the full split beat a 256-icon subsample
+  noise_conditioning:
+    config: configs/learning/openmoji-g1-retest-noise-conditioning.yaml
+    sha256: ae12f918cacb1d846f6af1c2e7a3fc7a3b14326e2239a68158f3075661915417
+    factor: corruption sampled per example over 0.05-0.50 plus 16 noise-level features
+    bundling: >-
+      Two changes, bundled exactly as v4 bundled them and disclosed the same way.
+      Sampling without telling the model leaves it unable to use the level; telling
+      without varying leaves it a constant.
+    retests: v4, which found noise-level conditioning changed nothing that mattered
+code:
+  git_commit: b949fc238b4c146e2757fc4aae87decd6f5f7940
+  execution_mode: native-local
+dataset:
+  hybrid_sha256: 9b9b1699677a6f97f1e2ecedc574199411bf850d257e4526525c851edc4ea38b
+  bucket: bucket-p32-t128
+base_v16:
+  paired_render_recovery_72px: 0.2511
+  paired_render_recovery_72px_ci: [0.1408, 0.3614]
+  paired_render_recovery_18px: 0.2745
+  decision_threshold: 0.6800
+  held_out_aggregate: 0.6354
+  identity: 0.6515
+  parameters: 525152
+  trains_on: 2425
+predeclared_criteria:
+  note: >-
+    Judged on paired per-icon render recovery, the primary metric established by v15 and
+    v16. Exact-token accuracy is reported and NOT gated, because v16 is simultaneously
+    worse than identity on it and the best geometric denoiser this project has produced.
+  evaluated_at: each arm's selected checkpoint, decoded at its own geometric threshold
+  primary:
+    - id: capacity_retested
+      statement: >-
+        The capacity arm's mean paired render recovery at 72 px differs from v16's
+        +0.2511 by more than the base run's interval half-width of 0.1103, in either
+        direction. A difference smaller than that restores v3's conclusion under sound
+        measurement; a larger one overturns it.
+    - id: data_volume_retested
+      statement: >-
+        The 256-icon arm's recovery is BELOW v16's +0.2511 by more than 0.1103, which
+        would restore v2's conclusion that data volume matters. If it is not, then v2's
+        finding does not survive the corrected setup.
+    - id: noise_conditioning_retested
+      statement: >-
+        The noise-conditioning arm's recovery differs from v16's by more than 0.1103 in
+        either direction, which would overturn v4's conclusion that it changes nothing.
+    - id: structural_safety
+      statement: Locked-path exactness holds and every checkpoint round-trips.
+    - id: reproducibility
+      statement: Every arm returns an identical JSON result on a second invocation.
+  reported_not_gated:
+    - each arm's held-out aggregate beside identity, and its exact-token changed/retained
+    - each arm's derived threshold, selected step, and mean absolute view-unit error
+  falsification_meaning: >-
+    If all three arms land within the interval of the base, then none of the original
+    eliminations was an artifact of the broken measurement and the four conclusions stand
+    as originally recorded, which would be a clean restoration rather than a null result.
+    If capacity in particular moves, the project has been under-sizing its model since v3
+    on the strength of a measurement that was 31% four fields.
+outputs:
+  local_metadata: runs/openmoji-g1-retest-eliminations-b949fc2-3arms-9b9b1699
+  report_roots: reports/learning/openmoji-g1-retest-{capacity,data-volume,noise-conditioning}
+planned_at: 2026-09-21T05:20:00Z
