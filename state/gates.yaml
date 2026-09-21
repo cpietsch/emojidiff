@@ -179,15 +179,16 @@ gates:
       recognisable held-out icons from a caption - read against its own zero-shot
       output, against chance, and against memorisation?
     evidence: >-
-      Opened 2026-09-21 on the operator's decision after Gate L; PROJECT_PLAN.md section
-      16 states the design; licenses are recorded at pinned revisions and set aside for
-      research use. Three experiments. OmniSVG 1.1 4B zero-shot on 32 held-out
-      annotations: CLIP-to-reference 0.811 against a 0.777 chance level, the sheet
-      generic; its LoRA fine-tune in its own token language, with an exact tested
-      encoder for OpenMoji, is registered with predeclared criteria and queued. SemIf's
-      direct readout on Qwen3.5-0.8B and 4B is falsified (0.404, 0.577; the 4B follows
-      the last option letter). The Qwen3.5-2B-Base text prior's zero-shot control is
-      running; its fine-tune follows.
+      Opened 2026-09-21 on the operator's decision after Gate L; three experiments,
+      every run registered. OmniSVG 1.1 4B fine-tuned in its own token language learns
+      OpenMoji's palette and stock parts, not icons: falsified under three decoders.
+      Qwen3.5-2B-Base fine-tuned to write the codec's canonical SVG is the strongest
+      arm - 44 of 64 drawings enter the codec, a paired CLIP gain of +0.040 over its
+      control with an interval excluding zero - and is falsified on codec validity
+      (0.69 against 0.8) and retrieval (0.094 against 0.25); the full-corpus arm is
+      running. SemIf's decision readout is falsified on both models; averaged over
+      option orders it reaches 0.75, a secondary signal. Retrieval rank against all
+      held-out renders is the reading that matters, and no arm has moved it above 0.09.
   - id: Gate K
     title: Research interface and narrative
     status: open

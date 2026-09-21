@@ -2924,3 +2924,54 @@ training is not the next arm. The lever OmniSVG was actually trained with is its
 branch; a caption-only fine-tune of 2,681 icons does not teach it what a hedgehog is.
 OmniSVG's answer under this gate is recorded; the text prior's fine-tune is the
 remaining experiment, and Gate M's synthesis follows it.
+
+## 2026-09-21 — The Qwen3.5-2B text prior, fine-tuned: the strongest arm, and still not an icon
+
+**Observation.** Rank-16 LoRA on every linear layer, the loss on the SVG only, 500
+steps of 8 sequences, selected at step 350 by held-out likelihood (0.379 to 0.249 nats
+a token, flat from step 200). The 2,048-token cap excluded 1,229 of the 2,681 training
+icons and 16 of the 32 selection icons, so the adapter trained on the 1,452 shortest.
+The 64 drawings: 47 close their `<svg>` (control 18), 44 enter the typed codec (control
+3), similarity to the held-out render 0.839 over the 47 (control 0.798 over 17), a
+paired gain of +0.040 over the 17 pairable icons with a 95% interval of +0.019 to
++0.059; the right icon first for 6 of 64 (chance 2), in the top five for 19, mean rank
+10.3 of 32; no training icon reproduced; 40.8 s a drawing under the reference
+convolution path. Passed the gain and memorisation criteria, missed codec validity
+(0.69 against 0.8) and retrieval (0.094 against 0.25): falsified.
+
+**Reading.** This is the best drawing model the project has had, by every measure it
+shares with the others, and the sheet still shows the same coarse grounding as
+OmniSVG's: the right skin tone on a stock bust, a dark polygon for the black hexagon, a
+yellow face with features for the tired face, a red rectangle for a red sign, and
+nothing that names a hedgehog or a shopping cart. The text prior brings the codec's own
+form, which OmniSVG's outlined language cannot, and a real gain over its control. The
+largest confound is the corpus: half of it never trained. The next arm lifts the token
+cap to 4,096 so every icon trains and changes nothing else; it is registered and
+running.
+
+## 2026-09-21 — Gate M so far: three experiments, one direction
+
+**What was tried.** OmniSVG 1.1 4B, zero-shot and fine-tuned in its own token language
+with an exact tested encoder, read under three decoders. Qwen3.5-2B-Base, zero-shot and
+fine-tuned to write the codec's canonical SVG from a caption comment. SemIf's direct
+decision readout on Qwen3.5-0.8B and 4B, with an owned 52-request set. Every run is
+registered with its numbers, its sheet and, where criteria were predeclared, its
+outcome; every failure is preserved.
+
+**What was learned.** (1) A pretrained SVG prior fine-tuned on 2,681 captioned icons
+learns OpenMoji's palette, categories and stock parts and not icon identity; the two
+priors agree on this from opposite starting points. (2) Similarity to the held-out
+render is a weak reading in this corpus (any icon scores 0.78 against any other); the
+retrieval rank against all held-out renders is the one that separates "an emoji" from
+"this emoji", and no arm has moved it above 0.09. (3) The text prior is the better
+vehicle: it writes the codec's own form, its gain over control is real, and it is
+cheap to train; its weaknesses are the token cost of SVG text (half the corpus over
+2,048 tokens) and slow generation. (4) SemIf's decision layer is a secondary signal
+(0.75 averaged over option orders), not a router.
+
+**What follows.** The full-corpus text-prior arm is running. If retrieval stays near
+chance with every icon trained, caption-only fine-tuning at this scale is the falsified
+hypothesis, and the direction that remains open is conditioning on something richer
+than a caption - the icon's own parts, or a reference render through the image branch
+OmniSVG was actually trained with - which is the editing setting Gate L built the
+masked model for. That decision is taken on the next result, not before.
