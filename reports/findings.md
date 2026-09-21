@@ -2422,3 +2422,21 @@ worth building regardless. Give the overfit criterion a one-bin tolerance on
 coordinates - every other token exact - so that it tests the objective, the masks and
 the decoder rather than the spread of the target, and record that the exact rate is
 still reported beside it.
+
+## 2026-09-21 — With a value to copy, the metric head shows
+
+**Hypothesis.** With each segment's start point in its own input, the metric head should
+make copying it a linear map, and the continuity-only model should beat the copy policy.
+
+**Observation. Falsified, and a further move.** Continuity error **41.7 bins** (median
+37.0) against arm 10's 47.8 and the 58–60 of every arm before that; held-out likelihood
+**4.005** nats, 0.837 of the floor, against 4.119; the curve still falling at the last
+evaluation, 4.327 → 4.169 → 4.128 → 4.074 → 4.040 → 4.022 → 4.005. The copy policy sits
+at 25.6. Same 2,100 steps as arm 10, so the head is the only difference.
+
+**Reading.** The head that could show nothing while there was nothing to copy shows
+now. Two levers, each measured alone against a one-factor baseline, each helping, and
+neither run converged at a third of the budget - which is the situation the record
+should not be read past. Arm 12, the start-features run at the full budget, is on the
+GPU; the combination at the full budget is queued behind it, because it is the
+configuration the corpus run would use whichever way arm 12 reads.

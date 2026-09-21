@@ -1,0 +1,46 @@
+# Gate L arm 13: start features and the metric head together, at the full budget.
+#
+# Arm 10 (start features) and arm 11 (start features and the head) each moved the
+# continuity error - 58-60 bins to 47.8 to 41.7 against the copy policy's 25.6 - and
+# each was still falling at 2,100 steps. This is the two together for 6,300 steps, with
+# the same early-stopping patience and the same criterion: the configuration the corpus
+# inpainting run would use, read on the mechanism first.
+schema_version: 1
+study_version: masked-continuity-l13-start-head-full
+source_revision: f6befd5
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+report_root: reports/learning/masked-continuity-l13-start-head-full
+checkpoint_root: data/processed/masked-continuity-l13-start-head-full
+
+data:
+  train_icons: null
+  evaluate_on: validation
+  evaluation_icons: 339
+  inpaint_icons: 16
+
+model: {d_model: 96, heads: 4, layers: 4, feedforward: 192, metric_coordinates: 8, dropout: 0.1, start_features: true, metric_head: true}
+
+# One family, one segment at a time.
+masks: {span: 1.0, span_max: 1}
+
+training:
+  steps: 6300
+  batch_size: 16
+  learning_rate: 0.001
+  weight_decay: 0.01
+  seed: 3601
+  eval_every: 300
+  patience_evals: 8
+  marginal_alpha: 1.0
+  coordinate_tau: 1.0
+
+decoding: {iterations: 8, samples: 1, render_size: 72, render_timeout_seconds: 20}
+
+# Predeclared, and hashed into the run identity with the rest of this file.
+criteria:
+  # The model's mean endpoint error in bins, over one hidden segment per held-out icon,
+  # must be below the copy-the-previous-endpoint policy's. That policy scored 24.5 on
+  # this draw; the corpus arms scored 55 and 56.
+  beats_copy_previous: true
+  # Every completion validates and renders.
+  require_all_valid: true
