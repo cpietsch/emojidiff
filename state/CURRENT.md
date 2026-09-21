@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T20:45:00Z
+Updated: 2026-09-21T21:05:00Z
 
 ## Current hypothesis and evidence
 
@@ -1070,6 +1070,17 @@ are being read on it without retraining - `masked-span-l15-mixture-bde5d24-2681i
 9b9b1699` (arm 14's model) and `masked-span-l16-specialist-bde5d24-2681icons-9b9b1699`
 (arm 13's) - on the same 64 icons and spans, l2's criteria unchanged.
 
+Arms 15 and 16 read both checkpoints on two-segment spans and split. The mixture model
+is worse than joining the visible ends (-0.0048, interval excluding zero, 9 of 64
+helped). The span specialist - trained on single-segment masks, read on two-segment
+spans it never saw - ties the join: +0.0011 with the interval [-0.0004, +0.0026]
+spanning zero, 26 of 64 helped, its median error 0.00112 below the join's 0.00146, and
+it beats the marginal policy on 60 of 64; on its sheet the fills are indistinguishable
+from the clean icons in nearly every row. Both falsified as written on the magnitude
+bar, which is kept. The specialist is the line, and arm 17 trains it on spans of one
+to three segments at the same budget with the same mechanism, read on the same 64
+icons and spans (`masked-span-l17-specialist-3-aea91c2-2681icons-9b9b1699`, on the GPU).
+
 ## Active jobs
 
 The research weblog is served by `scripts/serve_weblog.py` in tmux session
@@ -1204,17 +1215,14 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Read arms 15 and 16. If either checkpoint completes two-segment spans better than
-joining the visible ends with the interval excluding zero and the magnitude bar met,
-Gate L has its first editing result and the next work is a specialist trained on the
-span family at the full budget if the specialist wins, or the mixture model as is if
-it does not, followed by the Gate K viewer over the frozen checkpoint. If neither beats
-the join, the reading is that continuity alone does not carry a two-segment fill, and
-the next arm trains the specialist on spans of two rather than one before the
-representation itself is questioned.
-
-Whole-path completion stays reported as the hard case: quiet fills, no longer damaging,
-still short of the hole.
+Read arm 17. If the specialist trained on spans of one to three beats the join with the
+interval excluding zero, Gate L has its first editing pass on a task a person would
+ask for - redraw this run of the outline - and the next work is the Gate K viewer over
+that frozen checkpoint, with whole-path completion shown as the hard case. If it ties
+the join again, the reading is that a two-segment span is too small an edit for a
+model to beat a straight cut on at 72 px, and the task moves to longer spans - three
+or four segments, where the join visibly cuts corners - trained and read at the same
+length. If it loses, the mixture of span lengths is the factor and the record says so.
 
 What is retired, so it is not picked up again by habit: further single-factor sweeps on
 the p = 0.35 denoiser, further left-to-right arms, and the corpus-scale corruption-process
