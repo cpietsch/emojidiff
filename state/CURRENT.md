@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T21:25:00Z
+Updated: 2026-09-21T21:50:00Z
 
 ## Current hypothesis and evidence
 
@@ -1095,6 +1095,16 @@ exactly (`masked-span-l18-specialist-3-l16-spans-f7fd711-2681icons-9b9b1699`, ru
 and the harness now takes `data.inpaint_seed` so a shared draw is chosen rather than
 inherited.
 
+Arm 18 reads arm 17's checkpoint on arm 16's exact spans and ties the join (+0.0007,
+interval spanning zero, 30 of 64 helped, median recovery 0.0) and the single-segment
+specialist span for span (31 better, 30 worse). Arm 17's paired win was a property of
+its draw. Across 128 two-segment spans the specialist is at parity with a straight cut
+at the median, wins outright where the cut is destructive, loses badly once, and beats
+the marginal policy every time: a two-segment span is too small an edit to beat a
+straight cut at 72 px. The task moves to four-segment spans with the draw pinned:
+arm 19 reads arm 17's checkpoint there (frozen) and arm 20 trains a specialist on spans
+of one to four, chained on the GPU.
+
 ## Active jobs
 
 The research weblog is served by `scripts/serve_weblog.py` in tmux session
@@ -1229,14 +1239,14 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Read arm 17. If the specialist trained on spans of one to three beats the join with the
-interval excluding zero, Gate L has its first editing pass on a task a person would
-ask for - redraw this run of the outline - and the next work is the Gate K viewer over
-that frozen checkpoint, with whole-path completion shown as the hard case. If it ties
-the join again, the reading is that a two-segment span is too small an edit for a
-model to beat a straight cut on at 72 px, and the task moves to longer spans - three
-or four segments, where the join visibly cuts corners - trained and read at the same
-length. If it loses, the mixture of span lengths is the factor and the record says so.
+Read arms 19 and 20. If the specialist beats the join on four-segment spans with the
+interval excluding zero, Gate L has its editing result and the next work is the Gate K
+viewer over that frozen checkpoint, with the two-segment parity and the whole-path
+hard case shown beside it. If it ties again, the honest conclusion is that at this
+corpus size the model's local completion is as good as a straight cut and no better,
+and the gate closes on that with the mechanism result standing; the corpus-scale
+levers left are longer training (every curve was still falling at 6,300 steps) and
+capacity with regularisation, one arm each, before that conclusion is final.
 
 What is retired, so it is not picked up again by habit: further single-factor sweeps on
 the p = 0.35 denoiser, further left-to-right arms, and the corpus-scale corruption-process
