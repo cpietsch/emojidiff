@@ -140,23 +140,29 @@ class Prior:
     def trainable_parameters(self) -> int:
         return sum(p.numel() for p in self.model.parameters() if p.requires_grad)
 
-    def decoder(self) -> Any:
-        """The transformer body without its head, through any PEFT wrapper."""
+    def _inner(self) -> Any:
+        """The causal language model itself, through any PEFT wrapper.
+
+        PEFT wrappers delegate attribute access, so `hasattr` cannot tell the wrapper
+        from the model - under the wrapper the old lookup returned the whole causal model
+        and its full logits, which is how the first fine-tune failed at its first
+        evaluation. The wrapper is unwrapped by type.
+        """
+
+        from peft import PeftModel
 
         inner = self.model
-        while hasattr(inner, "base_model") and not hasattr(inner, "lm_head"):
-            inner = inner.base_model
-        if hasattr(inner, "model") and hasattr(inner, "lm_head"):
-            return inner.model
-        if hasattr(inner, "base_model"):
-            return inner.base_model.model.model
-        raise AttributeError("could not find the decoder body")
+        if isinstance(inner, PeftModel):
+            inner = inner.base_model.model
+        return inner
+
+    def decoder(self) -> Any:
+        """The transformer body without its head."""
+
+        return self._inner().model
 
     def head(self) -> Any:
-        inner = self.model
-        while not hasattr(inner, "lm_head"):
-            inner = inner.base_model if hasattr(inner, "base_model") else inner.model
-        return inner.lm_head
+        return self._inner().lm_head
 
     def suffix_loss(self, input_ids: Tensor, labels: Tensor, chunk: int) -> tuple[Tensor, int]:
         """Cross-entropy over the labelled positions, summed, computed chunk by chunk."""
