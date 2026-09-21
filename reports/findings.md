@@ -2861,3 +2861,18 @@ still under the 0.8 bar, and the residual errors sit on generate and simplify, t
 operations the model cannot distinguish from "ask". SemIf's decision layer is a usable
 secondary signal, not the router the handoff described. No further SemIf run is planned
 in Gate M; the experiment's answer is recorded and the GPU goes to the fine-tunes.
+
+## 2026-09-21 — The OmniSVG control, re-read with retrieval: near chance at naming its icon
+
+**Observation.** The second reading reproduces the first (CLIP-to-reference 0.811, 73%
+codec-valid) and adds the rank of the right icon among the 32 held-out renders: first
+for 5 of 64 drawings (0.078, chance 0.031), in the top five for 17, mean rank 14.3 of
+32. Under the trainer's own prompt the released model draws shorter (median 154 tokens
+against 263), ends more often (81%) and scores lower: 0.787, top-1 0.047, mean rank
+15.9.
+
+**Reading.** The retrieval measure says what the similarity means: the zero-shot
+drawings are near chance at identifying their icon. The training-style prompt is not a
+better start than the release prompt, so a gain the fine-tune shows over the
+release-prompt control cannot be the prompt's. The fine-tune is running against this
+reading's drawings.
