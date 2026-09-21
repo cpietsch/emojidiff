@@ -2490,3 +2490,38 @@ arm 14 measures: l2's inpainting run, on l2's icons and criteria, with this mech
 part, which Gate I says this corpus cannot teach for unseen concepts; continuity gets a
 path started and keeps it coherent, and may or may not get it to beat the hole. The
 scored task is read next.
+
+## 2026-09-21 — With the mechanism, whole-path completion stops damaging and still loses to the hole
+
+**Hypothesis.** l2's inpainting run, with each segment's start point in its input,
+lattice-aware coordinate logits and chain-order decoding, should draw a removed path
+back into a held-out icon better than leaving the hole.
+
+**Observation. Falsified, and a different model from l2.** Against the hole the mean
+paired difference is **−0.0011** RGBA MAE, interval [−0.0017, −0.0006], 6 of 64 icons
+helped, median recovery −0.11 - against l2's −0.0040, 7 helped and −0.69. Against the
+marginal policy +0.0141 with the interval excluding zero, on **all 64** icons. Icon by
+icon on the same removed paths it beats l2 on **44 of 64**, by 0.0029 on average. Every
+completion valid. The sheet shows what the numbers say: the fills are quiet - a small
+correct piece here, a short stroke there - rather than the scribbles l2 drew across
+faces and flags.
+
+**Two readings, both supported.** The shape of a missing part is what this corpus
+cannot teach for an unseen concept - PROJECT_PLAN.md section 15 said so before the
+run, and Gate I said it for whole icons - and a model that knows it cannot draw the
+part does the next best thing, which is very little. That is not an editor for whole
+paths, and it is no longer a model that makes things worse.
+
+And the mechanism is diluted by the mixture it was trained under: continuity error is
+**41.8 bins** here against **17.9** for the same architecture trained on single-segment
+spans alone (arm 13), and the held-out curve flattened by step 900 where arm 13's fell to
+the end. Arm 5 showed the mixture was not the cause when there was no mechanism; now
+that there is one, the mixture is what limits it.
+
+**Decision.** Move the scored task to the local edit, as section 15 provided for: a run
+of two segments hidden inside a path with a visible segment before and after it, scored
+by paired render recovery against a zero-parameter fill that joins the visible ends,
+the marginal policy, the same magnitude bar and validity. Read both checkpoints on it
+without retraining - arm 14's mixture model and arm 13's span specialist - so that the
+choice between a general editor and a specialist is measured on the same 64 icons. The
+whole-path result stays reported as the hard case.
