@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T19:15:00Z
+Updated: 2026-09-21T19:35:00Z
 
 ## Current hypothesis and evidence
 
@@ -1025,6 +1025,17 @@ converged. Arm 12 (start features, 6,300 steps) is on the GPU and arm 13 (start
 features and the head, 6,300 steps) is queued behind it as
 `masked-continuity-l13-start-head-full-f6befd5-2681icons-9b9b1699` - the configuration
 the corpus inpainting run would use, read on the mechanism first.
+
+Arm 12 nearly reaches the copy policy: start features alone at the full 6,300 steps
+bring the continuity error to 29.1 bins (median 22.0) against 25.6 (median 17.0),
+held-out likelihood to 3.682 - 0.769 of the floor - with the checkpoint selected at the
+last step and the curve still falling. Arm 13, the same with the metric head, is on the
+GPU. Arm 14 is registered and queued behind it: the corpus inpainting run with the
+mechanism - start features, the metric head, chain-order decoding - and otherwise l2
+exactly, read against l2 on the same 64 icons with the continuity probe beside the
+render (`masked-inpaint-l14-start-head-ba54da5-2681icons-9b9b1699`). Three changes from
+l2 rather than one, because arms 10-13 measured each on the continuity study and this
+is the scored task.
 
 ## Active jobs
 

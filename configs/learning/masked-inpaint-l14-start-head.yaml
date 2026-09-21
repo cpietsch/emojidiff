@@ -11,7 +11,7 @@
 # probe is reported beside the render.
 schema_version: 1
 study_version: masked-inpaint-l14-start-head
-source_revision: f54c653
+source_revision: ba54da5
 pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
 report_root: reports/learning/masked-inpaint-l14-start-head
 checkpoint_root: data/processed/masked-inpaint-l14-start-head
