@@ -2111,3 +2111,54 @@ loss-reduction criterion under a spread target has to be stated against that tar
 own floor, or left out; the corpus run's criteria are render recovery against two
 policies, a magnitude bar and validity, and do not include it. Gate L proceeds to corpus
 scale.
+
+## 2026-09-21 — Gate L at corpus scale: the model beats the corpus and loses to the hole
+
+**Hypothesis.** Matched to v16 and to the causal arm on every term - 526,498 parameters,
+the same hashed corpus and family-disjoint splits, 100,800 icon presentations - with
+dropout 0.1 from the start, the masked model should draw a removed path back into a
+held-out icon better than leaving the hole and better than a position-marginal policy
+decoded through the same grammar, with the 95% interval excluding zero on both, a
+median recovery of at least 0.30, and every completion valid.
+
+**Observation. Falsified.** It beats the marginal policy cleanly - on **54 of 64** icons,
+mean paired difference +0.0112 RGBA MAE, interval [0.0066, 0.0158] - and it is **worse
+than leaving the hole on 57 of 64**: mean −0.0040, interval [−0.0069, −0.0012], median
+recovery −0.69 against the 0.30 bar. Every completion is valid. Held-out masked
+likelihood is 3.869 nats against the floor's 4.111, a ratio of 0.941, flat from step
+600 while the training loss is flat from step 300; selection at 3,300, early stop at
+5,700. On gpubox-4080: 346 s to train, 102 s to prepare, 1.95 GiB peak.
+
+The sheet says the same thing the numbers do. The fills are in the right colours and
+often in roughly the right region, and they are the wrong shape: a stroke where a fill
+should be, a blob across a face, a line through the hole rather than the piece that was
+there. The marginal policy's fills are worse in the same way.
+
+**Where it learned and where it did not.** A read-only breakdown of the checkpoint by
+mask family and token type, model against the floor:
+
+| tokens under a whole-path mask | held-out accuracy | floor | training icons | floor |
+| --- | ---: | ---: | ---: | ---: |
+| style fields | 0.886 | 0.868 | 0.911 | 0.859 |
+| segment kinds | 0.676 | 0.585 | 0.697 | 0.636 |
+| start points | 0.043 | 0.027 | 0.126 | 0.058 |
+| segment coordinates | 0.023 | 0.010 | 0.073 | 0.054 |
+
+The argmax coordinate sits a mean 54 bins from the truth held out and 44 on training
+icons, out of 289. Whole-path inpainting on **training** icons helps **0 of 24**. So this
+is not Gate I's failure. The causal model memorised its training set and generalised
+nothing; this model does not fit coordinates at corpus scale at all, having memorised
+four icons exactly in the overfit test. What it learned is style co-occurrence, which
+the floor already knows, and a little about which segment kinds follow which.
+
+**Decision.** Record the falsification and test one factor, chosen by the diagnosis
+rather than by the menu. Capacity and the mask mixture are candidates, but the training
+curve says the model found the floor's solution by step 300 and stopped, on training
+data it sees thirty times over, and that is the signature of information it cannot
+reach rather than of parameters it lacks. In the packed layout a segment's owning path
+and its index within that path are never given to the encoder: a hole at slot 57 could
+belong to any path, and the model has to count `path_length` tokens to find out. The
+denoiser had the same defect class as slot blindness, and 768 parameters of binding
+beat a 3.5x capacity increase outright. The next arm binds each segment to its path and
+its place in it, derived from the visible lengths, and changes nothing else. It runs
+through the overfit test first, as every model change here has.
