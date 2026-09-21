@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T16:35:00Z
+Updated: 2026-09-21T17:00:00Z
 
 ## Current hypothesis and evidence
 
@@ -911,6 +911,25 @@ registered as `masked-overfit-l3-binding-438a98f-4icons-9b9b1699` and its corpus
 drafted as `configs/learning/masked-inpaint-l4-binding.yaml`, unregistered until the
 overfit passes.
 
+The bound corpus arm `masked-inpaint-l4-binding-438a98f-2681icons-9b9b1699` is falsified
+and indistinguishable from l2 on every measure - held-out likelihood 3.843 against 3.869,
+8 held-out icons helped against 7, icon by icon a 0.0006 RGBA MAE difference with binding
+better on 25 of 64 - so ownership was not the missing information. Two read-only probes
+then found the failure. With one segment's coordinates hidden and both neighbours
+visible, the model's predicted endpoint sits 55 bins from the truth held out and 39-48
+on its own training icons, against 24.5 (median 16.5) for a zero-parameter policy that
+copies the previous endpoint and 145 for the marginal argmax; and shifting that visible
+previous endpoint by anything from -40 to +40 bins moves the prediction by a median of
+0.0. The model never reads coordinate context; it predicts each coordinate from its
+position, kinds and styles. Three causes are live - the training mixture, in which
+seven of ten masked coordinates have no visible in-path neighbour; the one-unit target
+kernel, though a computation on the record shows it already orders coarse misses for a
+spread prediction; and the categorical output head - and the harness now measures the
+continuity probe against the copy policy on every run. Arm 5,
+`masked-continuity-l5-78d4545-2681icons-9b9b1699`, is running: the same model trained on
+single-segment masks alone at a third of the budget, predeclared to beat the copy
+policy. It separates the mixture from the rest.
+
 ## Active jobs
 
 The research weblog is served by `scripts/serve_weblog.py` in tmux session
@@ -1045,22 +1064,22 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Gate L, step two: the corpus run, `configs/learning/masked-inpaint-l2.yaml`. Matched to
-v16 and to ar-corpus-i2 on every term the plan names - d_model 96, 4 heads, feedforward
-192, four layers, the same hashed corpus and family-disjoint splits, 6,300 steps at
-batch 16 for 100,800 icon presentations - with dropout 0.1 from the first run. It
-trains on the 2,681-icon split, selects on masked likelihood over the 339 validation
-icons under fixed masks, and then removes one path from each of 64 held-out icons and
-asks three policies to draw it back: the path-dropped icon (identity), the
-position-marginal policy through the same grammar-ordered decoder, and the model.
-Predeclared: beat both on paired render error with the 95% interval excluding zero,
-median recovery of at least 0.30 of the render error the missing path costs, every
-completion valid, and the sheet beside the numbers.
+Read arm 5. If the continuity-only model beats the copy-the-previous-endpoint policy,
+the corpus arms failed on their training distribution and the next arm rebalances the
+mixture toward masks with visible in-path context - spans and small random rates -
+with whole-path masks kept but no longer dominant, read on the same inpainting criteria
+as l2. If it loses on the one task it was trained on, the next arm changes the output
+head so that coordinate logits are a projection onto the same Fourier basis the input
+uses - a head that can place a bump wherever a neighbour says without first learning
+an ordering over 289 unordered bins - and the mixture stays as it is. One factor per
+arm, the overfit test first for any model change, the continuity probe and the sheet
+beside every number.
 
-On a pass, a second arm at roughly ten times the parameters with the same dropout - the
-one cell no gate has measured, capacity together with regularisation - and then the
-Gate K editing viewer over the frozen checkpoint. On a fail, the sheet says which mask
-family fails and the record says why.
+Whole-path completion of an arbitrary path is close to generation of a part, and Gate I
+says parts of unseen concepts are as unseen as wholes; the editing result this gate
+can reach is the local one - spans, refinements, restyles - and the scored task should
+follow the mechanism once the mechanism exists. That reframing is not made yet and
+waits on arm 5.
 
 What is retired, so it is not picked up again by habit: further single-factor sweeps on
 the p = 0.35 denoiser, further left-to-right arms, and the corpus-scale corruption-process
