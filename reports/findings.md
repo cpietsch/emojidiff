@@ -2789,3 +2789,44 @@ one and not a criterion, and both models are re-read with it.
 **Meanwhile, OmniSVG.** The zero-shot control on 32 held-out annotations is running:
 two samples each at 2,048 tokens, decoded, converted into the codec, rendered, scored
 against the held-out render and the annotation with a pinned CLIP.
+
+## 2026-09-21 — OmniSVG zero-shot draws emoji, not these emoji; its token language is now exact for OpenMoji
+
+**Observation.** The zero-shot control on 32 held-out annotations, two drawings each at
+2,048 tokens: every drawing decodes, 77% end within the budget, 73% enter the codec;
+CLIP similarity to the held-out icon's own render is 0.811 on average, to the caption
+0.219. The sheet (`reports/learning/omnisvg-m1-zeroshot/samples.png`) is mostly generic
+circles and blobs in emoji colours, with a few recognisable subjects: a shopping cart
+at 0.944, a tired face at 0.895.
+
+**Reading.** The number needs its floor. Any *other* OpenMoji icon scores 0.777 against
+a held-out render, and the top decile of unrelated pairs 0.838
+(`clip-chance-levels.json`); the references themselves score 0.268 against their own
+captions and 0.206 against unrelated ones. So 0.811 says the drawings look like
+OpenMoji-style icons, not that they are these icons, and caption similarity at 0.219
+is at the unrelated level. Raw CLIP similarity barely separates icons in this corpus;
+the next readings therefore also rank each drawing against every held-out render and
+report how often the right icon comes first (chance 1/32). This is the floor the
+fine-tune is read against, and the control is re-run under that reading so the
+comparison is paired on the same drawings.
+
+**The encoder.** OpenMoji icons now encode into OmniSVG's own token language and decode
+back through its released decoder point for point, colours included; a test pins it.
+The training repository's YAML lists the command tokens one below where the released
+decoder reads them - read at the YAML's values a close decodes as an arc, which is how
+the first round trip produced arcs from icons that had none. Every training icon,
+outlined, encodes under 2,048 tokens (median 647, maximum 1,935), all 2,681 of them.
+
+**The ceiling.** Only 8 of the 32 held-out icons themselves fit the P32/T128 bucket
+after outlining (`oracle-roundtrip.json`), because outlining multiplies segments. So
+codec validity is capped at 0.25 for a perfect model in OmniSVG's fills-only language;
+it is reported, not judged. The exact icons score 0.994 against their own renders, so
+the metric has room above the control's 0.811.
+
+**Decision.** Fine-tune OmniSVG with LoRA in its own tokens on all 2,681 training icons
+under the trainer's own prompt, criteria predeclared and registered: a paired gain in
+similarity over the control whose bootstrap interval excludes zero, the right icon
+retrieved first for at least a quarter of the drawings, 90% of drawings ending, and no
+drawing reproducing a training icon. A second control under the trainer's prompt
+separates the prompt's share from the training's. All three are queued behind the
+text-prior control and the SemIf re-read.
