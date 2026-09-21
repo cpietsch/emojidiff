@@ -410,5 +410,9 @@ def test_the_study_runs_end_to_end_on_the_cpu(tmp_path: Path) -> None:
         json.loads(line)
         for line in (tmp_path / "report" / "metrics.jsonl").read_text().splitlines()
     ]
-    assert [row["step"] for row in trace] == [1, 2]
+    assert [row["step"] for row in trace] == [0, 1, 2], "the untrained model is evaluated first"
+    assert (
+        summary["loss_reduction_factor"]
+        == trace[0]["held_out_nll"] / summary["held_out_nll_per_masked_token"]
+    )
     assert all("marginal_nll" in row and "held_out_nll" in row for row in trace)

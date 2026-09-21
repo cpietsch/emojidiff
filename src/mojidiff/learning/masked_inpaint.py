@@ -239,7 +239,20 @@ def run_masked_study(config: MaskedStudyConfig, config_path: Path) -> dict[str, 
     floor_nll, floor_accuracy = _floor(marginals, evaluation, evaluation_hide)
 
     rng = np.random.default_rng(config.seed)
-    metrics: list[dict[str, Any]] = []
+    # The untrained model is evaluated first, so the loss-reduction criterion reads an
+    # exact-token likelihood before and after training rather than the soft training
+    # loss, whose floor is the entropy of its own spread target and never reaches zero.
+    initial_nll, initial_accuracy = _evaluate(
+        model, evaluation, evaluation_hide, condition["evaluation"], device
+    )
+    metrics: list[dict[str, Any]] = [
+        {
+            "step": 0,
+            "held_out_nll": initial_nll,
+            "marginal_nll": floor_nll,
+            "masked_token_accuracy": initial_accuracy,
+        }
+    ]
     families: dict[str, int] = {}
     best_step = 0
     best_nll = float("inf")
@@ -329,7 +342,7 @@ def run_masked_study(config: MaskedStudyConfig, config_path: Path) -> dict[str, 
         subgroups,
     )
 
-    loss_reduction = first_loss / max(last_loss, 1e-12)
+    loss_reduction = initial_nll / max(best_nll, 1e-12)
     checks: dict[str, bool] = {}
     criteria = config.criteria
     if "min_masked_token_accuracy" in criteria:
@@ -387,6 +400,7 @@ def run_masked_study(config: MaskedStudyConfig, config_path: Path) -> dict[str, 
         "nll_ratio_to_marginal": best_nll / floor_nll,
         "masked_token_accuracy": best_accuracy,
         "marginal_masked_token_accuracy": floor_accuracy,
+        "initial_held_out_nll": initial_nll,
         "first_train_loss": first_loss,
         "last_train_loss": last_loss,
         "loss_reduction_factor": loss_reduction,
