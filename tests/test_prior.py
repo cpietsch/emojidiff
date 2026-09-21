@@ -78,5 +78,5 @@ def test_chunked_cross_entropy_matches_the_whole_sequence() -> None:
         assert count == length - 5
         assert torch.isclose(total, whole, rtol=1e-5), chunk
     total, _ = chunked_cross_entropy(hidden, head, labels, 8)
-    total.backward()
+    total.backward()  # type: ignore[no-untyped-call]
     assert hidden.grad is not None and bool(hidden.grad.abs().sum() > 0)
