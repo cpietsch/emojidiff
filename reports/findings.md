@@ -2349,3 +2349,25 @@ or the masks changes. If the model then beats the copy policy, the position mach
 was the blocker and the fix is a principled one; if it still cannot, with the value in
 its own input, the loss and head are back on the table with the evidence narrowed to
 them.
+
+## 2026-09-21 — Start features through the plumbing test: a chained input wants a chained decoder
+
+**Hypothesis.** With each segment block carrying Fourier features of its own start
+point, the model should still memorise four icons exactly through its masks and its
+grammar-ordered decoder.
+
+**Observation. Falsified as written, on one of three criteria.** Masked-token accuracy
+reaches 1.000 under the fixed masks, every completion validates, the continuity probe's
+error on the training icons is 0.0 bins, and greedy whole-path completion reproduces
+**3 of 4** paths token for token, the fourth rendering at 1.0 recovery all the same.
+
+**Reading.** The decoder, not the training. The coordinate tier commits in confidence
+order, in a few parallel passes, and a model whose prediction for a segment depends on
+the previous segment's endpoint can be asked to commit that segment while its start is
+still a hole; when the hole is later filled the two disagree, and a memorised path comes
+back with a token out of place. Single-segment masks never meet this - their start is
+always visible - so the continuity half proceeds. For whole-path completion the fix is
+the obvious one: commit in chain order, every masked segment whose start is known, each
+pass, until none is left. It is built, pinned by a test that no segment is ever
+committed while the one before it is a hole, and the overfit test re-runs with it once
+the continuity half has the GPU.

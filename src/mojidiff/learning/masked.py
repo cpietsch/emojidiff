@@ -746,6 +746,7 @@ def complete(
     rng: np.random.Generator | None = None,
     iterations: int = 8,
     temperature: float = 1.0,
+    chain_order: bool = False,
 ) -> tuple[Tensor, int]:
     """Fill every MASK in `inputs`, committing in grammatical dependency order.
 
@@ -760,6 +761,13 @@ def complete(
     The masked set must be dependency-closed - when a field is masked, every field
     whose legality depends on it is masked too - which the editing families guarantee.
     A random token mask need not be, and the caller validates the result regardless.
+
+    With `chain_order` the coordinate tier follows the codec's chain instead of
+    confidence: each pass commits every masked segment whose start point - the previous
+    segment's endpoint, or the header's start for a path's first segment - is already
+    known, so a model that reads its start never predicts a segment before the segment
+    it hangs from. Passes run until nothing is left; a segment whose start can never be
+    known is committed by confidence at the end.
 
     Returns the completed sequence and the number of forward calls.
     """
@@ -797,9 +805,12 @@ def complete(
         for position in range(layout.path_positions, layout.length)
         if int(decoded[position]) == mask_id
     ]
-    calls += _fill_tier(
-        logits, decoded, coordinates, layout, iterations, greedy, generator, temperature
-    )
+    if chain_order:
+        calls += _fill_chain(logits, decoded, coordinates, layout, greedy, generator, temperature)
+    else:
+        calls += _fill_tier(
+            logits, decoded, coordinates, layout, iterations, greedy, generator, temperature
+        )
     if bool((decoded == mask_id).any()):
         raise RuntimeError("completion left a MASK in place")
     return decoded, calls
@@ -864,6 +875,62 @@ def _next_known_layer(
         if layer != mask_id:
             return other, layer
     return None
+
+
+def _fill_chain(
+    logits: LogitsFn,
+    decoded: Tensor,
+    positions: list[int],
+    layout: SequenceLayout,
+    greedy: bool,
+    rng: np.random.Generator,
+    temperature: float,
+) -> int:
+    """Commit masked coordinates in chain order: a segment only after its start is known."""
+
+    if not positions:
+        return 0
+    mask_id = mask_token(layout)
+    masks = {position: legal_mask(position, decoded, layout) for position in positions}
+    remaining = list(positions)
+    calls = 0
+    while remaining:
+        frontier = [position for position in remaining if _start_known(position, decoded, layout)]
+        if not frontier:
+            frontier = list(remaining)
+        scores = logits(decoded)
+        calls += 1
+        for position in frontier:
+            decoded[position], _ = _choose(
+                scores[position], masks[position], greedy, rng, temperature
+            )
+        remaining = [position for position in remaining if int(decoded[position]) == mask_id]
+    return calls
+
+
+def _start_known(position: int, decoded: Tensor, layout: SequenceLayout) -> bool:
+    """Whether the segment holding `position` has a visible start point."""
+
+    mask_id = mask_token(layout)
+    slot = (position - layout.path_positions) // SEGMENT_STRIDE
+    owner, within = segment_ownership(decoded[None], layout)
+    kind_position = layout.segment_type_position(slot)
+    path = int(owner[0, kind_position])
+    index = int(within[0, kind_position])
+    if path >= layout.codec.max_paths or index >= layout.codec.max_segments:
+        return False
+    if index == 0:
+        base = path * PATH_STRIDE + len(PATH_FIELDS)
+        return int(decoded[base]) != mask_id and int(decoded[base + 1]) != mask_id
+    previous = layout.segment_type_position(slot - 1)
+    kind = int(decoded[previous])
+    offset = {1: 0, 2: 2, 3: 4}.get(kind)
+    if offset is None:
+        return False
+    return (
+        int(decoded[previous + 1 + offset]) != mask_id
+        and int(decoded[previous + 2 + offset]) != mask_id
+    )
 
 
 def _fill_tier(

@@ -107,6 +107,7 @@ class MaskedStudyConfig:
     marginal_alpha: float
     coordinate_tau: tuple[float, ...]
     iterations: int
+    chain_order: bool
     samples: int
     render_size: int
     render_timeout_seconds: int
@@ -167,6 +168,7 @@ def load_masked_study_config(path: Path) -> MaskedStudyConfig:
         marginal_alpha=float(training.get("marginal_alpha", 1.0)),
         coordinate_tau=_widths(training.get("coordinate_tau", 0.0)),
         iterations=int(decoding.get("iterations", 8)),
+        chain_order=bool(decoding.get("chain_order", False)),
         samples=int(decoding.get("samples", 0)),
         render_size=int(decoding.get("render_size", 72)),
         render_timeout_seconds=int(decoding.get("render_timeout_seconds", 20)),
@@ -564,10 +566,18 @@ def _inpaint(
             layout,
             greedy=True,
             iterations=config.iterations,
+            chain_order=config.chain_order,
         )
         completions["model"] = unflatten_program(greedy, clean, layout)
         exact += int(bool(torch.equal(greedy[hide], tokens[hide])))
-        marginal, _ = complete(floor, inputs, layout, greedy=True, iterations=config.iterations)
+        marginal, _ = complete(
+            floor,
+            inputs,
+            layout,
+            greedy=True,
+            iterations=config.iterations,
+            chain_order=config.chain_order,
+        )
         completions["marginal"] = unflatten_program(marginal, clean, layout)
         for sample in range(config.samples):
             sampled, _ = complete(
@@ -577,6 +587,7 @@ def _inpaint(
                 greedy=False,
                 rng=np.random.default_rng(config.seed + _INPAINT_SEED + 1000 * index + sample),
                 iterations=config.iterations,
+                chain_order=config.chain_order,
             )
             completions[f"sample_{sample}"] = unflatten_program(sampled, clean, layout)
         for program in completions.values():
@@ -630,6 +641,7 @@ def _inpaint(
         "exact_reproduction_rate": exact / len(rows),
         "decoding": {
             "iterations": config.iterations,
+            "chain_order": config.chain_order,
             "greedy_for_criteria": True,
             "samples": config.samples,
         },

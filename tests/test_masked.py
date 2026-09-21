@@ -492,6 +492,55 @@ def test_start_features_carry_the_previous_endpoint_and_know_when_it_is_hidden(
         _model(layout, groups, subgroups, start_features=True)
 
 
+def test_chain_order_commits_a_segment_only_after_its_start(pieces: Pieces) -> None:
+    """Under chain order no coordinate is committed while the segment before it is a hole."""
+
+    from mojidiff.learning.masked import _start_known
+
+    _, codec, layout, programs, groups, subgroups = pieces
+    model = _model(layout, groups, subgroups, metric_coordinates=4, start_features=True)
+    condition = {
+        "group": torch.zeros(1, dtype=torch.long),
+        "subgroup": torch.zeros(1, dtype=torch.long),
+    }
+    tokens = flatten_program(programs[0], layout)
+    block = max(path_blocks(tokens, layout), key=lambda item: item.length)
+    assert block.length >= 3
+    hide = whole_path_mask(tokens, layout, block.path)
+    inputs = apply_mask(tokens, hide, layout)
+    snapshots: list[torch.Tensor] = []
+    inner = model_logits(model, condition)
+
+    def recording(decoded: torch.Tensor) -> torch.Tensor:
+        snapshots.append(decoded.clone())
+        return inner(decoded)
+
+    decoded, calls = complete(recording, inputs, layout, greedy=True, chain_order=True)
+    assert calls == len(snapshots) and not bool((decoded == mask_token(layout)).any())
+    validate_packed_tensor_program(
+        unflatten_program(decoded, programs[0], layout), codec, layout.total_segment_slots
+    )
+    # Every snapshot in which a later segment's coordinates are visible also shows the
+    # previous segment's coordinates visible: the chain was never skipped.
+    kinds = block.kinds(layout)
+    for snapshot in snapshots:
+        for index in range(1, block.length):
+            later = snapshot[kinds[index] + 1 : kinds[index] + 7]
+            earlier = snapshot[kinds[index - 1] + 1 : kinds[index - 1] + 7]
+            if bool((later != mask_token(layout)).any()):
+                assert not bool((earlier == mask_token(layout)).any()), index
+    # The chain took at least as many passes as the path has segments minus one.
+    assert calls >= block.length
+    # A whole-path mask hides the header's start point too, so before tier one nothing
+    # in the path has a known start; once the header is back, the first segment does
+    # and the second does not while the first is still a hole.
+    assert not _start_known(kinds[0] + 1, inputs, layout)
+    header_back = inputs.clone()
+    header_back[list(block.header)] = tokens[list(block.header)]
+    assert _start_known(kinds[0] + 1, header_back, layout)
+    assert not _start_known(kinds[1] + 1, header_back, layout)
+
+
 def test_dropout_adds_no_parameters_and_is_inert_at_zero(pieces: Pieces) -> None:
     _, _, layout, programs, groups, subgroups = pieces
     plain = _model(layout, groups, subgroups)
