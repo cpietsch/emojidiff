@@ -248,8 +248,9 @@ class OmniSVG:
         top_k: int = 50,
         repetition_penalty: float = 1.05,
         style: str = "release",
+        greedy: bool = False,
     ) -> list[torch.Tensor]:
-        """OmniSVG's own sampling settings for text-to-icon; returns the drawing tokens."""
+        """OmniSVG's own sampling settings for text-to-icon by default; returns the tokens."""
 
         inputs = self.prompt_ids(prompt, style=style)
         torch.manual_seed(seed)
@@ -257,10 +258,10 @@ class OmniSVG:
             **inputs,
             max_new_tokens=max_new_tokens,
             num_return_sequences=samples,
-            do_sample=True,
-            temperature=temperature,
-            top_p=top_p,
-            top_k=top_k,
+            do_sample=not greedy,
+            temperature=None if greedy else temperature,
+            top_p=None if greedy else top_p,
+            top_k=None if greedy else top_k,
             repetition_penalty=repetition_penalty,
             eos_token_id=EOS,
             pad_token_id=PAD,
@@ -272,6 +273,15 @@ class OmniSVG:
 
     def tokens_to_svg(self, tokens: torch.Tensor) -> tuple[str | None, dict[str, Any]]:
         return decode_tokens(self.svg_tokenizer, self.black_color_token, tokens)
+
+    def attach_adapter(self, archive: Path) -> str:
+        """Load a saved LoRA archive onto the released model; returns its sha256."""
+
+        from mojidiff.learning.prior import load_adapter, sha256
+
+        payload = archive.read_bytes()
+        self.model = load_adapter(self.model, payload).eval()
+        return sha256(payload)
 
 
 LORA_TARGETS = r".*language_model.*\.(q_proj|k_proj|v_proj|o_proj|gate_proj|up_proj|down_proj)"

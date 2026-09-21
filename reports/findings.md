@@ -2876,3 +2876,30 @@ drawings are near chance at identifying their icon. The training-style prompt is
 better start than the release prompt, so a gain the fine-tune shows over the
 release-prompt control cannot be the prompt's. The fine-tune is running against this
 reading's drawings.
+
+## 2026-09-21 — OmniSVG fine-tuned in its own tokens learns the style, not the caption; falsified
+
+**Observation.** Rank-16 LoRA on the language model, all 2,681 training icons in
+OmniSVG's token language, 500 steps of 8 sequences (1.5 epochs, 22 minutes, 9.2 GiB
+peak). Held-out likelihood falls from 2.96 to 1.40 nats a token and plateaus from
+step 300 while the training loss keeps falling to 0.85. The 64 drawings: similarity to
+the held-out render 0.818 against the control's 0.811, a paired gain of +0.007 whose
+95% interval (-0.011 to +0.025) includes zero, 15 of 32 icons improved; the right
+icon ranked first for 4 of 64 (control 5), in the top five for 20 (control 17); 89%
+ended, one drawing short of the 90% bar; no training icon reproduced. The median
+drawing is 120 tokens against a training median of 647, and sixteen drawings are the
+same 62-token blue square; others repeat a person bust, an octagon, a heart with a
+stroke. Falsified on three of four criteria.
+
+**Reading.** The adapter learned what OpenMoji looks like - the palette, the stock
+parts, the button square that backs many symbols - and not what the caption asks for.
+The likelihood curve says the model fits the corpus and stops generalising at 1.4
+nats; the sheet says that under OmniSVG's own sampler (temperature 0.5, repetition
+penalty 1.05 over a vocabulary where the same command tokens recur constantly) the
+sharpened distribution collapses to a few corpus-mode templates and then ends. Two
+readings are entangled: the adapter's grounding and the sampler's collapse. The
+cheapest separation is the same adapter under plain sampling (temperature 1.0, no
+repetition penalty) and under greedy decoding, on the same 32 icons, registered with
+the fine-tune's own criteria. If the drawings diversify and rank better, the sampler
+was the problem; if they stay template-bound, the caption never reached the drawing
+and the training itself must change (longer, caption-weighted, or the image branch).

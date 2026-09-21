@@ -132,8 +132,15 @@ def run_omnisvg_study(config_path: Path) -> dict[str, Any]:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     started = time.perf_counter()
     model = OmniSVG.load(device)
+    adapter = root.get("adapter")
+    adapter_sha256 = model.attach_adapter(Path(str(adapter))) if adapter else None
     load_seconds = time.perf_counter() - started
     clip = Clip(device)
+    sampling = {
+        key: generation[key]
+        for key in ("temperature", "top_p", "top_k", "repetition_penalty", "greedy")
+        if key in generation
+    }
     evaluation, rows, sheet = evaluate(
         model,
         rows_selected,
@@ -146,6 +153,7 @@ def run_omnisvg_study(config_path: Path) -> dict[str, Any]:
         style=str(generation.get("prompt_style", "release")),
         limits=limits,
         size=size,
+        sampling=sampling,
     )
     rows_payload = b"".join(
         (json.dumps(record, sort_keys=True, separators=(",", ":")) + "\n").encode()
@@ -160,7 +168,9 @@ def run_omnisvg_study(config_path: Path) -> dict[str, Any]:
             "revision": OMNISVG_REVISION,
             "checkpoint_sha256": model.checkpoint_sha256,
             "parameters": model.parameters,
-            "fine_tuned": False,
+            "fine_tuned": adapter is not None,
+            "adapter": str(adapter) if adapter else None,
+            "adapter_sha256": adapter_sha256,
         },
         "clip": {"repo": CLIP_REPO, "revision": CLIP_REVISION},
         **evaluation,
@@ -168,6 +178,16 @@ def run_omnisvg_study(config_path: Path) -> dict[str, Any]:
         "sheet_sha256": hashlib.sha256(sheet).hexdigest(),
         "rows_sha256": hashlib.sha256(rows_payload).hexdigest(),
     }
+    if "control_report_root" in root:
+        from mojidiff.learning.omnisvg_finetune import _checks, compare_to_control
+
+        summary["control"] = compare_to_control(rows, Path(str(root["control_report_root"])))
+        if "criteria" in root:
+            summary["criteria"] = root["criteria"]
+            summary["checks"] = _checks(summary, root["criteria"])
+            summary["predeclared_outcome"] = (
+                "passed" if all(summary["checks"].values()) else "falsified"
+            )
     _write_bytes_artifact(report_root / "drawings.jsonl", rows_payload)
     _write_bytes_artifact(report_root / "samples.png", sheet)
     _write_bytes_artifact(
@@ -191,6 +211,7 @@ def evaluate(
     limits: RenderLimits,
     size: int,
     train_sequences: set[tuple[int, ...]] | None = None,
+    sampling: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any], list[dict[str, Any]], bytes]:
     """Draw every selected icon from its annotation and score the drawings.
 
@@ -220,7 +241,12 @@ def evaluate(
         prompt = caption_prompt(annotation) if style == "release" else annotation
         clock = time.perf_counter()
         drawings = model.generate(
-            prompt, samples=samples, max_new_tokens=max_new_tokens, seed=seed + index, style=style
+            prompt,
+            samples=samples,
+            max_new_tokens=max_new_tokens,
+            seed=seed + index,
+            style=style,
+            **(sampling or {}),
         )
         generate_seconds += time.perf_counter() - clock
         row_tiles = [references[index]]
@@ -280,6 +306,7 @@ def evaluate(
         "samples_per_icon": samples,
         "max_new_tokens": max_new_tokens,
         "prompt_style": style,
+        "sampling": sampling or {},
         "drawings": len(rows),
         "decoded_rate": len(decoded) / len(rows),
         "ended_rate": sum(1 for record in rows if record.get("decode_ended")) / len(rows),
@@ -377,8 +404,12 @@ def main() -> None:
                     "clip_to_reference",
                     "clip_to_caption",
                     "reference_rank",
+                    "control",
+                    "checks",
+                    "predeclared_outcome",
                     "timing",
                 )
+                if key in summary
             },
             indent=1,
         )

@@ -1,0 +1,35 @@
+# Gate M, experiment one: the fine-tuned adapter re-read under plain ancestral sampling at temperature 1.0 with no repetition penalty.
+#
+# The fine-tune collapsed to a few corpus-mode templates under OmniSVG's own sampler
+# (temperature 0.5, repetition penalty 1.05). This separates the sampler's share from the
+# adapter's on the same adapter, icons, prompt and seed, against the same control, with
+# the fine-tune's own criteria.
+schema_version: 1
+study_version: omnisvg-m1-finetune-plain
+report_root: reports/learning/omnisvg-m1-finetune-plain
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+adapter: data/processed/prior/omnisvg-m1-finetune/adapter.zip
+
+data:
+  split: primary/validation
+  icons: 32
+
+generation:
+  samples: 2
+  temperature: 1.0
+  top_p: 0.95
+  top_k: 0
+  repetition_penalty: 1.0
+  max_new_tokens: 2048
+  seed: 6101
+  prompt_style: training
+
+control_report_root: reports/learning/omnisvg-m1-control
+
+criteria:
+  clip_gain_over_control_ci_excludes_zero: true
+  min_reference_top1_rate: 0.25
+  min_ended_rate: 0.9
+
+render:
+  size: 72
