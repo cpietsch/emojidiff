@@ -2586,3 +2586,30 @@ and the record keeps it as falsified rather than moving it.
 and spans as arms 15 and 16. The icons are the same; the spans were drawn with this
 run's training seed rather than theirs, and only 2 of 64 coincide. The frozen-
 checkpoint mode makes the like-for-like reading a two-minute run, arm 18.
+
+## 2026-09-21 — Span for span: parity with the straight cut, and the task moves to longer spans
+
+**Hypothesis.** Read on exactly the spans arms 15 and 16 used, the specialist trained
+on spans of one to three should beat the join fill, and the single-segment specialist.
+
+**Observation. Falsified; a tie on both counts.** Against the join, mean **+0.0007**,
+interval [−0.0016, +0.0030] spanning zero, 30 of 64 helped, median recovery **0.0**.
+Against the single-segment specialist, span for span: 31 better, 30 worse, 3 equal,
+mean −0.0004. Against the marginal policy: 58 of 64 with the interval excluding zero.
+Every completion valid.
+
+**Reading.** Arm 17's paired win against the join was a property of its draw, and it
+does not replicate on a second one. Across the 128 two-segment spans now measured the
+picture is stable and worth stating plainly: the specialist is at parity with a
+straight cut at the median, wins outright where the cut is destructive - `1F1FC`
++0.035, `1F62B` +0.021, the "UP!" badge +0.020 - loses badly once (`1F4DC`, −0.052), and
+beats the marginal policy every time. A two-segment span is a small edit; at 72 px a
+straight line between its ends is usually invisible, and no fill can beat invisible.
+That is not the editor's failure; it is the task being too easy for the baseline to
+lose.
+
+**Decision.** Move the span to four segments, where the join visibly cuts corners, and
+keep everything else: the same 64 icons, the same criteria, the draw pinned by
+`inpaint_seed`. Read arm 17's checkpoint there first, as a frozen model on spans it
+trained short of, and then a specialist trained on spans of one to four at the same
+budget. The two-segment results stay reported as what they are.

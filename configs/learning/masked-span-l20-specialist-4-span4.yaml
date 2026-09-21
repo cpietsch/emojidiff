@@ -1,0 +1,48 @@
+# Gate L arm 20: the specialist trained on spans of one to four, read on four-segment
+# spans - the same 64 icons and draw as arm 19, so the frozen shorter-trained model and
+# the model trained for the length are read span for span. Otherwise arm 17 exactly.
+schema_version: 1
+study_version: masked-span-l20-specialist-4-span4
+source_revision: 9202129
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+report_root: reports/learning/masked-span-l20-specialist-4-span4
+checkpoint_root: data/processed/masked-span-l20-specialist-4-span4
+
+data:
+  train_icons: null
+  evaluate_on: validation
+  task: span
+  span_length: 4
+  inpaint_seed: 3501
+  evaluation_icons: 339
+  inpaint_icons: 64
+
+model: {d_model: 96, heads: 4, layers: 4, feedforward: 192, metric_coordinates: 8, dropout: 0.1, start_features: true, metric_head: true}
+
+# One family, one segment at a time.
+masks: {span: 1.0, span_max: 4}
+
+training:
+  steps: 6300
+  batch_size: 16
+  learning_rate: 0.001
+  weight_decay: 0.01
+  seed: 3601
+  eval_every: 300
+  patience_evals: 8
+  marginal_alpha: 1.0
+  coordinate_tau: 1.0
+
+decoding: {iterations: 8, chain_order: true, samples: 1, render_size: 72, render_timeout_seconds: 20}
+
+# Predeclared, and hashed into the run identity with the rest of this file.
+criteria:
+  # The span task's criteria, as l2's were for the whole path: beat the fill that joins
+  # the visible ends and the marginal policy on paired render error with the interval
+  # excluding zero, a median recovery of 0.30 of the join's error - a hard bar against a
+  # strong identity policy, kept rather than lowered - and every completion valid. The
+  # continuity criterion of the studies before it is reported, not gated.
+  beats_drop_baseline: true
+  beats_marginal_baseline: true
+  min_median_recovery: 0.30
+  require_all_valid: true
