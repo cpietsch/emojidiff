@@ -2162,3 +2162,20 @@ denoiser had the same defect class as slot blindness, and 768 parameters of bind
 beat a 3.5x capacity increase outright. The next arm binds each segment to its path and
 its place in it, derived from the visible lengths, and changes nothing else. It runs
 through the overfit test first, as every model change here has.
+
+## 2026-09-21 — Path binding passes the plumbing test
+
+**Hypothesis.** With every position carrying its owning path's index and every segment
+its index within that path, the model should still memorise four icons exactly through
+its masks and its grammar-ordered decoder.
+
+**Observation. Passed** on all three predeclared criteria: masked-token accuracy 1.000,
+4 of 4 masked whole paths reproduced token for token with pixel-identical renders,
+every completion valid. Memorisation is a touch faster - 0.992 by step 1,800 against
+the unbound model's 0.999, both 1.000 by 2,700 - so at four icons binding costs nothing
+and buys little, which is what a plumbing test should show. 112 s, 0.50 GiB peak,
+542,050 parameters.
+
+**Decision.** The corpus half runs: l2 with binding on and nothing else changed - the
+same corpus, splits, budget, masks, 64 held-out icons and removed paths - read on the
+same criteria l2 was falsified on.
