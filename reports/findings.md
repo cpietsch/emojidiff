@@ -2742,3 +2742,28 @@ what the editor does and does not do beside the join and the hole. Gate H, broad
 licensed corpora, is the only route to shape knowledge, for parts as for wholes, and is
 the operator's call: it is a licensing and curation project before it is a training one.
 No further single-factor arm on this corpus is recommended; the levers are measured.
+
+## 2026-09-22 — Gate M begins: OmniSVG draws an apple zero-shot; the 0.8B cannot route
+
+**OmniSVG 1.1 4B loads and draws.** Its 7.7 GB checkpoint carries an older key layout
+under a `transformer.` wrapper; remapped, all 825 tensors load into this transformers
+with none missing, at 7.3 GiB on the GPU. Prompted zero-shot with "a red apple with a
+green leaf, flat emoji style", both samples are a recognisable flat apple with a leaf
+- the first recognisable generated icon in this project's history, from a model that
+has never seen OpenMoji. "fish" and "hedgehog" hit a 1,024-token cap I set too low and
+came out truncated; the model's own setting is 1,536 and icons run to 2,048. About 15 s
+per 1,024 tokens. Fills only, on a 200-unit box, with a non-standard `filling`
+attribute that the project's normalizer must strip.
+
+**SemIf on Qwen3.5-0.8B does not route.** Over the 52 owned editing requests the direct
+readout scores 0.404: recolour 1.0, ask 0.57, restyle 0.2, generate 0.1, simplify 0.0,
+with 23 of 38 actionable requests sent to "ask", and the choice survives reversing the
+option order on only 81%. Falsified on all three predeclared criteria. The readout is
+real - recolour requests are found every time - but the model is too small to carry
+five options; the handoff anticipated escalating to the 4B instruct model, which is
+fetched next.
+
+**Qwen3.5 needs its kernels.** With the reference linear-attention path a LoRA step on
+the 2B base ran out of memory at 1,024 tokens on 16 GB; the published wheel of
+flash-linear-attention ships without its ops, and the source build installs and
+imports. Timing follows.
