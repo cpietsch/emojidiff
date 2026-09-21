@@ -352,7 +352,12 @@ class MaskedProgramModel(nn.Module):
                 persistent=False,
             )
 
-    def forward(self, inputs: Tensor, condition: dict[str, Tensor] | None = None) -> Tensor:
+    def forward(
+        self,
+        inputs: Tensor,
+        condition: dict[str, Tensor] | None = None,
+        kinds: Tensor | None = None,
+    ) -> Tensor:
         """Logits over the shared vocabulary at every position.
 
         `inputs` carries the MASK id at the positions to predict. Positions holding
@@ -360,6 +365,12 @@ class MaskedProgramModel(nn.Module):
         segment slot - and are excluded from attention as keys; Gate G measured 29.4%
         of its sequence being attended as content before that was fixed. Masked
         positions are attended: a hole is information.
+
+        `kinds` gives the segment-kind token governing each position, for the metric
+        head's roles. Under teacher forcing it comes from the clean sequence, as the
+        loss's legal masks do, because a masked segment hides its kind with its
+        coordinates; at decode time the kinds are committed before any coordinate and
+        the default - reading them from `inputs` - is exact.
         """
 
         if inputs.dim() != 2 or inputs.shape[1] != self.layout.length:
@@ -386,21 +397,23 @@ class MaskedProgramModel(nn.Module):
         normed = self.norm(encoded)
         logits: Tensor = self.head(normed)
         if self.head_projection is not None:
-            logits = self._apply_metric_head(logits, normed, inputs)
+            logits = self._apply_metric_head(logits, normed, inputs, kinds)
         return logits
 
-    def _coordinate_roles(self, inputs: Tensor) -> tuple[Tensor, Tensor]:
+    def _coordinate_roles(self, inputs: Tensor, kinds: Tensor | None) -> tuple[Tensor, Tensor]:
         """Which positions are endpoint coordinates and which control handles, by role.
 
-        Decided from the segment kind governing each position, which is visible at
-        training time and committed before the coordinate tier at decode time; a
-        position whose kind is masked has no role and keeps the categorical head.
+        Decided from the segment kind governing each position: the supplied `kinds`
+        when given, else the kind token in `inputs`. A position whose kind is unknown
+        has no role and keeps the categorical head - which, when the kinds were read
+        from a masked input, was every position the first metric-head arm trained on.
         """
 
         batch = inputs.shape[0]
         slot = cast(Tensor, self._slot_index)[None].expand(batch, -1)
         kind_at = cast(Tensor, self._kind_position)
-        kinds = inputs.gather(1, kind_at.clamp_min(0)[None].expand(batch, -1))
+        if kinds is None:
+            kinds = inputs.gather(1, kind_at.clamp_min(0)[None].expand(batch, -1))
         known = (kind_at >= 0)[None] & (kinds >= 1) & (kinds <= 3)
         counts = cast(Tensor, self._control_counts)[kinds.clamp(0, 4)]
         coordinate_count = counts + 2
@@ -409,10 +422,12 @@ class MaskedProgramModel(nn.Module):
         is_endpoint = (is_segment & ~is_control) | cast(Tensor, self._is_start)[None]
         return is_endpoint, is_control
 
-    def _apply_metric_head(self, logits: Tensor, normed: Tensor, inputs: Tensor) -> Tensor:
+    def _apply_metric_head(
+        self, logits: Tensor, normed: Tensor, inputs: Tensor, kinds: Tensor | None
+    ) -> Tensor:
         projection = cast(nn.Linear, self.head_projection)
         query: Tensor = projection(normed)
-        is_endpoint, is_control = self._coordinate_roles(inputs)
+        is_endpoint, is_control = self._coordinate_roles(inputs, kinds)
         bias = self.head.bias
         endpoint = query @ cast(Tensor, self._endpoint_basis).t()
         control = query @ cast(Tensor, self._control_basis).t()

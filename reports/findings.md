@@ -2288,3 +2288,27 @@ reproduction criterion, which drives the whole decoder against a known target, p
 **Decision.** Record the falsification, do not re-run to meet the bar, and proceed to
 the continuity half on the strength of the criterion that exercises the pipeline. If
 exact-bin precision is ever the question, more frequencies are one number in a config.
+
+## 2026-09-21 — Arm 7 tested nothing: the head was never on at a masked kind
+
+**Observation.** The metric-head continuity study reproduces arm 5's held-out trace to
+four decimals at every evaluation - 4.612, 4.596, 4.589, 4.571, 4.552, 4.536, 4.532 -
+and its training losses too. The change under test never took effect. The head decides
+a coordinate position's role - endpoint or control handle, which fixes the bin-to-value
+map - from the kind token in the *input*, and in the span family the kind is hidden
+together with its coordinates, as it is in the path family. So at every position the
+run trained on, the head found no role and fell back to the categorical logits. Its
+1,746 parameters were carried and never used; the continuity probe, which leaves the
+kind visible, then drove an untrained projection and scored 64.6 bins.
+
+The overfit half was affected the same way, and passed the decoder criterion because
+the decoder commits kinds before coordinates, so at decode time the head was on. That
+is also the tell: training and decoding disagreed about when the head applies.
+
+**Decision.** The head takes its roles from the clean kinds under teacher forcing -
+exactly as the loss already takes its legal masks from the clean sequence - and from the
+committed kinds at decode time, which the tier order guarantees are present. A test now
+pins that the head fires at a coordinate whose kind is masked when the kinds are
+supplied. Arm 7 is preserved as a harness defect and both halves re-run on the fixed
+revision. The lesson is the same one the first overfit test taught: a change can be
+carried by a run without being exercised by it, and identical traces are the sign.

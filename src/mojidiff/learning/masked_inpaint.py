@@ -33,6 +33,7 @@ from mojidiff.learning.ar_overfit import _distinct_subgroup_rows
 from mojidiff.learning.autoregressive import (
     SEGMENT_STRIDE,
     SequenceLayout,
+    coordinate_kind_tokens,
     legal_mask,
     unflatten_program,
 )
@@ -298,7 +299,9 @@ def run_masked_study(config: MaskedStudyConfig, config_path: Path) -> dict[str, 
             key: value[indices].to(device) for key, value in condition["train"].items()
         }
         optimizer.zero_grad(set_to_none=True)
-        logits = model(inputs, batch_condition)
+        logits = model(
+            inputs, batch_condition, kinds=coordinate_kind_tokens(tokens, layout).to(device)
+        )
         loss = masked_loss(
             logits, tokens.to(device), legal.to(device), targets, coordinates, config.coordinate_tau
         )
@@ -489,7 +492,11 @@ def _evaluate(
         tokens = split.tokens[window]
         legal = split.masks(window)
         inputs = apply_mask(tokens, hide[window], split.layout).to(device)
-        logits = model(inputs, {key: value[window].to(device) for key, value in condition.items()})
+        logits = model(
+            inputs,
+            {key: value[window].to(device) for key, value in condition.items()},
+            kinds=coordinate_kind_tokens(tokens, split.layout).to(device),
+        )
         targets = (hide[window] & _free_mask(legal)).to(device)
         nll, batch_hits, batch_count = masked_nll(
             logits, tokens.to(device), legal.to(device), targets

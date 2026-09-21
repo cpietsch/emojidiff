@@ -401,6 +401,28 @@ def test_the_metric_head_changes_only_coordinate_logits_and_still_completes(piec
         plain_masked = plain(masked, condition)
         metric_masked = metric(masked, condition)
     assert torch.allclose(plain_masked[0, kind_position + 1], metric_masked[0, kind_position + 1])
+    # Under a span mask the kind is hidden with its coordinates, so the head has no
+    # role to read from the input - and the first metric-head arm trained every step
+    # that way, exercising nothing. Supplying the clean kinds, as the loss supplies its
+    # legal masks, turns the head on at exactly those positions.
+    from mojidiff.learning.autoregressive import coordinate_kind_tokens
+
+    span = family_mask(
+        "span", tokens[0], layout, MaskMixture(weights={"span": 1.0}), np.random.default_rng(2)
+    )
+    hidden_inputs = apply_mask(tokens[0], span, layout)[None]
+    hidden_coordinates = span & coordinates
+    assert bool(hidden_coordinates.any())
+    with torch.no_grad():
+        without = metric(hidden_inputs, condition)
+        with_kinds = metric(hidden_inputs, condition, kinds=coordinate_kind_tokens(tokens, layout))
+        plain_hidden = plain(hidden_inputs, condition)
+    assert torch.allclose(without[0][hidden_coordinates], plain_hidden[0][hidden_coordinates]), (
+        "with the kind masked and no kinds supplied, the categorical head is used"
+    )
+    assert not torch.allclose(
+        with_kinds[0][hidden_coordinates], plain_hidden[0][hidden_coordinates]
+    ), "with the clean kinds supplied, the metric head fires at the hidden coordinates"
     # The head's extra parameters are one small projection.
     extra = 32 * (2 * 4 + 2) + (2 * 4 + 2)
     assert (
