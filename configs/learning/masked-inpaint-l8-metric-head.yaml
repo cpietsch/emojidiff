@@ -1,0 +1,58 @@
+# Gate L arm 8, candidate A: l2 with the metric output head and nothing else changed.
+#
+# Runs only if arm 7 shows the head lets a model trained on single-segment masks beat
+# the copy-the-previous-endpoint policy. Same corpus, splits, budget, mask mixture, 64
+# held-out icons, removed paths and criteria as l2, so it is a one-factor comparison on
+# the same icons - and it carries the continuity probe, so the mechanism is read beside
+# the render.
+schema_version: 1
+study_version: masked-inpaint-l8-metric-head
+source_revision: 5475283
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+report_root: reports/learning/masked-inpaint-l8-metric-head
+checkpoint_root: data/processed/masked-inpaint-l8-metric-head
+
+data:
+  train_icons: null
+  evaluate_on: validation
+  # The whole family-disjoint validation split for the likelihood trace and selection;
+  # the first 64 of its seeded order for the inpainting measurement.
+  evaluation_icons: 339
+  inpaint_icons: 64
+
+model: {d_model: 96, heads: 4, layers: 4, feedforward: 192, metric_coordinates: 8, dropout: 0.1, metric_head: true}
+
+masks: {random: 0.3, path: 0.3, span: 0.2, style: 0.1, geometry: 0.1, max_paths: 2}
+
+training:
+  steps: 6300
+  batch_size: 16
+  learning_rate: 0.001
+  weight_decay: 0.01
+  seed: 3501
+  eval_every: 300
+  patience_evals: 8
+  marginal_alpha: 1.0
+  coordinate_tau: 1.0
+
+decoding: {iterations: 8, samples: 1, render_size: 72, render_timeout_seconds: 20}
+
+# Predeclared, and hashed into the run identity with the rest of this file.
+criteria:
+  # Paired per-icon render error, model against the path-dropped icon: the mean
+  # difference must be positive with the 95% t-interval excluding zero. An editor that
+  # does not beat leaving the hole is not an editor.
+  beats_drop_baseline: true
+  # The same against the marginal policy. A model that only knows the corpus's colours
+  # and ink draws what the marginal policy draws, and this is where that shows.
+  beats_marginal_baseline: true
+  # The magnitude bar, which Gate I's data-scaling arm taught this project to write:
+  # a direction without a magnitude does not identify a result. Median recovery of the
+  # render error the missing path costs, 0.30 - a completion that is roughly in the
+  # right place, the right colour and the right size. This is a judgement, stated
+  # before the run, and the run is falsified if it is not met even if both paired
+  # tests pass.
+  min_median_recovery: 0.30
+  # Every completion - greedy, sampled and marginal - validates and renders. Free by
+  # construction, and a failure here is a decoder bug rather than a fact about editing.
+  require_all_valid: true

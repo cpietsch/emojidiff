@@ -1,0 +1,47 @@
+# Gate L arm 8, candidate B: arm 5 with the coordinate target as an equal mixture of a
+# one-unit and an eight-unit kernel, and nothing else changed.
+#
+# Runs only if arm 7 shows the metric head does not let a model trained on
+# single-segment masks beat the copy-the-previous-endpoint policy. A computation on the
+# record shows the narrow kernel already orders coarse misses for a spread prediction,
+# so this is the weaker candidate; it is here so that the loss is measured rather than
+# argued about, one factor at a time.
+schema_version: 1
+study_version: masked-continuity-l8-kernel
+source_revision: 5475283
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+report_root: reports/learning/masked-continuity-l8-kernel
+checkpoint_root: data/processed/masked-continuity-l8-kernel
+
+data:
+  train_icons: null
+  evaluate_on: validation
+  evaluation_icons: 339
+  inpaint_icons: 16
+
+model: {d_model: 96, heads: 4, layers: 4, feedforward: 192, metric_coordinates: 8, dropout: 0.1}
+
+# One family, one segment at a time.
+masks: {span: 1.0, span_max: 1}
+
+training:
+  steps: 2100
+  batch_size: 16
+  learning_rate: 0.001
+  weight_decay: 0.01
+  seed: 3601
+  eval_every: 300
+  patience_evals: 8
+  marginal_alpha: 1.0
+  coordinate_tau: [1.0, 8.0]
+
+decoding: {iterations: 8, samples: 1, render_size: 72, render_timeout_seconds: 20}
+
+# Predeclared, and hashed into the run identity with the rest of this file.
+criteria:
+  # The model's mean endpoint error in bins, over one hidden segment per held-out icon,
+  # must be below the copy-the-previous-endpoint policy's. That policy scored 24.5 on
+  # this draw; the corpus arms scored 55 and 56.
+  beats_copy_previous: true
+  # Every completion validates and renders.
+  require_all_valid: true
