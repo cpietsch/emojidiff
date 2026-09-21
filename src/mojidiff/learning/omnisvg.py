@@ -85,10 +85,12 @@ def _stub_moviepy() -> None:
     sys.modules["moviepy.editor"] = editor
 
 
-def _snapshot(repo: str, revision: str | None = None) -> Path:
+def _snapshot(repo: str, revision: str | None = None, patterns: list[str] | None = None) -> Path:
+    """The cached snapshot; only the base's config, tokenizer and processor files are needed."""
+
     from huggingface_hub import snapshot_download
 
-    return Path(snapshot_download(repo, revision=revision, local_files_only=True))
+    return Path(snapshot_download(repo, revision=revision, allow_patterns=patterns))
 
 
 @dataclass
@@ -112,7 +114,7 @@ class OmniSVG:
         import yaml
         from tokenizer import SVGTokenizer  # type: ignore[import-not-found]
 
-        base = _snapshot(BASE_REPO)
+        base = _snapshot(BASE_REPO, patterns=["*.json", "*.txt", "*.jinja"])
         checkpoint = _snapshot(OMNISVG_REPO, OMNISVG_REVISION) / "pytorch_model.bin"
         digest = hashlib.sha256()
         with checkpoint.open("rb") as handle:

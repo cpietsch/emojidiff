@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-22T00:30:00Z
+Updated: 2026-09-22T02:20:00Z
 
 ## Current hypothesis and evidence
 
@@ -596,6 +596,22 @@ Qwen2.5-Coder-3B excluded under the Qwen Research License. The stack is installe
 undone and the suite re-verified on the original. Weights are downloading to the
 persistent Hugging Face cache under `/home/dev/.cache`.
 
+Gate M is three experiments on the operator's decision, licenses set aside for research
+use. OmniSVG 1.1 4B loads completely into this transformers after remapping its
+checkpoint's older key layout (825 tensors, none missing, 7.3 GiB) and, prompted
+zero-shot, drew a recognisable flat apple - the first recognisable generated icon in the
+project's history; its 200-unit fills-only output is scaled into the codec with fills
+snapped to the nearest palette colour, both reported, and its zero-shot control on 32
+held-out annotations is running (`omnisvg-m1-zeroshot`). SemIf's direct readout is
+reimplemented with an owned 52-request decision set: Qwen3.5-0.8B scores 0.404 and the
+4B 0.577, both falsified - the 4B never misses an ask but sends 22 actionable requests
+to ask too, and its choice flips under option reversal half the time, following the
+last letter; a permutation-averaged readout is now stored beside the direct one.
+Qwen3.5-2B-Base trains with LoRA at 0.17 s a step once flash-linear-attention is built
+from source (the published wheel ships without its ops), and its 248k-token vocabulary
+forces a chunked loss, built and tested; its control config is written. The
+fine-tuning stack lives in `.venv` without displacing the NGC torch.
+
 ## Last completed action and verification
 
 Closed Gate L on the evidence of twenty-two registered arms, all on gpubox-4080, all in
@@ -751,14 +767,18 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Gate M step one, the zero-shot control: prompt the pinned Qwen3-4B-Base, unfine-tuned,
-with held-out captions in the training prompt format and let it write the SVG; parse
-every output through the typed codec, render what parses, and put the sheet beside the
-validity and render rates. That is the floor every fine-tune is read against, and it is
-registered like any run. Then the overfit test on four icons through the same prompt
-format and decoder, then the LoRA fine-tune on the training split with the predeclared
-criteria of section 16.
+Read the OmniSVG zero-shot control when it finishes; then run the Qwen3.5-2B-Base
+control (`configs/learning/prior-m2-control.yaml`) on the same 32 icons, and the
+permutation-averaged SemIf re-read of the 4B. With both controls in hand, register the
+two fine-tunes with criteria stated against their own controls: codec validity above a
+bar, CLIP-to-reference above the control with the interval excluding zero, exact
+memorisation bounded, and the sheet. OmniSVG fine-tunes in its native vocabulary on
+outlined OpenMoji with LoRA (its training repository assumes full fine-tuning and an
+older transformers, so the loop is ours); the text prior fine-tunes on the compact SVG
+text with the chunked loss.
 
-Environment note for whoever picks this up: `transformers`, `peft` and `accelerate`
-live in `.venv`; if an install ever brings a PyPI `torch`, `triton` or `nvidia-*` wheel
-into `.venv`, uninstall them - the record's torch is the system NGC build.
+Environment note: `transformers`, `peft`, `accelerate`, `flash-linear-attention` (from
+source), `qwen-vl-utils`, `shapely`, `networkx`, `einops` live in `.venv`; the NGC torch
+stays the one in use. OmniSVG's inference code is checked out at
+`/home/dev/workspace/external/OmniSVG` (moviepy is stubbed at import), its training
+repository beside it, and SemIf's reference beside those.

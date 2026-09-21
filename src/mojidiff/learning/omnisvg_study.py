@@ -69,14 +69,22 @@ class Clip:
     @torch.inference_mode()
     def image(self, images: list[Image.Image]) -> torch.Tensor:
         inputs = self.processor(images=images, return_tensors="pt").to(self.device)
-        features = self.model.get_image_features(**inputs)
+        features = _embedding(self.model.get_image_features(**inputs))
         return torch.nn.functional.normalize(features.float(), dim=-1).cpu()
 
     @torch.inference_mode()
     def text(self, texts: list[str]) -> torch.Tensor:
         inputs = self.processor(text=texts, return_tensors="pt", padding=True).to(self.device)
-        features = self.model.get_text_features(**inputs)
+        features = _embedding(self.model.get_text_features(**inputs))
         return torch.nn.functional.normalize(features.float(), dim=-1).cpu()
+
+
+def _embedding(output: Any) -> torch.Tensor:
+    """This transformers returns the projected embedding as an output's pooler field."""
+
+    if isinstance(output, torch.Tensor):
+        return output
+    return output.pooler_output  # type: ignore[no-any-return]
 
 
 def render_raw(svg: str, size: int) -> Image.Image:

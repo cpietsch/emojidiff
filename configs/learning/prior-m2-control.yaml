@@ -1,0 +1,29 @@
+# Gate M, experiment two, step one: Qwen3.5-2B-Base zero-shot on held-out OpenMoji captions.
+#
+# The unfine-tuned base model is given "<!-- annotation -->" and the project's own open
+# tag, and continues. Whatever it writes is cut at the first closing tag, parsed by the
+# typed codec, rendered, and scored with the same pinned CLIP as OmniSVG's control
+# against the held-out render and the annotation. The first sample is greedy, the second
+# sampled. No criteria: this is the floor the fine-tune is read against.
+schema_version: 1
+study_version: prior-m2-control
+mode: control
+report_root: reports/learning/prior-m2-control
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+
+model:
+  source: Qwen/Qwen3.5-2B-Base
+  revision: b1485b2f1e6d5b2d2c4a26a4cc3f6f1a2f7a3a1a
+
+data:
+  icons: 32
+
+generation:
+  samples: 2
+  greedy_first: true
+  # The compact text of the longest training icon is 3,843 tokens.
+  max_new_tokens: 4096
+  seed: 6201
+
+render:
+  size: 72
