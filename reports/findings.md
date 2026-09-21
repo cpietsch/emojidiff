@@ -2975,3 +2975,38 @@ hypothesis, and the direction that remains open is conditioning on something ric
 than a caption - the icon's own parts, or a reference render through the image branch
 OmniSVG was actually trained with - which is the editing setting Gate L built the
 masked model for. That decision is taken on the next result, not before.
+
+## 2026-09-21 — The full-corpus text-prior arm is worse, and Gate M's question is answered
+
+**Observation.** The same fine-tune with the token cap at 4,096 so all 2,681 icons
+train: held-out likelihood 0.391 to 0.271, selected at step 375. Its first evaluation
+hung for 2 h 45 min at 100% CPU with the GPU idle and was stopped, preserved as a
+failed run; the saved adapter was evaluated again under a 60 s guard on every parse
+and render (no step reached it, so the cause of the hang is not identified). The 64
+drawings: 29 close (the short-corpus arm closed 47), 27 enter the codec (44), similarity
+0.827 over the 29 (0.839 over 47), paired gain +0.013 with an interval of -0.009 to
++0.033 over the 10 pairable icons, the right icon first for 2 of 64 - chance. Falsified
+on three of four criteria.
+
+**Reading.** Training on the long icons taught the model to write long icons that do
+not finish. The short-corpus arm remains the best drawing model of the gate, and it
+too is at coarse grounding. Caption-only LoRA fine-tuning of a text prior on this
+corpus is now falsified in both directions.
+
+**Gate M's answer.** Does a pretrained SVG prior, fine-tuned with LoRA on OpenMoji's
+training split, draw recognisable held-out icons from a caption? No - not OmniSVG in
+its own tokens, not Qwen3.5-2B in the codec's text, at this corpus size and compute.
+Both learn the palette, the categories and the stock parts (a bust with the right
+skin tone, a yellow face, a warning triangle) and neither names an icon: retrieval of
+the right icon among 32 held-out renders never rose above 0.094 in any arm, against
+0.031 chance. What did transfer is real and measured: the text prior writes the codec's
+canonical form on its first try (44 of 64 valid against 3 for its control) and gains
+over its control with an interval excluding zero. SemIf's decision layer is a secondary
+signal at 0.75 averaged over option orders, not a router.
+
+**Decision.** Gate M closes on that answer. The direction that remains open, and that
+the evidence points to, is conditioning on more than a caption: the icon's own parts,
+a sibling of the same family, or a reference render - the editing setting that Gate L's
+masked model was built for and that OmniSVG's image branch was trained with. The text
+prior is the vehicle to carry forward, because it already writes the codec's form; the
+next gate should give it a partial icon to complete rather than a caption to imagine.

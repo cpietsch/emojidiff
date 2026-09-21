@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T16:33:16Z
+Updated: 2026-09-21T21:00:56Z
 
 ## Current hypothesis and evidence
 
@@ -596,22 +596,22 @@ Qwen2.5-Coder-3B excluded under the Qwen Research License. The stack is installe
 undone and the suite re-verified on the original. Weights are downloading to the
 persistent Hugging Face cache under `/home/dev/.cache`.
 
-Gate M is three experiments on the operator's decision, licenses set aside for research
-use, all registered with numbers, sheets and outcomes. **OmniSVG 1.1 4B**: the
-zero-shot control draws emoji-style blobs near chance at naming their icon (CLIP 0.811
-against a 0.777 chance level; the right icon first for 5 of 64); the LoRA fine-tune in
-its own token language (exact tested encoder, all 2,681 training icons, 500 steps)
-lowers held-out likelihood from 2.96 to 1.40 nats and is falsified - the adapter learns
-palette, categories and stock parts, collapsing to templates under OmniSVG's sampler,
-to noise under plain sampling, to the category's mode under greedy decoding (all three
-registered). **Qwen3.5-2B-Base**: the zero-shot control knows SVG syntax and not icons
-(18 of 64 close, 3 enter the codec); the LoRA fine-tune on the 1,452 icons under 2,048
-tokens is the strongest arm (47 close, 44 enter the codec, CLIP 0.839, paired gain
-+0.040 with an interval excluding zero, retrieval 0.094) and still falsified on codec
-validity and retrieval; the full-corpus arm at a 4,096-token cap is running. **SemIf**:
-falsified on both models (0.404, 0.577 direct); the permutation-averaged readout reaches
-0.75 on the 4B and is recorded as a secondary signal. The synthesis is in
-`reports/findings.md` under "Gate M so far".
+Gate M is closed on its answer. Three experiments on the operator's decision, licenses
+set aside for research use, every run registered with numbers, sheets and outcomes,
+every failure preserved. **OmniSVG 1.1 4B** fine-tuned with LoRA in its own token
+language (exact tested encoder) learns OpenMoji's palette and stock parts, not icons:
+falsified under three decoders. **Qwen3.5-2B-Base** fine-tuned to write the codec's
+canonical SVG from a caption is the best drawing model the project has had - 44 of 64
+held-out drawings enter the codec against 3 for its control, a paired CLIP gain of
++0.040 with an interval excluding zero - and is falsified on codec validity (0.69
+against 0.8) and retrieval (0.094 against 0.25); the full-corpus arm at 4,096 tokens
+writes long icons that do not finish and is worse. **SemIf** is falsified on both
+models; averaged over option orders the 4B reaches 0.75, a secondary signal. Retrieval
+of the right icon among the 32 held-out renders never rose above 0.094 in any arm
+(chance 0.031): neither prior names an icon from a caption at this corpus size. The
+direction that remains open is conditioning on more than a caption - a partial icon, a
+family sibling, or a reference render - with the text prior as the vehicle, because it
+already writes the codec's form. The synthesis is in `reports/findings.md`.
 
 ## Last completed action and verification
 

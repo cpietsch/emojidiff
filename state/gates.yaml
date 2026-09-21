@@ -173,22 +173,24 @@ gates:
     evidence: Gated on a frozen checkpoint worth optimizing.
   - id: Gate M
     title: A pretrained SVG prior, fine-tuned on OpenMoji
-    status: open
+    status: complete
     question: >-
       Does a pretrained prior, fine-tuned with LoRA on the training split, draw
       recognisable held-out icons from a caption - read against its own zero-shot
       output, against chance, and against memorisation?
     evidence: >-
-      Opened 2026-09-21 on the operator's decision after Gate L; three experiments,
-      every run registered. OmniSVG 1.1 4B fine-tuned in its own token language learns
-      OpenMoji's palette and stock parts, not icons: falsified under three decoders.
-      Qwen3.5-2B-Base fine-tuned to write the codec's canonical SVG is the strongest
-      arm - 44 of 64 drawings enter the codec, a paired CLIP gain of +0.040 over its
-      control with an interval excluding zero - and is falsified on codec validity
-      (0.69 against 0.8) and retrieval (0.094 against 0.25); the full-corpus arm is
-      running. SemIf's decision readout is falsified on both models; averaged over
-      option orders it reaches 0.75, a secondary signal. Retrieval rank against all
-      held-out renders is the reading that matters, and no arm has moved it above 0.09.
+      Answered no on 2026-09-21, three experiments, every run registered. OmniSVG 1.1
+      4B fine-tuned in its own token language learns OpenMoji's palette and stock
+      parts, not icons: falsified under three decoders. Qwen3.5-2B-Base fine-tuned to
+      write the codec's canonical SVG is the strongest arm - 44 of 64 drawings enter the
+      codec against 3 for its control, a paired CLIP gain of +0.040 with an interval
+      excluding zero - and is falsified on codec validity (0.69 against 0.8) and
+      retrieval (0.094 against 0.25); training on the full corpus at 4,096 tokens is
+      worse. SemIf's decision readout is falsified on both models; averaged over option
+      orders it reaches 0.75, a secondary signal. Retrieval of the right icon among the
+      32 held-out renders never rose above 0.094 in any arm (chance 0.031). The open
+      direction is conditioning on more than a caption, with the text prior as the
+      vehicle.
   - id: Gate K
     title: Research interface and narrative
     status: open
