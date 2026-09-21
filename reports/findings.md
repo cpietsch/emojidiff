@@ -2613,3 +2613,20 @@ keep everything else: the same 64 icons, the same criteria, the draw pinned by
 `inpaint_seed`. Read arm 17's checkpoint there first, as a frozen model on spans it
 trained short of, and then a specialist trained on spans of one to four at the same
 budget. The two-segment results stay reported as what they are.
+
+## 2026-09-21 — Four-segment spans, the shorter-trained specialist: parity again
+
+**Observation.** Read on four-segment spans of the 56 held-out icons with a path long
+enough, arm 17's checkpoint - trained on spans of one to three - ties the join fill:
+mean +0.0002, interval [−0.0010, +0.0014], 26 of 56 helped, median recovery −0.01, the
+model's median error 0.0046 against the join's 0.0054. It beats the marginal policy on
+49 of 56 with the interval excluding zero. The recovery distribution is wide and centred
+on zero: the tenth percentile −1.6, the ninetieth +0.48.
+
+**Reading.** At a length where the straight cut visibly loses corners, a model trained
+short of that length neither wins nor harms. Arm 20, trained on spans of one to four,
+is read on the same spans next. And the one lever every curve in this gate has pointed
+at and no arm has pulled is training length: held-out likelihood was still falling at
+step 6,300 in every corpus run since the mechanism arrived, and the checkpoint was
+selected at the last step each time. A specialist trained three times longer is queued
+behind arm 20 on the same spans.
