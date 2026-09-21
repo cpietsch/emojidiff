@@ -2440,3 +2440,21 @@ neither run converged at a third of the budget - which is the situation the reco
 should not be read past. Arm 12, the start-features run at the full budget, is on the
 GPU; the combination at the full budget is queued behind it, because it is the
 configuration the corpus run would use whichever way arm 12 reads.
+
+## 2026-09-21 — At the full budget, start features nearly reach the copy policy
+
+**Hypothesis.** Arm 10's still-falling curve, given the full 6,300 steps, should reach
+the copy-the-previous-endpoint policy.
+
+**Observation. Falsified by 3.5 bins, still falling.** Continuity error **29.1 bins**
+(median 22.0) against the copy policy's 25.6 (median 17.0); held-out likelihood
+**3.682** nats, 0.769 of the floor, from 4.119 at 2,100 steps; the checkpoint selected
+at step 6,300 itself, early stopping never having fired - 3.734, 3.719, 3.683, 3.707,
+3.684, 3.682 over the last six evaluations, flattening but not flat.
+
+**Reading.** From 58–60 bins with nothing in the input, to 47.8 at a third of the
+budget, to 29.1 at the full budget, by putting one value where the model can see it. The
+five arms before arm 10 measured a model that could not begin; this one is a model that
+has not finished. The head, which took a third-budget run from 47.8 to 41.7, is running
+at the full budget as arm 13, and the corpus inpainting configuration that either
+outcome leads to - start features, the head, chain-order decoding - is drafted.
