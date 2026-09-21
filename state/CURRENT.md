@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T20:20:00Z
+Updated: 2026-09-21T20:45:00Z
 
 ## Current hypothesis and evidence
 
@@ -1057,6 +1057,19 @@ and `training.checkpoint` with its sha256 evaluates a frozen checkpoint on a tas
 without retraining, refusing a wrong hash and reporting no loss-reduction figure rather
 than a fabricated one. Both are pinned by tests; 183 pass.
 
+Arm 14, the scored task with the mechanism, is falsified on whole-path completion and
+is a different model from l2: against the hole -0.0011 RGBA MAE (interval [-0.0017,
+-0.0006], 6 of 64 helped, median recovery -0.11) against l2's -0.0040 and -0.69; it
+beats the marginal policy on all 64 icons and beats l2 icon by icon on 44 of 64; the
+fills are quiet rather than scribbles. The shape of a missing part is what the corpus
+cannot teach, and the mixture now dilutes a mechanism that exists - continuity 41.8 bins
+under the full mixture against 17.9 for the span specialist. The scored task moves to
+the local edit as section 15 provided: two segments hidden inside a path with visible
+neighbours, against a zero-parameter fill that joins the visible ends. Both checkpoints
+are being read on it without retraining - `masked-span-l15-mixture-bde5d24-2681icons-
+9b9b1699` (arm 14's model) and `masked-span-l16-specialist-bde5d24-2681icons-9b9b1699`
+(arm 13's) - on the same 64 icons and spans, l2's criteria unchanged.
+
 ## Active jobs
 
 The research weblog is served by `scripts/serve_weblog.py` in tmux session
@@ -1191,15 +1204,17 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Read arm 14, the scored task with the mechanism. If the model now beats the hole on
-whole-path completion, Gate L has its editor and the next work is the Gate K viewer
-over the frozen checkpoint. If it still loses to the hole while its continuity is
-sound, the reading is the one PROJECT_PLAN.md section 15 anticipated - whole-path
-completion of an arbitrary path is close to generation of a part - and the scored task
-moves to the local edits the mechanism supports: a span of segments hidden inside a
-path with its neighbours visible, scored by paired render recovery against a
-zero-parameter fill that joins the visible ends, on held-out icons, predeclared, with
-the sheet beside the numbers. Either way the continuity probe stays in every run.
+Read arms 15 and 16. If either checkpoint completes two-segment spans better than
+joining the visible ends with the interval excluding zero and the magnitude bar met,
+Gate L has its first editing result and the next work is a specialist trained on the
+span family at the full budget if the specialist wins, or the mixture model as is if
+it does not, followed by the Gate K viewer over the frozen checkpoint. If neither beats
+the join, the reading is that continuity alone does not carry a two-segment fill, and
+the next arm trains the specialist on spans of two rather than one before the
+representation itself is questioned.
+
+Whole-path completion stays reported as the hard case: quiet fills, no longer damaging,
+still short of the hole.
 
 What is retired, so it is not picked up again by habit: further single-factor sweeps on
 the p = 0.35 denoiser, further left-to-right arms, and the corpus-scale corruption-process
