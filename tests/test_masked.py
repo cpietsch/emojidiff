@@ -747,6 +747,31 @@ def test_the_study_runs_end_to_end_on_the_cpu(tmp_path: Path, task: str) -> None
         json.loads(line)
         for line in (tmp_path / "report" / "metrics.jsonl").read_text().splitlines()
     ]
+
+    # The same checkpoint evaluated on the other task, without training.
+    other = "span" if task == "path" else "path"
+    frozen_path = tmp_path / "frozen.yaml"
+    frozen = yaml.safe_load(config_path.read_text())
+    frozen["study_version"] = "test-masked-frozen"
+    frozen["report_root"] = str(tmp_path / "frozen-report")
+    frozen["checkpoint_root"] = str(tmp_path / "frozen-checkpoint")
+    frozen["data"]["task"] = other
+    frozen["training"]["checkpoint"] = str(tmp_path / "checkpoint" / "checkpoint.zip")
+    frozen["training"]["checkpoint_sha256"] = summary["checkpoint_sha256"]
+    frozen["criteria"] = {"require_all_valid": True}
+    frozen_path.write_text(yaml.safe_dump(frozen))
+    evaluated = run_masked_study(load_masked_study_config(frozen_path), frozen_path)
+    assert evaluated["trained_here"] is False
+    assert evaluated["selected_step"] == summary["selected_step"]
+    assert evaluated["inpainting"]["task"] == other
+    assert evaluated["loss_reduction_factor"] is None
+    assert evaluated["checks"] == {"all_valid": True}
+    wrong = yaml.safe_load(frozen_path.read_text())
+    wrong["training"]["checkpoint_sha256"] = "0" * 64
+    wrong["report_root"] = str(tmp_path / "wrong-report")
+    frozen_path.write_text(yaml.safe_dump(wrong))
+    with pytest.raises(Exception, match="hash mismatch"):
+        run_masked_study(load_masked_study_config(frozen_path), frozen_path)
     assert [row["step"] for row in trace] == [0, 1, 2], "the untrained model is evaluated first"
     assert (
         summary["loss_reduction_factor"]

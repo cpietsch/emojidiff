@@ -105,6 +105,8 @@ class MaskedStudyConfig:
     batch_size: int
     learning_rate: float
     weight_decay: float
+    checkpoint: Path | None
+    checkpoint_sha256: str | None
     seed: int
     eval_every: int
     patience_evals: int
@@ -171,6 +173,12 @@ def load_masked_study_config(path: Path) -> MaskedStudyConfig:
         batch_size=int(training["batch_size"]),
         learning_rate=float(training["learning_rate"]),
         weight_decay=float(training.get("weight_decay", 0.01)),
+        checkpoint=None
+        if training.get("checkpoint") is None
+        else Path(str(training["checkpoint"])),
+        checkpoint_sha256=None
+        if training.get("checkpoint_sha256") is None
+        else str(training["checkpoint_sha256"]),
         seed=int(training["seed"]),
         eval_every=int(training["eval_every"]),
         patience_evals=int(training["patience_evals"]),
@@ -296,7 +304,33 @@ def run_masked_study(config: MaskedStudyConfig, config_path: Path) -> dict[str, 
     if device.type == "cuda":
         torch.cuda.reset_peak_memory_stats()
     started = time.perf_counter()
-    for step in range(1, config.steps + 1):
+    loaded_step: int | None = None
+    if config.checkpoint is not None:
+        # Evaluate a frozen checkpoint on this task instead of training: the same model
+        # can then be read on whole-path and span completion without a second run.
+        payload = config.checkpoint.read_bytes()
+        digest = hashlib.sha256(payload).hexdigest()
+        if digest != config.checkpoint_sha256:
+            raise OpenMojiPilotError(f"checkpoint hash mismatch: {digest}")
+        document = _decode_checkpoint(payload)
+        model.load_state_dict(document["model"])
+        loaded_step = int(document["step"])
+        best_nll, best_accuracy_loaded = _evaluate(
+            model, evaluation, evaluation_hide, condition["evaluation"], device
+        )
+        best_step = loaded_step
+        best_state = {
+            key: value.detach().cpu().clone() for key, value in model.state_dict().items()
+        }
+        metrics.append(
+            {
+                "step": loaded_step,
+                "held_out_nll": best_nll,
+                "marginal_nll": floor_nll,
+                "masked_token_accuracy": best_accuracy_loaded,
+            }
+        )
+    for step in range(1, 0 if loaded_step is not None else config.steps + 1):
         indices = rng.choice(
             len(train.rows), size=min(config.batch_size, len(train.rows)), replace=False
         )
@@ -349,11 +383,11 @@ def run_masked_study(config: MaskedStudyConfig, config_path: Path) -> dict[str, 
                     break
     train_seconds = time.perf_counter() - started
     peak_vram = float(torch.cuda.max_memory_allocated()) / 2**30 if device.type == "cuda" else None
-    if best_state is None or first_loss is None:
+    if best_state is None or (first_loss is None and loaded_step is None):
         raise OpenMojiPilotError("no evaluation ran, so no checkpoint was selected")
     model.load_state_dict(best_state)
     model.eval()
-    last_loss = metrics[-1]["train_loss"]
+    last_loss = metrics[-1].get("train_loss")
     best_accuracy = next(
         row["masked_token_accuracy"] for row in metrics if row["step"] == best_step
     )
@@ -379,7 +413,7 @@ def run_masked_study(config: MaskedStudyConfig, config_path: Path) -> dict[str, 
     )
     continuity = _continuity(model, evaluation, condition["evaluation"], marginals, layout)
 
-    loss_reduction = initial_nll / max(best_nll, 1e-12)
+    loss_reduction = None if loaded_step is not None else initial_nll / max(best_nll, 1e-12)
     checks: dict[str, bool] = {}
     criteria = config.criteria
     if "min_masked_token_accuracy" in criteria:
@@ -387,7 +421,9 @@ def run_masked_study(config: MaskedStudyConfig, config_path: Path) -> dict[str, 
             criteria["min_masked_token_accuracy"]
         )
     if "min_loss_reduction_factor" in criteria:
-        checks["loss_reduction"] = loss_reduction >= float(criteria["min_loss_reduction_factor"])
+        checks["loss_reduction"] = loss_reduction is not None and loss_reduction >= float(
+            criteria["min_loss_reduction_factor"]
+        )
     if "min_exact_path_reproduction_rate" in criteria:
         checks["exact_path_reproduction"] = inpainting["exact_reproduction_rate"] >= float(
             criteria["min_exact_path_reproduction_rate"]
@@ -443,7 +479,12 @@ def run_masked_study(config: MaskedStudyConfig, config_path: Path) -> dict[str, 
         "path_binding": config.path_binding,
         "metric_head": config.metric_head,
         "start_features": config.start_features,
-        "icon_presentations": metrics[-1]["step"] * config.batch_size,
+        "trained_here": loaded_step is None,
+        "checkpoint_source": None if config.checkpoint is None else str(config.checkpoint),
+        "checkpoint_source_sha256": config.checkpoint_sha256,
+        "icon_presentations": None
+        if loaded_step is not None
+        else metrics[-1]["step"] * config.batch_size,
         "selected_step": best_step,
         "steps_run": metrics[-1]["step"],
         "held_out_nll_per_masked_token": best_nll,
