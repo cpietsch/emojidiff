@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T18:10:00Z
+Updated: 2026-09-21T18:30:00Z
 
 ## Current hypothesis and evidence
 
@@ -981,6 +981,17 @@ endpoint, or the header's start for a path's first segment - when visible, nothi
 hidden, behind `model.start_features` with a test. Both halves are chained on revision
 `4c9d1e3` as `masked-overfit-l9-start-4c9d1e3-4icons-9b9b1699` and
 `masked-continuity-l10-start-4c9d1e3-2681icons-9b9b1699`.
+
+Arm 9, the start-features overfit half, reached accuracy 1.000 and validity and
+reproduced 3 of 4 masked paths exactly - the fourth committed out of chain order, a
+segment decoded while the segment it hangs from was still a hole, which is what a
+confidence-ordered coordinate tier does to a model that reads its start. Chain-order
+decoding is built behind `decoding.chain_order` - each pass commits every masked segment
+whose start is known - pinned by a test that no segment is committed before the one it
+hangs from, and the overfit half re-runs with it as `masked-overfit-l9b-start-chain-
+e52b43e-4icons-9b9b1699`, queued behind arm 10. Arm 10, the continuity half, was
+launched on accuracy and validity because single-segment masks always have a visible
+start and the decoder order does not enter.
 
 ## Active jobs
 
