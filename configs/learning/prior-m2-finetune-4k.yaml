@@ -1,0 +1,53 @@
+# Gate M, experiment two, step three: the same LoRA fine-tune with the whole training split.
+#
+# The first fine-tune (prior-m2-finetune) excluded 1,229 of the 2,681 training icons and
+# 16 of its 32 selection icons because their caption and compact SVG exceed 2,048 tokens;
+# it trained on the 1,452 shortest icons and still passed the paired-gain and
+# memorisation criteria while failing codec validity (0.69 against 0.8) and retrieval
+# (0.094 against 0.25). This arm raises the token cap to 4,096 so every icon trains, with
+# the loss chunk halved to hold the peak, and is otherwise identical: the same model,
+# adapters, schedule, selection rule, evaluation icons, decoding and criteria.
+schema_version: 1
+study_version: prior-m2-finetune-4k
+mode: finetune
+report_root: reports/learning/prior-m2-finetune-4k
+checkpoint_root: data/processed/prior/prior-m2-finetune-4k
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+
+model:
+  source: Qwen/Qwen3.5-2B-Base
+  revision: b1485b2fa6dfa1287294f269f5fb618e03d52d7c
+
+data:
+  icons: 32
+
+training:
+  lora: {rank: 16, alpha: 32, dropout: 0.05}
+  max_tokens: 4096
+  held_out_icons: 32
+  steps: 600
+  accumulate: 8
+  eval_every: 25
+  patience_evals: 6
+  loss_chunk: 512
+  learning_rate: 1.0e-4
+  weight_decay: 0.0
+  warmup_steps: 25
+  seed: 6303
+
+generation:
+  samples: 2
+  greedy_first: true
+  max_new_tokens: 4096
+  seed: 6201
+
+control_report_root: reports/learning/prior-m2-control
+
+criteria:
+  min_codec_valid_rate: 0.8
+  clip_gain_over_control_ci_excludes_zero: true
+  min_reference_top1_rate: 0.25
+  max_memorised_exactly: 0
+
+render:
+  size: 72
