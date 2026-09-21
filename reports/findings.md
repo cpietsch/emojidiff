@@ -2399,3 +2399,26 @@ at the full 6,300-step budget, to see where the curve goes; and the same run wit
 metric head, at the same 2,100 steps, to see whether copying becomes the linear map it
 should be. Whichever wins is the configuration the corpus inpainting run repeats with,
 decoded in chain order.
+
+## 2026-09-21 — Correction: the fourth path was one bin off, and that is the target, not the decoder
+
+**Observation.** Decoded in chain order, the start-features overfit test is unchanged:
+accuracy 1.000, every completion valid, 3 of 4 masked paths exact, all four renders
+pixel-identical. The one differing token is a single coordinate **one bin off** - a
+quarter of a view unit - with the truth at probability 0.116 and the decoded neighbour
+at 0.100.
+
+**Reading, corrected.** The previous entry read the miss as the decoder committing a
+segment before its start; that was wrong, and the chain-order re-run shows it. Under
+the one-unit soft target the truth and its adjacent bins are *meant* to be nearly
+equiprobable, so exact-bin reproduction of a memorised path is a coin flip at every
+coordinate the model has learned the target well at, and l1 and l3 passing 4 of 4 was
+the draw going the other way. A quarter-unit miss is invisible in the render, which is
+why the four sheets are identical to the clean icons.
+
+**Decision.** Withdraw the decoder-order reading; keep chain-order decoding, which is
+the right decoder for an input that hangs each segment from the one before it and was
+worth building regardless. Give the overfit criterion a one-bin tolerance on
+coordinates - every other token exact - so that it tests the objective, the masks and
+the decoder rather than the spread of the target, and record that the exact rate is
+still reported beside it.

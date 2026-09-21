@@ -668,6 +668,7 @@ def test_the_study_runs_end_to_end_on_the_cpu(tmp_path: Path) -> None:
                     "min_masked_token_accuracy": 0.99,
                     "min_loss_reduction_factor": 100.0,
                     "min_exact_path_reproduction_rate": 1.0,
+                    "min_close_path_reproduction_rate": 1.0,
                     "beats_drop_baseline": True,
                     "beats_marginal_baseline": True,
                     "min_median_recovery": 0.3,
@@ -681,6 +682,12 @@ def test_the_study_runs_end_to_end_on_the_cpu(tmp_path: Path) -> None:
     assert summary["checkpoint_round_trip"]
     assert summary["inpainting"]["all_valid"]
     assert summary["inpainting"]["icons"] >= 1
+    assert (
+        0.0
+        <= summary["inpainting"]["exact_reproduction_rate"]
+        <= summary["inpainting"]["close_reproduction_rate"]
+        <= 1.0
+    )
     assert set(summary["continuity"]) == {"model", "copy_previous", "marginal"}
     assert summary["continuity"]["copy_previous"]["n"] >= 1
     assert summary["coordinate_tau"] == [1.0]
@@ -688,6 +695,7 @@ def test_the_study_runs_end_to_end_on_the_cpu(tmp_path: Path) -> None:
         "masked_token_accuracy",
         "loss_reduction",
         "exact_path_reproduction",
+        "close_path_reproduction",
         "beats_drop_baseline",
         "beats_marginal_baseline",
         "median_recovery",

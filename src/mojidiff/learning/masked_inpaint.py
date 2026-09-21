@@ -189,6 +189,7 @@ _CRITERIA = {
     "min_masked_token_accuracy",
     "min_loss_reduction_factor",
     "min_exact_path_reproduction_rate",
+    "min_close_path_reproduction_rate",
     "beats_drop_baseline",
     "beats_marginal_baseline",
     "min_median_recovery",
@@ -382,6 +383,10 @@ def run_masked_study(config: MaskedStudyConfig, config_path: Path) -> dict[str, 
         checks["exact_path_reproduction"] = inpainting["exact_reproduction_rate"] >= float(
             criteria["min_exact_path_reproduction_rate"]
         )
+    if "min_close_path_reproduction_rate" in criteria:
+        checks["close_path_reproduction"] = inpainting["close_reproduction_rate"] >= float(
+            criteria["min_close_path_reproduction_rate"]
+        )
     if "beats_drop_baseline" in criteria and bool(criteria["beats_drop_baseline"]):
         checks["beats_drop_baseline"] = inpainting["paired"]["drop_minus_model"][
             "interval_excludes_zero_above"
@@ -538,8 +543,10 @@ def _inpaint(
     rows: list[dict[str, Any]] = []
     tiles: list[tuple[str, list[np.ndarray[Any, Any]]]] = []
     exact = 0
+    close = 0
     valid = 0
     attempted = 0
+    coordinates = coordinate_positions(layout)
     for index in range(min(config.inpaint_icons, len(evaluation.rows))):
         row = evaluation.rows[index]
         tokens = evaluation.tokens[index]
@@ -570,6 +577,14 @@ def _inpaint(
         )
         completions["model"] = unflatten_program(greedy, clean, layout)
         exact += int(bool(torch.equal(greedy[hide], tokens[hide])))
+        # Within one lattice bin on coordinates and exact everywhere else: under a
+        # spread coordinate target the truth and its neighbours are near-equiprobable
+        # by design, so a quarter-unit miss says nothing about the plumbing.
+        difference = (greedy - tokens).abs()
+        close += int(
+            bool((difference[hide & coordinates] <= 1).all())
+            and bool((difference[hide & ~coordinates] == 0).all())
+        )
         marginal, _ = complete(
             floor,
             inputs,
@@ -639,6 +654,7 @@ def _inpaint(
         "attempted": attempted,
         "all_valid": valid == attempted * (2 + config.samples),
         "exact_reproduction_rate": exact / len(rows),
+        "close_reproduction_rate": close / len(rows),
         "decoding": {
             "iterations": config.iterations,
             "chain_order": config.chain_order,
