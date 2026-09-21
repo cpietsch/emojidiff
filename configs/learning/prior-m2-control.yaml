@@ -13,7 +13,7 @@ pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
 
 model:
   source: Qwen/Qwen3.5-2B-Base
-  revision: b1485b2f1e6d5b2d2c4a26a4cc3f6f1a2f7a3a1a
+  revision: b1485b2fa6dfa1287294f269f5fb618e03d52d7c
 
 data:
   icons: 32
