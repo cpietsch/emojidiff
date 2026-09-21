@@ -2458,3 +2458,35 @@ five arms before arm 10 measured a model that could not begin; this one is a mod
 has not finished. The head, which took a third-budget run from 47.8 to 41.7, is running
 at the full budget as arm 13, and the corpus inpainting configuration that either
 outcome leads to - start features, the head, chain-order decoding - is drafted.
+
+## 2026-09-21 — Gate L's first pass: the model reads its neighbours
+
+**Hypothesis.** Start features and the metric head together, given the full budget,
+should beat the copy-the-previous-endpoint policy on the continuity task.
+
+**Observation. Passed.** Over one hidden segment in each of 339 held-out icons the
+model's predicted endpoint is **17.9 bins** from the truth (median 10.5) against the
+copy policy's 25.6 (median 17.0) and the marginal's 140. Held-out masked likelihood is
+**3.309** nats, 0.691 of the floor, and still falling at step 6,300, where the checkpoint
+was selected; every completion valid. 419 s to train, 1.9 GiB peak, 531,892 parameters.
+
+**The sequence, in one line each.** Arms 5 and 7b, nothing in the input: 58–60 bins.
+Arm 10, the start point in the input, a third of the budget: 47.8. Arm 11, with the
+head: 41.7. Arm 12, start features at the full budget: 29.1. Arm 13, both at the full
+budget: **17.9**. Each step a single change against a one-factor baseline, on the same
+339 icons and the same hidden segments.
+
+**Reading.** This is the first predeclared criterion Gate L has met at corpus scale and
+the first time in this project that a model reads its geometric context better than a
+zero-parameter policy - the thing v16 never did, since the identity policy it beat was
+about leaving tokens alone rather than reading them. The mechanism was never capacity or
+data: the same 530k parameters that sat at the floor for five arms learn continuity as
+soon as the value they need is in their input and the head can place a bump where it
+says. Chain-order decoding hands the model each start before it draws from it, so at
+inference the mechanism applies to whole paths as well as single segments. That is what
+arm 14 measures: l2's inpainting run, on l2's icons and criteria, with this mechanism.
+
+**What it does not say.** Whole-path completion still asks for the shape of a missing
+part, which Gate I says this corpus cannot teach for unseen concepts; continuity gets a
+path started and keeps it coherent, and may or may not get it to beat the hole. The
+scored task is read next.

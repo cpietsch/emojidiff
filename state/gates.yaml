@@ -12,15 +12,16 @@ updated: 2026-09-21
 # the Current hypothesis section of state/CURRENT.md; the weblog falls back to that
 # section's newest paragraph if this is absent.
 headline: >-
-  Direction set after Gate I. The training bucket is 2,681 unique programs and most of
-  its families are singletons, so unconditional generation is out of reach here by any
-  method - Gate I measured it - while conditional completion is not: the bucket holds
-  39,535 contours and every one is a training example for drawing a missing path from
-  the rest of its icon. The project's result is therefore an editor. Gate L opens with a
-  masked any-order model over the same codec whose mask families are the editing
-  operations, decoded in grammatical order so every output is valid, and scored by
-  paired render recovery of whole-path inpainting on held-out icons against two
-  zero-parameter policies. It starts, as every gate here has, with an overfit test.
+  Gate L has its first pass. The masked model over the same codec could not read its
+  neighbours - five arms left it at the position-marginal floor for geometry, on its own
+  training icons - and a sequence of one-factor studies found why: the previous
+  endpoint sat seven slots away behind absolute embeddings over packed slots, and the
+  head had to learn an ordering over 289 unordered bins before it could place a bump
+  where a neighbour said. With each segment's start point in its own input and
+  lattice-aware coordinate logits, the model's hidden-segment endpoint is 17.9 bins
+  from the truth against 25.6 for a zero-parameter policy that copies the previous
+  endpoint, over 339 held-out icons. Arm 14 carries that mechanism into the scored
+  task: draw a removed path back into a held-out icon better than leaving the hole.
 
 gates:
   - id: Gate A
@@ -149,14 +150,19 @@ gates:
       nothing and than a zero-parameter sampler that knows the corpus statistics?
     evidence: >-
       Opened 2026-09-21 as the primary line; PROJECT_PLAN.md section 15 states the
-      design and the exit evidence. The model is trained to predict masked tokens from
-      the rest of the flattened sequence, with mask families that are the editing
-      operations, and decodes in grammatical dependency order so every output is valid
-      by construction. It carries every verified correction from Gates G and I from its
-      first run. Primary metric: paired per-icon render recovery of whole-path
-      inpainting on held-out icons against the path-dropped icon and a position-
-      marginal sampler, predeclared with a magnitude bar and a render sheet. Begins
-      with an overfit test on four icons.
+      design. The instrument passed its overfit test, and the first corpus run (l2)
+      beat the position-marginal policy on 54 of 64 held-out icons and lost to leaving
+      the hole on 57 of 64 - because, a checkpoint breakdown showed, it never read its
+      neighbours: at the floor for coordinates on its own training icons, and a 40-bin
+      shift of a visible endpoint moved its prediction by a median of zero. Ownership
+      binding, the training mixture and the output head alone changed nothing. Putting
+      each segment's start point into its own input did: continuity error 58-60 bins
+      to 47.8 at a third of the budget, 29.1 at the full budget, and 17.9 with the
+      metric head - past the copy-the-previous-endpoint policy's 25.6 over 339 held-out
+      icons, the gate's first predeclared pass at corpus scale (arm 13). Two harness
+      defects were caught by the overfit tests and preserved: a soft target centred a
+      token low, and a head that never fired at a masked kind. Arm 14 carries the
+      mechanism into the scored task on l2's icons and criteria.
   - id: Gate J
     title: Deployment optimization
     status: not-started

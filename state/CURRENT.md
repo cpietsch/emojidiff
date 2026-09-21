@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T19:35:00Z
+Updated: 2026-09-21T20:00:00Z
 
 ## Current hypothesis and evidence
 
@@ -1037,6 +1037,17 @@ render (`masked-inpaint-l14-start-head-ba54da5-2681icons-9b9b1699`). Three chang
 l2 rather than one, because arms 10-13 measured each on the continuity study and this
 is the scored task.
 
+Arm 13 passes - Gate L's first predeclared pass at corpus scale. Start features and the
+metric head at the full budget put the hidden-segment endpoint 17.9 bins from the truth
+(median 10.5) against 25.6 (median 17.0) for the copy-the-previous-endpoint policy over
+339 held-out icons, held-out likelihood 3.309 at 0.691 of the floor and still falling
+at step 6,300, every completion valid. The sequence: 58-60 bins with nothing in the
+input, 47.8 with the start point at a third of the budget, 41.7 with the head, 29.1 at
+the full budget, 17.9 with both. The same 530k parameters that sat at the floor for
+five arms read their context as soon as the value they need is in the input and the
+head can place a bump where it says. Arm 14 - l2's inpainting run with this mechanism
+and chain-order decoding, on l2's icons and criteria - is on the GPU.
+
 ## Active jobs
 
 The research weblog is served by `scripts/serve_weblog.py` in tmux session
@@ -1171,19 +1182,15 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Read arms 9b, 11 and 12. Whichever of 11 and 12 comes closest to - or beats - the copy
-policy is the configuration the corpus inpainting run repeats with, decoded in chain
-order, on l2's criteria with the continuity probe beside the render. If neither beats
-the copy policy, the two combine (start features, metric head, full budget) as one
-further arm before the output representation itself is questioned - predicting an
-offset from the start point rather than an absolute bin is a codec-level change and
-would be recorded as such before any run.
-
-Once the mechanism exists, the scored task follows it: the editing result this gate can
-reach is the local one - spans, refinements, restyles - with whole-path completion kept
-as the reported hard case rather than the gate. Whole-path completion of an arbitrary
-path is close to generation of a part, and Gate I says parts of unseen concepts are as
-unseen as wholes.
+Read arm 14, the scored task with the mechanism. If the model now beats the hole on
+whole-path completion, Gate L has its editor and the next work is the Gate K viewer
+over the frozen checkpoint. If it still loses to the hole while its continuity is
+sound, the reading is the one PROJECT_PLAN.md section 15 anticipated - whole-path
+completion of an arbitrary path is close to generation of a part - and the scored task
+moves to the local edits the mechanism supports: a span of segments hidden inside a
+path with its neighbours visible, scored by paired render recovery against a
+zero-parameter fill that joins the visible ends, on held-out icons, predeclared, with
+the sheet beside the numbers. Either way the continuity probe stays in every run.
 
 What is retired, so it is not picked up again by habit: further single-factor sweeps on
 the p = 0.35 denoiser, further left-to-right arms, and the corpus-scale corruption-process
