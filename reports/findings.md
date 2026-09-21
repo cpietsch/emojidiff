@@ -2238,3 +2238,28 @@ training distribution and the fix is the mixture. If it does not, the loss and t
 are next, one at a time. The continuity probe is measured by the harness for every run
 from here, model against the copy policy, so that every arm is read on the mechanism
 and not only on the render.
+
+## 2026-09-21 — Continuity as the only task: still not learned, so the mixture is not it
+
+**Hypothesis.** If the corpus arms failed to learn continuity because seven of ten
+masked coordinates in their training mixture had no visible neighbour, a model trained
+on single-segment masks and nothing else should beat the copy-the-previous-endpoint
+policy on that one task.
+
+**Observation. Falsified.** Over one hidden segment in each of 339 held-out icons, the
+model's predicted endpoint is **59.7 bins** from the truth (median 54.5) against **25.6**
+(median 17.0) for the copy policy and 140 for the marginal argmax. Held-out masked
+likelihood is 4.532 nats against the floor's 4.787, a ratio of 0.947, and the training
+loss is flat from step 300 at about 4.5. The mechanism is not merely diluted in the
+mixture; it does not appear when the mixture is removed.
+
+**Decision.** The mixture is eliminated as the cause. Two candidates remain and the
+output head is the more specific: it is a linear map from a 96-wide state onto 289
+unordered bins, so to place a bump at a value a neighbour supplies, attention must learn
+to copy that value and the head must independently learn a Fourier ordering over the
+bins, and neither is rewarded until the other exists - a trap the position prior sits
+comfortably outside of. The metric head makes a coordinate logit the inner product of a
+projection of the state with the input side's Fourier features of that bin, plus the
+categorical bias, so any state that carries a copied value produces a bump at it from
+the first step. It runs through the overfit test and then the same continuity study,
+one change from arm 5. If it fails too, the target kernel is next.

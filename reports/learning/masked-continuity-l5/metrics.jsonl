@@ -1,0 +1,8 @@
+{"held_out_nll":5.198353921809204,"marginal_nll":4.786513732286344,"masked_token_accuracy":0.055944055944055944,"step":0}
+{"held_out_nll":4.61198307096862,"marginal_nll":4.786513732286344,"masked_token_accuracy":0.11888111888111888,"step":300,"train_loss":4.413948059082031}
+{"held_out_nll":4.595539922031938,"marginal_nll":4.786513732286344,"masked_token_accuracy":0.14577729962345348,"step":600,"train_loss":4.489622592926025}
+{"held_out_nll":4.588521032964369,"marginal_nll":4.786513732286344,"masked_token_accuracy":0.14147391070467993,"step":900,"train_loss":4.460956573486328}
+{"held_out_nll":4.571469717861953,"marginal_nll":4.786513732286344,"masked_token_accuracy":0.1447014523937601,"step":1200,"train_loss":4.51190185546875}
+{"held_out_nll":4.552080828506117,"marginal_nll":4.786513732286344,"masked_token_accuracy":0.14201183431952663,"step":1500,"train_loss":4.473588466644287}
+{"held_out_nll":4.53642867623381,"marginal_nll":4.786513732286344,"masked_token_accuracy":0.1490048413125336,"step":1800,"train_loss":4.6518096923828125}
+{"held_out_nll":4.531823072592503,"marginal_nll":4.786513732286344,"masked_token_accuracy":0.1447014523937601,"step":2100,"train_loss":4.410138130187988}

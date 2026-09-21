@@ -1,0 +1,53 @@
+# Gate L arm 7: arm 5 with the metric output head, and nothing else changed.
+#
+# Arm 5 trained on single-segment masks alone and still put its endpoint 60 bins from
+# the truth against 26 for a policy that copies the previous endpoint, so the training
+# mixture is not why the corpus arms never read their neighbours. The categorical head
+# is the next candidate: a linear map onto 289 unordered bins cannot place a bump at a
+# copied value until it has learned an ordering over the bins, and nothing rewards the
+# copy until it can. The metric head removes that: a coordinate logit is the inner
+# product of a projection of the state with the Fourier features of that bin, the same
+# features the input uses, plus the categorical bias.
+#
+# Same corpus, splits, budget, single-segment masks, one-unit kernel and criterion as
+# arm 5. If this beats the copy policy the head was the trap; if it does not, the
+# target kernel is next, one factor at a time.
+schema_version: 1
+study_version: masked-continuity-l7-metric-head
+source_revision: 5475283
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+report_root: reports/learning/masked-continuity-l7-metric-head
+checkpoint_root: data/processed/masked-continuity-l7-metric-head
+
+data:
+  train_icons: null
+  evaluate_on: validation
+  evaluation_icons: 339
+  inpaint_icons: 16
+
+model: {d_model: 96, heads: 4, layers: 4, feedforward: 192, metric_coordinates: 8, dropout: 0.1, metric_head: true}
+
+# One family, one segment at a time.
+masks: {span: 1.0, span_max: 1}
+
+training:
+  steps: 2100
+  batch_size: 16
+  learning_rate: 0.001
+  weight_decay: 0.01
+  seed: 3601
+  eval_every: 300
+  patience_evals: 8
+  marginal_alpha: 1.0
+  coordinate_tau: 1.0
+
+decoding: {iterations: 8, samples: 1, render_size: 72, render_timeout_seconds: 20}
+
+# Predeclared, and hashed into the run identity with the rest of this file.
+criteria:
+  # The model's mean endpoint error in bins, over one hidden segment per held-out icon,
+  # must be below the copy-the-previous-endpoint policy's. That policy scored 24.5 on
+  # this draw; the corpus arms scored 55 and 56.
+  beats_copy_previous: true
+  # Every completion validates and renders.
+  require_all_valid: true
