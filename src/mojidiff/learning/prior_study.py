@@ -125,6 +125,15 @@ def run_prior_study(config_path: Path) -> dict[str, Any]:
         **train_report,
         **evaluation,
     }
+    if "control_report_root" in root:
+        from mojidiff.learning.omnisvg_finetune import compare_to_control
+
+        rows_drawn = [
+            json.loads(line)
+            for line in (report_root / "drawings.jsonl").read_text().splitlines()
+            if line.strip()
+        ]
+        summary["control"] = compare_to_control(rows_drawn, Path(str(root["control_report_root"])))
     if "criteria" in root:
         summary["criteria"] = root["criteria"]
         summary["checks"] = _checks(summary, root["criteria"])
@@ -304,17 +313,21 @@ def _evaluate(
                 compact_svg(_load_program(row, pilot, codec), codec, pilot.total_segment_slots)
             )
     clip = Clip(device)
+    texts = [annotations.get(row.hexcode, row.hexcode) for row in rows]
+    references = [
+        render_program(
+            _load_program(row, pilot, codec), codec, pilot.total_segment_slots, limits, size
+        )
+        for row in rows
+    ]
+    reference_features = clip.image(references)
+    caption_features = clip.text(texts)
     records: list[dict[str, Any]] = []
     tiles: list[tuple[str, list[Image.Image]]] = []
     generate_seconds = 0.0
     for index, row in enumerate(rows):
-        annotation = annotations.get(row.hexcode, row.hexcode)
-        reference = render_program(
-            _load_program(row, pilot, codec), codec, pilot.total_segment_slots, limits, size
-        )
-        reference_feature = clip.image([reference])
-        caption_feature = clip.text([annotation])
-        row_tiles = [reference]
+        annotation = texts[index]
+        row_tiles = [references[index]]
         for sample in range(samples):
             greedy = greedy_first and sample == 0
             clock = time.perf_counter()
@@ -339,6 +352,7 @@ def _evaluate(
                 record["failure"] = "no_closed_svg"
                 record["codec_valid"] = False
             else:
+                record["svg"] = svg
                 record["svg_chars"] = len(svg)
                 record["memorised_exactly"] = svg in train_texts
                 program, info = parse_into_codec(svg.encode(), codec, pilot.total_segment_slots)
@@ -354,8 +368,13 @@ def _evaluate(
                     image = render_program(program, codec, pilot.total_segment_slots, limits, size)
             if image is not None:
                 feature = clip.image([image])
-                record["clip_to_reference"] = float((feature @ reference_feature.T)[0, 0])
-                record["clip_to_caption"] = float((feature @ caption_feature.T)[0, 0])
+                similarities = (feature @ reference_features.T)[0]
+                own = float(similarities[index])
+                record["clip_to_reference"] = own
+                record["reference_rank"] = 1 + int((similarities > own).sum())
+                record["clip_to_caption"] = float(
+                    (feature @ caption_features[index : index + 1].T)[0, 0]
+                )
             row_tiles.append(
                 image if image is not None else Image.new("RGB", (size, size), "white")
             )
@@ -366,6 +385,7 @@ def _evaluate(
     _write_bytes_artifact(report_root / "drawings.jsonl", payload)
     _write_bytes_artifact(report_root / "samples.png", sheet)
     scored = [r for r in records if "clip_to_reference" in r]
+    ranks = [r["reference_rank"] for r in scored]
     return {
         "icons": len(rows),
         "samples_per_icon": samples,
@@ -379,6 +399,13 @@ def _evaluate(
         "median_tokens": float(np.median([r["tokens"] for r in records])),
         "clip_to_reference": _stats([r["clip_to_reference"] for r in scored]),
         "clip_to_caption": _stats([r["clip_to_caption"] for r in scored]),
+        "reference_rank": {
+            "scored": len(ranks),
+            "top1_rate": sum(1 for rank in ranks if rank == 1) / len(records),
+            "top5_rate": sum(1 for rank in ranks if rank <= 5) / len(records),
+            "mean": float(np.mean(ranks)) if ranks else None,
+            "chance_top1": 1.0 / len(rows),
+        },
         "generation": {
             "max_new_tokens": max_new_tokens,
             "seconds_per_drawing": generate_seconds / len(records),
@@ -403,6 +430,15 @@ def _checks(summary: dict[str, Any], criteria: dict[str, Any]) -> dict[str, bool
         checks["memorisation"] = summary["memorised_exactly"] <= int(
             criteria["max_memorised_exactly"]
         )
+    if criteria.get("clip_gain_over_control_ci_excludes_zero"):
+        control: dict[str, Any] = summary.get("control") or {}
+        checks["clip_gain_over_control"] = bool(control) and float(control["gain_ci95"][0]) > 0
+    if "min_reference_top1_rate" in criteria:
+        checks["reference_top1_rate"] = summary["reference_rank"]["top1_rate"] >= float(
+            criteria["min_reference_top1_rate"]
+        )
+    if "min_ended_rate" in criteria:
+        checks["ended_rate"] = summary["ended_rate"] >= float(criteria["min_ended_rate"])
     return checks
 
 
@@ -437,8 +473,10 @@ def main() -> None:
         "median_tokens",
         "clip_to_reference",
         "clip_to_caption",
+        "reference_rank",
         "memorised_exactly",
         "training",
+        "control",
         "checks",
         "predeclared_outcome",
     )

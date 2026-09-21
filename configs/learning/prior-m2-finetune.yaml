@@ -1,0 +1,62 @@
+# Gate M, experiment two, step two: Qwen3.5-2B-Base fine-tuned with LoRA to write OpenMoji
+# as the project's compact canonical SVG text from a caption comment.
+#
+# All training icons whose caption and compact SVG fit in 2,048 tokens (the excluded
+# count is reported), the loss on the SVG only, rank-16 adapters on every linear layer,
+# selection by held-out suffix likelihood on 32 validation icons. The evaluation is the
+# control's: the same 32 held-out icons, a greedy and a sampled drawing each, parsed by
+# the typed codec, rendered, scored with the pinned CLIP against the held-out render and
+# the caption, and ranked against every held-out render.
+#
+# Predeclared criteria, against the zero-shot control (prior-m2-control):
+#   - at least 80% of drawings are taken by the typed codec (the model writes the codec's
+#     own canonical form, so validity is achievable, unlike OmniSVG's outlined language);
+#   - the per-icon gain in CLIP similarity to the held-out render over the control has a
+#     paired bootstrap 95% interval that excludes zero;
+#   - the right icon is retrieved first among the 32 held-out renders for at least a
+#     quarter of the drawings (chance 1/32 = 0.031);
+#   - no drawing reproduces a training icon's text exactly.
+schema_version: 1
+study_version: prior-m2-finetune
+mode: finetune
+report_root: reports/learning/prior-m2-finetune
+checkpoint_root: data/processed/prior/prior-m2-finetune
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+
+model:
+  source: Qwen/Qwen3.5-2B-Base
+  revision: b1485b2fa6dfa1287294f269f5fb618e03d52d7c
+
+data:
+  icons: 32
+
+training:
+  lora: {rank: 16, alpha: 32, dropout: 0.05}
+  max_tokens: 2048
+  held_out_icons: 32
+  steps: 600
+  accumulate: 8
+  eval_every: 25
+  patience_evals: 6
+  loss_chunk: 1024
+  learning_rate: 1.0e-4
+  weight_decay: 0.0
+  warmup_steps: 25
+  seed: 6302
+
+generation:
+  samples: 2
+  greedy_first: true
+  max_new_tokens: 4096
+  seed: 6201
+
+control_report_root: reports/learning/prior-m2-control
+
+criteria:
+  min_codec_valid_rate: 0.8
+  clip_gain_over_control_ci_excludes_zero: true
+  min_reference_top1_rate: 0.25
+  max_memorised_exactly: 0
+
+render:
+  size: 72
