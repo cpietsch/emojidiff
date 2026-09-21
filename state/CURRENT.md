@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T17:45:00Z
+Updated: 2026-09-21T18:10:00Z
 
 ## Current hypothesis and evidence
 
@@ -965,6 +965,23 @@ reproduction and validity. The lesson, the same one the first overfit test taugh
 change can be carried by a run without being exercised by it, and an identical trace is
 the sign.
 
+Arms 6b and 7b close the head question. With the head on at every trained position the
+overfit half passes all three criteria (accuracy 0.996, 4 of 4 exact, all valid), and
+the continuity half - whose untrained trace starts at 6.08 against arm 5's 5.20, so the
+change was exercised - converges to the same place: 58.3 bins against the copy policy's
+25.6, held-out likelihood 0.947 of the floor. Four single-factor arms have now left the
+model unable to read its neighbours. The causal model of Gate I is the useful contrast:
+it could fit its coordinates because under the causal shift the previous coordinate is
+the input at the prediction position itself; here it sits seven slots away, in a
+position that depends on the previous kind, behind learned absolute embeddings over
+packed slots, and attention has to discover a fetch that is rewarded only once it
+exists. Arm 9/10 makes the masked model's input as local as the causal model's: every
+segment block carries Fourier features of its own start point - the previous segment's
+endpoint, or the header's start for a path's first segment - when visible, nothing when
+hidden, behind `model.start_features` with a test. Both halves are chained on revision
+`4c9d1e3` as `masked-overfit-l9-start-4c9d1e3-4icons-9b9b1699` and
+`masked-continuity-l10-start-4c9d1e3-2681icons-9b9b1699`.
+
 ## Active jobs
 
 The research weblog is served by `scripts/serve_weblog.py` in tmux session
@@ -1099,20 +1116,16 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Read arms 6b and 7b. If the metric head lets the continuity-only model beat the copy
-policy, the trap is identified and the corpus inpainting run repeats with the head on,
-l2's criteria unchanged, and the scored task is then reframed toward the local edits
-the mechanism supports - spans, refinements, restyles - with whole-path completion kept
-as the reported hard case rather than the gate. If the head does not help, the target
-kernel mixture runs on the continuity study next; and if that fails too, the honest
-next question is the output representation itself - predicting coordinates relative to
-a visible anchor, or as a value rather than a bin - which is a codec-level change and
-would be recorded as such before any run.
-
-Whole-path completion of an arbitrary path is close to generation of a part, and Gate I
-says parts of unseen concepts are as unseen as wholes; the editing result this gate can
-reach is the local one, and the scored task should follow the mechanism once the
-mechanism exists.
+Read arms 9 and 10. If start-point features let the continuity-only model beat the copy
+policy, the position machinery was the blocker and the fix is principled: the corpus
+inpainting run repeats with start features on (l2's criteria unchanged, the continuity
+probe beside the render), and the scored task is reframed toward the local edits the
+mechanism supports - spans, refinements, restyles - with whole-path completion kept as
+the reported hard case rather than the gate. If the model still cannot beat the copy
+policy with its start point in its own input, the evidence has narrowed to the loss and
+the head acting together, and the next question is the output representation itself -
+predicting an offset from the start point rather than an absolute bin - which is a
+codec-level change and would be recorded as such before any run.
 
 What is retired, so it is not picked up again by habit: further single-factor sweeps on
 the p = 0.35 denoiser, further left-to-right arms, and the corpus-scale corruption-process
