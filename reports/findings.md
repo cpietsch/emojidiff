@@ -2630,3 +2630,27 @@ at and no arm has pulled is training length: held-out likelihood was still falli
 step 6,300 in every corpus run since the mechanism arrived, and the checkpoint was
 selected at the last step each time. A specialist trained three times longer is queued
 behind arm 20 on the same spans.
+
+## 2026-09-21 — Trained for the length: parity a third time, with a tighter tail
+
+**Hypothesis.** A specialist trained on spans of one to four, read on four-segment spans,
+should beat the join fill where a model trained short of the length only tied it.
+
+**Observation. Falsified; parity.** Mean −0.0006 against the join, interval [−0.0016,
++0.0005] spanning zero, 24 of 56 helped, median recovery −0.01; the marginal policy
+beaten on 49 of 56 with the interval excluding zero; span for span against the
+shorter-trained model, 30 better and 24 worse, mean difference under 0.001. What did
+move is the tail: the tenth percentile of recovery is −0.48 against the shorter model's
+−1.58, so the bad cases are less bad, while the centre stays on zero. Held-out
+likelihood 0.809 of its floor and still falling at step 6,300; every completion valid.
+
+**Reading.** Three readings at two span lengths with three checkpoints say the same
+thing: at this corpus size the specialist's local completion is as good as a straight
+cut between the visible ends, and no better, at the median - with the wins and the
+losses in the tails roughly balancing. The two levers not yet pulled are the ones every
+curve points at: training length, since every corpus run since the mechanism arrived
+selected its last step with the curve still falling; and capacity with regularisation,
+the one cell no gate in this project has measured. Arm 21 is the first, on the GPU;
+arm 22 is the second, queued behind it, at ten times the parameters with the same
+dropout. If neither moves the centre, the gate concludes on parity with the mechanism
+result standing.

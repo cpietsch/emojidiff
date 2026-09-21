@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T22:05:00Z
+Updated: 2026-09-21T22:25:00Z
 
 ## Current hypothesis and evidence
 
@@ -1112,6 +1112,14 @@ on 49 of 56, every completion valid. Arm 20, trained on spans of one to four, is
 GPU on the same spans; arm 21, arm 20 trained three times longer (18,900 steps), is
 queued behind it - the one lever every falling curve pointed at and no arm has pulled
 (`masked-span-l21-specialist-4-long-5a50b51-2681icons-9b9b1699`).
+
+Arm 20, trained on spans of one to four and read at four, ties the join a third time
+(-0.0006, interval spanning zero, 24 of 56 helped), beats the marginal on 49 of 56, and
+is indistinguishable span for span from the shorter-trained model; the recovery tail
+tightened (tenth percentile -0.48 against -1.58) without the centre moving. Arm 21
+(three times longer) is on the GPU and arm 22 (about ten times the parameters with the
+same dropout, `masked-span-l22-specialist-4-large-a83419d-2681icons-9b9b1699`) is queued
+behind it: the last two levers before the gate concludes on parity.
 
 ## Active jobs
 
