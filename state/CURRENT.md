@@ -542,6 +542,19 @@ where recovery was memorization. Gate C and Gate D are untouched: the codec is e
 render-safe, and none of this is about the representation.
 
 
+Gate I is complete and its answer is negative in a specific, useful way. A causal model
+over the typed SVG codec, matched to Gate G's v16 on parameters, corpus, splits and
+training budget, clears a zero-parameter position-marginal floor by 7.7% in nats against
+a predeclared 50%, and the renders show what that gain is made of: valid programs in
+corpus palette colours with plausible ink coverage and no recognisable shape anywhere.
+Five arms measured every factor available - coordinate representation, data volume,
+capacity, regularisation - and the gap to the floor moved from 0.28 to 0.26 nats. The
+codec supports generation, in that every sample is a valid renderable program and the
+legal-token masks make an invalid one unreachable. It does not support learning
+generation left to right at any scale this project can reach. The branch this recommends
+is an any-order masked model, which is also the only one that could be scored against the
+denoiser on one task with one metric - the comparison PROJECT_PLAN.md section 8 asks for
+and that a left-to-right sampler cannot enter.
 
 ## Last completed action and verification
 
@@ -978,35 +991,44 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Read Gate I arm 3 against arm 2, then decide between two named branches. Arm 2
-(`ar-corpus-i2`) is committed and falsified: at a budget matched to v16 on every term
-the plan names, the autoregressive model reaches 3.6249 nats per free token against a
-zero-parameter position-marginal floor of 3.9290 - a ratio of 0.923 where the
-predeclared criterion was 0.500 - and from step 1200 it is worse than the floor while
-its training loss keeps falling. Arm 3 changes exactly one thing, the coordinate
-encoding, because the causal model inherited the defect Gate G verified on this same
-codec: coordinate tokens as unordered categories on a quarter-unit lattice, Spearman
--0.136 against bin distance.
+Gate I is closed. Build the any-order masked model, which is the one branch this gate's
+result actually recommends and the only one that is not more of the same.
 
-If arm 3 moves the ratio materially, the next arm is the output side, which carries the
-matching defect: the head is an unordered 418-way softmax where a one-bin miss costs
-what a far one does, and Gate G's answer was a distance kernel with tau in view units.
-If arm 3 does not move it, the evidence points at data volume rather than
-representation - 2,681 sequences of 1,376 tokens is very little, Gate G already found
-data volume to be the one training-side factor that mattered, and the overfitting
-signature here is unambiguous.
+What Gate I established, in five measured arms. A causal model over this codec, matched
+to v16 at 524,674 parameters against 525,152 on the same hashed corpus and the same
+100,800 icon presentations, clears a zero-parameter position-marginal floor by 7.7%
+against a predeclared 50%. The renders say what that number means: valid programs in
+corpus palette colours, median 8.5 active paths, ink coverage 0.388 against the
+exemplars' 0.253, and not one recognisable shape across eight subgroups and 24 samples.
+Every factor available was then measured and the gap to the floor moved from 0.28 to
+0.26 nats - the coordinate fix that was decisive for the denoiser does nothing, 4x the
+data buys 0.0055 of ratio, 9x the capacity is monotonically worse, and dropout is the
+largest single effect at 0.0142 and an order of magnitude short. The codec supports
+generation in the sense every sample is valid and renderable. It does not support
+learning generation left to right at any scale this project can reach.
 
-Either way the comparison Gate I owes PROJECT_PLAN.md section 8 is not yet on a common
-axis. The denoiser is scored by paired render recovery against identity and the sampler
-by likelihood against a marginal floor, and neither metric applies to the other model.
-There is one task both can do: given a real icon with its tail removed, complete it -
-the AR model by construction, the denoiser by being handed the same icon with that tail
-corrupted - and score both by render MAE against the truth. That is the honest
-head-to-head and it should be built once one of the arms is worth comparing.
+Why an any-order masked model and not more AR arms. The quality half of PROJECT_PLAN.md
+section 8's comparison is not well-posed between a denoiser and a left-to-right sampler:
+paired render recovery needs a corrupted input and a sampler has none, held-out
+likelihood needs an unconditional model and the denoiser is conditioned on a corrupted
+program, and forcing a common task would put one of them out of distribution while
+looking fair. A masked model conditions on an arbitrary subset of observed tokens, so it
+can be handed exactly the input v16 is handed and scored by exactly the metric v16 is
+scored by - paired render recovery against the identity baseline, on the same icons at
+the same corruption levels. It reuses this gate's codec, legal-token masks, split
+discipline, floor methodology and measurement harness. It is the only route on the board
+that produces a comparison rather than another incomparable number.
 
-Measured on gpubox-4080 and reportable now: 301 s to train, 3.63 GiB peak, 1.232 s to
-decode one icon through the cache against 1.435 s re-reading the whole prefix at every
-position. The cache is worth 16%, not an order of magnitude - at 524,674 parameters the
-decode is bound by kernel launches rather than arithmetic. Both paths agree at every one
-of 1,376 positions.
+Two things to carry forward into it. Dropout's curve had not turned when Gate I closed -
+0.3 beat 0.1 and peaked later - so regularisation is unexhausted rather than exhausted,
+and a masked model should start with it rather than discover it last. And the KV cache
+is worth 16% at this scale rather than an order of magnitude, because a 525k-parameter
+decode is bound by kernel launches rather than arithmetic; that is measured on
+gpubox-4080 and any latency claim should be re-measured rather than argued.
+
+Also still outstanding from Gate G, unchanged: the corpus-scale corruption-process
+comparison, committed under
+`openmoji-g1-corruption-process-corpus-76f41a3-2arms-9b9b1699`, needs the
+marginal-respecting process as a third arm and its gated metric switched to paired render
+recovery.
 

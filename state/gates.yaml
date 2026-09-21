@@ -7,19 +7,23 @@
 #
 # status: complete | open | blocked | not-started
 schema_version: 1
-updated: 2026-09-20
+updated: 2026-09-21
 # One-line state of the research, shown as the weblog's headline. Keep it in sync with
 # the Current hypothesis section of state/CURRENT.md; the weblog falls back to that
 # section's newest paragraph if this is absent.
 headline: >-
-  Seven verified defects, none of them tuning knobs, had been distorting every Gate G
-  result - a loss that gave four fields 31% of its weight, no attention padding mask, a
-  corruption process detectable from a token marginal alone, coordinates encoded as
-  unordered categories on a metric lattice, two objectives of wildly different scale
-  sharing an encoder, a decode gate derived in the wrong units, and a primary metric
-  anti-correlated with the goal. With those fixed the model beats the identity policy
-  with nothing fitted on held-out data, and at low corruption it produces recognizable
-  icons and visibly repairs them. The ceiling was the corruption schedule all along.
+  Gate I is answered. A causal model over the same codec, matched to the denoiser at
+  524,674 parameters against 525,152 on the same hashed corpus and the same 100,800 icon
+  presentations, clears a zero-parameter position-marginal floor by 7.7% against a
+  predeclared 50% - and the renders say exactly what that number means. The samples are
+  scribbles: valid programs in corpus palette colours with plausible ink coverage and not
+  one recognisable shape. Five arms measured every factor available and the gap barely
+  moved. The coordinate fix that was decisive for the denoiser does nothing; four times
+  the data buys 0.0055 of ratio; nine times the capacity is monotonically worse; dropout
+  is the best of them at 0.0142 and an order of magnitude short. The codec supports
+  generation - every sample is valid and renderable - and does not support learning it
+  left to right at any scale this project can reach.
+
 gates:
   - id: Gate A
     title: Orchestration and recovery
@@ -128,24 +132,32 @@ gates:
     evidence: Gated on a stable OpenMoji pipeline.
   - id: Gate I
     title: Cached AR comparison
-    status: open
+    status: complete
     question: >-
       How does the denoiser compare with a matched, KV-cached autoregressive baseline -
       and does the representation support generation at all?
     evidence: >-
-      The causal model is built and learns: it memorises four icons exactly through the
-      KV cache and the dynamic legal-token masks, all four predeclared criteria passing.
-      At corpus scale, matched to v16 at 524,674 parameters against 525,152 on the same
-      hashed corpus and the same 100,800 icon presentations, it is falsified - 3.6249
-      nats per free token against a zero-parameter position-marginal floor of 3.9290, a
-      ratio of 0.923 where the criterion was 0.500, and worse than the floor from step
-      1200 while its training loss keeps falling. Samples are all valid and all distinct,
-      so there is no class collapse. Measured on gpubox-4080: 301 s to train, 3.63 GiB
-      peak, and the cache is worth 16% rather than an order of magnitude because at this
-      size the decode is bound by kernel launches rather than arithmetic. That is a real
-      measurement contradicting the asymptotic argument. The verdict on autoregression is
-      not in: the model inherited the categorical coordinate defect Gate G verified on
-      this same codec, and the arm that corrects it is running.
+      Answered, negatively and thoroughly. The causal model is built and learns: it
+      memorises four icons exactly through the KV cache and the dynamic legal-token
+      masks. At corpus scale, matched on every term the plan names, it reaches 3.6249
+      nats per free token against a zero-parameter position-marginal floor of 3.9290 - a
+      ratio of 0.923 where the criterion was 0.500 - and from step 1200 it is worse than
+      the floor while its training loss keeps falling. Five arms then measured every
+      factor available: the coordinate encoding that was decisive for the denoiser on
+      this same codec does nothing, 4x the data buys 0.0055 of ratio, 9x the capacity is
+      monotonically worse, and dropout is the largest effect at 0.0142 and still an order
+      of magnitude short. The renders settle it - eight subgroups, three samples each,
+      beside real icons: valid programs in corpus palette colours, median 8.5 active
+      paths, ink coverage 0.388 against 0.253, and no recognisable shape anywhere. The
+      numbers and the pictures agree. On gpubox-4080: 301 s to train, 3.63 GiB peak, and
+      the KV cache is worth 16% rather than an order of magnitude because at this size
+      the decode is bound by kernel launches rather than arithmetic - a measurement that
+      contradicts the asymptotic argument. The quality half of the plan's comparison is
+      not well-posed between these two models and that is recorded as the result rather
+      than papered over: no metric applies to both without putting one out of
+      distribution. The branch this recommends is an any-order masked model, which would
+      share this codec and harness and could be scored against the denoiser on one task
+      with one metric.
 
   - id: Gate J
     title: Deployment optimization

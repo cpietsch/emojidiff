@@ -1902,3 +1902,69 @@ was AdamW's default 0.01 throughout, which is not nothing but is not a response 
 overfitting either. Declaring that autoregression fails on this codec without once
 applying the standard regulariser for the exact failure mode observed would be a weak
 claim, and this project has been strict about not making those. Arm 6 runs it.
+
+## 2026-09-21 — Gate I answered: the samples are scribbles, and every lever is measured
+
+**Regularisation was the last untested remedy and the best one found.** Every arm had
+failed the same way — held-out likelihood bottoming out in two to four epochs and then
+rising while training loss kept falling — and no arm had carried any dropout at all.
+
+| dropout | held-out nats | ratio to floor | peak at |
+|---|---|---|---|
+| 0.0 (control) | 3.6480 | 0.9285 | 3.58 epochs |
+| 0.1 | 3.5977 | 0.9157 | 3.58 epochs |
+| 0.3 | 3.5921 | **0.9143** | 5.37 epochs |
+
+The control reproduces arm 5's base arm at 3.6480 exactly, so this is a controlled
+comparison and not three unrelated runs. Dropout is **the largest single effect measured
+in this gate** — −0.0142 of ratio, against 4× the data's −0.0055 and 9× the capacity's
++0.0107 the wrong way — and it is still an order of magnitude short of the 0.5 bar. Its
+curve has not turned: 0.3 beats 0.1 and peaks later, so the direction is not exhausted.
+It is simply far too small to matter.
+
+**Then I looked at the renders, which is the part Gate G taught.**
+
+Eight subgroups picked by hash, three ancestral samples each, beside a real icon from
+the same subgroup at the same size on the same ground
+(`reports/learning/ar-renders-i2/samples.png`). **The samples are scribbles.** Every one
+is a valid program — the legal-token masks guarantee that — drawn in corpus palette
+colours, with a median of 8.5 active paths and ink coverage 0.388 against the exemplars'
+0.253. Plausible statistics, and not one recognisable shape anywhere on the sheet.
+
+The renders and the numbers agree completely, which is the useful part. A 7.7% gain over
+a zero-parameter position-marginal floor is exactly what a model looks like when it has
+learned the corpus's colours, its stroke widths and roughly how much ink an icon has,
+and nothing about what an icon *is*.
+
+**Gate I's answer.** The typed SVG codec supports generation in the sense that every
+sample is a valid, renderable program — that part of the representation works exactly as
+designed. It does not support *learning* generation autoregressively at any scale this
+project can reach. Five arms measured every factor available and the gap to the floor
+moved from 0.28 to 0.26 nats:
+
+- coordinate encoding, the fix that was decisive for the denoiser: **nothing** (slightly worse)
+- 4× the data: **−0.0055** of ratio, extrapolating to ~150 doublings to reach the bar
+- 9× the capacity: **+0.0107**, the wrong way, monotonically
+- dropout 0 → 0.3: **−0.0142**, the best of them, an order of magnitude short
+
+**The cost comparison the plan asked for, delivered.** On gpubox-4080: 301 s to train at
+matched budget, 3.63 GiB peak, 1.232 s to decode one 1,376-token icon through the KV
+cache against 1.435 s re-reading the whole prefix at every position, the two paths
+agreeing at every one of 1,376 positions. **The cache is worth 16%, not an order of
+magnitude** — at this size the decode is bound by kernel launches rather than arithmetic.
+That is a measurement on a named GPU and it contradicts the asymptotic argument.
+
+**The quality half of that comparison is not well-posed, and saying so is the honest
+result.** PROJECT_PLAN.md section 8 asks for a quality comparison against the denoiser.
+Paired render recovery needs a corrupted input to recover from and a sampler has none;
+held-out likelihood needs an unconditional model and the denoiser is conditioned on a
+corrupted program. There is no task both models were trained for, and forcing one — tail
+completion, say — would put the denoiser out of distribution and dress the result up as
+fair. What would make it well-posed is a denoiser trained on contiguous-region corruption
+or a masked, any-order model, and both are new work rather than this gate.
+
+**Decision.** Gate I is closed on the evidence. The remaining branch that is not merely
+"more of the same" is the any-order masked model: it would share this codec, these masks
+and this measurement harness, and unlike the left-to-right model it could be scored
+against the denoiser on one task with one metric. That is the first thing this gate's
+result actually recommends.

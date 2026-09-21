@@ -1,0 +1,29 @@
+# What the best autoregressive arm actually draws, next to what it was asked to draw.
+#
+# Every number Gate I has produced - held-out likelihood, a ratio against a marginal
+# floor, a distinctness rate - can be satisfied by a model that emits plausible token
+# statistics and no icon. Gate G's whole history is the argument for looking: its scores
+# improved for months while the renders showed nothing a person would recognise, and the
+# moment the renders were put beside the identity baseline the picture changed.
+#
+# This is i2, the best-scoring arm at a ratio of 0.9226. Eight subgroups, three samples
+# each, beside a real icon from the same subgroup at the same size on the same ground.
+# The comparison is the point: a row where the samples are visibly not icons is a result
+# and so is a row where they are.
+#
+# Subgroups are picked by hash rather than by frequency. The most populous are the flags
+# and the skin-tone people, the easiest sequences in the corpus, and leading with them
+# would make any model look better than it is.
+schema_version: 1
+study_version: ar-renders-i2
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+checkpoint: data/processed/ar-corpus-i2/checkpoint.zip
+checkpoint_sha256: 09c031a0e427c22fe71d7c3ac3c3047b4dcb0bbb9f3dd82d26f59d2fa13da4f1
+report_root: reports/learning/ar-renders-i2
+
+model: {d_model: 96, heads: 4, layers: 4, feedforward: 192}
+
+subgroups: 8
+samples_per_subgroup: 3
+seed: 7701
+render: {size: 72, timeout_seconds: 20}
