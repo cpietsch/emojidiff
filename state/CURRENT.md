@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T21:50:00Z
+Updated: 2026-09-21T22:05:00Z
 
 ## Current hypothesis and evidence
 
@@ -1104,6 +1104,14 @@ the marginal policy every time: a two-segment span is too small an edit to beat 
 straight cut at 72 px. The task moves to four-segment spans with the draw pinned:
 arm 19 reads arm 17's checkpoint there (frozen) and arm 20 trains a specialist on spans
 of one to four, chained on the GPU.
+
+Arm 19 reads arm 17's checkpoint on four-segment spans of the 56 icons with a path long
+enough: parity with the join again (+0.0002, interval spanning zero, 26 of 56 helped,
+the model's median error 0.0046 below the join's 0.0054), a clear win over the marginal
+on 49 of 56, every completion valid. Arm 20, trained on spans of one to four, is on the
+GPU on the same spans; arm 21, arm 20 trained three times longer (18,900 steps), is
+queued behind it - the one lever every falling curve pointed at and no arm has pulled
+(`masked-span-l21-specialist-4-long-5a50b51-2681icons-9b9b1699`).
 
 ## Active jobs
 
