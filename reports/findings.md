@@ -2525,3 +2525,33 @@ the marginal policy, the same magnitude bar and validity. Read both checkpoints 
 without retraining - arm 14's mixture model and arm 13's span specialist - so that the
 choice between a general editor and a specialist is measured on the same 64 icons. The
 whole-path result stays reported as the hard case.
+
+## 2026-09-21 — The local edit: the specialist ties the join, the mixture model loses to it
+
+**Hypothesis.** Read on two-segment spans hidden inside held-out paths with visible
+neighbours, at least one of the two checkpoints - arm 14's mixture model, arm 13's span
+specialist - should complete the span better than a zero-parameter fill that joins the
+visible ends, and better than the marginal policy, with the magnitude bar met.
+
+**Observation. Both falsified as written, and they split.** The mixture model is worse
+than the join: mean −0.0048 RGBA MAE, interval [−0.0074, −0.0023], 9 of 64 helped,
+median recovery −1.35. The specialist - trained on single-segment masks and read on
+two-segment spans it never saw - is at **parity** with the join: mean **+0.0011**,
+interval [−0.0004, +0.0026] spanning zero, **26 of 64** helped, median recovery −0.035,
+and its median error, 0.00112, is below the join's 0.00146. Against the marginal policy
+the specialist wins on 60 of 64 with the interval excluding zero; the mixture model on
+40. Every completion valid. On the specialist's sheet the model's fills are
+indistinguishable from the clean icons in nearly every row, where the join shows its
+straight cut.
+
+**Reading.** Two things the numbers settle. The join is a strong identity policy for a
+two-segment span - its median error is a tenth of the whole-path hole's - so parity
+with it is not nothing, and the magnitude bar of 0.30 of that small error is a hard bar
+that the record keeps rather than lowers. And the specialist, whose continuity error is
+17.9 bins against the mixture model's 41.8, is the one that carries to the edit: the
+mixture dilutes the mechanism, exactly as arm 14's continuity said it would.
+
+**Decision.** The specialist is the line. Its one mismatch with the task is the span
+length it trained on; the next arm trains it on spans of one to three segments at the
+same budget, with the same mechanism, and reads it on the same 64 icons and
+two-segment spans. The whole-path result stays reported as the hard case.
