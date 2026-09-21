@@ -2263,3 +2263,28 @@ projection of the state with the input side's Fourier features of that bin, plus
 categorical bias, so any state that carries a copied value produces a bump at it from
 the first step. It runs through the overfit test and then the same continuity study,
 one change from arm 5. If it fails too, the target kernel is next.
+
+## 2026-09-21 — The metric head through the plumbing test: the decoder passes, exact bins lag
+
+**Hypothesis.** The model with the metric output head should still memorise four icons
+exactly through its masks and its grammar-ordered decoder.
+
+**Observation. Falsified as written, on one of three criteria.** Greedy completion
+reproduces **4 of 4** masked whole paths token for token with pixel-identical renders,
+every completion validates, and on the four training icons the continuity probe's error
+is **0.0 bins** against 28 for the copy policy. Masked-token accuracy under the fixed
+evaluation masks reaches 0.958 against the 0.99 bar, still rising at the last four
+evaluations (0.907, 0.919, 0.961, 0.958) where the categorical head reached 1.000 by
+step 2,700.
+
+**Reading.** The miss is what the head is, not what it does wrong. Its logits are a
+projection of the state against eight Fourier frequencies of each bin's value, and the
+finest of those has a period of 4.5 bins, so the bump it places is broad and pinning
+an exact bin under a memorisation mask is slower than for a free 289-way head. That
+resolution is irrelevant to the question the head was built for - whether the model
+can put a bump within tens of bins of a value a neighbour supplies - and the exact-
+reproduction criterion, which drives the whole decoder against a known target, passes.
+
+**Decision.** Record the falsification, do not re-run to meet the bar, and proceed to
+the continuity half on the strength of the criterion that exercises the pipeline. If
+exact-bin precision is ever the question, more frequencies are one number in a config.
