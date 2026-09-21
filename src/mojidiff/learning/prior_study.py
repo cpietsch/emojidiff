@@ -235,7 +235,7 @@ def _finetune(
             ids, labels = batch_tensors(example, device)
             loss, n = prior.suffix_loss(ids, labels, chunk)
             (loss / (accumulate * max(n, 1))).backward()  # type: ignore[no-untyped-call]
-            running += float(loss)
+            running += float(loss.detach())
             tokens_in_step += n
         torch.nn.utils.clip_grad_norm_(
             [p for p in prior.model.parameters() if p.requires_grad], 1.0

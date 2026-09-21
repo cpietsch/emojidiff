@@ -2848,3 +2848,16 @@ and the stop, all three visible in this reading's failure counts. Registered as 
 control; the LoRA fine-tune reads against it with the paired gain, the retrieval rank
 against all 32 held-out renders, an 80% codec-validity bar (the model writes the
 codec's own form) and a memorisation bound.
+
+## 2026-09-21 — SemIf on the 4B, averaged over option orders: 0.75, half the false asks
+
+**Observation.** Re-reading the 4B with the permutation-averaged readout, declared
+secondary before the run: accuracy rises from 0.577 to 0.75 over the 52 owned requests
+and the false asks fall from 22 to 10. The direct readout reproduces its registered
+numbers exactly.
+
+**Reading.** Most of the 4B's error was the last-letter bias, not the meaning. 0.75 is
+still under the 0.8 bar, and the residual errors sit on generate and simplify, the two
+operations the model cannot distinguish from "ask". SemIf's decision layer is a usable
+secondary signal, not the router the handoff described. No further SemIf run is planned
+in Gate M; the experiment's answer is recorded and the GPU goes to the fine-tunes.

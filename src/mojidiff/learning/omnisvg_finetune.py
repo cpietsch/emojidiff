@@ -266,7 +266,7 @@ def _train(
             ids, labels = example.tensors(device)
             loss, n = model.suffix_loss(ids, labels, chunk)
             (loss / (accumulate * max(n, 1))).backward()  # type: ignore[no-untyped-call]
-            running += float(loss)
+            running += float(loss.detach())
             running_tokens += n
         torch.nn.utils.clip_grad_norm_(trainable, 1.0)
         optimizer.step()
