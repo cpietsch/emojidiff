@@ -335,6 +335,59 @@ def test_dropout_adds_no_parameters_and_is_inert_at_zero(pieces: Pieces) -> None
         assert torch.allclose(plain(tokens, condition), plain(tokens, condition))
 
 
+def test_segment_ownership_follows_the_visible_lengths(pieces: Pieces) -> None:
+    """Every segment knows its path and its place in it, until a length is hidden."""
+
+    from mojidiff.learning.masked import segment_ownership
+
+    _, _, layout, programs, groups, subgroups = pieces
+    tokens = flatten_program(programs[0], layout)
+    owner, within = segment_ownership(tokens[None], layout)
+    blocks = path_blocks(tokens, layout)
+    for block in blocks:
+        for position in block.header:
+            assert int(owner[0, position]) == block.path
+            assert int(within[0, position]) == layout.codec.max_segments
+        for index, kind_position in enumerate(block.kinds(layout)):
+            for offset in range(7):
+                assert int(owner[0, kind_position + offset]) == block.path
+                assert int(within[0, kind_position + offset]) == index
+    # Slots past every declared length carry the sentinels.
+    used = sum(block.length for block in blocks)
+    if used < layout.total_segment_slots:
+        tail = layout.segment_type_position(used)
+        assert int(owner[0, tail]) == layout.codec.max_paths
+        assert int(within[0, tail]) == layout.codec.max_segments
+    # Masking the second path's length leaves the first path's segments known and every
+    # later segment unknown - the binding never guesses.
+    hidden = tokens.clone()
+    hidden[1 * PATH_STRIDE] = mask_token(layout)
+    owner, within = segment_ownership(hidden[None], layout)
+    first = blocks[0]
+    assert all(int(owner[0, p]) == 0 for p in first.segments)
+    later = blocks[1].segments[0]
+    assert int(owner[0, later]) == layout.codec.max_paths
+    assert int(within[0, later]) == layout.codec.max_segments
+    # Header positions keep their path regardless.
+    assert int(owner[0, 1 * PATH_STRIDE + 3]) == 1
+
+    # With binding on, the model forwards and differs from the unbound model; off, the
+    # parameter count is exactly the earlier arms'.
+    bound = _model(layout, groups, subgroups, path_binding=True)
+    plain = _model(layout, groups, subgroups)
+    extra = (layout.codec.max_paths + 1 + layout.codec.max_segments + 1) * 32
+    assert (
+        sum(p.numel() for p in bound.parameters())
+        == sum(p.numel() for p in plain.parameters()) + extra
+    )
+    condition = {
+        "group": torch.zeros(1, dtype=torch.long),
+        "subgroup": torch.zeros(1, dtype=torch.long),
+    }
+    with torch.no_grad():
+        assert bound(tokens[None], condition).shape == (1, layout.length, layout.vocabulary)
+
+
 def test_paired_interval_and_t_table() -> None:
     assert _t_critical(1) == 12.706 and _t_critical(30) == 2.042 and _t_critical(200) == 1.96
     assert _t_critical(35) == _t_critical(30), "between rows, the larger (conservative) value"

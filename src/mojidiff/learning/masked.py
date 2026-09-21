@@ -257,6 +257,7 @@ class MaskedProgramModel(nn.Module):
         subgroup_vocab_size: int = 0,
         metric_coordinates: int = 0,
         dropout: float = 0.0,
+        path_binding: bool = False,
     ) -> None:
         super().__init__()
         if d_model % heads:
@@ -264,6 +265,21 @@ class MaskedProgramModel(nn.Module):
         self.layout = layout
         self.mask_id = mask_token(layout)
         self.metric_coordinates = metric_coordinates
+        # The packed layout never tells the encoder which path a segment slot belongs to
+        # or where in that path it sits: a hole at slot 57 could be any path's, and the
+        # model has to count path_length tokens to find out. The corpus run learned
+        # style co-occurrence and nothing about coordinates, on its own training icons.
+        # With binding, every position carries its owning path's index and every segment
+        # its index within that path, both derived from the visible lengths, so a path's
+        # header and its geometry share one identity the way slot binding gave the
+        # denoiser's coordinates theirs.
+        self.path_binding = path_binding
+        self.path_identity = (
+            nn.Embedding(layout.codec.max_paths + 1, d_model) if path_binding else None
+        )
+        self.segment_identity = (
+            nn.Embedding(layout.codec.max_segments + 1, d_model) if path_binding else None
+        )
         self.token_embedding = nn.Embedding(layout.vocabulary + 1, d_model)
         self.position_embedding = nn.Embedding(layout.length, d_model)
         # Gate G verified on this codec that a categorical table carries no order over
@@ -315,6 +331,9 @@ class MaskedProgramModel(nn.Module):
         hidden = self.token_embedding(inputs) + self.position_embedding(positions)[None]
         if self.coordinate_projection is not None:
             hidden = self._apply_metric_coordinates(hidden, inputs)
+        if self.path_identity is not None and self.segment_identity is not None:
+            owner, within = segment_ownership(inputs, self.layout)
+            hidden = hidden + self.path_identity(owner) + self.segment_identity(within)
         if self.group_embedding is not None or self.subgroup_embedding is not None:
             if condition is None:
                 raise ValueError("this model was built with structured conditioning")
@@ -378,6 +397,52 @@ class MaskedProgramModel(nn.Module):
         categorical: Tensor = self.token_embedding(inputs)
         keep = is_coordinate[..., None].to(hidden.dtype)
         return hidden + keep * (replacement - categorical)
+
+
+def segment_ownership(inputs: Tensor, layout: SequenceLayout) -> tuple[Tensor, Tensor]:
+    """Which path each position belongs to, and each segment's index within its path.
+
+    Header positions belong to their own path and carry no within-path index (the
+    sentinel `max_segments`). Segment slots are assigned by walking the visible path
+    lengths in painter order; a slot past every declared length, or one whose owner
+    cannot be determined because a length before it is masked, gets the sentinel
+    `max_paths` for its owner and `max_segments` for its index. Everything is derived
+    from `inputs`, so it is available at decode time exactly as in training.
+    """
+
+    batch = inputs.shape[0]
+    device = inputs.device
+    max_paths = layout.codec.max_paths
+    max_segments = layout.codec.max_segments
+    mask_id = mask_token(layout)
+    owner = torch.full((batch, layout.length), max_paths, dtype=torch.long, device=device)
+    within = torch.full((batch, layout.length), max_segments, dtype=torch.long, device=device)
+    for path in range(max_paths):
+        owner[:, path * PATH_STRIDE : (path + 1) * PATH_STRIDE] = path
+    lengths = inputs[:, [path * PATH_STRIDE for path in range(max_paths)]]
+    known = lengths != mask_id
+    # Once a length is masked, every later offset is unknown.
+    determinable = torch.cumprod(known.to(torch.long), dim=1).bool()
+    counted = torch.where(known, lengths, torch.zeros_like(lengths))
+    starts = torch.cumsum(counted, dim=1) - counted
+    slots = torch.arange(layout.total_segment_slots, device=device)
+    slot_owner = torch.full(
+        (batch, layout.total_segment_slots), max_paths, dtype=torch.long, device=device
+    )
+    slot_index = torch.full(
+        (batch, layout.total_segment_slots), max_segments, dtype=torch.long, device=device
+    )
+    for path in range(max_paths):
+        begin = starts[:, path : path + 1]
+        end = begin + counted[:, path : path + 1]
+        mine = (slots[None] >= begin) & (slots[None] < end) & determinable[:, path : path + 1]
+        slot_owner = torch.where(mine, torch.full_like(slot_owner, path), slot_owner)
+        slot_index = torch.where(mine, slots[None] - begin, slot_index)
+    segment_owner = slot_owner.repeat_interleave(SEGMENT_STRIDE, dim=1)
+    segment_index = slot_index.repeat_interleave(SEGMENT_STRIDE, dim=1)
+    owner[:, layout.path_positions :] = segment_owner
+    within[:, layout.path_positions :] = segment_index
+    return owner, within
 
 
 def _start_positions(layout: SequenceLayout) -> Tensor:
