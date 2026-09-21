@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T18:30:00Z
+Updated: 2026-09-21T18:50:00Z
 
 ## Current hypothesis and evidence
 
@@ -993,6 +993,19 @@ e52b43e-4icons-9b9b1699`, queued behind arm 10. Arm 10, the continuity half, was
 launched on accuracy and validity because single-segment masks always have a visible
 start and the decoder order does not enter.
 
+Arm 10 is the first arm in Gate L that moves anything. With each segment's start point
+in its own input, continuity error falls from 58-60 bins to 47.8 (median 38.5), held-out
+likelihood from 4.532 to 4.119 - 0.861 of the floor where every earlier arm sat at
+0.947 - and the held-out curve is still falling at the last evaluation where every
+earlier arm was flat from step 300. Still short of the copy policy's 25.6, and
+unconverged at a third of the budget. The blocker was the fetch: five arms could not
+make attention find the previous endpoint seven slots away, and putting the value in
+the segment's own input starts the mechanism within the same budget. Two one-factor
+follow-ups are queued behind the chain-order overfit re-run: arm 11, the same run with
+the metric head at the same 2,100 steps, which should make copying the start a linear
+map now that the value is there to copy; and arm 12, the same run at the full 6,300
+steps, to see where the curve goes.
+
 ## Active jobs
 
 The research weblog is served by `scripts/serve_weblog.py` in tmux session
@@ -1127,16 +1140,19 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Read arms 9 and 10. If start-point features let the continuity-only model beat the copy
-policy, the position machinery was the blocker and the fix is principled: the corpus
-inpainting run repeats with start features on (l2's criteria unchanged, the continuity
-probe beside the render), and the scored task is reframed toward the local edits the
-mechanism supports - spans, refinements, restyles - with whole-path completion kept as
-the reported hard case rather than the gate. If the model still cannot beat the copy
-policy with its start point in its own input, the evidence has narrowed to the loss and
-the head acting together, and the next question is the output representation itself -
-predicting an offset from the start point rather than an absolute bin - which is a
-codec-level change and would be recorded as such before any run.
+Read arms 9b, 11 and 12. Whichever of 11 and 12 comes closest to - or beats - the copy
+policy is the configuration the corpus inpainting run repeats with, decoded in chain
+order, on l2's criteria with the continuity probe beside the render. If neither beats
+the copy policy, the two combine (start features, metric head, full budget) as one
+further arm before the output representation itself is questioned - predicting an
+offset from the start point rather than an absolute bin is a codec-level change and
+would be recorded as such before any run.
+
+Once the mechanism exists, the scored task follows it: the editing result this gate can
+reach is the local one - spans, refinements, restyles - with whole-path completion kept
+as the reported hard case rather than the gate. Whole-path completion of an arbitrary
+path is close to generation of a part, and Gate I says parts of unseen concepts are as
+unseen as wholes.
 
 What is retired, so it is not picked up again by habit: further single-factor sweeps on
 the p = 0.35 denoiser, further left-to-right arms, and the corpus-scale corruption-process
