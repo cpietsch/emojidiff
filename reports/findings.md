@@ -2830,3 +2830,21 @@ retrieved first for at least a quarter of the drawings, 90% of drawings ending, 
 drawing reproducing a training icon. A second control under the trainer's prompt
 separates the prompt's share from the training's. All three are queued behind the
 text-prior control and the SemIf re-read.
+
+## 2026-09-21 — The Qwen3.5-2B base prior knows SVG syntax, not icons
+
+**Observation.** The zero-shot control on the same 32 held-out icons, a greedy and a
+sampled drawing each, 4,096 tokens allowed: 18 of 64 drawings close their `<svg>`, 17
+render, 3 enter the typed codec. The median drawing runs to the cap without closing.
+What closes is a circle, a ring, a coloured square, a gradient blob or rendered text;
+the closed ones reach for gradients, `<text>` and colours outside the palette, all of
+which the codec forbids. CLIP-to-reference over the 17 rendered is 0.798 against the
+0.777 chance level; 37.7 s a drawing.
+
+**Reading.** This is the expected floor: a base model that has read SVG can open a
+document and emit well-formed path syntax but has nothing to say about a hedgehog. It is
+also the point of the experiment: the fine-tune must teach the icon, the canonical form
+and the stop, all three visible in this reading's failure counts. Registered as the
+control; the LoRA fine-tune reads against it with the paired gain, the retrieval rank
+against all 32 held-out renders, an 80% codec-validity bar (the model writes the
+codec's own form) and a memorisation bound.
