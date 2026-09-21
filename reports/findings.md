@@ -2179,3 +2179,62 @@ and buys little, which is what a plumbing test should show. 112 s, 0.50 GiB peak
 **Decision.** The corpus half runs: l2 with binding on and nothing else changed - the
 same corpus, splits, budget, masks, 64 held-out icons and removed paths - read on the
 same criteria l2 was falsified on.
+
+## 2026-09-21 — Binding changes nothing, and the model is not reading its neighbours at all
+
+**Hypothesis.** l2 sat at the position-marginal floor for coordinates on its own training
+icons while memorising four icons exactly, so the suspect was information the packed
+layout withholds: which path a segment belongs to and where in that path it sits. The
+bound arm gives every position both, derived from the visible lengths, and changes
+nothing else.
+
+**Observation. Falsified, and indistinguishable from l2 on every measure.** Held-out
+masked likelihood 3.843 against 3.869, accuracy 0.274 against 0.266, 8 held-out icons
+helped against 7, worse than the hole on 56 of 64 with the interval [−0.0069, −0.0023],
+and icon by icon the two arms differ by 0.0006 RGBA MAE with binding better on 25 of 64.
+Every completion valid. Ownership was not the missing information.
+
+**Two read-only probes then found what is.** First, the smallest geometric question a
+model can be asked: hide one segment's coordinates with its kind and both neighbours
+visible, and compare its predicted endpoint with the truth, in lattice bins of 289:
+
+| policy | held-out, mean / median | training icons, mean / median |
+| --- | ---: | ---: |
+| position-marginal argmax | 145 / 143 | 145 / 147 |
+| **copy the previous endpoint** (zero parameters) | **24.5 / 16.5** | **25.4 / 16.0** |
+| l2, unbound | 54.8 / 49.2 | 48.0 / 43.5 |
+| l4, bound | 56.4 / 52.2 | 39.4 / 34.0 |
+
+Both models learned coarse location - far better than the marginal - and neither
+learned continuity: a hidden segment ends near where the last one did, and a policy
+that knows only that beats both by more than two to one, on the icons they trained on.
+Second, the probe that explains it: shift the visible previous endpoint by −40 to +40
+bins and watch the prediction for the hidden one. It moves by a **median of 0.0** bins
+at every shift. The model does not read coordinate context at all. It predicts each
+coordinate from its position, the kinds and the styles, and nothing a neighbour says
+changes its answer.
+
+**Candidate causes, and what a computation says about the first.** The coordinate
+target is `exp(−|b − t| · 0.25 / 1.0)`, one view unit wide, chosen because it was
+decisive for the denoiser - whose corrupted input already sat within a few bins of the
+truth. Here nothing does, and a target that narrow could leave coarse localisation
+without a gradient. But that is not what the loss actually does for a prediction that
+is itself spread: a bump eight bins wide scores 4.78 nats sixteen bins off and 7.77
+forty bins off under the narrow kernel, a gap of 3.0, and 5.89 against 8.26 under an
+equal mixture of one- and eight-unit kernels, a gap of 2.4. The narrow kernel already
+distinguishes a coarse hit from a wild miss once the prediction is not a spike. So the
+kernel is a candidate, not a finding. The other candidates: the training mixture, in
+which seven of every ten masked coordinates have no visible neighbour in their own path
+and the signal for continuity is diluted by tasks that are close to generation; the
+output head, a linear map from a 96-wide state to 289 unordered bins, which has to
+discover a Fourier basis before it can place a bump wherever a neighbour says; and the
+input path, which a new test now pins at initialisation.
+
+**Decision.** Discriminate before building. The next run trains the same model on
+single-segment masks alone - the continuity task and nothing else - for a fraction of
+the corpus budget, and asks one predeclared question: does its predicted endpoint beat
+the copy-the-previous-endpoint policy? If it does, the corpus arms failed on their
+training distribution and the fix is the mixture. If it does not, the loss and the head
+are next, one at a time. The continuity probe is measured by the harness for every run
+from here, model against the copy policy, so that every arm is read on the mechanism
+and not only on the render.

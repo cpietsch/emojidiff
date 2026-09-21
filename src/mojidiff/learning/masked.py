@@ -141,6 +141,8 @@ class MaskMixture:
     random_rate_min: float = 0.05
     random_rate_max: float = 0.95
     max_paths: int = 2
+    span_max: int | None = None
+    """Longest run of segments a span may hide; None lets it reach the path's end."""
 
     def __post_init__(self) -> None:
         unknown = set(self.weights) - set(MASK_FAMILIES)
@@ -152,6 +154,8 @@ class MaskMixture:
             raise ValueError("random mask rate bounds must satisfy 0 <= min <= max <= 1")
         if self.max_paths < 1:
             raise ValueError("max_paths must be at least 1")
+        if self.span_max is not None and self.span_max < 1:
+            raise ValueError("span_max must be at least 1")
 
     @property
     def families(self) -> tuple[str, ...]:
@@ -203,7 +207,10 @@ def family_mask(
         candidates = [block for block in blocks if block.length >= 2] or list(blocks)
         block = candidates[int(rng.integers(len(candidates)))]
         first = int(rng.integers(0, block.length))
-        run = int(rng.integers(1, block.length - first + 1))
+        longest = block.length - first
+        if mixture.span_max is not None:
+            longest = min(longest, mixture.span_max)
+        run = int(rng.integers(1, longest + 1))
         for slot in range(block.offset + first, block.offset + first + run):
             base = layout.path_positions + slot * SEGMENT_STRIDE
             hide[base : base + SEGMENT_STRIDE] = True
@@ -462,7 +469,7 @@ def masked_loss(
     legal: Tensor,
     targets: Tensor,
     coordinates: Tensor,
-    tau: float,
+    tau: float | tuple[float, ...],
     step: float = 0.25,
 ) -> Tensor:
     """Cross-entropy at the target positions, pooled over fields, soft on coordinates.
@@ -473,6 +480,13 @@ def masked_loss(
     other position keeps an exact one-hot target. The mean is over fields, never over
     per-field groups; Gate G's loss weighted four rare fields as a third of the total
     that way.
+
+    `tau` may be several widths, in which case the target is their equal mixture: a
+    sharp peak that rewards precision and a wide basin that rewards being in the right
+    region. With one narrow kernel a prediction four view units away earns nothing, so
+    coarse localisation gets no gradient at all - which is how the first corpus arms
+    learned where things are on average and never that a segment starts where the last
+    one ended.
     """
 
     picked = logits[targets].float()
@@ -483,13 +497,17 @@ def masked_loss(
     soft = coordinates[None].expand_as(targets)[targets]
     bins = torch.arange(logits.shape[-1], device=logits.device)
     exact = (bins[None] == truth[:, None]).to(torch.float32)
-    if tau > 0.0:
+    widths = tuple(width for width in (tau if isinstance(tau, tuple) else (tau,)) if width > 0.0)
+    if widths:
         # Logits here index tokens, not lattice bins, so the kernel is centred on the
         # token itself. The denoiser's distance kernel subtracts one because its heads
         # index bins; copying that here centred every coordinate target one token low,
         # and the overfit test caught it as every coordinate exactly one bin off.
         distance = (bins[None] - truth[:, None]).abs().to(torch.float32)
-        spread = torch.exp(-distance * step / tau)
+        spread = torch.zeros_like(distance)
+        for width in widths:
+            kernel = torch.exp(-distance * step / width) * allowed
+            spread = spread + kernel / kernel.sum(dim=-1, keepdim=True).clamp_min(1e-12)
         weights = torch.where(soft[:, None], spread, exact)
     else:
         weights = exact

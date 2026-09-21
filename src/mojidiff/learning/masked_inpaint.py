@@ -31,7 +31,9 @@ from PIL import Image, ImageDraw
 from mojidiff.learning.ar_corpus import _build_split, _free_mask, _position_marginals, _Split
 from mojidiff.learning.ar_overfit import _distinct_subgroup_rows
 from mojidiff.learning.autoregressive import (
+    SEGMENT_STRIDE,
     SequenceLayout,
+    legal_mask,
     unflatten_program,
 )
 from mojidiff.learning.masked import (
@@ -100,7 +102,7 @@ class MaskedStudyConfig:
     eval_every: int
     patience_evals: int
     marginal_alpha: float
-    coordinate_tau: float
+    coordinate_tau: tuple[float, ...]
     iterations: int
     samples: int
     render_size: int
@@ -125,6 +127,7 @@ def load_masked_study_config(path: Path) -> MaskedStudyConfig:
         random_rate_min=float(masks.get("random_rate_min", 0.05)),
         random_rate_max=float(masks.get("random_rate_max", 0.95)),
         max_paths=int(masks.get("max_paths", 2)),
+        span_max=None if masks.get("span_max") is None else int(masks["span_max"]),
     )
     criteria = {str(key): value for key, value in dict(root["criteria"]).items()}
     unknown = set(criteria) - _CRITERIA
@@ -157,13 +160,21 @@ def load_masked_study_config(path: Path) -> MaskedStudyConfig:
         eval_every=int(training["eval_every"]),
         patience_evals=int(training["patience_evals"]),
         marginal_alpha=float(training.get("marginal_alpha", 1.0)),
-        coordinate_tau=float(training.get("coordinate_tau", 0.0)),
+        coordinate_tau=_widths(training.get("coordinate_tau", 0.0)),
         iterations=int(decoding.get("iterations", 8)),
         samples=int(decoding.get("samples", 0)),
         render_size=int(decoding.get("render_size", 72)),
         render_timeout_seconds=int(decoding.get("render_timeout_seconds", 20)),
         criteria=criteria,
     )
+
+
+def _widths(value: object) -> tuple[float, ...]:
+    """One kernel width or several, each in view units; zero means an exact target."""
+
+    if isinstance(value, list | tuple):
+        return tuple(float(item) for item in value)
+    return (float(cast(float, value)),)
 
 
 _FAMILY_KEYS = {"random", "path", "span", "style", "geometry"}
@@ -174,6 +185,7 @@ _CRITERIA = {
     "beats_drop_baseline",
     "beats_marginal_baseline",
     "min_median_recovery",
+    "beats_copy_previous",
     "require_all_valid",
 }
 
@@ -344,6 +356,7 @@ def run_masked_study(config: MaskedStudyConfig, config_path: Path) -> dict[str, 
         groups,
         subgroups,
     )
+    continuity = _continuity(model, evaluation, condition["evaluation"], marginals, layout)
 
     loss_reduction = initial_nll / max(best_nll, 1e-12)
     checks: dict[str, bool] = {}
@@ -370,6 +383,12 @@ def run_masked_study(config: MaskedStudyConfig, config_path: Path) -> dict[str, 
         checks["median_recovery"] = inpainting["model"]["median_recovery"] >= float(
             criteria["min_median_recovery"]
         )
+    if "beats_copy_previous" in criteria and bool(criteria["beats_copy_previous"]):
+        model_bins = continuity["model"]["mean_bins_off"]
+        copy_bins = continuity["copy_previous"]["mean_bins_off"]
+        checks["beats_copy_previous"] = (
+            model_bins is not None and copy_bins is not None and model_bins < copy_bins
+        )
     if "require_all_valid" in criteria and bool(criteria["require_all_valid"]):
         checks["all_valid"] = inpainting["all_valid"]
 
@@ -392,9 +411,10 @@ def run_masked_study(config: MaskedStudyConfig, config_path: Path) -> dict[str, 
             "weights": dict(config.mixture.weights),
             "random_rate": [config.mixture.random_rate_min, config.mixture.random_rate_max],
             "max_paths": config.mixture.max_paths,
+            "span_max": config.mixture.span_max,
             "drawn": families,
         },
-        "coordinate_tau": config.coordinate_tau,
+        "coordinate_tau": list(config.coordinate_tau),
         "path_binding": config.path_binding,
         "icon_presentations": metrics[-1]["step"] * config.batch_size,
         "selected_step": best_step,
@@ -409,6 +429,7 @@ def run_masked_study(config: MaskedStudyConfig, config_path: Path) -> dict[str, 
         "last_train_loss": last_loss,
         "loss_reduction_factor": loss_reduction,
         "inpainting": inpainting,
+        "continuity": continuity,
         "timing": {
             "prepare_seconds": prepare_seconds,
             "train_seconds": train_seconds,
@@ -616,6 +637,80 @@ def _inpaint(
         },
         "sheet_sha256": hashlib.sha256(sheet).hexdigest(),
         "rows_sha256": hashlib.sha256(_jsonl(rows)).hexdigest(),
+    }
+
+
+@torch.no_grad()
+def _continuity(
+    model: MaskedProgramModel,
+    split: _Split,
+    condition: dict[str, torch.Tensor],
+    marginals: torch.Tensor,
+    layout: SequenceLayout,
+) -> dict[str, Any]:
+    """The smallest geometric question: does a hidden segment end near where the last one did?
+
+    One segment's coordinates are hidden in each evaluation icon, kind and neighbours
+    visible, and the predicted endpoint is compared with the truth in lattice bins
+    against two zero-parameter policies: copy the previous segment's endpoint, and the
+    position-marginal argmax. A model that has learned continuity beats the copy policy;
+    the first corpus arms were more than twice as far off as it, on their own training
+    icons, which is how a loss with no basin was found.
+    """
+
+    from mojidiff.representation.program import SegmentType
+
+    endpoint_slots = {
+        int(SegmentType.LINE): (0, 1),
+        int(SegmentType.QUAD): (2, 3),
+        int(SegmentType.CUBIC): (4, 5),
+    }
+    device = next(model.parameters()).device
+    argmax = marginals.argmax(dim=-1)
+    errors: dict[str, list[float]] = {"model": [], "copy_previous": [], "marginal": []}
+    for index in range(len(split.rows)):
+        tokens = split.tokens[index]
+        candidates = [
+            (block, within)
+            for block in path_blocks(tokens, layout)
+            for within in range(1, block.length)
+            if int(tokens[layout.segment_type_position(block.offset + within)]) in endpoint_slots
+            and int(tokens[layout.segment_type_position(block.offset + within - 1)])
+            in endpoint_slots
+        ]
+        if not candidates:
+            continue
+        chooser = np.random.default_rng(_INPAINT_SEED + 777 + index)
+        block, within = candidates[int(chooser.integers(len(candidates)))]
+        base = layout.segment_type_position(block.offset + within)
+        previous = layout.segment_type_position(block.offset + within - 1)
+        hide = torch.zeros(layout.length, dtype=torch.bool)
+        hide[base + 1 : base + SEGMENT_STRIDE] = True
+        logits = model(
+            apply_mask(tokens, hide, layout)[None].to(device),
+            {key: value[index : index + 1].to(device) for key, value in condition.items()},
+        )[0].cpu()
+        slots = endpoint_slots[int(tokens[base])]
+        previous_slots = endpoint_slots[int(tokens[previous])]
+        truth = np.array([float(tokens[base + 1 + slot]) for slot in slots])
+        predicted = []
+        for slot in slots:
+            legal = legal_mask(base + 1 + slot, tokens, layout)
+            predicted.append(
+                float(logits[base + 1 + slot].masked_fill(~legal, float("-inf")).argmax())
+            )
+        copied = np.array([float(tokens[previous + 1 + slot]) for slot in previous_slots])
+        marginal = np.array([float(argmax[base + 1 + slot]) for slot in slots])
+        errors["model"].append(float(np.abs(np.array(predicted) - truth).mean()))
+        errors["copy_previous"].append(float(np.abs(copied - truth).mean()))
+        errors["marginal"].append(float(np.abs(marginal - truth).mean()))
+    return {
+        name: {
+            "n": len(values),
+            "mean_bins_off": float(np.mean(values)) if values else None,
+            "median_bins_off": float(np.median(values)) if values else None,
+        }
+        for name, values in errors.items()
     }
 
 

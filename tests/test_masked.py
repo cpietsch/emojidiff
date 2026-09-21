@@ -155,6 +155,12 @@ def test_every_mask_family_hides_what_it_says(pieces: Pieces) -> None:
     hide = family_mask("random", tokens, layout, mixture, np.random.default_rng(0))
     assert 0 < int(hide.sum()) < layout.length
 
+    # A capped span hides at most span_max segments, and exactly one at span_max 1.
+    capped = MaskMixture(weights={"span": 1.0}, span_max=1)
+    for seed in range(5):
+        hide = family_mask("span", tokens, layout, capped, np.random.default_rng(seed))
+        assert int(hide.sum()) == 7, "one segment block: its kind and six coordinates"
+
 
 def test_the_loss_pays_out_only_at_targets_and_prefers_nearby_bins(pieces: Pieces) -> None:
     _, _, layout, programs, _, _ = pieces
@@ -188,6 +194,23 @@ def test_the_loss_pays_out_only_at_targets_and_prefers_nearby_bins(pieces: Piece
     assert masked_loss(exact, tokens, legal, single, coordinates, tau=1.0) < masked_loss(
         below, tokens, legal, single, coordinates, tau=1.0
     )
+    # A mixture of widths keeps the minimum at the truth and gives a far miss a
+    # gradient it lacks under one narrow kernel: the difference between being 16 and
+    # 40 bins off is invisible at tau 1 and visible at tau (1, 8).
+    assert masked_loss(exact, tokens, legal, single, coordinates, tau=(1.0, 8.0)) < masked_loss(
+        near, tokens, legal, single, coordinates, tau=(1.0, 8.0)
+    )
+    # For a spread prediction the loss is monotone in the miss under either kernel; a
+    # computation on the record showed the narrow kernel already separates a coarse hit
+    # from a wild miss, so the mixture is an option, not a fix.
+    bins = torch.arange(layout.vocabulary).float()
+    for tau in (1.0, (1.0, 8.0)):
+        losses = []
+        for offset in (0, 8, 16, 40):
+            bump = torch.zeros_like(near)
+            bump[0, position] = -(bins - (truth + offset)).abs() / 8.0
+            losses.append(float(masked_loss(bump, tokens, legal, single, coordinates, tau=tau)))
+        assert losses == sorted(losses), tau
     # With tau = 0 the target is exact and the two are equally wrong.
     assert torch.isclose(
         masked_loss(near, tokens, legal, single, coordinates, tau=0.0),
@@ -316,6 +339,37 @@ def test_metric_coordinates_are_only_applied_to_known_coordinates(pieces: Pieces
         changed = model(masked, condition)
     assert base.shape == (1, layout.length, layout.vocabulary)
     assert not torch.allclose(base, changed)
+
+
+def test_the_encoder_sees_a_coordinate_value_change(pieces: Pieces) -> None:
+    """Moving one visible coordinate must move the hidden state at that position.
+
+    The corpus arms ignored their neighbours entirely - a 40-bin shift of the previous
+    endpoint moved the prediction for the hidden one by a median of zero bins. That
+    could be the loss or the input; this pins the input side, at initialisation, so
+    that a broken feature path can never hide behind a flat loss.
+    """
+
+    _, _, layout, programs, groups, subgroups = pieces
+    model = _model(layout, groups, subgroups, metric_coordinates=8)
+    tokens = flatten_program(programs[0], layout)[None]
+    blocks = path_blocks(tokens[0], layout)
+    kind_position = blocks[0].kinds(layout)[0]
+    position = kind_position + 1  # slot 0 of the first segment, legal for any kind
+    assert int(tokens[0, position]) > 0
+    positions = torch.arange(layout.length)
+    with torch.no_grad():
+
+        def embed(value: int) -> torch.Tensor:
+            probe = tokens.clone()
+            probe[0, position] = value
+            hidden = model.token_embedding(probe) + model.position_embedding(positions)[None]
+            return model._apply_metric_coordinates(hidden, probe)[0, position]
+
+        base = int(tokens[0, position])
+        near = float((embed(base + 2) - embed(base)).norm())
+        far = float((embed(base + 40) - embed(base)).norm())
+    assert near > 0.0 and far > near, "the metric features must order the lattice"
 
 
 def test_dropout_adds_no_parameters_and_is_inert_at_zero(pieces: Pieces) -> None:
@@ -458,6 +512,9 @@ def test_the_study_runs_end_to_end_on_the_cpu(tmp_path: Path) -> None:
     assert summary["checkpoint_round_trip"]
     assert summary["inpainting"]["all_valid"]
     assert summary["inpainting"]["icons"] >= 1
+    assert set(summary["continuity"]) == {"model", "copy_previous", "marginal"}
+    assert summary["continuity"]["copy_previous"]["n"] >= 1
+    assert summary["coordinate_tau"] == [1.0]
     assert set(summary["checks"]) == {
         "masked_token_accuracy",
         "loss_reduction",
