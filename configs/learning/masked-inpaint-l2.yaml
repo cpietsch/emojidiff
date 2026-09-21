@@ -24,7 +24,7 @@
 # icons with at least two active paths, with the sheet beside the numbers.
 schema_version: 1
 study_version: masked-inpaint-l2
-source_revision: f51c119
+source_revision: 54061b2
 pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
 report_root: reports/learning/masked-inpaint-l2
 checkpoint_root: data/processed/masked-inpaint-l2
