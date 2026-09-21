@@ -1,0 +1,59 @@
+# Gate L arm 5: can this model learn continuity when continuity is the only task?
+#
+# Two corpus arms learned coarse location and nothing about geometry: with one segment
+# hidden and both neighbours visible, their predicted endpoint sits 55 bins from the
+# truth against 24 for a policy that copies the previous endpoint, and shifting that
+# visible endpoint by 40 bins moves their prediction by a median of zero. Three causes
+# are on the table - the training mixture, the coordinate target's width, the output
+# head - and they call for different work. This run separates the first from the rest.
+#
+# Same model, same corpus, same splits, same optimiser, same one-unit kernel. The only
+# change is the training distribution: every mask hides exactly one segment's block,
+# kind and six coordinates, somewhere in an active path. A third of the corpus budget,
+# because the question is whether the mechanism appears at all, not how good it gets.
+#
+# Read on the harness's continuity probe over the 339 held-out icons: the model's
+# predicted endpoint against the copy-the-previous-endpoint policy, in lattice bins.
+# If it wins, the corpus arms failed on their training distribution and the mixture is
+# the lever. If it loses on the one task it was trained on, the loss or the head is
+# next, one at a time. The inpainting sheet is rendered for the eye and is no criterion
+# here: a model trained on single segments is not being asked to draw a whole path.
+schema_version: 1
+study_version: masked-continuity-l5
+source_revision: 78d4545
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+report_root: reports/learning/masked-continuity-l5
+checkpoint_root: data/processed/masked-continuity-l5
+
+data:
+  train_icons: null
+  evaluate_on: validation
+  evaluation_icons: 339
+  inpaint_icons: 16
+
+model: {d_model: 96, heads: 4, layers: 4, feedforward: 192, metric_coordinates: 8, dropout: 0.1}
+
+# One family, one segment at a time.
+masks: {span: 1.0, span_max: 1}
+
+training:
+  steps: 2100
+  batch_size: 16
+  learning_rate: 0.001
+  weight_decay: 0.01
+  seed: 3601
+  eval_every: 300
+  patience_evals: 8
+  marginal_alpha: 1.0
+  coordinate_tau: 1.0
+
+decoding: {iterations: 8, samples: 1, render_size: 72, render_timeout_seconds: 20}
+
+# Predeclared, and hashed into the run identity with the rest of this file.
+criteria:
+  # The model's mean endpoint error in bins, over one hidden segment per held-out icon,
+  # must be below the copy-the-previous-endpoint policy's. That policy scored 24.5 on
+  # this draw; the corpus arms scored 55 and 56.
+  beats_copy_previous: true
+  # Every completion validates and renders.
+  require_all_valid: true
