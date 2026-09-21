@@ -16,7 +16,7 @@
 # corpus run, where it is the one cell no gate has yet measured together with capacity.
 schema_version: 1
 study_version: masked-overfit-l1
-source_revision: 01917d5
+source_revision: f51c119
 pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
 report_root: reports/learning/masked-overfit-l1
 checkpoint_root: data/processed/masked-overfit-l1
