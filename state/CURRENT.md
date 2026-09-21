@@ -606,7 +606,13 @@ The research weblog is served by `scripts/serve_weblog.py` in tmux session
 `mojidiff-weblog`, bound to `100.69.189.78:8787` on the Tailscale interface only. It is
 a read-only static file server over `site/` and holds no GPU or lock; stop it with
 `tmux kill-session -t mojidiff-weblog`. Rebuild its content with
-`python -m mojidiff.weblog.build` after any material result.
+`python -m mojidiff.weblog.build` after any material result. It went dark once, on
+2026-09-21, while alive and listening: the server was single-threaded and one
+connection that opened and sent nothing blocked every other request. It is threaded
+now with a ten-second per-connection timeout, verified to serve while a connection is
+stalled; if it ever stops answering again, `tmux kill-session -t mojidiff-weblog` and
+relaunch with `--rebuild`. Do not `pkill -f serve_weblog` from a script whose own
+command line contains that text.
 
 Gate L runs execute detached in tmux sessions named `masked-<arm>` with stdout under
 the run's `data/processed/<study>/stdout.log`; a run that has exited leaves `EXIT=<code>`

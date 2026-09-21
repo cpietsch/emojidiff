@@ -33,11 +33,23 @@ from mojidiff.weblog.build import build_site  # noqa: E402
 class _Handler(http.server.SimpleHTTPRequestHandler):
     """Static handler with a quiet, single-line log."""
 
+    # A client that connects and never sends - a browser's speculative pre-connect, a
+    # dropped tailnet link - must not hold a handler thread forever.
+    timeout = 10
+
     def log_message(self, format: str, *args: object) -> None:  # noqa: A002
         sys.stderr.write(f"{self.address_string()} {format % args}\n")
 
 
-class _Server(socketserver.TCPServer):
+class _Server(socketserver.ThreadingTCPServer):
+    """One thread per connection.
+
+    The plain TCPServer is single-threaded, and a single connection that opened and
+    sent nothing hung the whole site for everyone else - which is how the weblog went
+    dark on 2026-09-21 while its process was alive and listening. Threads make one
+    stalled client cost one thread, and the handler timeout reclaims it.
+    """
+
     allow_reuse_address = True
     daemon_threads = True
 
