@@ -242,6 +242,48 @@ def whole_path_mask(tokens: Tensor, layout: SequenceLayout, path: int) -> Tensor
     raise ValueError(f"path {path} is not active")
 
 
+def span_mask(
+    tokens: Tensor, layout: SequenceLayout, block: PathBlock, first: int, count: int
+) -> Tensor:
+    """The second editing operation: redraw `count` segments of one path, from `first`."""
+
+    if first < 0 or count < 1 or first + count > block.length:
+        raise ValueError("span lies outside its path")
+    hide = torch.zeros(layout.length, dtype=torch.bool)
+    for slot in range(block.offset + first, block.offset + first + count):
+        base = layout.path_positions + slot * SEGMENT_STRIDE
+        hide[base : base + SEGMENT_STRIDE] = True
+    return hide
+
+
+def join_span(
+    tokens: Tensor, layout: SequenceLayout, block: PathBlock, first: int, count: int
+) -> Tensor:
+    """The zero-parameter fill for a span: every hidden segment collapses to its entry.
+
+    Each hidden segment becomes a LINE ending where the segment before the span ended,
+    so the next visible segment draws a straight stroke from there - the visible ends
+    joined, and nothing drawn in between. It is the copy-the-previous-endpoint policy
+    written as a program, and the identity policy an editor shows before the fill.
+    `first` must be at least 1, so that an entry point exists.
+    """
+
+    if first < 1:
+        raise ValueError("a span needs a visible segment before it")
+    joined = tokens.clone()
+    previous = layout.segment_type_position(block.offset + first - 1)
+    offset = {1: 0, 2: 2, 3: 4}.get(int(tokens[previous]))
+    if offset is None:
+        raise ValueError("the segment before the span carries no endpoint")
+    x, y = int(tokens[previous + 1 + offset]), int(tokens[previous + 2 + offset])
+    for slot in range(block.offset + first, block.offset + first + count):
+        base = layout.segment_type_position(slot)
+        joined[base] = 1  # LINE
+        joined[base + 1 : base + SEGMENT_STRIDE] = PAD
+        joined[base + 1], joined[base + 2] = x, y
+    return joined
+
+
 def apply_mask(tokens: Tensor, hide: Tensor, layout: SequenceLayout) -> Tensor:
     return tokens.masked_fill(hide, mask_token(layout))
 

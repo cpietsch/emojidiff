@@ -541,6 +541,35 @@ def test_chain_order_commits_a_segment_only_after_its_start(pieces: Pieces) -> N
     assert not _start_known(kinds[1] + 1, header_back, layout)
 
 
+def test_joining_a_span_collapses_it_to_its_entry_and_stays_valid(pieces: Pieces) -> None:
+    from mojidiff.learning.masked import join_span, span_mask
+
+    _, codec, layout, programs, _, _ = pieces
+    tokens = flatten_program(programs[0], layout)
+    block = max(path_blocks(tokens, layout), key=lambda item: item.length)
+    assert block.length >= 4
+    first, count = 1, 2
+    hide = span_mask(tokens, layout, block, first, count)
+    assert int(hide.sum()) == 7 * count
+    joined = join_span(tokens, layout, block, first, count)
+    assert torch.equal(joined[~hide], tokens[~hide]), "only the span changes"
+    previous = layout.segment_type_position(block.offset)
+    offset = {1: 0, 2: 2, 3: 4}[int(tokens[previous])]
+    entry = (int(tokens[previous + 1 + offset]), int(tokens[previous + 2 + offset]))
+    for slot in range(block.offset + first, block.offset + first + count):
+        base = layout.segment_type_position(slot)
+        assert int(joined[base]) == 1
+        assert (int(joined[base + 1]), int(joined[base + 2])) == entry
+        assert not bool(joined[base + 3 : base + 7].any())
+    validate_packed_tensor_program(
+        unflatten_program(joined, programs[0], layout), codec, layout.total_segment_slots
+    )
+    with pytest.raises(ValueError):
+        join_span(tokens, layout, block, 0, 1)
+    with pytest.raises(ValueError):
+        span_mask(tokens, layout, block, block.length - 1, 2)
+
+
 def test_dropout_adds_no_parameters_and_is_inert_at_zero(pieces: Pieces) -> None:
     _, _, layout, programs, groups, subgroups = pieces
     plain = _model(layout, groups, subgroups)
@@ -621,7 +650,8 @@ def test_paired_interval_and_t_table() -> None:
     assert not _paired(np.array([1.0]))["interval_excludes_zero_above"]
 
 
-def test_the_study_runs_end_to_end_on_the_cpu(tmp_path: Path) -> None:
+@pytest.mark.parametrize("task", ["path", "span"])
+def test_the_study_runs_end_to_end_on_the_cpu(tmp_path: Path, task: str) -> None:
     """The whole harness - train, select, checkpoint, inpaint, render, summarise."""
 
     config_path = tmp_path / "study.yaml"
@@ -639,6 +669,8 @@ def test_the_study_runs_end_to_end_on_the_cpu(tmp_path: Path) -> None:
                     "evaluate_on": "train",
                     "evaluation_icons": 2,
                     "inpaint_icons": 2,
+                    "task": task,
+                    "span_length": 1,
                 },
                 "model": {
                     "d_model": 32,
@@ -682,6 +714,10 @@ def test_the_study_runs_end_to_end_on_the_cpu(tmp_path: Path) -> None:
     assert summary["checkpoint_round_trip"]
     assert summary["inpainting"]["all_valid"]
     assert summary["inpainting"]["icons"] >= 1
+    assert summary["inpainting"]["task"] == task
+    assert summary["inpainting"]["identity_policy"] == (
+        "join_span" if task == "span" else "drop_path"
+    )
     assert (
         0.0
         <= summary["inpainting"]["exact_reproduction_rate"]

@@ -44,12 +44,14 @@ from mojidiff.learning.masked import (
     complete,
     coordinate_positions,
     drop_path,
+    join_span,
     marginal_logits,
     masked_loss,
     masked_nll,
     model_logits,
     path_blocks,
     sample_mask,
+    span_mask,
     whole_path_mask,
 )
 from mojidiff.learning.openmoji_pilot import (
@@ -87,6 +89,8 @@ class MaskedStudyConfig:
     evaluate_on: str
     evaluation_icons: int
     inpaint_icons: int
+    task: str
+    span_length: int
     d_model: int
     heads: int
     layers: int
@@ -126,6 +130,9 @@ def load_masked_study_config(path: Path) -> MaskedStudyConfig:
     evaluate_on = str(data.get("evaluate_on", "validation"))
     if evaluate_on not in {"train", "validation"}:
         raise OpenMojiPilotError("data.evaluate_on must be train or validation")
+    task = str(data.get("task", "path"))
+    if task not in {"path", "span"}:
+        raise OpenMojiPilotError("data.task must be path or span")
     mixture = MaskMixture(
         weights={key: float(masks[key]) for key in masks if key in _FAMILY_KEYS},
         random_rate_min=float(masks.get("random_rate_min", 0.05)),
@@ -148,6 +155,8 @@ def load_masked_study_config(path: Path) -> MaskedStudyConfig:
         evaluate_on=evaluate_on,
         evaluation_icons=int(data["evaluation_icons"]),
         inpaint_icons=int(data["inpaint_icons"]),
+        task=task,
+        span_length=int(data.get("span_length", 2)),
         d_model=int(model["d_model"]),
         heads=int(model["heads"]),
         layers=int(model["layers"]),
@@ -551,12 +560,30 @@ def _inpaint(
         row = evaluation.rows[index]
         tokens = evaluation.tokens[index]
         blocks = path_blocks(tokens, layout)
-        if len(blocks) < 2:
-            continue  # a one-path icon with its path removed is blank, and blank is not a task
         chooser = np.random.default_rng(config.seed + _INPAINT_SEED + index)
-        block = blocks[int(chooser.integers(len(blocks)))]
         clean = _load_program(row, pilot, codec)
-        hide = whole_path_mask(tokens, layout, block.path)
+        span_first: int | None = None
+        if config.task == "span":
+            # A run of segments inside a path, with a visible segment before it and
+            # after it, so that the fill has an entry and the path has an exit.
+            candidates = [block for block in blocks if block.length >= config.span_length + 2]
+            if not candidates:
+                continue
+            block = candidates[int(chooser.integers(len(candidates)))]
+            span_first = int(chooser.integers(1, block.length - config.span_length))
+            hide = span_mask(tokens, layout, block, span_first, config.span_length)
+            identity = unflatten_program(
+                join_span(tokens, layout, block, span_first, config.span_length), clean, layout
+            )
+            masked_segments = config.span_length
+        else:
+            if len(blocks) < 2:
+                continue  # a one-path icon with its path removed is blank, not a task
+            block = blocks[int(chooser.integers(len(blocks)))]
+            hide = whole_path_mask(tokens, layout, block.path)
+            identity = drop_path(clean, block.path, codec, pilot.total_segment_slots)
+            masked_segments = block.length
+        validate_packed_tensor_program(identity, codec, pilot.total_segment_slots)
         inputs = apply_mask(tokens, hide, layout)
         icon_condition = {
             "group": condition["group"][index : index + 1].to(next(model.parameters()).device),
@@ -608,10 +635,8 @@ def _inpaint(
         for program in completions.values():
             validate_packed_tensor_program(program, codec, pilot.total_segment_slots)
             valid += 1
-        dropped = drop_path(clean, block.path, codec, pilot.total_segment_slots)
-
         images = {"clean": _raster(clean, codec, pilot, limits, config.render_size)}
-        images["drop"] = _raster(dropped, codec, pilot, limits, config.render_size)
+        images["drop"] = _raster(identity, codec, pilot, limits, config.render_size)
         for name, program in completions.items():
             images[name] = _raster(program, codec, pilot, limits, config.render_size)
         errors = {
@@ -624,8 +649,10 @@ def _inpaint(
                 "hexcode": row.hexcode,
                 "source_path": row.source_path,
                 "subgroup": row.subgroup,
+                "task": config.task,
                 "masked_path": block.path,
-                "masked_segments": block.length,
+                "masked_segments": masked_segments,
+                "span_first": span_first,
                 "active_paths": len(blocks),
                 "masked_positions": int(hide.sum()),
                 "rgba_mae": errors,
@@ -650,6 +677,9 @@ def _inpaint(
     _write_bytes_artifact(config.report_root / "inpainting.jsonl", _jsonl(rows))
     _write_bytes_artifact(config.report_root / SHEET_FILENAME, sheet)
     return {
+        "task": config.task,
+        "identity_policy": "join_span" if config.task == "span" else "drop_path",
+        "span_length": config.span_length if config.task == "span" else None,
         "icons": len(rows),
         "attempted": attempted,
         "all_valid": valid == attempted * (2 + config.samples),
@@ -834,8 +864,9 @@ def _raster(
 
 
 def _sheet(tiles: list[tuple[str, list[np.ndarray[Any, Any]]]], config: MaskedStudyConfig) -> bytes:
+    identity_label = "span joined" if config.task == "span" else "path dropped"
     labels = (
-        ["clean", "path dropped", "model"]
+        ["clean", identity_label, "model"]
         + [f"sample {s}" for s in range(config.samples)]
         + ["marginal"]
     )
