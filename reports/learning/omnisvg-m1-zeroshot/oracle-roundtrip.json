@@ -1,0 +1,12 @@
+{
+ "clip_to_reference_mean": 0.9937209077179432,
+ "clip_to_reference_min": 0.980177640914917,
+ "codec_valid": 8,
+ "codec_valid_rate": 0.25,
+ "failures": {
+  "pack": 24
+ },
+ "icons": 32,
+ "max_tokens": 1010,
+ "median_tokens": 720.5
+}

@@ -1,0 +1,33 @@
+# Smoke test of the OmniSVG fine-tune: two steps on eight icons, two drawings. Not a run.
+schema_version: 1
+study_version: omnisvg-m1-finetune-smoke
+report_root: data/processed/prior/omnisvg-finetune-smoke
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+
+data:
+  icons: 2
+  train_icons: 8
+
+training:
+  lora: {rank: 16, alpha: 32, dropout: 0.05}
+  max_tokens: 2048
+  held_out_icons: 2
+  steps: 2
+  accumulate: 2
+  eval_every: 1
+  loss_chunk: 512
+  learning_rate: 1.0e-4
+  warmup_steps: 1
+  seed: 6301
+
+generation:
+  samples: 1
+  max_new_tokens: 256
+  seed: 6301
+  prompt_style: training
+
+control_report_root: reports/learning/omnisvg-m1-zeroshot
+
+criteria:
+  min_codec_valid_rate: 0.0
+  max_memorised_exactly: 2

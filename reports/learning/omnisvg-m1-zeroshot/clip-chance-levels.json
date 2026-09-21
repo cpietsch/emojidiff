@@ -1,0 +1,8 @@
+{
+ "icons": 32,
+ "own_caption_ranked_first": 17,
+ "reference_vs_other_caption_mean": 0.20643852651119232,
+ "reference_vs_other_reference_mean": 0.7769127488136292,
+ "reference_vs_other_reference_p90": 0.8377397060394287,
+ "reference_vs_own_caption_mean": 0.2676731050014496
+}

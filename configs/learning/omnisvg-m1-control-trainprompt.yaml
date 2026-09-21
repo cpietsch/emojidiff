@@ -1,0 +1,23 @@
+# Gate M, experiment one: the zero-shot control under the trainer's own prompt.
+#
+# The fine-tune is trained and evaluated under the training script's prompt ("Generate
+# SVG code for this text description: ..."), not the inference repository's. This run
+# separates the prompt's share from the training's: the released model, the same icons,
+# sampling and seed, the training-style prompt. No criteria to pass.
+schema_version: 1
+study_version: omnisvg-m1-control-trainprompt
+report_root: reports/learning/omnisvg-m1-control-trainprompt
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+
+data:
+  split: primary/validation
+  icons: 32
+
+generation:
+  samples: 2
+  max_new_tokens: 2048
+  seed: 6101
+  prompt_style: training
+
+render:
+  size: 72

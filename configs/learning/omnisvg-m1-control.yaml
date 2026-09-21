@@ -1,0 +1,24 @@
+# Gate M, experiment one: the OmniSVG zero-shot control, second reading.
+#
+# The same 32 held-out icons, prompt, sampling and seed as omnisvg-m1-zeroshot, under
+# the study code that also stores each drawing's SVG and ranks it against every held-out
+# render - raw CLIP similarity between two OpenMoji icons is already 0.78, so the rank
+# of the right icon is the reading that separates "an emoji" from "this emoji". The
+# fine-tune's paired comparison reads against this run's drawings. No criteria to pass.
+schema_version: 1
+study_version: omnisvg-m1-control
+report_root: reports/learning/omnisvg-m1-control
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+
+data:
+  split: primary/validation
+  icons: 32
+
+generation:
+  samples: 2
+  max_new_tokens: 2048
+  seed: 6101
+  prompt_style: release
+
+render:
+  size: 72

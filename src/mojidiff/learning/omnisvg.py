@@ -48,12 +48,19 @@ BOS, EOS, PAD = 196_998, 196_999, 151_643
 BOX = 200.0
 EXTERNAL = Path("/home/dev/workspace/external/OmniSVG")
 
+TRAINING_SYSTEM_PROMPT = "You are an expert SVG code generator."
 SYSTEM_PROMPT = (
     "You are an expert SVG code generator. \n"
     "Generate precise, valid SVG path commands that accurately represent the described "
     "scene or object.\n"
     "Focus on capturing key shapes, spatial relationships, and visual composition."
 )
+
+
+def training_instruction(annotation: str) -> str:
+    """The text-to-SVG instruction of OmniSVG's training script, verbatim."""
+
+    return f"Generate SVG code for this text description: {annotation}"
 
 
 def _instruction(prompt: str) -> str:
@@ -103,16 +110,17 @@ class OmniSVG:
     parameters: int
 
     @classmethod
-    def load(cls, device: str = "cuda") -> OmniSVG:
+    def load(cls, device: str = "cuda", *, lora: dict[str, Any] | None = None) -> OmniSVG:
+        """The released checkpoint; with `lora`, wrapped for training on its language model.
+
+        The adapters go on the language model's linear projections only - the vision
+        tower never sees an input here - and the extended drawing vocabulary is left as
+        released, since every OpenMoji token already exists in it.
+        """
+
         import hashlib
 
         from transformers import AutoConfig, AutoProcessor, Qwen2_5_VLForConditionalGeneration
-
-        _stub_moviepy()
-        if str(EXTERNAL) not in sys.path:
-            sys.path.insert(0, str(EXTERNAL))
-        import yaml
-        from tokenizer import SVGTokenizer  # type: ignore[import-not-found]
 
         base = _snapshot(BASE_REPO, patterns=["*.json", "*.txt", "*.jinja"])
         checkpoint = _snapshot(OMNISVG_REPO, OMNISVG_REVISION) / "pytorch_model.bin"
@@ -144,23 +152,82 @@ class OmniSVG:
         model = model.to(device).eval()
         model.config.bos_token_id, model.config.eos_token_id = BOS, EOS
         model.config.pad_token_id = PAD
+        if lora is not None:
+            from peft import LoraConfig, get_peft_model
+
+            model.gradient_checkpointing_enable()
+            model.enable_input_require_grads()
+            model = get_peft_model(
+                model,
+                LoraConfig(
+                    r=int(lora["rank"]),
+                    lora_alpha=int(lora["alpha"]),
+                    lora_dropout=float(lora.get("dropout", 0.0)),
+                    target_modules=LORA_TARGETS,
+                    task_type="CAUSAL_LM",
+                ),
+            )
+            for parameter in model.parameters():
+                if parameter.requires_grad:
+                    parameter.data = parameter.data.float()
         processor: Any = AutoProcessor.from_pretrained(base)  # type: ignore[no-untyped-call]
-        svg_tokenizer = SVGTokenizer(str(EXTERNAL / "config.yaml"), model_size="4B")
-        settings = yaml.safe_load((EXTERNAL / "config.yaml").read_text())
+        svg_tokenizer, black = load_svg_tokenizer()
         return cls(
             model=model,
             processor=processor,
             svg_tokenizer=svg_tokenizer,
-            black_color_token=int(settings["colors"]["black_color_token"]),
+            black_color_token=black,
             checkpoint_sha256=digest.hexdigest(),
             parameters=sum(parameter.numel() for parameter in model.parameters()),
         )
 
-    def prompt_ids(self, prompt: str) -> dict[str, torch.Tensor]:
-        messages = [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": [{"type": "text", "text": _instruction(prompt)}]},
-        ]
+    @property
+    def trainable_parameters(self) -> int:
+        return sum(p.numel() for p in self.model.parameters() if p.requires_grad)
+
+    def _inner(self) -> Any:
+        """The conditional-generation model itself, through any PEFT wrapper.
+
+        PEFT wrappers delegate attribute access, so `hasattr` cannot tell the wrapper
+        from the model; the wrapper is unwrapped by type.
+        """
+
+        from peft import PeftModel
+
+        inner = self.model
+        if isinstance(inner, PeftModel):
+            inner = inner.base_model.model
+        return inner
+
+    def suffix_loss(
+        self, input_ids: torch.Tensor, labels: torch.Tensor, chunk: int
+    ) -> tuple[torch.Tensor, int]:
+        """Summed cross-entropy on the labelled positions, one vocabulary chunk at a time."""
+
+        from mojidiff.learning.prior import chunked_cross_entropy
+
+        inner = self._inner()
+        hidden = inner.model(input_ids=input_ids).last_hidden_state
+        return chunked_cross_entropy(hidden, inner.lm_head, labels, chunk)
+
+    def prompt_ids(self, prompt: str, *, style: str = "release") -> dict[str, torch.Tensor]:
+        """`release`: the inference repository's prompt; `training`: the trainer's."""
+
+        if style == "training":
+            messages = [
+                {"role": "system", "content": TRAINING_SYSTEM_PROMPT},
+                {
+                    "role": "user",
+                    "content": [{"type": "text", "text": training_instruction(prompt)}],
+                },
+            ]
+        elif style == "release":
+            messages = [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": [{"type": "text", "text": _instruction(prompt)}]},
+            ]
+        else:
+            raise ValueError(f"unknown prompt style {style!r}")
         text = self.processor.apply_chat_template(
             messages, tokenize=False, add_generation_prompt=True
         )
@@ -180,10 +247,11 @@ class OmniSVG:
         top_p: float = 0.88,
         top_k: int = 50,
         repetition_penalty: float = 1.05,
+        style: str = "release",
     ) -> list[torch.Tensor]:
         """OmniSVG's own sampling settings for text-to-icon; returns the drawing tokens."""
 
-        inputs = self.prompt_ids(prompt)
+        inputs = self.prompt_ids(prompt, style=style)
         torch.manual_seed(seed)
         result = self.model.generate(
             **inputs,
@@ -203,30 +271,60 @@ class OmniSVG:
         return [row.cpu() for row in result[:, length:]]
 
     def tokens_to_svg(self, tokens: torch.Tensor) -> tuple[str | None, dict[str, Any]]:
-        """OmniSVG's decoding: commands, grid points and colours to an SVG string."""
+        return decode_tokens(self.svg_tokenizer, self.black_color_token, tokens)
 
-        ended = bool((tokens == EOS).any())
-        trimmed = tokens[: int((tokens == EOS).nonzero()[0, 0])] if ended else tokens
-        wrapped = torch.cat((torch.tensor([BOS]), trimmed, torch.tensor([EOS])), dim=0)[None]
-        points = self.svg_tokenizer.process_generated_tokens(wrapped)
-        info: dict[str, Any] = {"tokens": int(trimmed.numel()), "ended": ended}
-        if len(points) == 0:
-            info["failure"] = "no_drawing_tokens"
-            return None, info
-        tensors, colors = self.svg_tokenizer.raster_svg(points)
-        paths = tensors[0] if tensors and tensors[0] else []
-        if not paths:
-            info["failure"] = "no_paths"
-            return None, info
-        while len(colors) < len(paths):
-            colors.append(self.black_color_token)
-        try:
-            svg = self.svg_tokenizer.apply_colors_to_svg(paths, colors).to_str()
-        except Exception as error:  # noqa: BLE001 - their decoder raises bare exceptions
-            info["failure"] = f"decoder_error:{type(error).__name__}"
-            return None, info
-        info["paths"] = len(paths)
-        return str(svg), info
+
+LORA_TARGETS = r".*language_model.*\.(q_proj|k_proj|v_proj|o_proj|gate_proj|up_proj|down_proj)"
+
+
+def load_svg_tokenizer() -> tuple[Any, int]:
+    """The inference repository's token decoder and its black colour token."""
+
+    _stub_moviepy()
+    if str(EXTERNAL) not in sys.path:
+        sys.path.insert(0, str(EXTERNAL))
+    import yaml
+    from tokenizer import SVGTokenizer  # type: ignore[import-not-found]
+
+    settings = yaml.safe_load((EXTERNAL / "config.yaml").read_text())
+    tokenizer = SVGTokenizer(str(EXTERNAL / "config.yaml"), model_size="4B")
+    return tokenizer, int(settings["colors"]["black_color_token"])
+
+
+def trim_drawing(tokens: torch.Tensor) -> tuple[torch.Tensor, bool]:
+    """The generated tokens up to the first EOS, and whether one was generated."""
+
+    ended = bool((tokens == EOS).any())
+    trimmed = tokens[: int((tokens == EOS).nonzero()[0, 0])] if ended else tokens
+    return trimmed, ended
+
+
+def decode_tokens(
+    svg_tokenizer: Any, black_color_token: int, tokens: torch.Tensor
+) -> tuple[str | None, dict[str, Any]]:
+    """OmniSVG's decoding: commands, grid points and colours to an SVG string."""
+
+    trimmed, ended = trim_drawing(tokens)
+    wrapped = torch.cat((torch.tensor([BOS]), trimmed, torch.tensor([EOS])), dim=0)[None]
+    points = svg_tokenizer.process_generated_tokens(wrapped)
+    info: dict[str, Any] = {"tokens": int(trimmed.numel()), "ended": ended}
+    if len(points) == 0:
+        info["failure"] = "no_drawing_tokens"
+        return None, info
+    tensors, colors = svg_tokenizer.raster_svg(points)
+    paths = tensors[0] if tensors and tensors[0] else []
+    if not paths:
+        info["failure"] = "no_paths"
+        return None, info
+    while len(colors) < len(paths):
+        colors.append(black_color_token)
+    try:
+        svg = svg_tokenizer.apply_colors_to_svg(paths, colors).to_str()
+    except Exception as error:  # noqa: BLE001 - their decoder raises bare exceptions
+        info["failure"] = f"decoder_error:{type(error).__name__}"
+        return None, info
+    info["paths"] = len(paths)
+    return str(svg), info
 
 
 def _remap_key(key: str, expected: set[str]) -> str | None:

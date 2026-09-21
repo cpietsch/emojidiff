@@ -66,3 +66,53 @@ def test_checkpoint_keys_remap_onto_this_layout() -> None:
     )
     assert _remap_key("transformer.lm_head.weight", expected) == "lm_head.weight"
     assert _remap_key("transformer.nothing.weight", expected) is None
+
+
+def test_openmoji_encodes_into_omnisvg_tokens_and_decodes_back_exactly() -> None:
+    """The training encoder and OmniSVG's released decoder agree, point for point.
+
+    The tokens sit one above the values the training repository's YAML lists; read at
+    the YAML's values, a close decodes as an arc. This pins the corrected arithmetic.
+    """
+
+    import pytest
+
+    from mojidiff.learning.omnisvg import EXTERNAL, decode_tokens, load_svg_tokenizer
+    from mojidiff.learning.omnisvg_encode import (
+        BOS,
+        CMD_CLOSE,
+        CMD_MOVE,
+        EOS,
+        color_token,
+        encode_icon,
+        openmoji_to_deepsvg,
+    )
+    from mojidiff.learning.openmoji_pilot import _select_rows, load_pilot_index
+
+    if not (EXTERNAL / "tokenizer.py").is_file():
+        pytest.skip("the OmniSVG inference clone is not present")
+    pilot = load_openmoji_pilot_config(_PILOT)
+    by_split, _, _ = load_pilot_index(pilot)
+    decoder, black = load_svg_tokenizer()
+    for row in _select_rows(by_split["primary/train"], 2, 3):
+        source = (pilot.raw_root / row.source_path).read_bytes()
+        svg, fills = openmoji_to_deepsvg(source)
+        tokens = encode_icon(source)
+        assert int(tokens[0]) == BOS and int(tokens[-1]) == EOS and int(tokens[1]) == CMD_MOVE
+        assert (tokens == CMD_CLOSE).sum() >= 1
+        decoded, info = decode_tokens(decoder, black, tokens[1:])
+        assert decoded is not None, info
+        assert info["paths"] == len(svg.svg_path_groups) == len(fills)
+        # Every path's end points come back exactly on the 200-unit grid.
+        points = decoder.process_generated_tokens(tokens[None])
+        tensors, colours = decoder.raster_svg(points)
+        for group, back in zip(svg.svg_path_groups, tensors[0], strict=True):
+            expected = group.to_tensor(PAD_VAL=0).round().int().clip(0, 199)[:, 12:14]
+            assert expected.shape == back[:, 12:14].shape
+            assert bool((expected == back[:, 12:14].int()).all())
+        # The decoder reports a colour as its token less the base vocabulary and one;
+        # its own black token, 40,012, is the encoder's black at 191,949 read that way.
+        assert colours[: len(fills)] == [color_token(fill) - 151_937 for fill in fills]
+        assert color_token("#000000") - 151_937 == black
+    assert color_token("none") == color_token(None)
+    assert color_token("#fff") == color_token("#ffffff")

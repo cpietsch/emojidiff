@@ -29,9 +29,11 @@ from mojidiff.learning.omnisvg import (
     OmniSVG,
     parse_into_codec,
     to_project_svg,
+    trim_drawing,
 )
 from mojidiff.learning.openmoji_pilot import (
     OpenMojiPilotError,
+    PilotRow,
     _load_program,
     _select_rows,
     _selected_codec,
@@ -121,52 +123,123 @@ def run_omnisvg_study(config_path: Path) -> dict[str, Any]:
     codec = _selected_codec(pilot)
     data = root["data"]
     generation = root["generation"]
-    icons = int(data["icons"])
-    samples = int(generation["samples"])
-    max_new_tokens = int(generation["max_new_tokens"])
-    seed = int(generation["seed"])
     size = int(root.get("render", {}).get("size", 72))
     limits = RenderLimits(max_paths=codec.max_paths, timeout_seconds=20)
-
     rows_selected = _select_rows(
-        by_split[str(data.get("split", "primary/validation"))], icons, pilot.seed + 1
+        by_split[str(data.get("split", "primary/validation"))], int(data["icons"]), pilot.seed + 1
     )
-    annotations = captions(pilot.raw_root)
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     started = time.perf_counter()
     model = OmniSVG.load(device)
     load_seconds = time.perf_counter() - started
     clip = Clip(device)
+    evaluation, rows, sheet = evaluate(
+        model,
+        rows_selected,
+        pilot,
+        codec,
+        clip,
+        samples=int(generation["samples"]),
+        max_new_tokens=int(generation["max_new_tokens"]),
+        seed=int(generation["seed"]),
+        style=str(generation.get("prompt_style", "release")),
+        limits=limits,
+        size=size,
+    )
+    rows_payload = b"".join(
+        (json.dumps(record, sort_keys=True, separators=(",", ":")) + "\n").encode()
+        for record in rows
+    )
+    summary = {
+        "schema_version": 1,
+        "study_version": version,
+        "config_sha256": hashlib.sha256(config_path.read_bytes()).hexdigest(),
+        "model": {
+            "repo": OMNISVG_REPO,
+            "revision": OMNISVG_REVISION,
+            "checkpoint_sha256": model.checkpoint_sha256,
+            "parameters": model.parameters,
+            "fine_tuned": False,
+        },
+        "clip": {"repo": CLIP_REPO, "revision": CLIP_REVISION},
+        **evaluation,
+        "timing": {"load_seconds": load_seconds, **evaluation["timing"]},
+        "sheet_sha256": hashlib.sha256(sheet).hexdigest(),
+        "rows_sha256": hashlib.sha256(rows_payload).hexdigest(),
+    }
+    _write_bytes_artifact(report_root / "drawings.jsonl", rows_payload)
+    _write_bytes_artifact(report_root / "samples.png", sheet)
+    _write_bytes_artifact(
+        report_root / "summary.json",
+        (json.dumps(summary, sort_keys=True, separators=(",", ":")) + "\n").encode(),
+    )
+    return summary
 
+
+def evaluate(
+    model: OmniSVG,
+    rows_selected: tuple[PilotRow, ...],
+    pilot: Any,
+    codec: Any,
+    clip: Clip,
+    *,
+    samples: int,
+    max_new_tokens: int,
+    seed: int,
+    style: str,
+    limits: RenderLimits,
+    size: int,
+    train_sequences: set[tuple[int, ...]] | None = None,
+) -> tuple[dict[str, Any], list[dict[str, Any]], bytes]:
+    """Draw every selected icon from its annotation and score the drawings.
+
+    Beyond the similarity to the icon's own render, each drawing is ranked against the
+    renders of all selected icons: raw CLIP similarity between two OpenMoji icons is
+    already high, so the rank of the right icon says whether a drawing is of *this*
+    icon rather than of an emoji. `train_sequences` lets a fine-tune count drawings
+    that reproduce a training icon token for token.
+    """
+
+    annotations = captions(pilot.raw_root)
+    texts = [annotations.get(row.hexcode, row.hexcode) for row in rows_selected]
+    references = [
+        render_program(
+            _load_program(row, pilot, codec), codec, pilot.total_segment_slots, limits, size
+        )
+        for row in rows_selected
+    ]
+    reference_features = clip.image(references)
+    caption_features = clip.text(texts)
     rows: list[dict[str, Any]] = []
     tiles: list[tuple[str, list[Image.Image]]] = []
     generate_seconds = 0.0
-    for index, row in enumerate(rows_selected):
-        annotation = annotations.get(row.hexcode, row.hexcode)
-        prompt = caption_prompt(annotation)
-        reference = render_program(
-            _load_program(row, pilot, codec), codec, pilot.total_segment_slots, limits, size
-        )
-        reference_feature = clip.image([reference])
-        caption_feature = clip.text([annotation])
+    if model.model.training:
+        raise RuntimeError("evaluate needs the model in eval mode")
+    for index, (row, annotation) in enumerate(zip(rows_selected, texts, strict=True)):
+        prompt = caption_prompt(annotation) if style == "release" else annotation
         clock = time.perf_counter()
         drawings = model.generate(
-            prompt, samples=samples, max_new_tokens=max_new_tokens, seed=seed + index
+            prompt, samples=samples, max_new_tokens=max_new_tokens, seed=seed + index, style=style
         )
         generate_seconds += time.perf_counter() - clock
-        row_tiles = [reference]
+        row_tiles = [references[index]]
         for sample_index, tokens in enumerate(drawings):
             record: dict[str, Any] = {
                 "hexcode": row.hexcode,
                 "annotation": annotation,
                 "prompt": prompt,
+                "prompt_style": style,
                 "sample": sample_index,
             }
+            if train_sequences is not None:
+                trimmed, _ = trim_drawing(tokens)
+                record["memorised_exactly"] = tuple(trimmed.tolist()) in train_sequences
             svg, decode_info = model.tokens_to_svg(tokens)
             record.update({f"decode_{key}": value for key, value in decode_info.items()})
             image: Image.Image | None = None
             if svg is not None:
+                record["svg"] = svg
                 projected, snap = to_project_svg(svg, codec.palette)
                 record.update({f"snap_{key}": value for key, value in snap.items()})
                 program, parse_info = parse_into_codec(projected, codec, pilot.total_segment_slots)
@@ -184,8 +257,13 @@ def run_omnisvg_study(config_path: Path) -> dict[str, Any]:
                 record["codec_valid"] = False
             if image is not None:
                 feature = clip.image([image])
-                record["clip_to_reference"] = float((feature @ reference_feature.T)[0, 0])
-                record["clip_to_caption"] = float((feature @ caption_feature.T)[0, 0])
+                similarities = (feature @ reference_features.T)[0]
+                own = float(similarities[index])
+                record["clip_to_reference"] = own
+                record["reference_rank"] = 1 + int((similarities > own).sum())
+                record["clip_to_caption"] = float(
+                    (feature @ caption_features[index : index + 1].T)[0, 0]
+                )
             row_tiles.append(
                 image if image is not None else Image.new("RGB", (size, size), "white")
             )
@@ -193,28 +271,15 @@ def run_omnisvg_study(config_path: Path) -> dict[str, Any]:
         tiles.append((f"{row.hexcode} {annotation[:22]}", row_tiles))
 
     sheet = _sheet(tiles, samples, size)
-    rows_payload = b"".join(
-        (json.dumps(record, sort_keys=True, separators=(",", ":")) + "\n").encode()
-        for record in rows
-    )
     decoded = [record for record in rows if record.get("decode_paths")]
     valid = [record for record in rows if record.get("codec_valid")]
     scored = [record for record in rows if "clip_to_reference" in record]
-    summary = {
-        "schema_version": 1,
-        "study_version": version,
-        "config_sha256": hashlib.sha256(config_path.read_bytes()).hexdigest(),
-        "model": {
-            "repo": OMNISVG_REPO,
-            "revision": OMNISVG_REVISION,
-            "checkpoint_sha256": model.checkpoint_sha256,
-            "parameters": model.parameters,
-            "fine_tuned": False,
-        },
-        "clip": {"repo": CLIP_REPO, "revision": CLIP_REVISION},
+    ranks = [record["reference_rank"] for record in scored]
+    summary: dict[str, Any] = {
         "icons": len(rows_selected),
         "samples_per_icon": samples,
         "max_new_tokens": max_new_tokens,
+        "prompt_style": style,
         "drawings": len(rows),
         "decoded_rate": len(decoded) / len(rows),
         "ended_rate": sum(1 for record in rows if record.get("decode_ended")) / len(rows),
@@ -237,24 +302,24 @@ def run_omnisvg_study(config_path: Path) -> dict[str, Any]:
         else None,
         "clip_to_reference": _stats([record["clip_to_reference"] for record in scored]),
         "clip_to_caption": _stats([record["clip_to_caption"] for record in scored]),
+        "reference_rank": {
+            "scored": len(ranks),
+            "top1_rate": sum(1 for rank in ranks if rank == 1) / len(rows),
+            "top5_rate": sum(1 for rank in ranks if rank <= 5) / len(rows),
+            "mean": float(np.mean(ranks)) if ranks else None,
+            "chance_top1": 1.0 / len(rows_selected),
+        },
         "timing": {
-            "load_seconds": load_seconds,
             "generate_seconds": generate_seconds,
             "seconds_per_drawing": generate_seconds / len(rows),
             "peak_vram_gib": float(torch.cuda.max_memory_allocated()) / 2**30
-            if device == "cuda"
+            if torch.cuda.is_available()
             else None,
         },
-        "sheet_sha256": hashlib.sha256(sheet).hexdigest(),
-        "rows_sha256": hashlib.sha256(rows_payload).hexdigest(),
     }
-    _write_bytes_artifact(report_root / "drawings.jsonl", rows_payload)
-    _write_bytes_artifact(report_root / "samples.png", sheet)
-    _write_bytes_artifact(
-        report_root / "summary.json",
-        (json.dumps(summary, sort_keys=True, separators=(",", ":")) + "\n").encode(),
-    )
-    return summary
+    if train_sequences is not None:
+        summary["memorised_exactly"] = sum(1 for record in rows if record.get("memorised_exactly"))
+    return summary, rows, sheet
 
 
 def _count(rows: list[dict[str, Any]], key: str) -> dict[str, int]:
@@ -311,6 +376,7 @@ def main() -> None:
                     "median_tokens",
                     "clip_to_reference",
                     "clip_to_caption",
+                    "reference_rank",
                     "timing",
                 )
             },
