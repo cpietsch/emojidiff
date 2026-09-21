@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T17:00:00Z
+Updated: 2026-09-21T17:25:00Z
 
 ## Current hypothesis and evidence
 
@@ -930,6 +930,23 @@ continuity probe against the copy policy on every run. Arm 5,
 single-segment masks alone at a third of the budget, predeclared to beat the copy
 policy. It separates the mixture from the rest.
 
+Arm 5 answers the mixture question: `masked-continuity-l5-78d4545-2681icons-9b9b1699`,
+the same model trained on single-segment masks and nothing else, puts its endpoint 59.7
+bins from the truth against 25.6 for the copy-the-previous-endpoint policy, at 0.947 of
+the marginal floor with the training loss flat from step 300. Continuity is not learned
+even as the only task, so the training distribution is eliminated. The output head is
+the next single factor: a linear map onto 289 unordered bins cannot place a bump at a
+copied value until it has learned an ordering over them, and nothing rewards the copy
+until it can. The metric head - coordinate logits as the inner product of a projection
+of the state with the input side's Fourier features of each bin, plus the categorical
+bias - is implemented behind `model.metric_head`, off by default, pinned by a test that
+it touches coordinate logits only and still completes valid programs. Arms 6 and 7 are
+chained in one tmux session: the overfit half `masked-overfit-l6-metric-head-5475283-
+4icons-9b9b1699` and, only if it passes, `masked-continuity-l7-metric-head-5475283-
+2681icons-9b9b1699`, arm 5 with the head and nothing else changed. If the head is not
+it either, the target kernel mixture is next, then the harder question of whether a
+289-way categorical over an absolute lattice is the right output at all.
+
 ## Active jobs
 
 The research weblog is served by `scripts/serve_weblog.py` in tmux session
@@ -1064,22 +1081,20 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Read arm 5. If the continuity-only model beats the copy-the-previous-endpoint policy,
-the corpus arms failed on their training distribution and the next arm rebalances the
-mixture toward masks with visible in-path context - spans and small random rates -
-with whole-path masks kept but no longer dominant, read on the same inpainting criteria
-as l2. If it loses on the one task it was trained on, the next arm changes the output
-head so that coordinate logits are a projection onto the same Fourier basis the input
-uses - a head that can place a bump wherever a neighbour says without first learning
-an ordering over 289 unordered bins - and the mixture stays as it is. One factor per
-arm, the overfit test first for any model change, the continuity probe and the sheet
-beside every number.
+Read arms 6 and 7. If the metric head lets the continuity-only model beat the copy
+policy, the trap is identified and the corpus inpainting run repeats with the head on,
+l2's criteria unchanged, and the scored task is then reframed toward the local edits
+the mechanism supports - spans, refinements, restyles - with whole-path completion kept
+as the reported hard case rather than the gate. If the head does not help, the target
+kernel mixture runs on the continuity study next; and if that fails too, the honest
+next question is the output representation itself - predicting coordinates relative to
+a visible anchor, or as a value rather than a bin - which is a codec-level change and
+would be recorded as such before any run.
 
 Whole-path completion of an arbitrary path is close to generation of a part, and Gate I
-says parts of unseen concepts are as unseen as wholes; the editing result this gate
-can reach is the local one - spans, refinements, restyles - and the scored task should
-follow the mechanism once the mechanism exists. That reframing is not made yet and
-waits on arm 5.
+says parts of unseen concepts are as unseen as wholes; the editing result this gate can
+reach is the local one, and the scored task should follow the mechanism once the
+mechanism exists.
 
 What is retired, so it is not picked up again by habit: further single-factor sweeps on
 the p = 0.35 denoiser, further left-to-right arms, and the corpus-scale corruption-process
