@@ -1,0 +1,44 @@
+# Gate L arm 12: arm 10 at the full corpus budget, and nothing else changed.
+#
+# Arm 10's held-out curve was still falling at its last evaluation, unlike every arm
+# before it. This asks where it goes: 6,300 steps rather than 2,100, the same
+# early-stopping patience, the same criterion against the copy policy.
+schema_version: 1
+study_version: masked-continuity-l12-start-full
+source_revision: 7d18a83
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+report_root: reports/learning/masked-continuity-l12-start-full
+checkpoint_root: data/processed/masked-continuity-l12-start-full
+
+data:
+  train_icons: null
+  evaluate_on: validation
+  evaluation_icons: 339
+  inpaint_icons: 16
+
+model: {d_model: 96, heads: 4, layers: 4, feedforward: 192, metric_coordinates: 8, dropout: 0.1, start_features: true}
+
+# One family, one segment at a time.
+masks: {span: 1.0, span_max: 1}
+
+training:
+  steps: 6300
+  batch_size: 16
+  learning_rate: 0.001
+  weight_decay: 0.01
+  seed: 3601
+  eval_every: 300
+  patience_evals: 8
+  marginal_alpha: 1.0
+  coordinate_tau: 1.0
+
+decoding: {iterations: 8, samples: 1, render_size: 72, render_timeout_seconds: 20}
+
+# Predeclared, and hashed into the run identity with the rest of this file.
+criteria:
+  # The model's mean endpoint error in bins, over one hidden segment per held-out icon,
+  # must be below the copy-the-previous-endpoint policy's. That policy scored 24.5 on
+  # this draw; the corpus arms scored 55 and 56.
+  beats_copy_previous: true
+  # Every completion validates and renders.
+  require_all_valid: true

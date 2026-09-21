@@ -1,0 +1,48 @@
+# Gate L arm 11: arm 10 with the metric output head, and nothing else changed.
+#
+# Arm 10 was the first to move: with each segment's start point in its own input the
+# continuity error fell from 58-60 bins to 47.8 and the held-out curve kept falling,
+# still short of the copy policy's 25.6 at a third of the budget. The value now has to
+# pass from Fourier features on the input side to a bump on the output side through a
+# categorical head that must learn its own ordering over 289 bins. The metric head
+# removes that step - which it could not show while there was nothing to copy. Same
+# 2,100 steps as arm 10, so the head is the only difference.
+schema_version: 1
+study_version: masked-continuity-l11-start-head
+source_revision: 7d18a83
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+report_root: reports/learning/masked-continuity-l11-start-head
+checkpoint_root: data/processed/masked-continuity-l11-start-head
+
+data:
+  train_icons: null
+  evaluate_on: validation
+  evaluation_icons: 339
+  inpaint_icons: 16
+
+model: {d_model: 96, heads: 4, layers: 4, feedforward: 192, metric_coordinates: 8, dropout: 0.1, start_features: true, metric_head: true}
+
+# One family, one segment at a time.
+masks: {span: 1.0, span_max: 1}
+
+training:
+  steps: 2100
+  batch_size: 16
+  learning_rate: 0.001
+  weight_decay: 0.01
+  seed: 3601
+  eval_every: 300
+  patience_evals: 8
+  marginal_alpha: 1.0
+  coordinate_tau: 1.0
+
+decoding: {iterations: 8, samples: 1, render_size: 72, render_timeout_seconds: 20}
+
+# Predeclared, and hashed into the run identity with the rest of this file.
+criteria:
+  # The model's mean endpoint error in bins, over one hidden segment per held-out icon,
+  # must be below the copy-the-previous-endpoint policy's. That policy scored 24.5 on
+  # this draw; the corpus arms scored 55 and 56.
+  beats_copy_previous: true
+  # Every completion validates and renders.
+  require_all_valid: true

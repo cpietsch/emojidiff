@@ -2371,3 +2371,31 @@ the obvious one: commit in chain order, every masked segment whose start is know
 pass, until none is left. It is built, pinned by a test that no segment is ever
 committed while the one before it is a hole, and the overfit test re-runs with it once
 the continuity half has the GPU.
+
+## 2026-09-21 — Start features move it: the first curve in Gate L that keeps falling
+
+**Hypothesis.** With each segment block carrying Fourier features of its own start
+point, the model trained on single-segment masks should beat the copy-the-previous-
+endpoint policy.
+
+**Observation. Falsified, and the first arm to move anything.** Continuity error is
+**47.8 bins** (median 38.5) against 58–60 for every arm before it, held-out likelihood
+**4.119** nats against 4.532 - 0.861 of the floor where every earlier arm sat at 0.947 -
+and the held-out curve is still falling at the last evaluation, 4.393 → 4.291 → 4.228 →
+4.183 → 4.158 → 4.141 → 4.119, where every earlier arm was flat from step 300. The copy
+policy sits at 25.6. Same corpus, same masks, same budget, same head, same kernel.
+
+**Reading.** The blocker was the fetch. Five arms could not make attention find the
+previous endpoint seven slots away behind absolute embeddings over packed slots; put the
+value in the segment's own input and the model starts to use it within the same
+budget. That it is unconverged at 2,100 steps and still far from a policy that just
+copies the value is the next fact, not the last: the value now has to pass from Fourier
+features on the input side to a bump on the output side through a categorical head that
+has to learn its own ordering - the thing the metric head was built to remove, and could
+not show while the value was not there to copy.
+
+**Decision.** Two one-factor follow-ups, chained behind the overfit re-run. The same run
+at the full 6,300-step budget, to see where the curve goes; and the same run with the
+metric head, at the same 2,100 steps, to see whether copying becomes the linear map it
+should be. Whichever wins is the configuration the corpus inpainting run repeats with,
+decoded in chain order.
