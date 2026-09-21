@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T19:05:00Z
+Updated: 2026-09-21T19:15:00Z
 
 ## Current hypothesis and evidence
 
@@ -1016,6 +1016,15 @@ decoder-order reading is withdrawn; chain-order decoding is kept as the right de
 for a chained input; and the overfit criterion gains a one-bin tolerance on coordinates
 (`min_close_path_reproduction_rate`, exact rate still reported) so that it tests the
 plumbing rather than the target.
+
+Arm 11 moves it further: start features with the metric head reach continuity error
+41.7 bins (median 37.0) against arm 10's 47.8, held-out likelihood 4.005 - 0.837 of the
+floor - against 4.119, still falling at the last evaluation, at the same 2,100 steps.
+Both levers help, each measured alone against a one-factor baseline; neither run has
+converged. Arm 12 (start features, 6,300 steps) is on the GPU and arm 13 (start
+features and the head, 6,300 steps) is queued behind it as
+`masked-continuity-l13-start-head-full-f6befd5-2681icons-9b9b1699` - the configuration
+the corpus inpainting run would use, read on the mechanism first.
 
 ## Active jobs
 
