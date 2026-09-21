@@ -12,18 +12,13 @@ updated: 2026-09-21
 # the Current hypothesis section of state/CURRENT.md; the weblog falls back to that
 # section's newest paragraph if this is absent.
 headline: >-
-  Gate L is complete. Twenty-two arms found the mechanism a masked editor over this
-  codec was missing - each segment's start point in its own input, coordinate logits on
-  the lattice's Fourier basis - and with it the same 530k parameters learn continuity:
-  a hidden segment's endpoint 17.6 bins from the truth against 25.6 for a policy that
-  copies the previous one, the first learned geometry in this project. Carried into
-  editing it does what continuity can do and no more: whole-path completion no longer
-  damages and still loses to the hole, and span completion at two and four segments
-  ties a zero-parameter fill that joins the visible ends - five readings, three
-  checkpoints, a budget three times longer, a model ten times larger, the interval
-  spanning zero every time - while beating the corpus's statistics every time. What
-  the corpus cannot teach is shape, for parts as Gate I found for wholes. Gate K's
-  viewer over the frozen specialist is next; Gate H is the operator's call.
+  Gate L is complete and the premise has changed. Twenty-two arms showed what a model
+  trained from nothing on 2,681 icons learns - colour, style, continuity - and what it
+  cannot: what an unseen icon's parts look like. Gate M starts from a model that
+  already knows what shapes look like: Qwen3-4B-Base, Apache 2.0 at a pinned revision,
+  fine-tuned with LoRA to write the project's canonical SVG text from a caption, every
+  output parsed by the typed codec and rendered by the safe renderer, read against its
+  own zero-shot output and against memorisation on family-disjoint held-out icons.
 
 gates:
   - id: Gate A
@@ -176,6 +171,20 @@ gates:
     status: not-started
     question: Do the optimizations preserve numerical and visual parity, and pay off?
     evidence: Gated on a frozen checkpoint worth optimizing.
+  - id: Gate M
+    title: A pretrained SVG prior, fine-tuned on OpenMoji
+    status: open
+    question: >-
+      Does a permissively licensed pretrained code model, fine-tuned with LoRA on the
+      training split and writing the project's canonical SVG text from a caption,
+      produce recognisable held-out icons - measured against its own zero-shot output
+      and against memorisation?
+    evidence: >-
+      Opened 2026-09-21 on the operator's decision after Gate L; PROJECT_PLAN.md section
+      16 states the design. Qwen3-4B-Base at a pinned revision under Apache 2.0 is the
+      primary model and Qwen2.5-Coder-1.5B the comparison; the 3B coder was excluded on
+      reading its license file. The typed codec parses every output, so validity and
+      rendering are measured as before. First step: the zero-shot control.
   - id: Gate K
     title: Research interface and narrative
     status: open

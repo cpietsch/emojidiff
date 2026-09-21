@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T23:45:00Z
+Updated: 2026-09-22T00:30:00Z
 
 ## Current hypothesis and evidence
 
@@ -585,6 +585,17 @@ the simplest geometric policy at the median. What the corpus cannot teach is sha
 parts as Gate I found for wholes. The findings entry of this date carries the verdict,
 the gate board its evidence, PROJECT_PLAN.md section 15 its conclusion.
 
+The operator chose the pretrained route. PROJECT_PLAN.md section 16 opens Gate M: a
+permissively licensed pretrained code model fine-tuned with LoRA to write the project's
+canonical SVG text from a caption, every output parsed by the typed codec and rendered
+by the safe renderer, read against its own zero-shot output and against memorisation on
+the family-disjoint splits. Model chosen on license files at pinned revisions:
+Qwen3-4B-Base (Apache 2.0) primary, Qwen2.5-Coder-1.5B (Apache 2.0) comparison,
+Qwen2.5-Coder-3B excluded under the Qwen Research License. The stack is installed into
+`.venv` without displacing the NGC torch - an install that pulled a PyPI torch in was
+undone and the suite re-verified on the original. Weights are downloading to the
+persistent Hugging Face cache under `/home/dev/.cache`.
+
 ## Last completed action and verification
 
 Closed Gate L on the evidence of twenty-two registered arms, all on gpubox-4080, all in
@@ -740,20 +751,14 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Gate K's editing viewer over the frozen specialist of arm 21
-(`data/processed/masked-span-l21-specialist-4-long/checkpoint.zip`, the best continuity
-at 17.6 bins): for each held-out span, the clean icon, the join fill, the model's fill
-and the marginal's, with the per-span numbers beside them, generated from the committed
-`inpainting.jsonl` rows and renders so that every displayed claim links to a run. It
-costs no GPU and shows the operator exactly what the editor does and does not do.
+Gate M step one, the zero-shot control: prompt the pinned Qwen3-4B-Base, unfine-tuned,
+with held-out captions in the training prompt format and let it write the SVG; parse
+every output through the typed codec, render what parses, and put the sheet beside the
+validity and render rates. That is the floor every fine-tune is read against, and it is
+registered like any run. Then the overfit test on four icons through the same prompt
+format and decoder, then the LoRA fine-tune on the training split with the predeclared
+criteria of section 16.
 
-Decisions that are the operator's rather than the record's: Gate H, broader licensed
-corpora, is the only route to shape knowledge - for parts as for wholes - and is a
-licensing and curation project before it is a training one; and whether an editor that
-is as good as a straight cut and never worse than corpus statistics is worth packaging
-(Gate J) or is the negative result the plan allowed for.
-
-No further single-factor arm on this corpus is recommended; the levers are measured.
-What is retired stays retired: single-factor sweeps on the p = 0.35 denoiser, further
-left-to-right arms, and the corpus-scale corruption-process third arm. The KV-cache
-measurement stands: 16% at this scale.
+Environment note for whoever picks this up: `transformers`, `peft` and `accelerate`
+live in `.venv`; if an install ever brings a PyPI `torch`, `triton` or `nvidia-*` wheel
+into `.venv`, uninstall them - the record's torch is the system NGC build.

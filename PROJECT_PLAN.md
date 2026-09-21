@@ -742,3 +742,77 @@ beating the corpus's statistics every time. What the corpus cannot teach is shap
 parts as Gate I found for wholes. The gate is complete; the frozen specialist of arm 21
 is the checkpoint Gate K's viewer is built over; Gate H is the only route to shape and
 is the operator's call.
+
+## 16. Direction after Gate L: a pretrained prior
+
+Written 2026-09-21 with the operator's decision. Every model in this project so far was
+trained from nothing on 2,681 icons, and twenty-two arms in Gate L plus Gate I before it
+established what that teaches - colour, style, local continuity - and what it cannot:
+what an unseen icon's parts look like. No further from-scratch arm on this corpus is
+planned. The premise changes: start from a model that already knows what shapes look
+like, and fine-tune it on OpenMoji under the same codec, splits, renderer, baselines and
+run contract.
+
+### Gate M - a pretrained SVG prior, fine-tuned on OpenMoji
+
+The model is a permissively licensed pretrained code language model, pinned by hub
+revision with its license recorded at that revision, fine-tuned with LoRA on the
+training split. It reads the icon's caption - OpenMoji's annotation and tags, which
+every icon carries - and writes the icon as SVG text in the project's canonical
+serialization: fixed viewBox, only `<path d fill stroke ...>` elements on the
+quarter-unit lattice. The text is what the pretrained prior knows; the typed codec
+parses every output, so validity, safety and rendering are measured exactly as before,
+and an output the codec rejects is a counted failure rather than a hidden one.
+
+This is a change to two rules in section 3: the model is no longer compact, and it
+does model an SVG text form - the project's own safe subset, not arbitrary XML. Both
+are recorded here as deliberate.
+
+Steps, each a registered run with predeclared criteria:
+
+1. **Zero-shot control.** The pinned model, unfine-tuned, prompted with held-out
+   captions. Validity through the codec, render success, and a sheet. This is the
+   floor every fine-tune is read against, and it is not nothing: a code model may
+   already draw.
+2. **Overfit test.** Four icons memorised through the same prompt format and decoder,
+   as every model change here has been.
+3. **Fine-tune on the training split**, LoRA, evaluated on the family-disjoint
+   validation split: validity and render rate, a perceptual similarity between the
+   rendered output and the held-out icon's render and between the output and its
+   caption, nearest-neighbour memorisation against the training set, and the sheet.
+   Predeclared: validity above a stated bar, similarity to the reference above the
+   zero-shot control with the interval excluding zero, and renders a person would
+   recognise, judged on a fixed grid.
+4. **Editing** through fill-in-the-middle prompts over the same canonical text, scored
+   as Gate L scored it, only once generation has a result.
+
+Exit evidence: recognisable held-out icons from captions, measured against the
+zero-shot control and against memorisation, or a negative result that says what the
+prior did not carry. Compute is the owned RTX 4080: a 3B model fits in bf16 with LoRA
+and gradient checkpointing; 7B needs 4-bit weights and is the capacity step, not the
+start.
+
+### What carries over
+
+The corpus manifest and family-disjoint splits, the typed codec and its serializer,
+the safe renderer, the run registry, the weblog, and the discipline of a zero-parameter
+or zero-training baseline beside every number. Gate L's frozen specialist and its
+harness remain the record of what a from-scratch model does here.
+
+### The model, chosen 2026-09-21
+
+Checked at pinned hub revisions, license file read rather than the card's field:
+
+- `Qwen/Qwen3-4B-Base` at `906bfd4b` - Apache 2.0; 4B parameters, 36 layers, hidden
+  2560, grouped-query attention, 151,936-token vocabulary. **Primary.** Fits the RTX
+  4080 in bf16 with LoRA and gradient checkpointing at batch 1.
+- `Qwen/Qwen2.5-Coder-1.5B` at `df3ce67c` - Apache 2.0; the cheap comparison arm, a
+  code-specialised prior at a third of the size.
+- `Qwen/Qwen2.5-Coder-3B` at `09d9bc5d` - the card says "other"; the license file is the
+  Qwen Research License, non-commercial. **Excluded.**
+- `Qwen/Qwen2.5-Coder-7B` - Apache 2.0; needs 4-bit weights on 16 GB and is the
+  capacity step once the 4B has a result, not the start.
+
+The fine-tuning stack (`transformers`, `peft`, `accelerate`) is installed into `.venv`
+without its own torch: the NGC torch the whole record was produced on stays the one in
+use, and an install that drags a PyPI torch in must be undone before anything runs.
