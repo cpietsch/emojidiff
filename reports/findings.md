@@ -2080,3 +2080,34 @@ attempt: the structural half of the codec is memorised by step 300, and even a
 quarter-unit-shifted completion recovers most of a missing path's render error - which
 says the render metric is forgiving of exactly the error a soft target tolerates, and
 the exact-token criteria are the ones that catch a shift like this.
+
+## 2026-09-21 — Gate L's plumbing is sound, and one of its three criteria measured the target
+
+**Hypothesis.** With the coordinate target centred on the token, the masked model should
+memorise four icons through its mask families and its grammar-ordered decoder.
+
+**Observation.** Masked-token accuracy over the free positions under the fixed masks
+reaches **1.000** - from 0.024 untrained, past 0.947 by step 900 - and the structural
+half of the codec is memorised by step 300 as before. Greedy grammar-ordered completion
+of one masked whole path per icon reproduces **4 of 4** token for token, so the model's
+completions render pixel-identical to the clean icons: median RGBA error 0.0 against the
+path-dropped icon's 0.0035 and the marginal policy's 0.0106. Every greedy, sampled and
+marginal completion validates and renders. On gpubox-4080: 106 s, 0.50 GiB peak.
+
+The loss-reduction check is **falsified as written**: exact-token held-out likelihood
+falls from 5.78 to 1.97 nats, 2.9x against a predeclared 100x. That is the target's
+entropy, not the model's error. Under `exp(-|b - t| * 0.25 / 1.0)` the truth carries
+about 12% of the mass and the rest sits on its neighbours, so a model that has learned
+the target exactly still scores about 2 nats at every coordinate, and coordinates are
+nine tenths of the masked free positions. The criterion was copied from Gate I's overfit
+test, whose model trained on exact targets, and it cannot be met by any model trained
+on this objective.
+
+**Decision.** Record the run as falsified rather than re-run it: the accuracy and
+exact-reproduction criteria are the ones that test the objective, the masks and the
+decoder, and both pass without qualification, while a third attempt to make the
+likelihood criterion pass would be tuning the run to the criterion. For later runs a
+loss-reduction criterion under a spread target has to be stated against that target's
+own floor, or left out; the corpus run's criteria are render recovery against two
+policies, a magnitude bar and validity, and do not include it. Gate L proceeds to corpus
+scale.

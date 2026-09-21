@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T15:20:00Z
+Updated: 2026-09-21T15:55:00Z
 
 ## Current hypothesis and evidence
 
@@ -874,6 +874,23 @@ about 18 seconds as the matched environment control described above.
 The `gtc` copy is left intact and untouched as a backup. Nothing was deleted.
 
 
+Gate L's instrument is built, tested and proven on its overfit test. `masked.py` holds
+the model, the five mask families, the soft coordinate loss and the grammar-ordered
+decoder; `masked_inpaint.py` the harness that trains, selects on held-out masked
+likelihood under fixed masks against the position-marginal floor, writes the trace and
+checkpoint before any diagnostic, and scores whole-path inpainting by paired render
+recovery against the path-dropped icon and the marginal policy. Eleven tests pin it. The
+first overfit attempt was falsified by an off-by-one the test exists to catch - every
+coordinate exactly one bin off because the soft target was centred a token low - and is
+preserved under `masked-overfit-l1-01917d5-4icons-9b9b1699` with `reason_code:
+harness_defect`. The rerun on the fixed revision, `masked-overfit-l1-f51c119-4icons-
+9b9b1699`, reaches masked-token accuracy 1.000, reproduces 4 of 4 masked whole paths
+token for token with pixel-identical renders, and validates every completion; its
+loss-reduction criterion is falsified as written because a spread target bounds the
+exact-token likelihood at its own entropy, and that is recorded rather than re-run.
+Ruff and strict mypy pass; 176 tests pass. The weblog is rebuilt and shows both runs,
+the attempt against its own artifacts.
+
 ## Active jobs
 
 One, and it is not compute. The research weblog is served by `scripts/serve_weblog.py`
@@ -1006,21 +1023,22 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Gate L, step one: the overfit test. Build the masked any-order model over the flattened
-sequence (`SequenceLayout`, `legal_mask`, the bit-packed split from Gate I) with the five
-mask families - whole path with length kept, segment span, style block, geometry block,
-uniform random - and a decoder that commits in grammatical dependency order. Train it to
-memorise four icons from four distinct subgroups and predeclare: masked free-token
-accuracy at memorisation, a loss reduction of two orders of magnitude, exact greedy
-reproduction of a masked whole path for every icon, and every output valid. A model that
-cannot do this has a broken objective, mask or decoder, and none of those are worth
-discovering at corpus scale.
+Gate L, step two: the corpus run, `configs/learning/masked-inpaint-l2.yaml`. Matched to
+v16 and to ar-corpus-i2 on every term the plan names - d_model 96, 4 heads, feedforward
+192, four layers, the same hashed corpus and family-disjoint splits, 6,300 steps at
+batch 16 for 100,800 icon presentations - with dropout 0.1 from the first run. It
+trains on the 2,681-icon split, selects on masked likelihood over the 339 validation
+icons under fixed masks, and then removes one path from each of 64 held-out icons and
+asks three policies to draw it back: the path-dropped icon (identity), the
+position-marginal policy through the same grammar-ordered decoder, and the model.
+Predeclared: beat both on paired render error with the 95% interval excluding zero,
+median recovery of at least 0.30 of the render error the missing path costs, every
+completion valid, and the sheet beside the numbers.
 
-Step two, on a pass: the corpus run at v16's matched size beside a larger regularised
-arm, scored by paired render recovery of whole-path inpainting on held-out icons against
-the path-dropped icon and a position-marginal sampler decoded through the same grammar,
-with a magnitude bar predeclared and the sheet beside the numbers. That is the first
-measurement in this project of an editing operation a person would ask for.
+On a pass, a second arm at roughly ten times the parameters with the same dropout - the
+one cell no gate has measured, capacity together with regularisation - and then the
+Gate K editing viewer over the frozen checkpoint. On a fail, the sheet says which mask
+family fails and the record says why.
 
 What is retired, so it is not picked up again by habit: further single-factor sweeps on
 the p = 0.35 denoiser, further left-to-right arms, and the corpus-scale corruption-process
