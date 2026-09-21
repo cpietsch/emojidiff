@@ -174,6 +174,20 @@ def test_the_loss_pays_out_only_at_targets_and_prefers_nearby_bins(pieces: Piece
     assert masked_loss(near, tokens, legal, single, coordinates, tau=1.0) < masked_loss(
         far, tokens, legal, single, coordinates, tau=1.0
     )
+    # The soft target is centred on the truth: logits peaked exactly there beat logits
+    # peaked one bin either side. The first overfit run had every coordinate exactly
+    # one bin off because the kernel was centred a token low, and this is the test that
+    # would have caught it.
+    exact = torch.zeros_like(near)
+    exact[0, position, truth] = 8.0
+    below = torch.zeros_like(near)
+    below[0, position, truth - 1] = 8.0
+    assert masked_loss(exact, tokens, legal, single, coordinates, tau=1.0) < masked_loss(
+        near, tokens, legal, single, coordinates, tau=1.0
+    )
+    assert masked_loss(exact, tokens, legal, single, coordinates, tau=1.0) < masked_loss(
+        below, tokens, legal, single, coordinates, tau=1.0
+    )
     # With tau = 0 the target is exact and the two are equally wrong.
     assert torch.isclose(
         masked_loss(near, tokens, legal, single, coordinates, tau=0.0),

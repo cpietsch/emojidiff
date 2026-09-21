@@ -2044,3 +2044,39 @@ only if Gate L's editor works. Retire further single-factor sweeps on the p = 0.
 denoiser and the pending corruption-process third arm: a masked model makes the
 corruption process a mask family, and the question dissolves. Start, as every gate here
 has, with an overfit test.
+
+## 2026-09-21 — Gate L's overfit test caught an off-by-one, which is what it is for
+
+**Hypothesis.** Before anything runs at corpus scale, the masked model should memorise
+four icons from four distinct subgroups through its mask families and its
+grammar-ordered decoder: masked-token accuracy at memorisation, exact-token held-out
+likelihood down two orders of magnitude, and a masked whole path reproduced token for
+token on every icon.
+
+**Observation. Falsified, by a defect rather than a limit.** Accuracy over the masked
+free positions reached only 0.069 - below the position-marginal floor's 0.547 - and the
+exact-token likelihood fell 2.7x rather than 100x. Yet the renders said the opposite:
+inpainting recovered a median **79%** of the dropped path's render error and helped all
+four icons, and the sheet shows the wheelchair user's head, the clock hand and the flag
+stripe drawn back almost exactly.
+
+Breaking the accuracy down by position type resolves the contradiction. Every
+non-coordinate token is memorised perfectly - lengths, layers, style fields and segment
+kinds all at accuracy 1.000 with likelihood near zero - and every one of the 407 masked
+coordinates is wrong by **exactly one bin**: median 1, mean 1.0, all 407 within one bin.
+Eval-mode and train-mode forwards agree to 1e-5, so the encoder is not it. The soft
+coordinate target was centred on token `truth - 1`. The denoiser's distance kernel
+subtracts one because its heads index lattice bins; copied into a loss whose logits
+index tokens directly, that centred every coordinate target one token low, and the
+model learned it faithfully. The unit test that passed compared a near miss against a
+far miss, which the shifted kernel also orders correctly.
+
+**Decision.** Fix the centre, and make the test ask the question that catches it: the
+loss with logits peaked exactly on the truth must beat logits peaked one bin either
+side. The falsified attempt is preserved under its own identity with its artifacts
+moved aside, `reason_code: harness_defect`, and the overfit test is re-run on the fixed
+revision before the corpus run is registered. Two things worth keeping from the failed
+attempt: the structural half of the codec is memorised by step 300, and even a
+quarter-unit-shifted completion recovers most of a missing path's render error - which
+says the render metric is forgiving of exactly the error a soft target tolerates, and
+the exact-token criteria are the ones that catch a shift like this.

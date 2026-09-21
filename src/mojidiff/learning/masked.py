@@ -419,7 +419,11 @@ def masked_loss(
     bins = torch.arange(logits.shape[-1], device=logits.device)
     exact = (bins[None] == truth[:, None]).to(torch.float32)
     if tau > 0.0:
-        distance = (bins[None] - (truth - 1)[:, None]).abs().to(torch.float32)
+        # Logits here index tokens, not lattice bins, so the kernel is centred on the
+        # token itself. The denoiser's distance kernel subtracts one because its heads
+        # index bins; copying that here centred every coordinate target one token low,
+        # and the overfit test caught it as every coordinate exactly one bin off.
+        distance = (bins[None] - truth[:, None]).abs().to(torch.float32)
         spread = torch.exp(-distance * step / tau)
         weights = torch.where(soft[:, None], spread, exact)
     else:
