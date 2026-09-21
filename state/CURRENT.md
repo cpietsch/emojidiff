@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T17:25:00Z
+Updated: 2026-09-21T17:45:00Z
 
 ## Current hypothesis and evidence
 
@@ -947,6 +947,24 @@ chained in one tmux session: the overfit half `masked-overfit-l6-metric-head-547
 it either, the target kernel mixture is next, then the harder question of whether a
 289-way categorical over an absolute lattice is the right output at all.
 
+Arm 6, the metric head's overfit half, passed exact reproduction (4 of 4 masked paths,
+pixel-identical renders, continuity error 0.0 bins on the training icons) and missed the
+0.99 accuracy bar at 0.958, still rising - a property of a head whose finest Fourier
+period is 4.5 bins, recorded as falsified as written and not re-run. Arm 7 then tested
+nothing: its held-out trace reproduces arm 5's to four decimals, because the head read
+a coordinate's role from the kind token in the input and every editing family hides the
+kind with its coordinates, so the head never fired at a trained position. Preserved as
+`masked-continuity-l7-metric-head-5475283-2681icons-9b9b1699` with `reason_code:
+harness_defect`. The head now takes teacher-forced kinds during training - as the loss
+takes its legal masks from the clean sequence - and the committed kinds at decode time,
+pinned by a test that it fires at a hidden coordinate when the kinds are supplied. Both
+halves are re-running chained on revision `62db169` as `masked-overfit-l6b-metric-head-
+62db169-4icons-9b9b1699` and `masked-continuity-l7b-metric-head-62db169-2681icons-
+9b9b1699`; the continuity half launches only if the overfit half passes exact
+reproduction and validity. The lesson, the same one the first overfit test taught: a
+change can be carried by a run without being exercised by it, and an identical trace is
+the sign.
+
 ## Active jobs
 
 The research weblog is served by `scripts/serve_weblog.py` in tmux session
@@ -1081,7 +1099,7 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Read arms 6 and 7. If the metric head lets the continuity-only model beat the copy
+Read arms 6b and 7b. If the metric head lets the continuity-only model beat the copy
 policy, the trap is identified and the corpus inpainting run repeats with the head on,
 l2's criteria unchanged, and the scored task is then reframed toward the local edits
 the mechanism supports - spans, refinements, restyles - with whole-path completion kept
