@@ -1,0 +1,61 @@
+# Gate L arm 18: arm 17's checkpoint read on exactly the spans arms 15 and 16 used.
+#
+# Arm 17 drew its spans with its own training seed, so only 2 of its 64 spans coincide
+# with arms 15 and 16 although the icons are the same. This config is arm 15's - seed
+# 3501, task span of two, the same 64 icons - with arm 17's checkpoint, so the three
+# checkpoints are read span for span. Nothing is trained.
+schema_version: 1
+study_version: masked-span-l18-specialist-3-l16-spans
+source_revision: f7fd711
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+report_root: reports/learning/masked-span-l18-specialist-3-l16-spans
+checkpoint_root: data/processed/masked-span-l18-specialist-3-l16-spans
+
+data:
+  train_icons: null
+  evaluate_on: validation
+  task: span
+  span_length: 2
+  # The whole family-disjoint validation split for the likelihood trace and selection;
+  # the first 64 of its seeded order for the inpainting measurement.
+  evaluation_icons: 339
+  inpaint_icons: 64
+
+model: {d_model: 96, heads: 4, layers: 4, feedforward: 192, metric_coordinates: 8, dropout: 0.1, start_features: true, metric_head: true}
+
+masks: {random: 0.3, path: 0.3, span: 0.2, style: 0.1, geometry: 0.1, max_paths: 2}
+
+training:
+  steps: 6300
+  checkpoint: data/processed/masked-span-l17-specialist-3/checkpoint.zip
+  checkpoint_sha256: baca10153f43debbc8b9658e74f99ba863ead82f72c3ff66d2b222f06af90efa
+  batch_size: 16
+  learning_rate: 0.001
+  weight_decay: 0.01
+  seed: 3501
+  eval_every: 300
+  patience_evals: 8
+  marginal_alpha: 1.0
+  coordinate_tau: 1.0
+
+decoding: {iterations: 8, chain_order: true, samples: 1, render_size: 72, render_timeout_seconds: 20}
+
+# Predeclared, and hashed into the run identity with the rest of this file.
+criteria:
+  # Paired per-icon render error, model against the path-dropped icon: the mean
+  # difference must be positive with the 95% t-interval excluding zero. An editor that
+  # does not beat leaving the hole is not an editor.
+  beats_drop_baseline: true
+  # The same against the marginal policy. A model that only knows the corpus's colours
+  # and ink draws what the marginal policy draws, and this is where that shows.
+  beats_marginal_baseline: true
+  # The magnitude bar, which Gate I's data-scaling arm taught this project to write:
+  # a direction without a magnitude does not identify a result. Median recovery of the
+  # render error the missing path costs, 0.30 - a completion that is roughly in the
+  # right place, the right colour and the right size. This is a judgement, stated
+  # before the run, and the run is falsified if it is not met even if both paired
+  # tests pass.
+  min_median_recovery: 0.30
+  # Every completion - greedy, sampled and marginal - validates and renders. Free by
+  # construction, and a failure here is a decoder bug rather than a fact about editing.
+  require_all_valid: true

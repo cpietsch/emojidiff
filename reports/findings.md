@@ -2555,3 +2555,34 @@ mixture dilutes the mechanism, exactly as arm 14's continuity said it would.
 length it trained on; the next arm trains it on spans of one to three segments at the
 same budget, with the same mechanism, and reads it on the same 64 icons and
 two-segment spans. The whole-path result stays reported as the hard case.
+
+## 2026-09-21 — The specialist beats the join on paired error, and misses the median bar
+
+**Hypothesis.** Trained on spans of one to three segments, the span specialist should
+complete two-segment spans of held-out icons better than joining the visible ends, with
+the interval excluding zero, the magnitude bar met, and every completion valid.
+
+**Observation. Falsified as predeclared, with both paired tests passed.** Against the
+join fill the mean paired difference is **+0.0092** RGBA MAE, interval [+0.0004,
++0.0179] excluding zero - the first time in this gate a model beats the identity policy
+on the scored task. Against the marginal policy +0.0171 on 58 of 64. But **26 of 64**
+spans helped and the median recovery is −0.03 against the 0.30 bar, so the run is
+falsified on the criterion that asked for a typical gain rather than a mean one. Every
+completion valid. Continuity 19.9 bins against the copy policy's 25.6; held-out
+likelihood 0.782 of its floor and still falling at step 6,300.
+
+**Reading.** The distribution is the finding. On most two-segment spans a straight cut
+between the visible ends is already nearly invisible at 72 px, and the model's fill is
+equally near-perfect - the median error is 0.0017 against the join's 0.0026, and the
+sheet shows the two columns agreeing almost everywhere. On the spans where the cut is
+destructive the model wins outright: the "UP!" badge loses its whole fill under the
+join and comes back green under the model, and a handful of such cases carry the mean.
+An editor that is harmless where a straight cut would do and right where it would not
+is the product this gate set out to find; a criterion asking for a 30% typical gain
+against a baseline that is already right most of the time was the wrong instrument,
+and the record keeps it as falsified rather than moving it.
+
+**A correction the record owes.** The config states this run reads the same 64 icons
+and spans as arms 15 and 16. The icons are the same; the spans were drawn with this
+run's training seed rather than theirs, and only 2 of 64 coincide. The frozen-
+checkpoint mode makes the like-for-like reading a two-minute run, arm 18.
