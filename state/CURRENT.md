@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T15:55:00Z
+Updated: 2026-09-21T16:35:00Z
 
 ## Current hypothesis and evidence
 
@@ -891,17 +891,39 @@ exact-token likelihood at its own entropy, and that is recorded rather than re-r
 Ruff and strict mypy pass; 176 tests pass. The weblog is rebuilt and shows both runs,
 the attempt against its own artifacts.
 
+The corpus run `masked-inpaint-l2-54061b2-2681icons-9b9b1699` is falsified as
+predeclared: matched to v16 and the causal arm with dropout 0.1, it beats the
+position-marginal policy on 54 of 64 held-out icons with the interval excluding zero and
+is worse than leaving the hole on 57 of 64, mean paired difference -0.0040 RGBA MAE,
+interval [-0.0069, -0.0012], median recovery -0.69 against the 0.30 bar; every
+completion valid; 346 s to train, 1.95 GiB peak. A read-only breakdown of the
+checkpoint says this is not Gate I's failure: segment-coordinate accuracy is at the
+floor on the TRAINING icons too - 0.073 against 0.054, whole-path inpainting helping 0
+of 24 - so the model never fit geometry at corpus scale, while it memorises four icons
+exactly. It learned style co-occurrence, which the floor already knows, and a little
+about segment kinds. The single-factor response is path binding: every position carries
+its owning path's index and every segment its index within that path, derived from the
+visible lengths, because the packed layout otherwise makes the encoder count
+path_length tokens to know which hole is which path's. Implemented behind
+`model.path_binding`, off by default, with a test that the ownership follows the visible
+lengths and never guesses past a masked one; 177 tests pass. Its overfit half is
+registered as `masked-overfit-l3-binding-438a98f-4icons-9b9b1699` and its corpus half is
+drafted as `configs/learning/masked-inpaint-l4-binding.yaml`, unregistered until the
+overfit passes.
+
 ## Active jobs
 
-One, and it is not compute. The research weblog is served by `scripts/serve_weblog.py`
-in tmux session `mojidiff-weblog`, bound to `100.69.189.78:8787` on the Tailscale
-interface only. It is a read-only static file server over `site/` and holds no GPU or
-lock; stop it with `tmux kill-session -t mojidiff-weblog`. Rebuild its content with
+The research weblog is served by `scripts/serve_weblog.py` in tmux session
+`mojidiff-weblog`, bound to `100.69.189.78:8787` on the Tailscale interface only. It is
+a read-only static file server over `site/` and holds no GPU or lock; stop it with
+`tmux kill-session -t mojidiff-weblog`. Rebuild its content with
 `python -m mojidiff.weblog.build` after any material result.
 
-No training job is active. Every run and rerun in this session finished in tmux sessions
-that have exited. The owned worker is enabled for bounded work under its recorded
-20,000-step and 50 GB cap. Vast and A100 workers remain disabled.
+Gate L runs execute detached in tmux sessions named `masked-<arm>` with stdout under
+the run's `data/processed/<study>/stdout.log`; a run that has exited leaves `EXIT=<code>`
+as the log's last line. Check `tmux ls` before assuming the GPU is free. The owned
+worker is enabled for bounded work under its recorded 20,000-step and 50 GB cap. Vast
+and A100 workers remain disabled.
 
 ## Artifact durability
 
