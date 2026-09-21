@@ -95,6 +95,7 @@ class MaskedStudyConfig:
     dropout: float
     path_binding: bool
     metric_head: bool
+    start_features: bool
     mixture: MaskMixture
     steps: int
     batch_size: int
@@ -154,6 +155,7 @@ def load_masked_study_config(path: Path) -> MaskedStudyConfig:
         dropout=float(model.get("dropout", 0.0)),
         path_binding=bool(model.get("path_binding", False)),
         metric_head=bool(model.get("metric_head", False)),
+        start_features=bool(model.get("start_features", False)),
         mixture=mixture,
         steps=int(training["steps"]),
         batch_size=int(training["batch_size"]),
@@ -231,6 +233,7 @@ def run_masked_study(config: MaskedStudyConfig, config_path: Path) -> dict[str, 
         dropout=config.dropout,
         path_binding=config.path_binding,
         metric_head=config.metric_head,
+        start_features=config.start_features,
     ).to(device)
     optimizer = torch.optim.AdamW(
         model.parameters(), lr=config.learning_rate, weight_decay=config.weight_decay
@@ -423,6 +426,7 @@ def run_masked_study(config: MaskedStudyConfig, config_path: Path) -> dict[str, 
         "coordinate_tau": list(config.coordinate_tau),
         "path_binding": config.path_binding,
         "metric_head": config.metric_head,
+        "start_features": config.start_features,
         "icon_presentations": metrics[-1]["step"] * config.batch_size,
         "selected_step": best_step,
         "steps_run": metrics[-1]["step"],

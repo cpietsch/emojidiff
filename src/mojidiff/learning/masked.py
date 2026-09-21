@@ -266,6 +266,7 @@ class MaskedProgramModel(nn.Module):
         dropout: float = 0.0,
         path_binding: bool = False,
         metric_head: bool = False,
+        start_features: bool = False,
     ) -> None:
         super().__init__()
         if d_model % heads:
@@ -308,6 +309,19 @@ class MaskedProgramModel(nn.Module):
         )
         self.subgroup_embedding = (
             nn.Embedding(subgroup_vocab_size, d_model) if subgroup_vocab_size > 0 else None
+        )
+        # The codec chains coordinates: a segment starts where the previous one ended,
+        # and a path's first segment at the header's start point. The causal model had
+        # that value as the input at its prediction position; here it sits seven slots
+        # away, in a position that depends on the previous kind, and four arms showed the
+        # model never learns to fetch it. With start features every position of a segment
+        # block carries Fourier features of its own start point when that is visible,
+        # and a flag when it is not.
+        self.start_features = start_features
+        if start_features and metric_coordinates <= 0:
+            raise ValueError("start features need metric coordinates")
+        self.start_projection = (
+            nn.Linear(2 * (2 * metric_coordinates + 2) + 1, d_model) if start_features else None
         )
         self.input_dropout = nn.Dropout(dropout) if dropout > 0.0 else None
         layer = nn.TransformerEncoderLayer(
@@ -382,6 +396,8 @@ class MaskedProgramModel(nn.Module):
         if self.path_identity is not None and self.segment_identity is not None:
             owner, within = segment_ownership(inputs, self.layout)
             hidden = hidden + self.path_identity(owner) + self.segment_identity(within)
+        if self.start_projection is not None:
+            hidden = hidden + self.start_projection(self._start_point_features(inputs))
         if self.group_embedding is not None or self.subgroup_embedding is not None:
             if condition is None:
                 raise ValueError("this model was built with structured conditioning")
@@ -399,6 +415,84 @@ class MaskedProgramModel(nn.Module):
         if self.head_projection is not None:
             logits = self._apply_metric_head(logits, normed, inputs, kinds)
         return logits
+
+    def _start_point_features(self, inputs: Tensor) -> Tensor:
+        """Fourier features of each segment block's start point, and whether it is known.
+
+        For the first segment of a path the start is the header's start point; for any
+        other it is the previous segment's endpoint, whose slots depend on the previous
+        kind. A start whose tokens are masked, or whose owner cannot be determined, is
+        unknown: zero features and a zero flag. Header positions carry all zeros.
+        """
+
+        batch = inputs.shape[0]
+        device = inputs.device
+        layout = self.layout
+        mask_id = self.mask_id
+        owner, within = segment_ownership(inputs, layout)
+        slots = layout.total_segment_slots
+        kind_positions = torch.tensor(
+            [layout.segment_type_position(slot) for slot in range(slots)], device=device
+        )
+        block_owner = owner[:, kind_positions]
+        block_within = within[:, kind_positions]
+        # Previous block's endpoint slots, by its kind: LINE 0-1, QUAD 2-3, CUBIC 4-5.
+        previous_kind_positions = (kind_positions - SEGMENT_STRIDE).clamp_min(0)
+        previous_kind = inputs.gather(1, previous_kind_positions[None].expand(batch, -1))
+        endpoint_offset = torch.tensor([0, 0, 2, 4, 0], device=device)[previous_kind.clamp(0, 4)]
+        previous_x = inputs.gather(
+            1, (previous_kind_positions[None] + 1 + endpoint_offset).clamp_max(layout.length - 1)
+        )
+        previous_y = inputs.gather(
+            1, (previous_kind_positions[None] + 2 + endpoint_offset).clamp_max(layout.length - 1)
+        )
+        from_previous = (
+            (block_within > 0)
+            & (block_within < layout.codec.max_segments)
+            & (previous_kind >= 1)
+            & (previous_kind <= 3)
+        )
+        # First segment of a path: the header's start point.
+        header = block_owner.clamp_max(layout.codec.max_paths - 1) * PATH_STRIDE
+        header_x = inputs.gather(1, header + len(PATH_FIELDS))
+        header_y = inputs.gather(1, header + len(PATH_FIELDS) + 1)
+        from_header = (block_within == 0) & (block_owner < layout.codec.max_paths)
+        x = torch.where(from_previous, previous_x, header_x)
+        y = torch.where(from_previous, previous_y, header_y)
+        known = (from_previous | from_header) & (x > 0) & (x < mask_id) & (y > 0) & (y < mask_id)
+        step = 72.0 / (layout.codec.coordinate_bins - 1)
+        frequencies = (
+            torch.pow(
+                2.0, torch.arange(self.metric_coordinates, dtype=torch.float32, device=device)
+            )
+            * torch.pi
+            / 72.0
+        )
+
+        def features(token: Tensor) -> Tensor:
+            value = (token.to(torch.float32) - 1.0).clamp_min(0.0) * step * known
+            scaled = value[..., None] * frequencies
+            raw = torch.cat(
+                (
+                    (value / 72.0)[..., None],
+                    known.to(torch.float32)[..., None],
+                    torch.sin(scaled),
+                    torch.cos(scaled),
+                ),
+                dim=-1,
+            )
+            # An unknown start contributes nothing at all - not even cos(0) - so the
+            # projection's bias alone says "unknown" and the flag column says it twice.
+            return raw * known.to(torch.float32)[..., None]
+
+        per_block = torch.cat(
+            (features(x), features(y), known.to(torch.float32)[..., None]), dim=-1
+        )
+        per_position = per_block.repeat_interleave(SEGMENT_STRIDE, dim=1)
+        header_zero = torch.zeros(
+            (batch, layout.path_positions, per_position.shape[-1]), device=device
+        )
+        return torch.cat((header_zero, per_position), dim=1)
 
     def _coordinate_roles(self, inputs: Tensor, kinds: Tensor | None) -> tuple[Tensor, Tensor]:
         """Which positions are endpoint coordinates and which control handles, by role.

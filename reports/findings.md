@@ -2312,3 +2312,40 @@ pins that the head fires at a coordinate whose kind is masked when the kinds are
 supplied. Arm 7 is preserved as a harness defect and both halves re-run on the fixed
 revision. The lesson is the same one the first overfit test taught: a change can be
 carried by a run without being exercised by it, and identical traces are the sign.
+
+## 2026-09-21 — The head is not the trap either, and the causal model says where it is
+
+**Hypothesis.** With coordinate logits projected onto the lattice's Fourier basis, so
+that a copied neighbour value becomes a bump without the head first learning an
+ordering over 289 bins, the model trained on single-segment masks should beat the
+copy-the-previous-endpoint policy.
+
+**Observation. Falsified.** This time the change was exercised - the untrained trace
+starts at 6.08 nats against arm 5's 5.20, and the overfit half passed all three of its
+criteria at accuracy 0.996 - and the model converges to the same place regardless:
+**58.3 bins** against the copy policy's 25.6, held-out likelihood 0.947 of the floor,
+training loss flat from step 300.
+
+**What four arms now say together.** Ownership binding, the training mixture and the
+output head each changed nothing about whether the model reads its neighbours, and a
+40-bin shift of the visible previous endpoint still moves nothing. The model that fails
+this is the same model that memorises four icons exactly, so the fault is in what is
+learnable at corpus scale, not in capacity. The causal arm of Gate I is the useful
+comparison: it drove its training loss to 1.96 and cleared the floor by 8% held out,
+and it never had to *find* the previous coordinate - under the causal shift the token
+before the one being predicted is the input at the prediction position itself, so
+"next is near previous" is a direct map from input to output. Here the previous
+endpoint sits seven positions away, in a slot that depends on the previous segment's
+kind, behind learned absolute embeddings over packed slots whose contents shift from
+icon to icon, and attention has to discover a fetch that is rewarded only once it
+exists. The position prior needs none of that and is found by step 300.
+
+**Decision.** Make the masked model's input as local as the causal model's. The codec
+chains coordinates - every segment starts where the previous one ended, and a path's
+first segment at the header's start point - and that start is already in the sequence,
+so it becomes an explicit input feature of each segment block: Fourier features of the
+start point when it is visible, a flag when it is not. Nothing about the loss, the head
+or the masks changes. If the model then beats the copy policy, the position machinery
+was the blocker and the fix is a principled one; if it still cannot, with the value in
+its own input, the loss and head are back on the table with the evidence narrowed to
+them.

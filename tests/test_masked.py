@@ -441,6 +441,57 @@ def test_the_metric_head_changes_only_coordinate_logits_and_still_completes(piec
         _model(layout, groups, subgroups, metric_head=True)
 
 
+def test_start_features_carry_the_previous_endpoint_and_know_when_it_is_hidden(
+    pieces: Pieces,
+) -> None:
+    """Every segment block sees its own start point, and only when that point is visible."""
+
+    _, codec, layout, programs, groups, subgroups = pieces
+    model = _model(layout, groups, subgroups, metric_coordinates=4, start_features=True)
+    tokens = flatten_program(programs[0], layout)[None]
+    blocks = path_blocks(tokens[0], layout)
+    first = blocks[0]
+    with torch.no_grad():
+        features = model._start_point_features(tokens)
+    width = 2 * (2 * 4 + 2) + 1
+    assert features.shape == (1, layout.length, width)
+    assert not bool(features[0, : layout.path_positions].any()), "headers carry nothing"
+    # The first segment's start is the header's start point.
+    kind0 = first.kinds(layout)[0]
+    start_x = (
+        float(tokens[0, first.path * PATH_STRIDE + len(PATH_FIELDS)] - 1)
+        * 72.0
+        / (codec.coordinate_bins - 1)
+    )
+    assert torch.isclose(features[0, kind0, 0], torch.tensor(start_x / 72.0))
+    assert float(features[0, kind0, -1]) == 1.0
+    assert torch.equal(features[0, kind0], features[0, kind0 + 6]), "all seven positions agree"
+    # A later segment's start is the previous segment's endpoint, whichever slots its
+    # kind keeps that in.
+    if first.length >= 2:
+        kind1 = first.kinds(layout)[1]
+        previous_kind = int(tokens[0, kind0])
+        offset = {1: 0, 2: 2, 3: 4}[previous_kind]
+        previous_x = float(tokens[0, kind0 + 1 + offset] - 1) * 72.0 / (codec.coordinate_bins - 1)
+        assert torch.isclose(features[0, kind1, 0], torch.tensor(previous_x / 72.0))
+        # Hiding the previous block hides the start: zero features, zero flag.
+        hidden = tokens.clone()
+        hidden[0, kind0 : kind0 + 7] = mask_token(layout)
+        with torch.no_grad():
+            masked = model._start_point_features(hidden)
+        assert float(masked[0, kind1, -1]) == 0.0 and not bool(masked[0, kind1].any())
+        # But the first block still knows its header start.
+        assert float(masked[0, kind0, -1]) == 1.0
+    condition = {
+        "group": torch.zeros(1, dtype=torch.long),
+        "subgroup": torch.zeros(1, dtype=torch.long),
+    }
+    with torch.no_grad():
+        assert model(tokens, condition).shape == (1, layout.length, layout.vocabulary)
+    with pytest.raises(ValueError):
+        _model(layout, groups, subgroups, start_features=True)
+
+
 def test_dropout_adds_no_parameters_and_is_inert_at_zero(pieces: Pieces) -> None:
     _, _, layout, programs, groups, subgroups = pieces
     plain = _model(layout, groups, subgroups)
