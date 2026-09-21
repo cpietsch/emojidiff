@@ -1,0 +1,33 @@
+# The full-corpus adapter (prior-m2-finetune-4k) evaluated again without training: the
+# same 32 held-out icons, decoding and criteria, with the per-step wall-clock guard on
+# parsing and rendering. Used only if the training run's own evaluation does not finish.
+schema_version: 1
+study_version: prior-m2-finetune-4k-evaluate
+mode: evaluate
+report_root: reports/learning/prior-m2-finetune-4k-evaluate
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+adapter: data/processed/prior/prior-m2-finetune-4k/adapter.zip
+
+model:
+  source: Qwen/Qwen3.5-2B-Base
+  revision: b1485b2fa6dfa1287294f269f5fb618e03d52d7c
+
+data:
+  icons: 32
+
+generation:
+  samples: 2
+  greedy_first: true
+  max_new_tokens: 4096
+  seed: 6201
+
+control_report_root: reports/learning/prior-m2-control
+
+criteria:
+  min_codec_valid_rate: 0.8
+  clip_gain_over_control_ci_excludes_zero: true
+  min_reference_top1_rate: 0.25
+  max_memorised_exactly: 0
+
+render:
+  size: 72

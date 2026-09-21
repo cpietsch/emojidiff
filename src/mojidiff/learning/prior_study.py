@@ -24,7 +24,16 @@ import yaml
 from PIL import Image
 
 from mojidiff.learning.omnisvg import parse_into_codec
-from mojidiff.learning.omnisvg_study import Clip, _sheet, captions, render_program, render_raw
+from mojidiff.learning.omnisvg_study import (
+    STEP_SECONDS,
+    Clip,
+    StepTimeout,
+    _sheet,
+    captions,
+    guarded,
+    render_program,
+    render_raw,
+)
 from mojidiff.learning.openmoji_pilot import (
     OpenMojiPilotError,
     PilotRow,
@@ -56,8 +65,8 @@ def run_prior_study(config_path: Path) -> dict[str, Any]:
         raise OpenMojiPilotError("prior study schema_version must be 1")
     version = str(root["study_version"])
     mode = str(root["mode"])
-    if mode not in {"control", "finetune"}:
-        raise OpenMojiPilotError("mode must be control or finetune")
+    if mode not in {"control", "finetune", "evaluate"}:
+        raise OpenMojiPilotError("mode must be control, finetune or evaluate")
     report_root = Path(str(root["report_root"]))
     checkpoint_root = Path(str(root.get("checkpoint_root", report_root)))
     pilot = load_openmoji_pilot_config(Path(str(root["pilot_config"])))
@@ -83,6 +92,14 @@ def run_prior_study(config_path: Path) -> dict[str, Any]:
 
     train_report: dict[str, Any] = {}
     metrics: list[dict[str, Any]] = []
+    if mode == "evaluate":
+        # A saved adapter, read again: the same evaluation without training.
+        from mojidiff.learning.prior import load_adapter
+
+        payload = Path(str(root["adapter"])).read_bytes()
+        prior.model = load_adapter(prior.model, payload).eval()
+        train_report["adapter_sha256"] = sha256(payload)
+        train_report["adapter"] = str(root["adapter"])
     if mode == "finetune":
         train_report, metrics = _finetune(
             prior, pilot, codec, by_split, annotations, data, training, device
@@ -119,7 +136,7 @@ def run_prior_study(config_path: Path) -> dict[str, Any]:
             "revision": prior.revision,
             "parameters": prior.parameters,
             "trainable_parameters": prior.trainable_parameters if mode == "finetune" else 0,
-            "fine_tuned": mode == "finetune",
+            "fine_tuned": mode != "control",
         },
         "timing": {"load_seconds": load_seconds},
         **train_report,
@@ -307,7 +324,7 @@ def _evaluate(
     seed = int(generation["seed"])
     rows = _select_rows(by_split["primary/validation"], icons, pilot.seed + 1)
     train_texts = set()
-    if mode == "finetune":
+    if mode != "control":
         for row in by_split["primary/train"]:
             train_texts.add(
                 compact_svg(_load_program(row, pilot, codec), codec, pilot.total_segment_slots)
@@ -355,11 +372,20 @@ def _evaluate(
                 record["svg"] = svg
                 record["svg_chars"] = len(svg)
                 record["memorised_exactly"] = svg in train_texts
-                program, info = parse_into_codec(svg.encode(), codec, pilot.total_segment_slots)
+                try:
+                    program, info = guarded(
+                        STEP_SECONDS,
+                        parse_into_codec,
+                        svg.encode(),
+                        codec,
+                        pilot.total_segment_slots,
+                    )
+                except StepTimeout:
+                    program, info = None, {"failure": "parse_timeout"}
                 record.update({f"codec_{key}": value for key, value in info.items()})
                 record["codec_valid"] = program is not None
                 try:
-                    image = render_raw(svg, size)
+                    image = guarded(STEP_SECONDS, render_raw, svg, size)
                     record["raw_render"] = True
                 except Exception as error:  # noqa: BLE001
                     record["raw_render"] = False
@@ -380,6 +406,12 @@ def _evaluate(
             )
             records.append(record)
         tiles.append((f"{row.hexcode} {annotation[:22]}", row_tiles))
+        print(
+            json.dumps(
+                {"icon": index + 1, "hexcode": row.hexcode, "seconds": round(generate_seconds)}
+            ),
+            flush=True,
+        )
     sheet = _sheet(tiles, samples, size)
     payload = b"".join(dumps(record) for record in records)
     _write_bytes_artifact(report_root / "drawings.jsonl", payload)

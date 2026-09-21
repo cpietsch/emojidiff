@@ -44,6 +44,7 @@ from mojidiff.representation.codec_study import _write_bytes_artifact
 from mojidiff.representation.packed import serialize_packed_svg
 from mojidiff.representation.renderer import RenderLimits, render_typed_svg_isolated
 
+STEP_SECONDS = 60.0  # wall-clock budget for one in-process parse or render
 CLIP_REPO = "openai/clip-vit-base-patch32"
 CLIP_REVISION = "3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268"
 
@@ -87,6 +88,32 @@ def _embedding(output: Any) -> torch.Tensor:
     if isinstance(output, torch.Tensor):
         return output
     return output.pooler_output  # type: ignore[no-any-return]
+
+
+class StepTimeout(Exception):
+    """An in-process step exceeded its wall-clock budget."""
+
+
+def guarded(seconds: float, function: Any, *args: Any) -> Any:
+    """Run `function(*args)` in this process under an interval timer.
+
+    cairosvg and the normalizer run in-process without a timeout of their own; a
+    pathological generated SVG once held an evaluation for hours. The timer raises
+    between interpreter instructions, which is enough for pure-Python renderers.
+    """
+
+    import signal
+
+    def raise_timeout(_signum: int, _frame: Any) -> None:
+        raise StepTimeout(f"step exceeded {seconds:.0f} s")
+
+    previous = signal.signal(signal.SIGALRM, raise_timeout)
+    signal.setitimer(signal.ITIMER_REAL, seconds)
+    try:
+        return function(*args)
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous)
 
 
 def render_raw(svg: str, size: int) -> Image.Image:
@@ -268,11 +295,16 @@ def evaluate(
                 record["svg"] = svg
                 projected, snap = to_project_svg(svg, codec.palette)
                 record.update({f"snap_{key}": value for key, value in snap.items()})
-                program, parse_info = parse_into_codec(projected, codec, pilot.total_segment_slots)
+                try:
+                    program, parse_info = guarded(
+                        STEP_SECONDS, parse_into_codec, projected, codec, pilot.total_segment_slots
+                    )
+                except StepTimeout:
+                    program, parse_info = None, {"failure": "parse_timeout"}
                 record.update({f"codec_{key}": value for key, value in parse_info.items()})
                 record["codec_valid"] = program is not None
                 try:
-                    image = render_raw(svg, size)
+                    image = guarded(STEP_SECONDS, render_raw, svg, size)
                     record["raw_render"] = True
                 except Exception as error:  # noqa: BLE001
                     record["raw_render"] = False
@@ -295,6 +327,12 @@ def evaluate(
             )
             rows.append(record)
         tiles.append((f"{row.hexcode} {annotation[:22]}", row_tiles))
+        print(
+            json.dumps(
+                {"icon": index + 1, "hexcode": row.hexcode, "seconds": round(generate_seconds)}
+            ),
+            flush=True,
+        )
 
     sheet = _sheet(tiles, samples, size)
     decoded = [record for record in rows if record.get("decode_paths")]
