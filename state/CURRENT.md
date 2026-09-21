@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T18:50:00Z
+Updated: 2026-09-21T19:05:00Z
 
 ## Current hypothesis and evidence
 
@@ -1005,6 +1005,17 @@ follow-ups are queued behind the chain-order overfit re-run: arm 11, the same ru
 the metric head at the same 2,100 steps, which should make copying the start a linear
 map now that the value is there to copy; and arm 12, the same run at the full 6,300
 steps, to see where the curve goes.
+
+Arm 9b corrects arm 9's reading. Decoded in chain order the start-features overfit test
+is unchanged - accuracy 1.000, every completion valid, 3 of 4 paths exact, all four
+renders pixel-identical - and the one differing token is a single coordinate one bin off
+at probability 0.116 against 0.100. That is the one-unit soft target's spread, not the
+decoder: exact-bin reproduction of a memorised path is a coin flip wherever the model
+has learned the target well, and a quarter-unit miss is invisible in the render. The
+decoder-order reading is withdrawn; chain-order decoding is kept as the right decoder
+for a chained input; and the overfit criterion gains a one-bin tolerance on coordinates
+(`min_close_path_reproduction_rate`, exact rate still reported) so that it tests the
+plumbing rather than the target.
 
 ## Active jobs
 
