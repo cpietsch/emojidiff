@@ -1,0 +1,27 @@
+# Gate M, experiment one, step one: OmniSVG 1.1 4B zero-shot on held-out OpenMoji captions.
+#
+# The control every fine-tune is read against. OmniSVG has never seen OpenMoji; it is
+# given each held-out icon's own annotation as "<annotation>, flat emoji icon" through
+# its released text-to-SVG prompt and sampling settings, and what it draws is decoded
+# by its own tokenizer, converted into the project's codec (scaled from its 200-unit box
+# to 72, fills snapped to the nearest OpenMoji palette colour, both reported), rendered,
+# and scored with a pinned CLIP against the held-out icon's own render and against the
+# annotation. Drawings the codec cannot take are counted with their reason. No criteria
+# to pass: this is the floor, and the sheet is the point.
+schema_version: 1
+study_version: omnisvg-m1-zeroshot
+report_root: reports/learning/omnisvg-m1-zeroshot
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+
+data:
+  split: primary/validation
+  icons: 32
+
+generation:
+  samples: 2
+  # OmniSVG's own icon setting is 1,536; the probe's 1,024 truncated two of three subjects.
+  max_new_tokens: 2048
+  seed: 6101
+
+render:
+  size: 72

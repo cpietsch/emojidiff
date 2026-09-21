@@ -2767,3 +2767,25 @@ fetched next.
 the 2B base ran out of memory at 1,024 tokens on 16 GB; the published wheel of
 flash-linear-attention ships without its ops, and the source build installs and
 imports. Timing follows.
+
+## 2026-09-22 — SemIf on the 4B: never misses an "ask", asks far too often, and follows the last letter
+
+**Observation.** The 4B instruct model through the same one-forward readout scores
+0.577 over the 52 owned requests: ask 1.0, recolour 0.7, restyle 0.5, simplify 0.25,
+generate 0.2; 22 of the 38 actionable requests are sent to ask; and the choice survives
+reversing the option order on only **50%** of decisions. Falsified on accuracy and
+order invariance; the clarify-recall criterion passes trivially because everything
+tends to ask.
+
+**Reading.** The choice counts by order say what is happening. In the declared order
+ask is the last letter and is chosen 36 times; in the reversed order the last letter is
+generate, generate rises from 2 to 11 and ask falls to 10. The readout is following the
+final position more than the meaning, a known failure of letter readouts that the
+reference method's own results discuss under perturbation stability. The cheapest
+correction, averaging the two orders' probabilities per option, uses the same two
+forwards; it is added to the runner as a secondary readout, reported beside the direct
+one and not a criterion, and both models are re-read with it.
+
+**Meanwhile, OmniSVG.** The zero-shot control on 32 held-out annotations is running:
+two samples each at 2,048 tokens, decoded, converted into the codec, rendered, scored
+against the held-out render and the annotation with a pinned CLIP.

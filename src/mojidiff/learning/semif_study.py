@@ -51,6 +51,11 @@ def run_semif_study(
         backward = score(model, tokenizer, decision.state, reordered(OPERATIONS))
         forward_seconds += time.perf_counter() - clock
         agreements += int(forward["choice"] == backward["choice"])
+        forward_p = dict(zip(forward["option_ids"], forward["probabilities"], strict=True))
+        backward_p = dict(zip(backward["option_ids"], backward["probabilities"], strict=True))
+        # Position bias is the known failure of a letter readout; averaging the two
+        # orders per option is the cheapest correction and costs no extra forward.
+        averaged = {key: (forward_p[key] + backward_p[key]) / 2 for key in forward_p}
         results.append(
             {
                 "id": decision.id,
@@ -58,9 +63,9 @@ def run_semif_study(
                 "expected": decision.expected,
                 "choice": forward["choice"],
                 "choice_reversed": backward["choice"],
-                "probabilities": dict(
-                    zip(forward["option_ids"], forward["probabilities"], strict=True)
-                ),
+                "choice_averaged": max(averaged, key=lambda key: averaged[key]),
+                "probabilities": forward_p,
+                "probabilities_reversed": backward_p,
                 "input_tokens": forward["input_tokens"],
                 "state": decision.state,
             }
@@ -93,6 +98,16 @@ def run_semif_study(
         "operations": [identifier for identifier, _ in OPERATIONS],
         **summary_stats,
         "order_invariance": order_invariance,
+        "averaged_readout": {
+            "accuracy": sum(row["choice_averaged"] == row["expected"] for row in results)
+            / len(results),
+            "clarify_false_alarms": sum(
+                1
+                for row in results
+                if row["choice_averaged"] == "clarify" and row["expected"] != "clarify"
+            ),
+            "note": "secondary readout, mean of the two option orders; not a criterion",
+        },
         "timing": {
             "load_seconds": load_seconds,
             "mean_decision_seconds": forward_seconds / (2 * len(results)),
