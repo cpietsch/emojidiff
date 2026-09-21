@@ -372,6 +372,53 @@ def test_the_encoder_sees_a_coordinate_value_change(pieces: Pieces) -> None:
     assert near > 0.0 and far > near, "the metric features must order the lattice"
 
 
+def test_the_metric_head_changes_only_coordinate_logits_and_still_completes(pieces: Pieces) -> None:
+    """Coordinate positions with a known role get lattice-aware logits; nothing else moves."""
+
+    _, codec, layout, programs, groups, subgroups = pieces
+    torch.manual_seed(0)
+    plain = _model(layout, groups, subgroups, metric_coordinates=4)
+    torch.manual_seed(0)
+    metric = _model(layout, groups, subgroups, metric_coordinates=4, metric_head=True)
+    metric.load_state_dict(plain.state_dict(), strict=False)
+    tokens = flatten_program(programs[0], layout)[None]
+    condition = {
+        "group": torch.zeros(1, dtype=torch.long),
+        "subgroup": torch.zeros(1, dtype=torch.long),
+    }
+    with torch.no_grad():
+        before = plain(tokens, condition)
+        after = metric(tokens, condition)
+    coordinates = coordinate_positions(layout)
+    differs = ~torch.isclose(before, after).all(dim=-1)[0]
+    assert not bool(differs[~coordinates].any()), "non-coordinate logits are untouched"
+    assert bool(differs[coordinates].any()), "coordinate logits come from the metric head"
+    # A coordinate whose kind is masked keeps the categorical head.
+    masked = tokens.clone()
+    kind_position = layout.segment_type_position(0)
+    masked[0, kind_position] = mask_token(layout)
+    with torch.no_grad():
+        plain_masked = plain(masked, condition)
+        metric_masked = metric(masked, condition)
+    assert torch.allclose(plain_masked[0, kind_position + 1], metric_masked[0, kind_position + 1])
+    # The head's extra parameters are one small projection.
+    extra = 32 * (2 * 4 + 2) + (2 * 4 + 2)
+    assert (
+        sum(p.numel() for p in metric.parameters())
+        == sum(p.numel() for p in plain.parameters()) + extra
+    )
+    # And the decoder still produces a valid program through it.
+    hide = whole_path_mask(tokens[0], layout, 0)
+    decoded, _ = complete(
+        model_logits(metric, condition), apply_mask(tokens[0], hide, layout), layout, iterations=3
+    )
+    validate_packed_tensor_program(
+        unflatten_program(decoded, programs[0], layout), codec, layout.total_segment_slots
+    )
+    with pytest.raises(ValueError):
+        _model(layout, groups, subgroups, metric_head=True)
+
+
 def test_dropout_adds_no_parameters_and_is_inert_at_zero(pieces: Pieces) -> None:
     _, _, layout, programs, groups, subgroups = pieces
     plain = _model(layout, groups, subgroups)

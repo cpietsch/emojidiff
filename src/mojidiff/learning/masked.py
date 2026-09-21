@@ -265,6 +265,7 @@ class MaskedProgramModel(nn.Module):
         metric_coordinates: int = 0,
         dropout: float = 0.0,
         path_binding: bool = False,
+        metric_head: bool = False,
     ) -> None:
         super().__init__()
         if d_model % heads:
@@ -321,6 +322,35 @@ class MaskedProgramModel(nn.Module):
         self.encoder = nn.TransformerEncoder(layer, num_layers=layers, enable_nested_tensor=False)
         self.norm = nn.LayerNorm(d_model)
         self.head = nn.Linear(d_model, layout.vocabulary)
+        # The categorical head is a linear map onto 289 unordered bins, so to place a
+        # bump wherever a neighbour's value says it must first discover an ordering over
+        # them. The metric head skips that: at a coordinate position whose role is known
+        # the logit for a bin is the inner product of a projection of the state with the
+        # same Fourier features of that bin's decoded value that the input side uses,
+        # plus the categorical bias, so "near v" is one vector away rather than 289.
+        self.metric_head = metric_head
+        if metric_head and metric_coordinates <= 0:
+            raise ValueError("the metric head needs metric coordinates")
+        self.head_projection = (
+            nn.Linear(d_model, 2 * metric_coordinates + 2) if metric_head else None
+        )
+        if metric_head:
+            codec = layout.codec
+            self.register_buffer(
+                "_endpoint_basis",
+                _bin_features(codec.coordinate_bins, 0.0, 72.0, metric_coordinates),
+                persistent=False,
+            )
+            self.register_buffer(
+                "_control_basis",
+                _bin_features(
+                    codec.effective_control_coordinate_bins,
+                    codec.control_coordinate_min,
+                    codec.control_coordinate_max,
+                    metric_coordinates,
+                ),
+                persistent=False,
+            )
 
     def forward(self, inputs: Tensor, condition: dict[str, Tensor] | None = None) -> Tensor:
         """Logits over the shared vocabulary at every position.
@@ -353,8 +383,54 @@ class MaskedProgramModel(nn.Module):
         if self.input_dropout is not None:
             hidden = self.input_dropout(hidden)
         encoded: Tensor = self.encoder(hidden, src_key_padding_mask=inputs == PAD)
-        logits: Tensor = self.head(self.norm(encoded))
+        normed = self.norm(encoded)
+        logits: Tensor = self.head(normed)
+        if self.head_projection is not None:
+            logits = self._apply_metric_head(logits, normed, inputs)
         return logits
+
+    def _coordinate_roles(self, inputs: Tensor) -> tuple[Tensor, Tensor]:
+        """Which positions are endpoint coordinates and which control handles, by role.
+
+        Decided from the segment kind governing each position, which is visible at
+        training time and committed before the coordinate tier at decode time; a
+        position whose kind is masked has no role and keeps the categorical head.
+        """
+
+        batch = inputs.shape[0]
+        slot = cast(Tensor, self._slot_index)[None].expand(batch, -1)
+        kind_at = cast(Tensor, self._kind_position)
+        kinds = inputs.gather(1, kind_at.clamp_min(0)[None].expand(batch, -1))
+        known = (kind_at >= 0)[None] & (kinds >= 1) & (kinds <= 3)
+        counts = cast(Tensor, self._control_counts)[kinds.clamp(0, 4)]
+        coordinate_count = counts + 2
+        is_segment = (slot >= 0) & known & (slot < coordinate_count)
+        is_control = is_segment & (slot < counts)
+        is_endpoint = (is_segment & ~is_control) | cast(Tensor, self._is_start)[None]
+        return is_endpoint, is_control
+
+    def _apply_metric_head(self, logits: Tensor, normed: Tensor, inputs: Tensor) -> Tensor:
+        projection = cast(nn.Linear, self.head_projection)
+        query: Tensor = projection(normed)
+        is_endpoint, is_control = self._coordinate_roles(inputs)
+        bias = self.head.bias
+        endpoint = query @ cast(Tensor, self._endpoint_basis).t()
+        control = query @ cast(Tensor, self._control_basis).t()
+        vocabulary = logits.shape[-1]
+        metric = torch.full_like(logits, float("-inf"))
+        # Token 0 is padding at every coordinate position and is never legal there; the
+        # legal mask removes it, so its logit here does not matter.
+        endpoint_full = (
+            torch.cat((metric[..., :1], endpoint, metric[..., 1 + endpoint.shape[-1] :]), dim=-1)
+            + bias
+        )
+        control_full = (
+            torch.cat((metric[..., :1], control, metric[..., 1 + control.shape[-1] :]), dim=-1)
+            + bias
+        )
+        assert endpoint_full.shape[-1] == vocabulary and control_full.shape[-1] == vocabulary
+        logits = torch.where(is_endpoint[..., None], endpoint_full, logits)
+        return torch.where(is_control[..., None], control_full, logits)
 
     def _apply_metric_coordinates(self, hidden: Tensor, inputs: Tensor) -> Tensor:
         codec = self.layout.codec
@@ -450,6 +526,18 @@ def segment_ownership(inputs: Tensor, layout: SequenceLayout) -> tuple[Tensor, T
     owner[:, layout.path_positions :] = segment_owner
     within[:, layout.path_positions :] = segment_index
     return owner, within
+
+
+def _bin_features(bins: int, low: float, high: float, frequencies: int) -> Tensor:
+    """The input side's Fourier features, evaluated at every bin of one role."""
+
+    value = low + torch.arange(bins, dtype=torch.float32) * ((high - low) / (bins - 1))
+    scale = torch.pow(2.0, torch.arange(frequencies, dtype=torch.float32)) * torch.pi / 72.0
+    scaled = value[:, None] * scale[None]
+    return torch.cat(
+        ((value / 72.0)[:, None], torch.ones(bins, 1), torch.sin(scaled), torch.cos(scaled)),
+        dim=-1,
+    )
 
 
 def _start_positions(layout: SequenceLayout) -> Tensor:
