@@ -2686,3 +2686,59 @@ has measured - and it is on the GPU as arm 22. If it does not move the centre ei
 Gate L concludes on parity with the mechanism result standing, and the record says
 what an editor at this corpus size is: harmless where a straight cut would do, right
 where continuity decides, and no better than a guess where shape does.
+
+## 2026-09-21 — Gate L concludes: an editor as good as a straight cut, and a mechanism that is real
+
+**The last lever.** Capacity with regularisation - ten times the parameters, 5,358,516
+against 531,892, dropout unchanged - ties the join on four-segment spans like every arm
+before it: mean −0.0009, interval [−0.0032, +0.0013], 28 of 56 helped, median recovery
+−0.001, span for span against the small model 28 better and 27 worse. The marginal
+policy beaten on 49 of 56. 1,236 s to train, 3.9 GiB peak. Every completion valid.
+
+**What twenty-two arms established, in order.** A masked model over this codec cannot
+read its neighbours as built: five arms at the floor for geometry on its own training
+icons, a 40-bin shift of a visible endpoint moving its prediction by a median of zero.
+The cause was the fetch and the head together, not capacity, data, ownership, mixture
+or kernel: put each segment's start point in its own input and project coordinate
+logits onto the lattice's Fourier basis, and the same 530k parameters learn continuity
+- hidden-segment endpoint 17.6 to 19.9 bins from the truth against 25.6 for a policy
+that copies the previous endpoint, on 339 held-out icons, in every run that carried
+the mechanism. That is the first learned geometry in this project and it is robust.
+
+Carried into editing, the mechanism does what continuity can do and no more. Whole-path
+completion: no longer damaging - the gap to the hole a quarter of l2's - and still
+short of it, because the shape of a missing part is what the corpus cannot teach for an
+unseen icon. Span completion at two and four segments, five readings on pinned spans
+with three checkpoints, a budget three times longer and a model ten times larger: parity
+with a zero-parameter fill that joins the visible ends, interval spanning zero every
+time, wins where the cut is destructive, losses where the hidden run had a shape the
+neighbours did not determine, and the marginal policy beaten on 49 of 56 or better every
+time. The mechanism's own measures kept improving through all of it - likelihood to
+0.754 of the floor, continuity to 17.6 bins - and the render-level edit did not follow.
+
+**Verdict.** PROJECT_PLAN.md section 15 asked for an editor that completes held-out
+icons visibly and measurably, or a negative result that names which mask family fails
+and why. The answer is both halves at once. What exists is an editor that is harmless
+where a straight cut would do, right where continuity decides, and no better than a
+guess where shape does - always better than the corpus's statistics, never better than
+the simplest geometric policy at the median. The family that fails is any whose answer
+is a shape: a whole path, or a span long enough that its interior is not determined by
+its ends. Why: 2,681 icons with 1,597 singleton families teach continuity and style,
+and do not teach what an unseen icon's parts look like - the same fact Gate I measured
+for whole icons, now measured for parts.
+
+**What the gate cost and caught.** Twenty-two registered arms in about five hours of
+GPU on gpubox-4080, seven minutes each at 1.9 GiB for the small model. Two harness
+defects caught by overfit tests before a corpus run could read them (a soft target
+centred a token low; a head that never fired at a masked kind), two criteria found to
+measure the target rather than the model (loss reduction under a spread target; exact
+bins under a spread target), one evaluation draw that inherited a training seed, and
+one decoder-order reading that was wrong and withdrawn. Every one is in the registry
+under its own identity.
+
+**Decision.** Gate L is complete. The frozen specialist from arm 21 - the best
+continuity, 17.6 bins - is the checkpoint Gate K's editing viewer is built over, showing
+what the editor does and does not do beside the join and the hole. Gate H, broader
+licensed corpora, is the only route to shape knowledge, for parts as for wholes, and is
+the operator's call: it is a licensing and curation project before it is a training one.
+No further single-factor arm on this corpus is recommended; the levers are measured.

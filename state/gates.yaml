@@ -12,16 +12,18 @@ updated: 2026-09-21
 # the Current hypothesis section of state/CURRENT.md; the weblog falls back to that
 # section's newest paragraph if this is absent.
 headline: >-
-  Gate L has its first pass. The masked model over the same codec could not read its
-  neighbours - five arms left it at the position-marginal floor for geometry, on its own
-  training icons - and a sequence of one-factor studies found why: the previous
-  endpoint sat seven slots away behind absolute embeddings over packed slots, and the
-  head had to learn an ordering over 289 unordered bins before it could place a bump
-  where a neighbour said. With each segment's start point in its own input and
-  lattice-aware coordinate logits, the model's hidden-segment endpoint is 17.9 bins
-  from the truth against 25.6 for a zero-parameter policy that copies the previous
-  endpoint, over 339 held-out icons. Arm 14 carries that mechanism into the scored
-  task: draw a removed path back into a held-out icon better than leaving the hole.
+  Gate L is complete. Twenty-two arms found the mechanism a masked editor over this
+  codec was missing - each segment's start point in its own input, coordinate logits on
+  the lattice's Fourier basis - and with it the same 530k parameters learn continuity:
+  a hidden segment's endpoint 17.6 bins from the truth against 25.6 for a policy that
+  copies the previous one, the first learned geometry in this project. Carried into
+  editing it does what continuity can do and no more: whole-path completion no longer
+  damages and still loses to the hole, and span completion at two and four segments
+  ties a zero-parameter fill that joins the visible ends - five readings, three
+  checkpoints, a budget three times longer, a model ten times larger, the interval
+  spanning zero every time - while beating the corpus's statistics every time. What
+  the corpus cannot teach is shape, for parts as Gate I found for wholes. Gate K's
+  viewer over the frozen specialist is next; Gate H is the operator's call.
 
 gates:
   - id: Gate A
@@ -143,26 +145,32 @@ gates:
 
   - id: Gate L
     title: Structured editing with a masked any-order model
-    status: open
+    status: complete
     question: >-
       Can one bidirectional model over the same codec complete held-out icons - a
       missing path, a span, a style block - visibly and measurably better than doing
       nothing and than a zero-parameter sampler that knows the corpus statistics?
     evidence: >-
-      Opened 2026-09-21 as the primary line; PROJECT_PLAN.md section 15 states the
-      design. The instrument passed its overfit test, and the first corpus run (l2)
-      beat the position-marginal policy on 54 of 64 held-out icons and lost to leaving
-      the hole on 57 of 64 - because, a checkpoint breakdown showed, it never read its
-      neighbours: at the floor for coordinates on its own training icons, and a 40-bin
-      shift of a visible endpoint moved its prediction by a median of zero. Ownership
-      binding, the training mixture and the output head alone changed nothing. Putting
-      each segment's start point into its own input did: continuity error 58-60 bins
-      to 47.8 at a third of the budget, 29.1 at the full budget, and 17.9 with the
-      metric head - past the copy-the-previous-endpoint policy's 25.6 over 339 held-out
-      icons, the gate's first predeclared pass at corpus scale (arm 13). Two harness
-      defects were caught by the overfit tests and preserved: a soft target centred a
-      token low, and a head that never fired at a masked kind. Arm 14 carries the
-      mechanism into the scored task on l2's icons and criteria.
+      Answered in twenty-two registered arms on 2026-09-21. The first corpus model beat
+      the position-marginal policy on 54 of 64 held-out icons and lost to leaving the
+      hole on 57 of 64 because it never read its neighbours - at the floor for
+      coordinates on its own training icons, a 40-bin shift of a visible endpoint
+      moving its prediction by a median of zero. Ownership binding, the training
+      mixture and the output head alone changed nothing. Putting each segment's start
+      point in its own input did, and the metric head on top of it: continuity error
+      58-60 bins to 17.6-19.9 against the copy-the-previous-endpoint policy's 25.6 over
+      339 held-out icons, in every run that carried the mechanism - the first learned
+      geometry in this project. Carried into editing: whole-path completion stops
+      damaging (-0.0011 against the hole from -0.0040) and still loses to it; span
+      completion at two and four segments ties a zero-parameter fill that joins the
+      visible ends - five readings on pinned spans with three checkpoints, a
+      three-times-longer budget and a ten-times-larger model, the interval spanning
+      zero every time - and beats the marginal policy on 49 of 56 or better every time.
+      Likelihood and continuity kept improving through all of it; the render-level
+      edit did not follow, because what remains is shape, which the corpus cannot
+      teach for an unseen icon. Two harness defects, two mis-specified criteria, one
+      inherited seed and one wrong reading were caught and preserved. The frozen
+      specialist of arm 21 is the checkpoint for Gate K's viewer.
   - id: Gate J
     title: Deployment optimization
     status: not-started
@@ -174,6 +182,8 @@ gates:
     question: Does every displayed claim link to a reproducible run and environment?
     evidence: >-
       This weblog is the first piece: a static view over the committed run registry,
-      run records, findings, and renders, served on the machine's Tailscale address.
-      The paired trajectory viewer, inpainting controls, and benchmark explorer are not
-      built yet.
+      run records, findings, and renders, served on the machine's Tailscale address,
+      with every Gate L sheet beside its numbers. The editing viewer over Gate L's
+      frozen specialist - clean, join, model and marginal for each held-out span, with
+      the per-span numbers - is the next piece; the paired trajectory viewer and the
+      benchmark explorer are not built.

@@ -727,3 +727,18 @@ negative result that names which mask family fails and why.
   third arm, and further left-to-right arms. Their results stand as recorded.
 - Gate G is complete: its assessment is that generation is not compelling at this
   scale, blind denoising helps only for light corruption, and editing is the candidate.
+
+### Gate L's conclusion, 2026-09-21
+
+Twenty-two arms. The mechanism a masked editor over this codec was missing is found
+and measured: with each segment's start point in its own input and coordinate logits
+projected onto the lattice's Fourier basis, the same 530k parameters learn continuity
+- 17.6 bins against a zero-parameter copy policy's 25.6 - where five arms without it
+sat at the marginal floor on their own training icons. Carried into editing, the
+mechanism does what continuity can do and no more: whole-path completion stops damaging
+and still loses to the hole; span completion ties a zero-parameter fill that joins the
+visible ends across five readings, longer training and ten times the capacity, while
+beating the corpus's statistics every time. What the corpus cannot teach is shape, for
+parts as Gate I found for wholes. The gate is complete; the frozen specialist of arm 21
+is the checkpoint Gate K's viewer is built over; Gate H is the only route to shape and
+is the operator's call.
