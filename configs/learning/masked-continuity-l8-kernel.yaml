@@ -8,7 +8,7 @@
 # argued about, one factor at a time.
 schema_version: 1
 study_version: masked-continuity-l8-kernel
-source_revision: 5475283
+source_revision: 62db169
 pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
 report_root: reports/learning/masked-continuity-l8-kernel
 checkpoint_root: data/processed/masked-continuity-l8-kernel
