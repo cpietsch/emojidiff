@@ -621,6 +621,34 @@ def _run_charts(run: RunPage) -> str:
                     markers=selected,
                 )
             )
+    # Gate L's trace: accuracy over the masked positions the grammar leaves free, with
+    # the position-marginal policy's accuracy on the same positions beside it.
+    if run.metrics and any("masked_token_accuracy" in row for row in run.metrics):
+        points = tuple(
+            (float(row["step"]), float(row["masked_token_accuracy"]))
+            for row in run.metrics
+            if "step" in row and isinstance(row.get("masked_token_accuracy"), (int, float))
+        )
+        series = [Series("model", points)] if points else []
+        floor = summary.get("marginal_masked_token_accuracy")
+        if points and isinstance(floor, (int, float)):
+            series.append(
+                Series(
+                    "position-marginal floor",
+                    tuple((step, float(floor)) for step, _ in points),
+                )
+            )
+        if series:
+            charts.append(
+                metric_chart(
+                    "Masked-token accuracy over unforced positions",
+                    series,
+                    x_label="optimizer step",
+                    y_label="accuracy",
+                    y_zero=True,
+                    markers=selected,
+                )
+            )
     if run.metrics and any("free_token_accuracy" in row for row in run.metrics):
         points = tuple(
             (float(row["step"]), float(row["free_token_accuracy"]))
