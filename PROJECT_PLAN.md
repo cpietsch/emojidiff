@@ -816,3 +816,29 @@ Checked at pinned hub revisions, license file read rather than the card's field:
 The fine-tuning stack (`transformers`, `peft`, `accelerate`) is installed into `.venv`
 without its own torch: the NGC torch the whole record was produced on stays the one in
 use, and an install that drags a PyPI torch in must be undone before anything runs.
+
+### Operator decisions, 2026-09-22
+
+Research use: model licenses are not a selection criterion for these experiments; the
+license file is still recorded at the pinned revision so a later publication decision
+has the facts. Three experiments run under Gate M, each registered with predeclared
+criteria against the same family-disjoint held-out icons and the same zero-shot
+control, each with a sheet beside its numbers:
+
+- **OmniSVG 1.1 4B**, in its native vocabulary and tokenizer, fine-tuned on outlined
+  OpenMoji through its training repository - the only candidate that already draws.
+- **Qwen3.5**, a hybrid linear-attention base model, fine-tuned with LoRA to write the
+  project's compact SVG text from a caption, strokes preserved, every output parsed by
+  the typed codec.
+- **SemIf**, a frozen instruction-tuned Qwen3.5-0.8B read out through one forward pass
+  and a softmax over answer-token logits, as a bounded decision layer that routes an
+  editing request to generate, recolour, restyle, simplify or ask; measured on an
+  owned evaluation set of at least fifty commands with a needs-clarification option.
+  It is a product-layer experiment and does not depend on the generators.
+
+The handoff document the operator supplied (an implementation plan prepared without
+this repository) contributes the SemIf design, the OmniSVG comparison and the
+suffix-only loss with trainable new token rows; its custom drawing vocabulary is held
+back as an ablation, because new geometry tokens trained on 2,681 icons are the
+position this project has just measured its way out of, and its router and browser
+export follow the generators rather than precede them.
