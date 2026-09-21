@@ -7,7 +7,7 @@
 # the render.
 schema_version: 1
 study_version: masked-inpaint-l8-metric-head
-source_revision: 5475283
+source_revision: 62db169
 pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
 report_root: reports/learning/masked-inpaint-l8-metric-head
 checkpoint_root: data/processed/masked-inpaint-l8-metric-head

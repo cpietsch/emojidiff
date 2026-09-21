@@ -1,0 +1,63 @@
+# Re-run on the fixed revision: the first attempt's head never fired during training
+# because it read roles from a masked kind. The attempt is preserved under its own
+# identity and report root.
+# Gate L arm 6, overfit half: the metric output head through the plumbing test.
+#
+# Arm 5 showed the model does not learn continuity even when continuity is the only
+# task. The metric head makes a coordinate logit the inner product of a projection of
+# the state with the input side's Fourier features of that bin, plus the categorical
+# bias, so a copied neighbour value becomes a bump at that value without the head first
+# learning an ordering over 289 unordered bins. Before it runs on the corpus it goes
+# through the overfit test every model change here has. Same four icons, same masks,
+# same criteria as arm 3's overfit half; binding off, so this is one change from l1.
+schema_version: 1
+study_version: masked-overfit-l6b-metric-head
+source_revision: 62db169
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+report_root: reports/learning/masked-overfit-l6b-metric-head
+checkpoint_root: data/processed/masked-overfit-l6b-metric-head
+
+data:
+  train_icons: 4
+  distinct_subgroups: true
+  evaluate_on: train
+  evaluation_icons: 4
+  inpaint_icons: 4
+
+# The shape v16 and the AR arms share: d_model 96, 4 heads, feedforward 192; four
+# layers as in ar-corpus-i2. Metric coordinates on from the first run.
+model: {d_model: 96, heads: 4, layers: 4, feedforward: 192, metric_coordinates: 8, dropout: 0.0, metric_head: true}
+
+# The editing operations, weighted so that whole-path completion - the scored task -
+# and the uniform mask that makes generation the same model carry most of the draw.
+masks: {random: 0.3, path: 0.3, span: 0.2, style: 0.1, geometry: 0.1, max_paths: 2}
+
+training:
+  steps: 3000
+  batch_size: 4
+  learning_rate: 0.001
+  weight_decay: 0.01
+  seed: 3401
+  eval_every: 100
+  # Evaluation is on the training icons, so the held-out trace should keep improving
+  # and patience should never fire; if it does, that is a finding.
+  patience_evals: 30
+  marginal_alpha: 1.0
+  # v15's correction: the coordinate target spreads over the lattice by distance, tau in
+  # view units, so being close earns gradient.
+  coordinate_tau: 1.0
+
+decoding: {iterations: 8, samples: 1, render_size: 72, render_timeout_seconds: 20}
+
+# Predeclared, and hashed into the run identity with the rest of this file.
+criteria:
+  # Memorisation over the masked positions the grammar leaves free, under the fixed
+  # evaluation masks. Four icons into ~530k parameters is far inside capacity.
+  min_masked_token_accuracy: 0.99
+  # The strong one: greedy grammar-ordered completion of one masked whole path must
+  # reproduce it token for token on every icon. It exercises the mask family, the tier
+  # order, the later-path bounds and the confidence schedule against a known target.
+  min_exact_path_reproduction_rate: 1.0
+  # Every completion - greedy, sampled and marginal - must survive the packed validator
+  # and the isolated renderer. Free by construction, which is why it is worth checking.
+  require_all_valid: true
