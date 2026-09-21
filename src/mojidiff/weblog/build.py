@@ -166,7 +166,7 @@ def _collect_runs(root: Path) -> list[RunPage]:
             continue
         merged: dict[str, Any] = {"run_id": run_id}
         for row in rows:
-            for key in ("config", "outputs"):
+            for key in ("config", "outputs", "artifacts"):
                 if key in row:
                     merged[key] = row[key]
         page = RunPage(run_id=run_id, record=merged, transitions=rows)
@@ -185,10 +185,13 @@ def _collect_runs(root: Path) -> list[RunPage]:
 
 
 def _report_root(root: Path, record: dict[str, Any]) -> Path | None:
-    outputs = record.get("outputs")
-    if isinstance(outputs, dict):
+    # A superseded attempt keeps its artifacts under a directory of its own, named in
+    # its registry row, and must not be shown the directory its config now points at.
+    for block in (record.get("outputs"), record.get("artifacts")):
+        if not isinstance(block, dict):
+            continue
         for key in ("report_root", "report", "compact_report"):
-            value = outputs.get(key)
+            value = block.get(key)
             if isinstance(value, str):
                 candidate = root / value
                 if candidate.is_dir():
@@ -235,9 +238,7 @@ def _load_gates(root: Path) -> tuple[list[dict[str, Any]], str | None]:
     )
 
 
-def _copy_assets(
-    root: Path, out: Path, gallery: dict[str, list[Path]], runs: list[RunPage]
-) -> int:
+def _copy_assets(root: Path, out: Path, gallery: dict[str, list[Path]], runs: list[RunPage]) -> int:
     wanted = {item for items in gallery.values() for item in items}
     wanted.update(image for run in runs for image in run.images)
     for relative in sorted(wanted):
@@ -295,11 +296,7 @@ def _latest_decisions(findings: str | None, count: int = 3) -> str:
     cards = []
     for title, body in entries[-count:][::-1]:
         summary = next(
-            (
-                paragraph
-                for paragraph in " ".join(body).split("  ")
-                if paragraph.strip()
-            ),
+            (paragraph for paragraph in " ".join(body).split("  ") if paragraph.strip()),
             "",
         ).strip()
         cards.append(
@@ -413,7 +410,7 @@ def _gate_board(gates: list[dict[str, Any]]) -> str:
             f'<header><span class="gate-id">{escape(str(gate.get("id", "?")))}</span>'
             f'<span class="badge badge-{escape(status)}">{escape(status)}</span></header>'
             f"<h3>{escape(str(gate.get('title', '')))}</h3>"
-            f'<p>{escape(str(gate.get("question", "")))}</p>'
+            f"<p>{escape(str(gate.get('question', '')))}</p>"
             + (f'<p class="evidence">{escape(str(evidence))}</p>' if evidence else "")
             + "</article>"
         )
@@ -530,8 +527,7 @@ def _run_page(run: RunPage, root: Path) -> str:
             "append-only registry."
         )
     sections.append(
-        f"<section><h2>Run record</h2><p class='note'>{provenance}</p>"
-        f"{_tree(run.record)}</section>"
+        f"<section><h2>Run record</h2><p class='note'>{provenance}</p>{_tree(run.record)}</section>"
     )
     return _shell(run.run_id, "runs", "".join(sections), depth=1)
 
@@ -690,15 +686,9 @@ def _transitions(run: RunPage) -> str:
     for row in run.transitions:
         state = str(row.get("state", "unknown"))
         detail = {
-            key: value
-            for key, value in row.items()
-            if key not in {"run_id", "state", "timestamp"}
+            key: value for key, value in row.items() if key not in {"run_id", "state", "timestamp"}
         }
-        summary = (
-            str(detail.get("reason") or detail.get("result") or "")
-            if detail
-            else ""
-        )
+        summary = str(detail.get("reason") or detail.get("result") or "") if detail else ""
         items.append(
             f"<li><span class='badge badge-{escape(state)}'>{escape(state)}</span>"
             f"<span class='mono nowrap'>{escape(str(row.get('timestamp', '')))}</span>"

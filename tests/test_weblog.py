@@ -68,9 +68,7 @@ def test_the_site_covers_every_registered_run(site: Path) -> None:
         if isinstance(row.get("run_id"), str):
             registered.add(row["run_id"])
         # A batch row names several runs at once under `run_ids`.
-        registered.update(
-            item for item in row.get("run_ids", []) if isinstance(item, str)
-        )
+        registered.update(item for item in row.get("run_ids", []) if isinstance(item, str))
     registered.update(path.parent.name for path in (_ROOT / "runs").glob("*/run.yaml"))
     built = {path.stem for path in (site / "run").glob("*.html")}
     # A run that exists only in the append-only registry still gets a page, and a run
@@ -92,8 +90,7 @@ def test_failed_and_falsified_runs_stay_visible(site: Path) -> None:
 
 def test_generated_markup_escapes_hostile_source_text(tmp_path: Path) -> None:
     rendered = render_markdown(
-        "A <script>alert(1)</script> paragraph with [bad](javascript:alert(1)) "
-        "and **strong** text."
+        "A <script>alert(1)</script> paragraph with [bad](javascript:alert(1)) and **strong** text."
     )
     assert "<script>" not in rendered
     assert "javascript:" not in rendered.split("href=")[0] or "href=" not in rendered
@@ -136,7 +133,7 @@ def test_a_single_series_chart_omits_the_legend_box() -> None:
         x_label="optimizer step",
         y_label="loss",
     )
-    assert "class=\"legend\"" not in chart
+    assert 'class="legend"' not in chart
     assert "Table view" in chart
 
 
@@ -192,6 +189,58 @@ def test_a_registry_only_run_still_shows_its_evidence(tmp_path: Path) -> None:
     assert "position-marginal floor" in page, "the floor must be plotted beside the model"
     assert "runs/demo-run/run.yaml" not in page, "it must not cite a file that is absent"
     assert "append-only registry" in page
+
+
+def test_a_superseded_attempt_keeps_its_own_evidence(tmp_path: Path) -> None:
+    """A falsified attempt's artifacts move aside; its page must show them, not the rerun's.
+
+    Gate L's first overfit attempt was falsified by a harness defect, its report
+    directory renamed, and the fixed rerun registered against the same config. Without
+    this the attempt's page would resolve the config's report_root and present the
+    rerun's numbers as its own.
+    """
+
+    root = tmp_path / "repo"
+    (root / "state").mkdir(parents=True)
+    (root / "reports" / "demo").mkdir(parents=True)
+    (root / "reports" / "demo-attempt1").mkdir(parents=True)
+    (root / "runs").mkdir()
+    (root / "configs").mkdir()
+    (root / "configs" / "demo.yaml").write_text("report_root: reports/demo\n")
+    (root / "reports" / "demo" / "summary.json").write_text('{"verdict": "rerun-numbers"}')
+    (root / "reports" / "demo-attempt1" / "summary.json").write_text(
+        '{"verdict": "attempt-numbers"}'
+    )
+    (root / "reports" / "findings.md").write_text("# Findings\n")
+    (root / "state" / "CURRENT.md").write_text("# State\n")
+    (root / "state" / "gates.yaml").write_text("gates: []\n")
+    (root / "state" / "runs.jsonl").write_text(
+        json.dumps(
+            {
+                "run_id": "demo-attempt",
+                "state": "completed",
+                "timestamp": "2026-01-01T00:00:00Z",
+                "config": "configs/demo.yaml",
+                "artifacts": {"report_root": "reports/demo-attempt1"},
+            }
+        )
+        + "\n"
+        + json.dumps(
+            {
+                "run_id": "demo-rerun",
+                "state": "completed",
+                "timestamp": "2026-01-02T00:00:00Z",
+                "config": "configs/demo.yaml",
+            }
+        )
+        + "\n"
+    )
+
+    build_site(root, tmp_path / "site")
+    attempt = (tmp_path / "site" / "run" / "demo-attempt.html").read_text()
+    rerun = (tmp_path / "site" / "run" / "demo-rerun.html").read_text()
+    assert "attempt-numbers" in attempt and "rerun-numbers" not in attempt
+    assert "rerun-numbers" in rerun and "attempt-numbers" not in rerun
 
 
 def test_the_front_page_carries_the_newest_decisions(site: Path) -> None:
