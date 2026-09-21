@@ -12,17 +12,15 @@ updated: 2026-09-21
 # the Current hypothesis section of state/CURRENT.md; the weblog falls back to that
 # section's newest paragraph if this is absent.
 headline: >-
-  Gate I is answered. A causal model over the same codec, matched to the denoiser at
-  524,674 parameters against 525,152 on the same hashed corpus and the same 100,800 icon
-  presentations, clears a zero-parameter position-marginal floor by 7.7% against a
-  predeclared 50% - and the renders say exactly what that number means. The samples are
-  scribbles: valid programs in corpus palette colours with plausible ink coverage and not
-  one recognisable shape. Five arms measured every factor available and the gap barely
-  moved. The coordinate fix that was decisive for the denoiser does nothing; four times
-  the data buys 0.0055 of ratio; nine times the capacity is monotonically worse; dropout
-  is the best of them at 0.0142 and an order of magnitude short. The codec supports
-  generation - every sample is valid and renderable - and does not support learning it
-  left to right at any scale this project can reach.
+  Direction set after Gate I. The training bucket is 2,681 unique programs and most of
+  its families are singletons, so unconditional generation is out of reach here by any
+  method - Gate I measured it - while conditional completion is not: the bucket holds
+  39,535 contours and every one is a training example for drawing a missing path from
+  the rest of its icon. The project's result is therefore an editor. Gate L opens with a
+  masked any-order model over the same codec whose mask families are the editing
+  operations, decoded in grammatical order so every output is valid, and scored by
+  paired render recovery of whole-path inpainting on held-out icons against two
+  zero-parameter policies. It starts, as every gate here has, with an overfit test.
 
 gates:
   - id: Gate A
@@ -80,56 +78,39 @@ gates:
       held-out fields, so it is retained as a lighter feasibility ablation.
   - id: Gate G
     title: OpenMoji generation and editing
-    status: open
+    status: complete
     question: >-
       Does the selected formulation actually generate and edit OpenMoji well, under
       structured conditioning and locked-path inpainting?
     evidence: >-
-      Reopened. A five-lens diagnostic panel found four verified defects that had been
-      present throughout: the loss averaged over per-(kind, slot) groups so four fields
-      carried 31% of it and early stopping fired on noise; no attention padding mask, so
-      29.4% of the sequence was attended as content; corruption drew replacements
-      uniformly, so a zero-parameter marginal detector scored 2.84 and detection was
-      largely a density test; and coordinates were encoded as unordered categories, so
-      the difference the winning heuristic computes had no operand. Fixing all four
-      produced the project's first trained model to beat a zero-parameter heuristic on a
-      leak-free task - detector lift 2.781 against 1.893, with 54,720 FEWER parameters.
-      Turning the value head back on loses it again: it costs 1.064 of detector lift and
-      aggregate accuracy stays at 0.5839 against the identity policy's 0.6515. Detection
-      is solved. Balancing the two objectives by their chance entropies then let both
-      survive - detector 2.569, changed-token recovery 0.0738 - and with a decode
-      threshold calibrated on a disjoint half of the held-out icons the model reaches
-      0.6567 against the identity policy's 0.6502. That is the first time anything in
-      this project has beaten emitting its input unchanged. The calibration asterisk was
-      then removed: the threshold is derivable as 1/(1+q) in the value head's accuracy,
-      and estimating q on 256 icons withheld from training gives 0.6543 against 0.6515
-      with nothing fitted on held-out data at all. The margin is +0.0027, about 0.4%
-      relative - not a good model, but one that has stopped being worse than useless.
-      Two further corrections then compounded: a distance-kernel value target, which cut
-      mean absolute view-unit error 27%, and a decode gate chosen by error saved rather
-      than by exact tokens. Paired per-icon render recovery went 0.0447 to 0.1246 to
-      0.2511 at 72 px, helping 11 of 12 icons with the interval excluding zero, while
-      exact-token accuracy fell below identity - which settles that exact-token accuracy
-      is the wrong primary metric here. The four earlier eliminations were then retested
-      off that base and all survive - capacity restores v3, 256 icons restores v2, noise
-      conditioning restores v4 - so they are admissible again. Sweeping that model across
-      corruption levels then produced the gate's first recognizable output: at
-      probability 0.05 and 0.10 the predictions are recognizable icons and visibly
-      repaired, with recovery +0.0308 and +0.3902 against the earlier checkpoint's
-      -4.6517 and -1.2024. The ceiling was the corruption schedule, not the
-      representation, the model or the objective. Training across corruption levels was
-      then tested and is not the lever either - indistinguishable at low levels and
-      measurably worse at 0.35 - so every training-side factor this gate identified is
-      settled. At 32 icons both models improve lightly corrupted inputs significantly,
-      26 and 29 of 32 at p=0.05. It remains a denoiser that removes stray strokes from a
-      mostly intact icon, not a generator, and generation is Gate I's question. Every earlier plateau in
-      this gate was measured under the broken loss and is no longer admissible as read.
+      Answered with the honest assessment the gate asks for. After a five-lens
+      diagnostic found four verified defects present throughout - a loss averaged over
+      per-(kind, slot) groups, no attention padding mask, a corruption process that
+      leaked a density shortcut, and coordinates as unordered categories - and after
+      three further corrections (the identity baseline, the distance-kernel target and
+      a decode gate chosen by geometric gain), v16 became the first model here to beat
+      emitting its input unchanged: paired render recovery +0.2511 at p=0.35, +0.3902
+      at p=0.10, helping 26 of 32 lightly corrupted icons significantly. Data volume
+      matters; capacity, noise conditioning and the training schedule do not, all
+      retested on the repaired measurement. What v16 is: a fixed-topology geometry
+      denoiser that removes some stray strokes from a mostly intact icon. It cannot
+      add, remove or restyle a path and it never predicted topology or style. The
+      assessment: generation is not compelling at this scale (Gate I measured why),
+      blind denoising helps only for light corruption, and editing is the compelling
+      candidate. Locked-path and style inpainting move to Gate L as its whole subject.
+      Every earlier plateau in this gate was measured under the broken loss and is not
+      admissible as read.
 
   - id: Gate H
     title: Broad pretraining question
     status: not-started
     question: Does broader licensed pretraining help, or dilute the style?
-    evidence: Gated on a stable OpenMoji pipeline.
+    evidence: >-
+      Deferred behind Gate L. It is the only route to generation - Gate I's data-scaling
+      arm says the OpenMoji corpus cannot get there at any size it reaches - but it is at
+      most an order of magnitude of data with a licensing audit in front of it, and the
+      next result is an editor. Reopen only for generation, only if Gate L's editor
+      works.
   - id: Gate I
     title: Cached AR comparison
     status: complete
@@ -159,6 +140,23 @@ gates:
       share this codec and harness and could be scored against the denoiser on one task
       with one metric.
 
+  - id: Gate L
+    title: Structured editing with a masked any-order model
+    status: open
+    question: >-
+      Can one bidirectional model over the same codec complete held-out icons - a
+      missing path, a span, a style block - visibly and measurably better than doing
+      nothing and than a zero-parameter sampler that knows the corpus statistics?
+    evidence: >-
+      Opened 2026-09-21 as the primary line; PROJECT_PLAN.md section 15 states the
+      design and the exit evidence. The model is trained to predict masked tokens from
+      the rest of the flattened sequence, with mask families that are the editing
+      operations, and decodes in grammatical dependency order so every output is valid
+      by construction. It carries every verified correction from Gates G and I from its
+      first run. Primary metric: paired per-icon render recovery of whole-path
+      inpainting on held-out icons against the path-dropped icon and a position-
+      marginal sampler, predeclared with a magnitude bar and a render sheet. Begins
+      with an overfit test on four icons.
   - id: Gate J
     title: Deployment optimization
     status: not-started

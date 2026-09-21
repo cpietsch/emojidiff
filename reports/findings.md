@@ -1968,3 +1968,79 @@ or a masked, any-order model, and both are new work rather than this gate.
 and this measurement harness, and unlike the left-to-right model it could be scored
 against the denoiser on one task with one metric. That is the first thing this gate's
 result actually recommends.
+
+## 2026-09-21 — Direction: the next result is an editor, and the corpus decides that
+
+**Question.** Gate I closed with every lever measured and the samples scribbles, and the
+standing next action was "build the any-order masked model" as a way to score something
+against v16 on one metric. Before building it, step back: what has this project actually
+established, what is left to win, and what would a result a person would call a success
+look like on this corpus with this machine?
+
+**What is established and stays.** The curated corpus, the typed codec with role-typed
+coordinates and packed capacity, the safe serializer and isolated renderer, the run
+contract, the legal-token grammar over the flattened sequence, and the measurement
+discipline Gate G had to learn the hard way — the identity-equivalent baseline, the
+zero-parameter floor, the field-pooled loss, the padding mask, the distance kernel, the
+render beside every number. None of this is in question and all of it carries forward.
+
+**What the corpus can and cannot support.** The training bucket is 2,681 icons; 1,597 of
+its 1,767 variant families are singletons and 53% of it is people-body. Unconditional
+generation asks a model to draw a concept it has never seen from a subgroup label,
+having seen fewer than three thousand unique programs. No architecture solves that at
+this scale, and Gate I's sweeps are best read as measurements of that fact rather than of
+autoregression: 4x the data and 9x the capacity were both tested inside the regime where
+neither can show, and "not at any size this corpus reaches" is the right reading.
+Broader pretraining (Gate H) is the only route to generation, it is an order of magnitude
+of data at most, and it has licensing and curation work in front of it. It is not where
+the next result is.
+
+**What v16 is, read plainly.** A fixed-topology geometry denoiser that removes some of
+the stray strokes from an icon that is mostly intact. The corruption it was built for —
+endpoints teleported across the canvas at 35% — is damage no editor produces, and the
+regime where it helps, p ≤ 0.10, is a handful of strokes. It cannot add, remove or
+restyle a path, and it never predicted topology or style. It beats doing nothing, which
+took seven corrections to reach, and it is not a product.
+
+**What is learnable here.** Conditional completion, where the icon itself does most of
+the work. The bucket holds 39,535 contours and 228,943 segments; every contour is a
+training example for "given the rest of this icon, draw the missing path", and every span
+of segments and every style block is another. Context of that strength is what a small
+model on a small corpus can use, and it is exactly what an editor needs: lock what you
+keep, mask what you want redrawn. PROJECT_PLAN.md section 8 said this before any model
+ran — editing may be the strongest product result even if unconditional generation is
+mixed — and section 12's third branch is its fixed-topology special case. The evidence
+now says it in numbers.
+
+**The instrument.** A bidirectional model over the same flattened sequence, trained to
+predict masked tokens from the rest, with mask families that are the editing operations:
+a whole path (header and segments, its length kept so the packed layout stays put), a
+contiguous span of segments, the style fields of a set of paths, the geometry of a set of
+paths, and a uniform random mask so that everything-masked generation is the same model.
+Decoding commits tokens in grammatical dependency order — lengths, headers, segment
+kinds, coordinates — so `legal_mask` is exact at every commit and a sample is valid by
+construction, as in Gate I. It inherits every correction from Gates G and I on day one:
+metric coordinate features, the distance-kernel target on coordinates, the loss pooled
+over fields, structural padding excluded from attention, dropout from the start, and a
+matched-size arm beside a larger regularised one, so the one cell no gate has measured —
+capacity together with regularisation — is measured here.
+
+**The measurement.** Whole-path inpainting on held-out icons, scored by paired render
+recovery against two zero-parameter policies: the icon with the path dropped, which is
+what "do nothing" means for an editor, and a position-marginal sampler decoded through
+the same grammar, which is what "knows the corpus statistics and nothing about this
+icon" means. Predeclared: beat both with the interval excluding zero, a magnitude bar on
+the median recovery, every output valid, and the sheet beside the numbers. This is
+well-posed where the v16-versus-AR comparison was not: both baselines see exactly what
+the model sees.
+
+**Decision.** Open Gate L — structured editing with a masked any-order model — as the
+primary line, and define success for it as an editor that visibly and measurably
+completes held-out icons, followed by the Gate K editing viewer over its frozen
+artifacts. Close Gate G as answered: generation is not compelling at this scale, blind
+denoising helps only for light corruption, and editing is the compelling candidate, now
+Gate L's question. Defer Gate H behind Gate L, to be reopened only for generation and
+only if Gate L's editor works. Retire further single-factor sweeps on the p = 0.35
+denoiser and the pending corruption-process third arm: a masked model makes the
+corruption process a mask family, and the question dissolves. Start, as every gate here
+has, with an overfit test.

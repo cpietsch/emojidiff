@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T07:50:00Z
+Updated: 2026-09-21T15:20:00Z
 
 ## Current hypothesis and evidence
 
@@ -556,6 +556,21 @@ is an any-order masked model, which is also the only one that could be scored ag
 denoiser on one task with one metric - the comparison PROJECT_PLAN.md section 8 asks for
 and that a left-to-right sampler cannot enter.
 
+The direction is now set, and the corpus set it. The training bucket is 2,681 unique
+programs, 1,597 of its 1,767 variant families are singletons, and 53% of it is
+people-body; unconditional generation of unseen concepts from that is not achievable by
+any method, and Gate I's sweeps are measurements of that fact. Conditional completion
+is achievable: the bucket holds 39,535 contours and every one is a training example for
+drawing a missing path from the rest of its icon. The project's result is an editor.
+Gate L opens with a masked any-order model over the same flattened codec sequence - mask
+families that are the editing operations, decoding in grammatical dependency order so
+every output is valid, every Gate G and Gate I correction built in from the first run -
+scored by paired render recovery of whole-path inpainting on held-out icons against the
+path-dropped icon and a position-marginal sampler. Gate G is closed with the assessment
+it asked for, Gate H is deferred behind Gate L, and the single-factor denoiser sweeps and
+the corruption-process third arm are retired. PROJECT_PLAN.md section 15 and the
+findings entry of the same date carry the argument.
+
 ## Last completed action and verification
 
 Implemented optional held-out checkpoint selection and early stopping in the Gate G
@@ -991,44 +1006,24 @@ The generator, its stylesheet and script, and `state/gates.yaml` are versioned.
 
 ## Next smallest evidence-producing action
 
-Gate I is closed. Build the any-order masked model, which is the one branch this gate's
-result actually recommends and the only one that is not more of the same.
+Gate L, step one: the overfit test. Build the masked any-order model over the flattened
+sequence (`SequenceLayout`, `legal_mask`, the bit-packed split from Gate I) with the five
+mask families - whole path with length kept, segment span, style block, geometry block,
+uniform random - and a decoder that commits in grammatical dependency order. Train it to
+memorise four icons from four distinct subgroups and predeclare: masked free-token
+accuracy at memorisation, a loss reduction of two orders of magnitude, exact greedy
+reproduction of a masked whole path for every icon, and every output valid. A model that
+cannot do this has a broken objective, mask or decoder, and none of those are worth
+discovering at corpus scale.
 
-What Gate I established, in five measured arms. A causal model over this codec, matched
-to v16 at 524,674 parameters against 525,152 on the same hashed corpus and the same
-100,800 icon presentations, clears a zero-parameter position-marginal floor by 7.7%
-against a predeclared 50%. The renders say what that number means: valid programs in
-corpus palette colours, median 8.5 active paths, ink coverage 0.388 against the
-exemplars' 0.253, and not one recognisable shape across eight subgroups and 24 samples.
-Every factor available was then measured and the gap to the floor moved from 0.28 to
-0.26 nats - the coordinate fix that was decisive for the denoiser does nothing, 4x the
-data buys 0.0055 of ratio, 9x the capacity is monotonically worse, and dropout is the
-largest single effect at 0.0142 and an order of magnitude short. The codec supports
-generation in the sense every sample is valid and renderable. It does not support
-learning generation left to right at any scale this project can reach.
+Step two, on a pass: the corpus run at v16's matched size beside a larger regularised
+arm, scored by paired render recovery of whole-path inpainting on held-out icons against
+the path-dropped icon and a position-marginal sampler decoded through the same grammar,
+with a magnitude bar predeclared and the sheet beside the numbers. That is the first
+measurement in this project of an editing operation a person would ask for.
 
-Why an any-order masked model and not more AR arms. The quality half of PROJECT_PLAN.md
-section 8's comparison is not well-posed between a denoiser and a left-to-right sampler:
-paired render recovery needs a corrupted input and a sampler has none, held-out
-likelihood needs an unconditional model and the denoiser is conditioned on a corrupted
-program, and forcing a common task would put one of them out of distribution while
-looking fair. A masked model conditions on an arbitrary subset of observed tokens, so it
-can be handed exactly the input v16 is handed and scored by exactly the metric v16 is
-scored by - paired render recovery against the identity baseline, on the same icons at
-the same corruption levels. It reuses this gate's codec, legal-token masks, split
-discipline, floor methodology and measurement harness. It is the only route on the board
-that produces a comparison rather than another incomparable number.
-
-Two things to carry forward into it. Dropout's curve had not turned when Gate I closed -
-0.3 beat 0.1 and peaked later - so regularisation is unexhausted rather than exhausted,
-and a masked model should start with it rather than discover it last. And the KV cache
-is worth 16% at this scale rather than an order of magnitude, because a 525k-parameter
-decode is bound by kernel launches rather than arithmetic; that is measured on
-gpubox-4080 and any latency claim should be re-measured rather than argued.
-
-Also still outstanding from Gate G, unchanged: the corpus-scale corruption-process
-comparison, committed under
-`openmoji-g1-corruption-process-corpus-76f41a3-2arms-9b9b1699`, needs the
-marginal-respecting process as a third arm and its gated metric switched to paired render
-recovery.
-
+What is retired, so it is not picked up again by habit: further single-factor sweeps on
+the p = 0.35 denoiser, further left-to-right arms, and the corpus-scale corruption-process
+third arm (`openmoji-g1-corruption-process-corpus-76f41a3-2arms-9b9b1699` stays as
+recorded). The KV-cache measurement stands: 16% at this scale, re-measure rather than
+argue.

@@ -672,3 +672,58 @@ Requirements:
   external host and not a Claude artifact.
 - Regenerated and extended during training downtime, so it costs no GPU time and never
   delays an experiment.
+
+## 15. Direction after Gate I
+
+Written 2026-09-21, after Gates A–F closed, Gate G produced a denoiser that beats doing
+nothing only at light corruption, and Gate I showed a matched autoregressive model over
+the same codec generates scribbles at every setting this project can reach. The
+evidence for each decision here is in `reports/findings.md` under the same date.
+
+### The result to aim for
+
+An **editor**, not a generator. The training bucket is 2,681 unique programs and most
+of its variant families are singletons; unconditional generation of unseen concepts is
+not achievable at that scale by any method, and Gate I measured it. Conditional
+completion is: the corpus holds 39,535 contours and every one is a training example for
+"given the rest of this icon, draw the missing path". Section 8 anticipated this — editing
+may be the strongest product result even if unconditional generation is mixed — and
+the fixed-topology fallback in section 12 is its special case.
+
+### Gate L — structured editing with a masked any-order model
+
+One bidirectional model over the flattened typed sequence, trained to predict masked
+tokens from the rest. The mask families are the editing operations, and they replace
+the corruption process rather than compete with it:
+
+- a whole path, with its length kept so the packed layout does not move;
+- a contiguous span of segments inside a path;
+- the style fields of a set of paths;
+- the geometry of a set of paths, styles and topology kept;
+- a uniform random mask, so everything-masked generation is the same model.
+
+Decoding commits tokens in grammatical dependency order — path lengths, path headers,
+segment kinds, coordinates — with `legal_mask` recomputed at every commit, so a sample
+is valid by construction. The model carries every verified correction from Gates G and
+I from its first run: metric coordinate features, the distance-kernel target on
+coordinates, the loss pooled over fields, structural padding excluded from attention,
+dropout from the start, and a matched-size arm beside a larger regularised one.
+
+Primary metric: paired per-icon render recovery of whole-path inpainting on held-out
+icons against two zero-parameter policies, the icon with the path dropped and a
+position-marginal sampler decoded through the same grammar. Predeclare: beats both with
+the 95% interval excluding zero, a magnitude bar on the median recovery, every output
+valid, and a render sheet beside the numbers.
+
+Exit evidence: an editor that completes held-out icons visibly and measurably, or a
+negative result that names which mask family fails and why.
+
+### What follows and what is retired
+
+- **Gate K** builds the editing viewer over Gate L's frozen artifacts: mask, fill, lock.
+- **Gate H** is deferred behind Gate L, and is reopened only for generation, only if the
+  editor works, and only with the licensing audit section 5 requires.
+- Retired: further single-factor sweeps on the p = 0.35 denoiser, the corruption-process
+  third arm, and further left-to-right arms. Their results stand as recorded.
+- Gate G is complete: its assessment is that generation is not compelling at this
+  scale, blind denoising helps only for light corruption, and editing is the candidate.
