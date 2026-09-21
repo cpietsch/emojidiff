@@ -762,6 +762,13 @@ def test_the_study_runs_end_to_end_on_the_cpu(tmp_path: Path, task: str) -> None
     frozen_path.write_text(yaml.safe_dump(frozen))
     evaluated = run_masked_study(load_masked_study_config(frozen_path), frozen_path)
     assert evaluated["trained_here"] is False
+    assert evaluated["inpainting"]["inpaint_seed"] == 5, "defaults to the training seed"
+    pinned = yaml.safe_load(frozen_path.read_text())
+    pinned["data"]["inpaint_seed"] = 99
+    pinned["report_root"] = str(tmp_path / "pinned-report")
+    frozen_path.write_text(yaml.safe_dump(pinned))
+    repinned = run_masked_study(load_masked_study_config(frozen_path), frozen_path)
+    assert repinned["inpainting"]["inpaint_seed"] == 99
     assert evaluated["selected_step"] == summary["selected_step"]
     assert evaluated["inpainting"]["task"] == other
     assert evaluated["loss_reduction_factor"] is None

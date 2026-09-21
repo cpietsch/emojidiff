@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T21:05:00Z
+Updated: 2026-09-21T21:25:00Z
 
 ## Current hypothesis and evidence
 
@@ -1080,6 +1080,20 @@ from the clean icons in nearly every row. Both falsified as written on the magni
 bar, which is kept. The specialist is the line, and arm 17 trains it on spans of one
 to three segments at the same budget with the same mechanism, read on the same 64
 icons and spans (`masked-span-l17-specialist-3-aea91c2-2681icons-9b9b1699`, on the GPU).
+
+Arm 17 - the specialist trained on spans of one to three segments - is the first run in
+Gate L to beat the identity policy on the scored task: against the join fill +0.0092
+RGBA MAE with the interval [+0.0004, +0.0179] excluding zero, against the marginal
+policy on 58 of 64. It is falsified as predeclared on the median bar: 26 of 64 spans
+helped and median recovery -0.03, because on most two-segment spans a straight cut is
+already near-invisible at 72 px and the model's fill is equally near-perfect, while on
+the spans where the cut is destructive - the UP badge loses its fill under the join and
+comes back under the model - the model wins outright. A correction the record carries:
+its spans were drawn with its own training seed, so only 2 of 64 coincide with arms 15
+and 16 although the icons are the same; arm 18 reads its checkpoint on arm 16's spans
+exactly (`masked-span-l18-specialist-3-l16-spans-f7fd711-2681icons-9b9b1699`, running),
+and the harness now takes `data.inpaint_seed` so a shared draw is chosen rather than
+inherited.
 
 ## Active jobs
 

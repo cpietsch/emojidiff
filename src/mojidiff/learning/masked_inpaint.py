@@ -91,6 +91,7 @@ class MaskedStudyConfig:
     inpaint_icons: int
     task: str
     span_length: int
+    inpaint_seed: int
     d_model: int
     heads: int
     layers: int
@@ -159,6 +160,11 @@ def load_masked_study_config(path: Path) -> MaskedStudyConfig:
         inpaint_icons=int(data["inpaint_icons"]),
         task=task,
         span_length=int(data.get("span_length", 2)),
+        # Which path or span each evaluation icon hides is drawn from this seed, not
+        # from the training seed, so two runs can be read span for span on purpose
+        # rather than by accident of sharing a training seed. Defaults to the
+        # training seed so every earlier run reproduces its own draw.
+        inpaint_seed=int(data.get("inpaint_seed", training["seed"])),
         d_model=int(model["d_model"]),
         heads=int(model["heads"]),
         layers=int(model["layers"]),
@@ -601,7 +607,7 @@ def _inpaint(
         row = evaluation.rows[index]
         tokens = evaluation.tokens[index]
         blocks = path_blocks(tokens, layout)
-        chooser = np.random.default_rng(config.seed + _INPAINT_SEED + index)
+        chooser = np.random.default_rng(config.inpaint_seed + _INPAINT_SEED + index)
         clean = _load_program(row, pilot, codec)
         span_first: int | None = None
         if config.task == "span":
@@ -668,7 +674,9 @@ def _inpaint(
                 inputs,
                 layout,
                 greedy=False,
-                rng=np.random.default_rng(config.seed + _INPAINT_SEED + 1000 * index + sample),
+                rng=np.random.default_rng(
+                    config.inpaint_seed + _INPAINT_SEED + 1000 * index + sample
+                ),
                 iterations=config.iterations,
                 chain_order=config.chain_order,
             )
@@ -719,6 +727,7 @@ def _inpaint(
     _write_bytes_artifact(config.report_root / SHEET_FILENAME, sheet)
     return {
         "task": config.task,
+        "inpaint_seed": config.inpaint_seed,
         "identity_policy": "join_span" if config.task == "span" else "drop_path",
         "span_length": config.span_length if config.task == "span" else None,
         "icons": len(rows),
