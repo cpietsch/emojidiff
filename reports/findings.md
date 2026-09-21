@@ -1868,3 +1868,37 @@ nats — the same 0.28 that survived changing the coordinate representation.
 Gate H is not the answer to Gate I's question. Capacity is the one factor left
 unmeasured for this model, and it runs next at 9× the parameters — not to succeed, but
 to find out whether it behaves like a lever at all.
+
+## 2026-09-21 — Capacity is not a lever either, and is mildly harmful
+
+**Hypothesis.** Three factors had been tested and none moved the result. Capacity was the
+last untested one for this model. Gate G found it did not matter for the denoiser, but
+that is a different model on a different task and is not evidence here.
+
+This study was also the first to carry a **magnitude** criterion alongside a direction,
+which the data-scaling arm taught me to write. The bar was 0.85 — deliberately far below
+the 0.5 that i2 and i3 were read against. 0.5 remains the standing bar for "this is a
+generator". 0.85 asks a smaller question: at 9× the parameters, does capacity behave like
+a lever at all?
+
+**Observation. All three checks fail, and the direction is negative.**
+
+| arm | parameters | held-out nats | ratio to floor | peak at | train |
+|---|---|---|---|---|---|
+| base | 524,674 | 3.6480 | 0.9285 | step 600 | 306 s |
+| mid | 1,614,978 | 3.6565 | 0.9306 | step 300 | 423 s |
+| large | 4,817,570 | 3.6899 | 0.9392 | step 300 | 599 s |
+
+Nine times the parameters is **monotonically worse**, and the two larger arms peak at
+step 300 — one and a half epochs — rather than 600.
+
+**The standing picture.** The gap to the zero-parameter position-marginal floor is about
+0.28 nats, and neither the coordinate representation, nor 4× the data, nor 9× the
+capacity moves it. Every arm peaks within two to four epochs and then gets worse.
+
+**What is not yet ruled out.** Every arm failed the same way, and it is a failure with a
+standard remedy that none of them had: **no dropout, anywhere, in any arm.** Weight decay
+was AdamW's default 0.01 throughout, which is not nothing but is not a response to
+overfitting either. Declaring that autoregression fails on this codec without once
+applying the standard regulariser for the exact failure mode observed would be a weak
+claim, and this project has been strict about not making those. Arm 6 runs it.
