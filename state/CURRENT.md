@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T22:25:00Z
+Updated: 2026-09-21T23:10:00Z
 
 ## Current hypothesis and evidence
 
@@ -1120,6 +1120,14 @@ tightened (tenth percentile -0.48 against -1.58) without the centre moving. Arm 
 (three times longer) is on the GPU and arm 22 (about ten times the parameters with the
 same dropout, `masked-span-l22-specialist-4-large-a83419d-2681icons-9b9b1699`) is queued
 behind it: the last two levers before the gate concludes on parity.
+
+Arm 21, three times longer, keeps improving on the mechanism's own terms - held-out
+likelihood 3.593 at 0.754 of the floor, continuity 17.6 bins, the best of any run - and
+ties the join a fourth time (-0.0002, interval spanning zero, 22 of 56 helped, span for
+span 24 better and 32 worse than arm 20). Training length is not the lever: what
+remains between the model's fill and a straight cut is not something more of what it
+is learning closes. Arm 22, capacity with regularisation at about ten times the
+parameters, is on the GPU - the last lever before the gate concludes on parity.
 
 ## Active jobs
 

@@ -2654,3 +2654,35 @@ the one cell no gate in this project has measured. Arm 21 is the first, on the G
 arm 22 is the second, queued behind it, at ten times the parameters with the same
 dropout. If neither moves the centre, the gate concludes on parity with the mechanism
 result standing.
+
+## 2026-09-21 — Three times longer: the mechanism keeps improving, the edit does not move
+
+**Hypothesis.** Every corpus run since the mechanism arrived selected its last step with
+the held-out curve still falling; trained three times longer, the specialist should
+beat the join fill on four-segment spans.
+
+**Observation. Falsified; parity a fourth time.** Held-out likelihood keeps improving -
+**3.593** nats, 0.754 of the floor, selected at step 15,600 of 18,000 - and continuity
+reaches **17.6 bins** against the copy policy's 25.6, the best of any run. The edit ties
+the join: mean −0.0002, interval [−0.0023, +0.0018] spanning zero, 22 of 56 helped,
+median recovery −0.045, and span for span against the 6,300-step model 24 better and
+32 worse. The marginal policy beaten on 49 of 56. Every completion valid. 1,199 s to
+train.
+
+**Reading.** Training length is not the lever, and the way it is not is the finding.
+The two measures the mechanism was built on - masked likelihood and endpoint continuity
+- both keep improving with more steps, and the paired render error against a straight
+cut does not follow them. So what remains between the model's fill and the join is not
+something the model gets closer to with more of what it is learning. Two readings are
+consistent with that: on most spans the straight cut is already right to within the
+render's resolution, and there is nothing to gain; and on the spans where it is wrong,
+what is missing is which of several plausible shapes the hidden run took - which the
+visible neighbours do not determine and the corpus cannot teach for an unseen icon. The
+recovery distribution says both: centred on zero, with a tenth percentile of −3.3 and a
+ninetieth of +0.31.
+
+**Decision.** One lever remains - capacity with regularisation, the cell no gate here
+has measured - and it is on the GPU as arm 22. If it does not move the centre either,
+Gate L concludes on parity with the mechanism result standing, and the record says
+what an editor at this corpus size is: harmless where a straight cut would do, right
+where continuity decides, and no better than a guess where shape does.
