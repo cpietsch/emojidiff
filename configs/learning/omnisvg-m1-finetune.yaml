@@ -1,0 +1,60 @@
+# Gate M, experiment one, step two: OmniSVG 1.1 4B fine-tuned with LoRA on OpenMoji.
+#
+# All 2,681 training icons, outlined and encoded in OmniSVG's own tokens (every one
+# under 2,048 tokens; the round trip through its released decoder is exact and tested),
+# under the trainer's own prompt, the loss on the drawing tokens. Rank-16 adapters on the
+# language model's linear projections; the vocabulary, embeddings and vision tower stay
+# as released. Selection by held-out likelihood on 32 validation icons disjoint from the
+# 32 evaluation icons. The evaluation is the control's: the same 32 held-out icons, two
+# drawings each, decoded, converted, rendered, scored with the pinned CLIP, and ranked
+# against every held-out render.
+#
+# Predeclared criteria, against the second control reading (omnisvg-m1-control):
+#   - the per-icon gain in CLIP similarity to the held-out render has a paired bootstrap
+#     95% interval that excludes zero;
+#   - the right icon is retrieved first among the 32 held-out renders for at least a
+#     quarter of the drawings (chance 1/32 = 0.031);
+#   - at least 90% of drawings end within 2,048 tokens (every training icon does);
+#   - no drawing reproduces a training icon token for token.
+# Codec validity is reported, not judged: only 8 of the 32 held-out icons themselves fit
+# the P32/T128 bucket after outlining (reports/learning/omnisvg-m1-zeroshot/
+# oracle-roundtrip.json), so it is capped at 0.25 for a perfect model.
+schema_version: 1
+study_version: omnisvg-m1-finetune
+report_root: reports/learning/omnisvg-m1-finetune
+checkpoint_root: data/processed/prior/omnisvg-m1-finetune
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+
+data:
+  icons: 32
+
+training:
+  lora: {rank: 16, alpha: 32, dropout: 0.05}
+  max_tokens: 2048
+  held_out_icons: 32
+  steps: 500
+  accumulate: 8
+  eval_every: 25
+  patience_evals: 6
+  loss_chunk: 512
+  learning_rate: 1.0e-4
+  weight_decay: 0.0
+  warmup_steps: 25
+  seed: 6301
+
+generation:
+  samples: 2
+  max_new_tokens: 2048
+  seed: 6101
+  prompt_style: training
+
+control_report_root: reports/learning/omnisvg-m1-control
+
+criteria:
+  clip_gain_over_control_ci_excludes_zero: true
+  min_reference_top1_rate: 0.25
+  min_ended_rate: 0.9
+  max_memorised_exactly: 0
+
+render:
+  size: 72
