@@ -417,6 +417,7 @@ class CausalProgramModel(nn.Module):
         group_vocab_size: int = 0,
         subgroup_vocab_size: int = 0,
         metric_coordinates: int = 0,
+        dropout: float = 0.0,
     ) -> None:
         super().__init__()
         self.layout = layout
@@ -449,8 +450,9 @@ class CausalProgramModel(nn.Module):
         self.subgroup_embedding = (
             nn.Embedding(subgroup_vocab_size, d_model) if subgroup_vocab_size > 0 else None
         )
+        self.dropout = nn.Dropout(dropout) if dropout > 0.0 else None
         self.blocks = nn.ModuleList(
-            _CausalBlock(d_model, heads, feedforward) for _ in range(layers)
+            _CausalBlock(d_model, heads, feedforward, dropout) for _ in range(layers)
         )
         self.norm = nn.LayerNorm(d_model)
         self.head = nn.Linear(d_model, layout.vocabulary)
@@ -490,6 +492,8 @@ class CausalProgramModel(nn.Module):
             if self.subgroup_embedding is not None:
                 extra = extra + self.subgroup_embedding(condition["subgroup"])
             hidden = hidden + extra[:, None, :]
+        if self.dropout is not None:
+            hidden = self.dropout(hidden)
         updated: list[tuple[Tensor, Tensor]] = []
         for index, block in enumerate(self.blocks):
             past = cache[index] if cache is not None else None
@@ -549,10 +553,16 @@ class CausalProgramModel(nn.Module):
 
 
 class _CausalBlock(nn.Module):
-    def __init__(self, d_model: int, heads: int, feedforward: int) -> None:
+    def __init__(
+        self, d_model: int, heads: int, feedforward: int, dropout: float = 0.0
+    ) -> None:
         super().__init__()
         if d_model % heads:
             raise ValueError("d_model must be divisible by heads")
+        # Default zero so every arm run before this reproduces byte-identically. A
+        # dropout layer that drops nothing is still a layer, so it is omitted entirely
+        # rather than constructed with p=0.
+        self.dropout = nn.Dropout(dropout) if dropout > 0.0 else None
         self.heads = heads
         self.head_dim = d_model // heads
         self.norm_attention = nn.LayerNorm(d_model)
@@ -589,8 +599,14 @@ class _CausalBlock(nn.Module):
         )
         scores = scores.masked_fill(~causal[None, None], float("-inf"))
         attended = (scores.softmax(dim=-1) @ v).transpose(1, 2).reshape(batch, length, -1)
-        hidden = hidden + self.project(attended)
-        return hidden + self.feedforward(self.norm_feedforward(hidden)), (k, v)
+        projected = self.project(attended)
+        if self.dropout is not None:
+            projected = self.dropout(projected)
+        hidden = hidden + projected
+        forwarded = self.feedforward(self.norm_feedforward(hidden))
+        if self.dropout is not None:
+            forwarded = self.dropout(forwarded)
+        return hidden + forwarded, (k, v)
 
 
 @torch.no_grad()

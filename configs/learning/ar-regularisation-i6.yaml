@@ -1,0 +1,57 @@
+# Gate I arm 6: the one remedy never tried, and the last before a verdict.
+#
+# Four arms have now landed within 0.05 nats of each other. The coordinate encoding that
+# was decisive for the denoiser moves nothing. Four times the data moves the ratio from
+# 0.9340 to 0.9285. Nine times the capacity moves it the wrong way, 0.9285 to 0.9392.
+# The gap to the zero-parameter position-marginal floor sits at about 0.28 nats and
+# nothing shifts it.
+#
+# But every one of those arms failed the same way, and it is a failure with a standard
+# remedy that none of them had. Held-out likelihood bottoms out between two and four
+# epochs and then rises monotonically while training loss keeps falling - textbook
+# overfitting - and no arm carried any dropout at all. Weight decay was AdamW's default
+# 0.01 throughout, which is not nothing but is not a response to this either.
+#
+# Declaring that autoregression fails on this codec without ever applying the standard
+# regulariser for the exact failure mode observed would be a weak claim, and this
+# project has been strict about not making those.
+#
+# One axis. Dropout 0.0, 0.1, 0.3 at the base capacity, weight decay held at 0.01, and
+# the 0.0 arm reproduces i5's base-525k exactly - which makes it a control rather than
+# just a low point.
+schema_version: 1
+study_version: ar-regularisation-i6
+axis: regularisation
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+report_root: reports/learning/ar-regularisation-i6
+
+model: {d_model: 96, heads: 4, layers: 4, feedforward: 192, metric_coordinates: 0, dropout: 0.0}
+
+arms:
+  - {label: none, dropout: 0.0}
+  - {label: dropout-0.1, dropout: 0.1}
+  - {label: dropout-0.3, dropout: 0.3}
+
+training:
+  steps: 6300
+  batch_size: 16
+  learning_rate: 0.001
+  weight_decay: 0.01
+  seed: 3301
+  eval_every: 300
+  patience_evals: 8
+  marginal_alpha: 1.0
+
+criteria:
+  # The best dropout is normally an interior value, so monotonicity is the wrong shape
+  # here and gating on it would mark a genuine win at the middle arm as a failure. This
+  # is declared before the run, in the config that is hashed into the run identity, and
+  # it narrows what the study can claim rather than widening it.
+  expect_monotone: false
+  min_second_doubling_share: 0.25
+  # The same 0.85 as arm 5, and the same meaning: not a success bar - 0.5 remains the
+  # standing bar for "this is a generator" - but a lever test. If regularisation does
+  # not clear it either, then every factor available to this project has been measured
+  # and none of them moves the result, and Gate I's answer is that this codec's token
+  # sequence resists autoregressive modelling at the scale this project can reach.
+  max_best_ratio: 0.85

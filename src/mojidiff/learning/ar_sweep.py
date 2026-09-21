@@ -66,6 +66,8 @@ class Arm:
     layers: int
     feedforward: int
     metric_coordinates: int
+    dropout: float
+    weight_decay: float
 
 
 @dataclass(frozen=True)
@@ -84,6 +86,7 @@ class ARScalingConfig:
     marginal_alpha: float
     min_second_doubling_share: float
     max_best_ratio: float
+    expect_monotone: bool
 
 
 def load_ar_scaling_config(path: Path) -> ARScalingConfig:
@@ -103,6 +106,8 @@ def load_ar_scaling_config(path: Path) -> ARScalingConfig:
             metric_coordinates=int(
                 entry.get("metric_coordinates", base.get("metric_coordinates", 0))
             ),
+            dropout=float(entry.get("dropout", base.get("dropout", 0.0))),
+            weight_decay=float(entry.get("weight_decay", training.get("weight_decay", 0.01))),
         )
         for entry in root["arms"]
     )
@@ -123,6 +128,7 @@ def load_ar_scaling_config(path: Path) -> ARScalingConfig:
         marginal_alpha=float(training["marginal_alpha"]),
         min_second_doubling_share=float(root["criteria"]["min_second_doubling_share"]),
         max_best_ratio=float(root["criteria"]["max_best_ratio"]),
+        expect_monotone=bool(root["criteria"].get("expect_monotone", True)),
     )
 
 
@@ -185,15 +191,24 @@ def run_ar_scaling(config: ARScalingConfig, config_path: Path) -> dict[str, Any]
     share = improvements[1] / improvements[0] if improvements[0] > 0 else 0.0
     monotone = all(value > 0 for value in improvements)
     best_ratio = min(float(arm["ratio_to_own_floor"]) for arm in results)
-    checks = {
-        f"monotone_in_{config.axis}": monotone,
-        "second_step_still_buys": monotone and share >= config.min_second_doubling_share,
+    checks: dict[str, bool] = {}
+    # Monotonicity is the right shape for data and for capacity, where more is
+    # straightforwardly more. It is the wrong shape for a regularisation strength, whose
+    # best value is normally interior - gating on it there would mark a genuine win at
+    # the middle arm as a failure. The axis declares which it is, in the config, before
+    # the run.
+    if config.expect_monotone:
+        checks[f"monotone_in_{config.axis}"] = monotone
+        checks["second_step_still_buys"] = (
+            monotone and share >= config.min_second_doubling_share
+        )
+    checks.update({
         # i4's lesson, written into the instrument. Its criterion asked whether returns
         # had stopped and passed while the returns were far too small to matter, which
         # is the Gate G failure of a metric that reads well and points the wrong way.
         # A direction without a magnitude does not identify a lever.
         "best_arm_clears_magnitude_bar": best_ratio <= config.max_best_ratio,
-    }
+    })
 
     summary = {
         "schema_version": 1,
@@ -214,6 +229,7 @@ def run_ar_scaling(config: ARScalingConfig, config_path: Path) -> dict[str, Any]
         "criteria": {
             "min_second_doubling_share": config.min_second_doubling_share,
             "max_best_ratio": config.max_best_ratio,
+            "expect_monotone": config.expect_monotone,
         },
         "checks": checks,
         "predeclared_outcome": (
@@ -251,8 +267,11 @@ def _train_arm(
         group_vocab_size=len(groups) + 1,
         subgroup_vocab_size=len(subgroups) + 1,
         metric_coordinates=arm.metric_coordinates,
+        dropout=arm.dropout,
     ).to(device)
-    optimizer = torch.optim.AdamW(model.parameters(), lr=config.learning_rate)
+    optimizer = torch.optim.AdamW(
+        model.parameters(), lr=config.learning_rate, weight_decay=arm.weight_decay
+    )
 
     # The floor is refitted on this arm's icons. A policy given the whole corpus while
     # the model sees a quarter of it is not a floor, it is a different experiment.
@@ -316,6 +335,8 @@ def _train_arm(
         "fraction": arm.fraction,
         "icons": len(subset),
         "parameters": sum(parameter.numel() for parameter in model.parameters()),
+        "dropout": arm.dropout,
+        "weight_decay": arm.weight_decay,
         "held_out_nll": best,
         "marginal_nll": floor_total / floor_count,
         "ratio_to_own_floor": best / (floor_total / floor_count),

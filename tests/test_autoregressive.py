@@ -379,3 +379,58 @@ def test_the_scaling_subsets_are_nested_and_the_floor_follows_them(pieces: Piece
     assert len(view.rows) == len(subsets[0])
     assert torch.equal(view.tokens, split.tokens[subsets[0]])
     assert view.packed.shape[0] == len(subsets[0])
+
+
+def test_dropout_is_inert_at_zero_and_adds_no_parameters(pieces: Pieces) -> None:
+    """A checkpoint written before dropout existed must still load, and the arms that
+    ran without it must still reproduce.
+
+    `nn.Dropout` carries no parameters, but constructing one at p=0 would still change
+    the module tree, so it is omitted entirely rather than built and disabled.
+    """
+
+    _, _, layout, programs, groups, subgroups = pieces
+    torch.manual_seed(0)
+    plain = _model(layout, groups, subgroups)
+    torch.manual_seed(0)
+    zero = CausalProgramModel(
+        layout,
+        d_model=32,
+        heads=4,
+        layers=2,
+        feedforward=64,
+        group_vocab_size=len(groups) + 1,
+        subgroup_vocab_size=len(subgroups) + 1,
+        dropout=0.0,
+    ).eval()
+    assert sorted(plain.state_dict()) == sorted(zero.state_dict())
+
+    tokens = flatten_program(programs[0], layout)[None]
+    shifted, _ = teacher_forcing_inputs(tokens, layout)
+    condition = {
+        "group": torch.zeros(1, dtype=torch.long),
+        "subgroup": torch.zeros(1, dtype=torch.long),
+    }
+    with torch.no_grad():
+        assert torch.equal(
+            plain(shifted, condition)[0], zero(shifted, condition)[0]
+        ), "dropout at zero moved the arithmetic"
+
+    torch.manual_seed(0)
+    dropped = CausalProgramModel(
+        layout,
+        d_model=32,
+        heads=4,
+        layers=2,
+        feedforward=64,
+        group_vocab_size=len(groups) + 1,
+        subgroup_vocab_size=len(subgroups) + 1,
+        dropout=0.5,
+    )
+    dropped.load_state_dict(plain.state_dict())
+    dropped.eval()
+    with torch.no_grad():
+        assert torch.equal(plain(shifted, condition)[0], dropped(shifted, condition)[0]), (
+            "dropout must be inert in eval mode, or every sample and every held-out "
+            "number would be drawn from a different model than the one selected"
+        )
