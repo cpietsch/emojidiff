@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T20:00:00Z
+Updated: 2026-09-21T20:20:00Z
 
 ## Current hypothesis and evidence
 
@@ -1047,6 +1047,15 @@ the full budget, 17.9 with both. The same 530k parameters that sat at the floor 
 five arms read their context as soon as the value they need is in the input and the
 head can place a bump where it says. Arm 14 - l2's inpainting run with this mechanism
 and chain-order decoding, on l2's icons and criteria - is on the GPU.
+
+While arm 14 runs, the harness gained the second scored task and a way to read one
+model on both: `data.task: span` hides a run of `span_length` segments inside a path
+with a visible segment before and after it, scored against a zero-parameter fill that
+collapses every hidden segment to the span's entry so the next visible segment joins
+the ends with a straight stroke (`join_span`, the copy policy written as a program);
+and `training.checkpoint` with its sha256 evaluates a frozen checkpoint on a task
+without retraining, refusing a wrong hash and reporting no loss-reduction figure rather
+than a fabricated one. Both are pinned by tests; 183 pass.
 
 ## Active jobs
 
