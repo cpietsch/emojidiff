@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-22T02:20:00Z
+Updated: 2026-09-21T13:34:07Z
 
 ## Current hypothesis and evidence
 
@@ -597,20 +597,27 @@ undone and the suite re-verified on the original. Weights are downloading to the
 persistent Hugging Face cache under `/home/dev/.cache`.
 
 Gate M is three experiments on the operator's decision, licenses set aside for research
-use. OmniSVG 1.1 4B loads completely into this transformers after remapping its
-checkpoint's older key layout (825 tensors, none missing, 7.3 GiB) and, prompted
-zero-shot, drew a recognisable flat apple - the first recognisable generated icon in the
-project's history; its 200-unit fills-only output is scaled into the codec with fills
-snapped to the nearest palette colour, both reported, and its zero-shot control on 32
-held-out annotations is running (`omnisvg-m1-zeroshot`). SemIf's direct readout is
-reimplemented with an owned 52-request decision set: Qwen3.5-0.8B scores 0.404 and the
-4B 0.577, both falsified - the 4B never misses an ask but sends 22 actionable requests
-to ask too, and its choice flips under option reversal half the time, following the
-last letter; a permutation-averaged readout is now stored beside the direct one.
-Qwen3.5-2B-Base trains with LoRA at 0.17 s a step once flash-linear-attention is built
-from source (the published wheel ships without its ops), and its 248k-token vocabulary
-forces a chunked loss, built and tested; its control config is written. The
-fine-tuning stack lives in `.venv` without displacing the NGC torch.
+use. **OmniSVG 1.1 4B** loads completely into this transformers after remapping its
+checkpoint's older key layout. Its zero-shot control on 32 held-out annotations is
+recorded: every drawing decodes, 73% enter the codec, CLIP similarity to the held-out
+render 0.811 against a 0.777 chance level (any other OpenMoji icon), to the caption
+0.219 at the unrelated level; the sheet is generic circles and blobs with a few
+recognisable subjects. OpenMoji icons now encode into OmniSVG's own token language and
+decode back through its released decoder exactly (the command tokens sit one above the
+training repository's YAML; a test pins it); all 2,681 training icons encode under 2,048
+tokens. Only 8 of the 32 held-out icons themselves fit the P32/T128 bucket after
+outlining, so codec validity is capped at 0.25 for a perfect model and is reported, not
+judged. The LoRA fine-tune in its own tokens is registered with predeclared criteria
+(paired CLIP gain over the control with a bootstrap interval excluding zero, the right
+icon retrieved first among the 32 held-out renders for a quarter of the drawings, 90%
+ending, no training icon reproduced) and queued behind two control re-readings. **SemIf**'s
+direct readout is reimplemented with an owned 52-request decision set: Qwen3.5-0.8B
+scores 0.404 and the 4B 0.577, both falsified - the 4B never misses an ask but sends 22
+actionable requests to ask too, and its choice flips under option reversal half the
+time, following the last letter; a permutation-averaged readout is stored beside the
+direct one and the 4B is being re-read with it. **Qwen3.5-2B-Base** trains with LoRA at
+0.17 s a step once flash-linear-attention is built from source, its 248k-token
+vocabulary forces a chunked loss, and its zero-shot control is running.
 
 ## Last completed action and verification
 
