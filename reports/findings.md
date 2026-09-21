@@ -2903,3 +2903,24 @@ repetition penalty) and under greedy decoding, on the same 32 icons, registered 
 the fine-tune's own criteria. If the drawings diversify and rank better, the sampler
 was the problem; if they stay template-bound, the caption never reached the drawing
 and the training itself must change (longer, caption-weighted, or the image branch).
+
+## 2026-09-21 — The OmniSVG adapter's collapse is the adapter's, not the sampler's
+
+**Observation.** The same adapter, icons, prompt and seed under two other decoders.
+Plain sampling at temperature 1.0 with no repetition penalty: black scribbles, 55% of
+drawings run to the cap, similarity 0.772 below the control's 0.811 (paired gain
+-0.039, interval -0.056 to -0.022), the right icon first for 3 of 64. Greedy: 16 of 32
+drawings loop to the cap, 8 are the blue square, the rest a bust, a yellow face, a
+triangle, an octagon; similarity 0.827, paired gain +0.016 with an interval of -0.003
+to +0.034, 21 of 32 icons improved, the right icon first for 2 of 32. Both falsified.
+
+**Reading.** Unsharpened, the adapter's distribution over coordinates is noise;
+sharpened, it is a few templates; greedy, it is the category's mode. The greedy sheet
+does show coarse grounding - a warning caption yields a yellow triangle, a tired face a
+yellow face, a dark-skin-tone caption a dark bust - so the caption reaches the drawing
+at the level of category and palette and no finer. Held-out likelihood plateaued at
+1.42 nats from step 300 while the training loss kept falling, so more of the same
+training is not the next arm. The lever OmniSVG was actually trained with is its image
+branch; a caption-only fine-tune of 2,681 icons does not teach it what a hedgehog is.
+OmniSVG's answer under this gate is recorded; the text prior's fine-tune is the
+remaining experiment, and Gate M's synthesis follows it.
