@@ -354,7 +354,7 @@ LORA_TARGETS = r".*language_model.*\.(q_proj|k_proj|v_proj|o_proj|gate_proj|up_p
 # so that where a drawing starts can be re-grounded in the image.
 LORA_TARGETS_WITH_MERGER = (
     r".*(language_model.*\.(q_proj|k_proj|v_proj|o_proj|gate_proj|up_proj|down_proj)"
-    r"|visual\.merger\.mlp\.\d+)"
+    r"|visual\.merger\.mlp\.(0|2))"
 )
 
 

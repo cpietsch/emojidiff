@@ -1,0 +1,59 @@
+# Gate N, step two, second arm: the image-branch fine-tune with adapters on the vision
+# merger as well, selected on free-running drawings instead of likelihood.
+#
+# The first arm fitted the corpus (held-out likelihood 2.58 to 1.12) and drew worse, and
+# the diagnostic says why: given the true first half of a program it continues and ends
+# correctly, but from scratch its first point lands a median 56 units (of 200) from the
+# true start - the true point ranks 3,721st - and once off it loops. The language model's
+# adapters copy structure from context; they did not re-ground the image into absolute
+# coordinates. This arm adds rank-16 adapters to the vision merger, the projection from
+# image patches into the language model, trains longer, carries the token-type ids in
+# every forward, and selects the checkpoint on a free-running probe (8 selection icons,
+# greedy, scored against their renders) rather than on likelihood, which cannot see the
+# failure. Same data, prompt, evaluation and criteria as the first arm.
+schema_version: 1
+study_version: omnisvg-n1-image-finetune-merger
+report_root: reports/learning/omnisvg-n1-image-finetune-merger
+checkpoint_root: data/processed/prior/omnisvg-n1-image-finetune-merger
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+
+data:
+  icons: 32
+
+training:
+  condition: image
+  lora: {rank: 16, alpha: 32, dropout: 0.05, merger: true}
+  max_tokens: 2400
+  held_out_icons: 32
+  steps: 800
+  accumulate: 8
+  eval_every: 50
+  patience_evals: 6
+  loss_chunk: 512
+  learning_rate: 1.0e-4
+  weight_decay: 0.0
+  warmup_steps: 25
+  seed: 6402
+  probe: {icons: 8, every: 50, max_new_tokens: 1024}
+  select_on: probe_clip_mean
+
+generation:
+  samples: 2
+  max_new_tokens: 2048
+  seed: 6401
+  prompt_style: image
+  temperature: 0.3
+  top_p: 0.9
+  top_k: 50
+  repetition_penalty: 1.0
+
+control_report_root: reports/learning/omnisvg-n1-image-control
+
+criteria:
+  clip_gain_over_control_ci_excludes_zero: true
+  min_reference_top1_rate: 0.75
+  min_ended_rate: 0.9
+  max_memorised_exactly: 0
+
+render:
+  size: 72
