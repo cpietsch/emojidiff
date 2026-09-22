@@ -39,6 +39,7 @@ from mojidiff.learning.omnisvg_study import (
     captions,
     evaluate,
     render_program,
+    render_raw,
 )
 from mojidiff.learning.openmoji_pilot import (
     OpenMojiPilotError,
@@ -338,8 +339,72 @@ def _train(
         model.model.train()
         return total / max(count, 1)
 
+    probe_cfg = training.get("probe")
+    probe_examples = select[: int(probe_cfg["icons"])] if probe_cfg else []
+    probe_clip = Clip(device) if probe_cfg else None
+
+    def probe() -> dict[str, Any]:
+        """Free-running drawings for a few selection icons: what likelihood cannot see.
+
+        Greedy, no repetition penalty, the drawing scored against the icon's own render;
+        selection is on this when configured, because a model can fit the corpus under
+        teacher forcing and still not draw.
+        """
+
+        assert probe_cfg is not None and probe_clip is not None
+        inner = model._inner()
+        inner.gradient_checkpointing_disable()
+        model.model.eval()
+        ended, lengths, similarities = 0, [], []
+        with torch.inference_mode():
+            for example in probe_examples:
+                with Image.open(example.render) as image:  # type: ignore[arg-type]
+                    condition = image.convert("RGB")
+                drawing = model.generate(
+                    "probe",
+                    samples=1,
+                    max_new_tokens=int(probe_cfg.get("max_new_tokens", 1024)),
+                    seed=0,
+                    style="image",
+                    image=condition,
+                    greedy=True,
+                    repetition_penalty=1.0,
+                )[0]
+                svg, info = model.tokens_to_svg(drawing)
+                ended += int(bool(info.get("ended")))
+                lengths.append(int(info["tokens"]))
+                if svg is not None:
+                    try:
+                        picture = render_raw(svg, 72)
+                        reference = condition.resize((72, 72))
+                        features = probe_clip.image([reference, picture])
+                        similarities.append(float(features[0] @ features[1]))
+                    except Exception:  # noqa: BLE001 - a drawing that does not render scores nothing
+                        similarities.append(0.0)
+                else:
+                    similarities.append(0.0)
+        model.model.train()
+        inner.gradient_checkpointing_enable()
+        return {
+            "probe_ended_rate": ended / max(len(probe_examples), 1),
+            "probe_median_tokens": float(np.median(lengths)) if lengths else None,
+            "probe_clip_mean": float(np.mean(similarities)) if similarities else 0.0,
+        }
+
     metrics: list[dict[str, Any]] = [{"step": 0, "held_out_nll": held_out_nll()}]
-    best_nll, best_step, best_state, stale = metrics[0]["held_out_nll"], 0, None, 0
+    if probe_cfg:
+        metrics[0].update(probe())
+    select_on = str(training.get("select_on", "held_out_nll"))
+
+    def score(row: dict[str, Any]) -> float:
+        # Lower is better: negative likelihood, or negative probe similarity.
+        return (
+            float(row["held_out_nll"])
+            if select_on == "held_out_nll"
+            else -float(row["probe_clip_mean"])
+        )
+
+    best_nll, best_step, best_state, stale = score(metrics[0]), 0, None, 0
     if device == "cuda":
         torch.cuda.reset_peak_memory_stats()
     started = time.perf_counter()
@@ -372,10 +437,14 @@ def _train(
                     "seconds": time.perf_counter() - started,
                 }
             )
+            if probe_cfg and step % int(probe_cfg.get("every", eval_every)) == 0:
+                metrics[-1].update(probe())
             running, running_tokens = 0.0, 0
             print(json.dumps(metrics[-1]), flush=True)
-            if nll < best_nll:
-                best_nll, best_step, stale = nll, step, 0
+            if "probe_clip_mean" not in metrics[-1] and select_on != "held_out_nll":
+                continue  # no probe at this step: nothing to select on
+            if score(metrics[-1]) < best_nll:
+                best_nll, best_step, stale = score(metrics[-1]), step, 0
                 best_state = {
                     k: v.detach().cpu().clone()
                     for k, v in model.model.state_dict().items()
@@ -393,8 +462,12 @@ def _train(
             "steps_run": metrics[-1]["step"],
             "sequences_per_step": accumulate,
             "selected_step": best_step,
+            "selected_on": select_on,
             "initial_held_out_nll": metrics[0]["held_out_nll"],
-            "held_out_nll": best_nll,
+            "held_out_nll": min(float(row["held_out_nll"]) for row in metrics),
+            "selected_probe": {k: v for k, v in metrics[-1].items() if k.startswith("probe_")}
+            if probe_cfg
+            else None,
             "train_seconds": train_seconds,
             "peak_vram_gib": float(torch.cuda.max_memory_allocated()) / 2**30
             if device == "cuda"

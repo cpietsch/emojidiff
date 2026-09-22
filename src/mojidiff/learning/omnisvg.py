@@ -177,7 +177,9 @@ class OmniSVG:
                     r=int(lora["rank"]),
                     lora_alpha=int(lora["alpha"]),
                     lora_dropout=float(lora.get("dropout", 0.0)),
-                    target_modules=LORA_TARGETS,
+                    target_modules=LORA_TARGETS_WITH_MERGER
+                    if lora.get("merger", False)
+                    else LORA_TARGETS,
                     task_type="CAUSAL_LM",
                 ),
             )
@@ -348,6 +350,12 @@ class OmniSVG:
 
 
 LORA_TARGETS = r".*language_model.*\.(q_proj|k_proj|v_proj|o_proj|gate_proj|up_proj|down_proj)"
+# With the merger: the projection from vision patches into the language model's space,
+# so that where a drawing starts can be re-grounded in the image.
+LORA_TARGETS_WITH_MERGER = (
+    r".*(language_model.*\.(q_proj|k_proj|v_proj|o_proj|gate_proj|up_proj|down_proj)"
+    r"|visual\.merger\.mlp\.\d+)"
+)
 
 
 def load_svg_tokenizer() -> tuple[Any, int]:

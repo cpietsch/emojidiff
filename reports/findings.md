@@ -3080,3 +3080,28 @@ most easily smooths over - just over half the time. The limit is the same as in 
 one: drawings that trace edges with hundreds of segments and run past the cap. The
 fine-tuned adapter's edits and its penalty-free re-reads are next; if the penalty was
 the confound, the compact-program model should make this loop both faster and closer.
+
+## 2026-09-22 — The adapter cannot find where to start: the failure is the first point, not the sampler
+
+**Observation.** The penalty-free re-reads falsified the sampler hypothesis: without the
+penalty the adapter draws even longer (11% end sampled, 12.5% greedy; the right icon
+first for 0.36 and 0.44). Two diagnostics on the saved adapter then located the
+failure. Under teacher forcing it is excellent - commands 0.9 to 1.0 exact, coordinates
+0.7 to 0.9, colours 0.83 to 0.94 - and handed the true first half of a program it
+continues and ends with the right length in three of four cases. From scratch its
+first point lands a median 56 units (of 200) from the true start over 32 selection
+icons, only 8 of 32 within 5 units, the true point ranking 3,721st among the tokens;
+given the true first point, the second is exact for all 32. Once the start is wrong it
+falls into a loop - the same point repeated to the cap. A third check: carrying the
+token-type ids so the training forward builds the same 3-D rotary positions as
+generation changes the released model's likelihood by 0.01 nats, so that mismatch was
+real but not the cause.
+
+**Reading.** Likelihood measured the wrong thing. Almost every token of a compact
+program is a continuation - a closing point, a symmetric coordinate, the same colour -
+which adapters on the language model learn to copy from context; the one decision that
+needs the image read into an absolute coordinate is the first point, and that is where
+the released model's habit (start anywhere and trace) was replaced by nothing. The
+remedy has two parts and both are in the next arm: adapters on the vision merger, so
+the image can be re-grounded into coordinates, and selection on a free-running probe
+of eight icons rather than on likelihood, which cannot see this failure at all.
