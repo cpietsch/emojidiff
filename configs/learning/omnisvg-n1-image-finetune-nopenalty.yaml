@@ -1,0 +1,35 @@
+# Gate N: the image-branch adapter re-read under the image sampler without its repetition penalty.
+#
+# The fine-tune improved held-out likelihood from 2.58 to 1.12 nats and drew worse under
+# OmniSVG's sampler, whose repetition penalty punishes the exact repeats a compact
+# OpenMoji program makes at every closing point. Same adapter, icons, renders and seed;
+# the fine-tune's own criteria against the zero-shot image control.
+schema_version: 1
+study_version: omnisvg-n1-image-finetune-nopenalty
+report_root: reports/learning/omnisvg-n1-image-finetune-nopenalty
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+adapter: data/processed/prior/omnisvg-n1-image-finetune/adapter.zip
+
+data:
+  split: primary/validation
+  icons: 32
+
+generation:
+  samples: 2
+  temperature: 0.3
+  top_p: 0.9
+  top_k: 50
+  repetition_penalty: 1.0
+  max_new_tokens: 2048
+  seed: 6401
+  prompt_style: image
+
+control_report_root: reports/learning/omnisvg-n1-image-control
+
+criteria:
+  clip_gain_over_control_ci_excludes_zero: true
+  min_reference_top1_rate: 0.75
+  min_ended_rate: 0.9
+
+render:
+  size: 72

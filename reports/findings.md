@@ -3039,3 +3039,25 @@ editing direction is open: an edit is a raster edit followed by re-vectorisation
 image-branch fine-tune is registered with predeclared criteria (a paired gain over
 this control with an interval excluding zero, top-1 retrieval of 0.75, 90% ending, no
 training icon reproduced) and queued behind its smoke test.
+
+## 2026-09-22 — The image-branch fine-tune fits the corpus and draws worse; the sampler is the suspect
+
+**Observation.** Gate N, step two: rank-16 LoRA on OmniSVG's language model, 2,681
+render-to-program pairs, 500 steps of 8 (40 minutes, 9.3 GiB). Held-out likelihood
+falls from 2.58 to 1.12 nats a token. The drawings, under OmniSVG's image sampler
+(temperature 0.3, repetition penalty 1.05), are worse than zero-shot: 28% end (control
+50%), the median drawing hits the 2,048-token cap, the right icon is first for 25 of 64
+(0.39; control 0.61), similarity 0.867 (control 0.905), a paired gain of -0.037 whose
+interval excludes zero on the wrong side. Colours snap closer to the palette (4.2
+against 8.5) and no training icon is reproduced. Falsified on three of four criteria.
+
+**Reading.** This is the second time a fine-tune of OmniSVG has improved likelihood by
+more than a nat and drawn worse, and both times the drawings ran long. What the
+fine-tuned model is asked to write - compact OpenMoji paths - repeats exact tokens:
+a close returns to its start point, symmetric parts reuse coordinates, the same colour
+token ends path after path. OmniSVG's sampler divides the logit of every token already
+in the sequence by 1.05, which the zero-shot model's raster tracing (hundreds of
+distinct tiny points, few repeats) never feels and a compact program feels at every
+closing point. The adapter is re-read under the same settings without the penalty, and
+greedily without it, before any training change; if the drawings end and rank, the
+sampler was the confound throughout Gate M as well.
