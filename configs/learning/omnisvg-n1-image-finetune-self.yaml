@@ -1,0 +1,59 @@
+# Gate N, pipeline test: the image-branch fine-tune on the released model's own drawings.
+#
+# Two arms in OpenMoji's compact dialect harmed free-running from their first 50 steps.
+# Before blaming the dialect, the training pipeline is tested on targets the model
+# already draws: 600 training icons' renders, each drawn once by the released model
+# (greedy, its own sampler), drawings that end kept as targets, the same adapters,
+# schedule, probe and selection. A model fine-tuned on its own outputs should draw at
+# least as well as before; if its probe degrades like the others', the fault is in the
+# training forward or the data path, not in OpenMoji's programs. Same evaluation,
+# control and criteria as the other arms, so the numbers are comparable.
+schema_version: 1
+study_version: omnisvg-n1-image-finetune-self
+report_root: reports/learning/omnisvg-n1-image-finetune-self
+checkpoint_root: data/processed/prior/omnisvg-n1-image-finetune-self
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+
+data:
+  icons: 32
+  train_icons: 600
+
+training:
+  condition: image
+  token_source: self
+  self: {greedy: true, max_new_tokens: 2048, repetition_penalty: 1.05, seed: 6404}
+  lora: {rank: 16, alpha: 32, dropout: 0.05}
+  max_tokens: 2400
+  held_out_icons: 32
+  steps: 300
+  accumulate: 8
+  eval_every: 50
+  patience_evals: 6
+  loss_chunk: 512
+  learning_rate: 1.0e-4
+  weight_decay: 0.0
+  warmup_steps: 25
+  seed: 6404
+  probe: {icons: 8, every: 50, max_new_tokens: 1536}
+  select_on: probe_clip_mean
+
+generation:
+  samples: 2
+  max_new_tokens: 2048
+  seed: 6401
+  prompt_style: image
+  temperature: 0.3
+  top_p: 0.9
+  top_k: 50
+  repetition_penalty: 1.05
+
+control_report_root: reports/learning/omnisvg-n1-image-control
+
+criteria:
+  clip_gain_over_control_ci_excludes_zero: true
+  min_reference_top1_rate: 0.75
+  min_ended_rate: 0.9
+  max_memorised_exactly: 0
+
+render:
+  size: 72

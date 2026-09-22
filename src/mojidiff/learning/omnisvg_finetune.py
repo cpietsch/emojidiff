@@ -118,14 +118,27 @@ def run_omnisvg_finetune(config_path: Path) -> dict[str, Any]:
 
     split = training.get("split_max_dist")
     split_at = float(split) if split is not None else None
-    train_tokens, train_failures = encode_rows(train_rows, pilot.raw_root, cache_root, split_at)
-    select_tokens, select_failures = encode_rows(select_rows, pilot.raw_root, cache_root, split_at)
     max_tokens = int(training["max_tokens"])
     condition = str(training.get("condition", "caption"))
     renders: dict[str, Path] = {}
     if condition == "image":
         render_cache = Path(str(training.get("render_cache_root", DEFAULT_RENDER_CACHE)))
         renders = render_rows(train_rows + select_rows, pilot, codec, limits, render_cache)
+    if str(training.get("token_source", "openmoji")) == "self":
+        # The released model's own drawings of the renders as targets: a pipeline test.
+        # If fine-tuning on what the model already draws harms its drawing, the fault
+        # is in the training, not in the data's dialect.
+        train_tokens, train_failures = self_tokens(
+            model, train_rows, renders, cache_root, training["self"]
+        )
+        select_tokens, select_failures = self_tokens(
+            model, select_rows, renders, cache_root, training["self"]
+        )
+    else:
+        train_tokens, train_failures = encode_rows(train_rows, pilot.raw_root, cache_root, split_at)
+        select_tokens, select_failures = encode_rows(
+            select_rows, pilot.raw_root, cache_root, split_at
+        )
     train, excluded_train = _examples(
         model, train_rows, train_tokens, annotations, max_tokens, condition, renders
     )
@@ -147,6 +160,7 @@ def run_omnisvg_finetune(config_path: Path) -> dict[str, Any]:
             "max_tokens": max_tokens,
             "condition": condition,
             "split_max_dist": split_at,
+            "token_source": str(training.get("token_source", "openmoji")),
             "load_seconds": load_seconds,
         }
     )
@@ -213,6 +227,81 @@ def run_omnisvg_finetune(config_path: Path) -> dict[str, Any]:
         )
     _write_bytes_artifact(report_root / "summary.json", dumps(summary))
     return summary
+
+
+def self_tokens(
+    model: OmniSVG,
+    rows: tuple[PilotRow, ...],
+    renders: dict[str, Path],
+    cache_root: Path,
+    settings: dict[str, Any],
+) -> tuple[dict[str, torch.Tensor], dict[str, str]]:
+    """The released model's own drawing of each row's render, BOS and EOS around it.
+
+    Drawn once with the adapters at their initial (identity) state, greedily unless
+    told otherwise, and cached; a drawing that does not end within the budget is a
+    counted failure, never a truncated target.
+    """
+
+    import hashlib
+    import json as json_
+
+    from mojidiff.learning.omnisvg import BOS, EOS, trim_drawing
+
+    key = hashlib.sha256(
+        json_.dumps(
+            {"rows": [row.hexcode for row in rows], "settings": settings}, sort_keys=True
+        ).encode()
+    ).hexdigest()[:16]
+    cache = cache_root / f"omnisvg-self-tokens-{key}.pt"
+    if cache.is_file():
+        payload = torch.load(cache, weights_only=True)
+        return dict(payload["tokens"]), dict(payload["failures"])
+    inner = model._inner()
+    inner.gradient_checkpointing_disable()
+    model.model.eval()
+    tokens: dict[str, torch.Tensor] = {}
+    failures: dict[str, str] = {}
+    started = time.perf_counter()
+    for index, row in enumerate(rows):
+        with Image.open(renders[row.hexcode]) as image:
+            condition = image.convert("RGB")
+        drawing = model.generate(
+            "self",
+            samples=1,
+            max_new_tokens=int(settings.get("max_new_tokens", 2048)),
+            seed=int(settings.get("seed", 0)) + index,
+            style="image",
+            image=condition,
+            greedy=bool(settings.get("greedy", True)),
+            temperature=float(settings.get("temperature", 0.3)),
+            top_p=float(settings.get("top_p", 0.9)),
+            repetition_penalty=float(settings.get("repetition_penalty", 1.05)),
+        )[0]
+        trimmed, ended = trim_drawing(drawing)
+        if not ended:
+            failures[row.hexcode] = "did not end"
+            continue
+        tokens[row.hexcode] = torch.cat(
+            (torch.tensor([BOS]), trimmed.long(), torch.tensor([EOS]))
+        ).long()
+        if (index + 1) % 25 == 0:
+            print(
+                json.dumps(
+                    {
+                        "self_tokens": index + 1,
+                        "of": len(rows),
+                        "kept": len(tokens),
+                        "seconds": round(time.perf_counter() - started),
+                    }
+                ),
+                flush=True,
+            )
+    model.model.train()
+    inner.gradient_checkpointing_enable()
+    cache_root.mkdir(parents=True, exist_ok=True)
+    torch.save({"tokens": tokens, "failures": failures}, cache)
+    return tokens, failures
 
 
 # ------------------------------------------------------------------------ examples
