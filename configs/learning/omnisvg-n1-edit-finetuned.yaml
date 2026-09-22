@@ -1,0 +1,42 @@
+# Gate N, step three: edits made in pixels, re-vectorised by the image-branch fine-tune (omnisvg-n1-image-finetune).
+#
+# Each held-out icon's program is edited exactly - its most used colour recoloured to
+# the palette's red, its middle path erased, its last path moved 8 units right - and the
+# edited program's 448 px render is what the model sees. A drawing reflects the edit when
+# it is closer (CLIP) to the edited render than to the original; the right edited icon
+# should be retrieved first among all edited held-out renders. Icons an edit cannot apply
+# to (no recolourable fill, too few paths, a move off the box) are skipped and counted.
+#
+# Predeclared criteria over all drawings: edit reflected for at least 0.75, the right
+# edited icon first for at least 0.5 (chance about 0.032). Ending and codec validity are
+# reported.
+schema_version: 1
+study_version: omnisvg-n1-edit-finetuned
+report_root: reports/learning/omnisvg-n1-edit-finetuned
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+adapter: data/processed/prior/omnisvg-n1-image-finetune/adapter.zip
+
+data:
+  split: primary/validation
+  icons: 32
+
+edits:
+  recolour: {target: "#ea5a47"}
+  erase: {}
+  move: {dx: 8, dy: 0}
+
+generation:
+  samples: 1
+  max_new_tokens: 2048
+  seed: 6501
+  temperature: 0.3
+  top_p: 0.9
+  top_k: 50
+  repetition_penalty: 1.05
+
+criteria:
+  min_edit_reflected_rate: 0.75
+  min_edited_top1_rate: 0.5
+
+render:
+  size: 72
