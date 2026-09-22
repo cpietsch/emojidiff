@@ -116,8 +116,10 @@ def run_omnisvg_finetune(config_path: Path) -> dict[str, Any]:
     model = OmniSVG.load(device, lora=training["lora"])
     load_seconds = time.perf_counter() - started
 
-    train_tokens, train_failures = encode_rows(train_rows, pilot.raw_root, cache_root)
-    select_tokens, select_failures = encode_rows(select_rows, pilot.raw_root, cache_root)
+    split = training.get("split_max_dist")
+    split_at = float(split) if split is not None else None
+    train_tokens, train_failures = encode_rows(train_rows, pilot.raw_root, cache_root, split_at)
+    select_tokens, select_failures = encode_rows(select_rows, pilot.raw_root, cache_root, split_at)
     max_tokens = int(training["max_tokens"])
     condition = str(training.get("condition", "caption"))
     renders: dict[str, Path] = {}
@@ -144,6 +146,7 @@ def run_omnisvg_finetune(config_path: Path) -> dict[str, Any]:
             "excluded_selection_over_max_tokens": excluded_select,
             "max_tokens": max_tokens,
             "condition": condition,
+            "split_max_dist": split_at,
             "load_seconds": load_seconds,
         }
     )
@@ -404,7 +407,15 @@ def _train(
             else -float(row["probe_clip_mean"])
         )
 
-    best_nll, best_step, best_state, stale = score(metrics[0]), 0, None, 0
+    def snapshot() -> dict[str, torch.Tensor]:
+        return {
+            k: v.detach().cpu().clone()
+            for k, v in model.model.state_dict().items()
+            if "lora" in k.lower()
+        }
+
+    # The initial adapters are a candidate too: if no step beats them, they are restored.
+    best_nll, best_step, best_state, stale = score(metrics[0]), 0, snapshot(), 0
     if device == "cuda":
         torch.cuda.reset_peak_memory_stats()
     started = time.perf_counter()
@@ -445,11 +456,7 @@ def _train(
                 continue  # no probe at this step: nothing to select on
             if score(metrics[-1]) < best_nll:
                 best_nll, best_step, stale = score(metrics[-1]), step, 0
-                best_state = {
-                    k: v.detach().cpu().clone()
-                    for k, v in model.model.state_dict().items()
-                    if "lora" in k.lower()
-                }
+                best_state = snapshot()
             else:
                 stale += 1
                 if stale >= patience:

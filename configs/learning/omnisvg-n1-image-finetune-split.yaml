@@ -1,0 +1,60 @@
+# Gate N, step two, third arm: the image-branch fine-tune in the released model's own
+# dialect - OpenMoji programs split into segments no longer than 10 units of the 200 box.
+#
+# Two arms in the compact dialect fitted the corpus and drew worse from their first 50
+# steps, whatever could learn the first point and whatever selected the checkpoint.
+# OmniSVG's preprocessing splits training paths at 5 units, so the released model draws
+# in short local steps that are robust to small errors; a compact program asks for
+# large exact jumps and one wrong jump becomes a loop. This arm keeps the model's
+# dialect: the same icons split at 10 units (5 would put most icons over the cap),
+# adapters on the language model only, the free-running probe and selection on it, the
+# initial adapters kept as a candidate, no repetition penalty at evaluation. Same
+# evaluation, control and criteria as the other arms. If free-running stays healthy,
+# the dialect was the problem; if it degrades too, the fault is in the pipeline.
+schema_version: 1
+study_version: omnisvg-n1-image-finetune-split
+report_root: reports/learning/omnisvg-n1-image-finetune-split
+checkpoint_root: data/processed/prior/omnisvg-n1-image-finetune-split
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+
+data:
+  icons: 32
+
+training:
+  condition: image
+  split_max_dist: 10
+  lora: {rank: 16, alpha: 32, dropout: 0.05}
+  max_tokens: 2400
+  held_out_icons: 32
+  steps: 600
+  accumulate: 8
+  eval_every: 50
+  patience_evals: 6
+  loss_chunk: 512
+  learning_rate: 1.0e-4
+  weight_decay: 0.0
+  warmup_steps: 25
+  seed: 6403
+  probe: {icons: 8, every: 50, max_new_tokens: 1536}
+  select_on: probe_clip_mean
+
+generation:
+  samples: 2
+  max_new_tokens: 2048
+  seed: 6401
+  prompt_style: image
+  temperature: 0.3
+  top_p: 0.9
+  top_k: 50
+  repetition_penalty: 1.0
+
+control_report_root: reports/learning/omnisvg-n1-image-control
+
+criteria:
+  clip_gain_over_control_ci_excludes_zero: true
+  min_reference_top1_rate: 0.75
+  min_ended_rate: 0.9
+  max_memorised_exactly: 0
+
+render:
+  size: 72

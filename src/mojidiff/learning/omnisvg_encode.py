@@ -144,15 +144,25 @@ def sequence(svg: Any, fills: list[str]) -> torch.Tensor:
     return torch.tensor(np.concatenate(([BOS], encode(svg, fills), [EOS])), dtype=torch.long)
 
 
-def encode_icon(source: bytes) -> torch.Tensor:
-    """One OpenMoji SVG as OmniSVG's drawing sequence, BOS and EOS included."""
+def encode_icon(source: bytes, split_max_dist: float | None = None) -> torch.Tensor:
+    """One OpenMoji SVG as OmniSVG's drawing sequence, BOS and EOS included.
+
+    `split_max_dist` splits every segment longer than that many units of the 200 box,
+    as OmniSVG's own preprocessing does at 5: the released model's dialect is many
+    short segments, and a compact program is a different language to it.
+    """
 
     svg, fills = openmoji_to_deepsvg(source)
+    if split_max_dist is not None:
+        svg.split(max_dist=split_max_dist)
     return sequence(svg, fills)
 
 
 def encode_rows(
-    rows: tuple[PilotRow, ...], raw_root: Path, cache_root: Path
+    rows: tuple[PilotRow, ...],
+    raw_root: Path,
+    cache_root: Path,
+    split_max_dist: float | None = None,
 ) -> tuple[dict[str, torch.Tensor], dict[str, str]]:
     """Every row's drawing sequence, by hexcode, with the reason for each icon that fails.
 
@@ -167,6 +177,7 @@ def encode_rows(
                 "rows": [row.source_svg_sha256 for row in rows],
                 "tokens": [CMD_MOVE, CMD_LINE, CMD_CURVE, CMD_ARC, CMD_CLOSE, PIX_PAD, COLOR_START],
                 "box": BBOX,
+                "split_max_dist": split_max_dist,
                 "version": 1,
             },
             sort_keys=True,
@@ -183,7 +194,7 @@ def encode_rows(
         if hashlib.sha256(source).hexdigest() != row.source_svg_sha256:
             raise OpenMojiPilotError(f"source hash mismatch: {row.source_path}")
         try:
-            tokens[row.hexcode] = encode_icon(source)
+            tokens[row.hexcode] = encode_icon(source, split_max_dist)
         except Exception as error:  # noqa: BLE001 - counted, never silently dropped
             failures[row.hexcode] = f"{type(error).__name__}: {str(error)[:80]}"
     cache_root.mkdir(parents=True, exist_ok=True)
