@@ -3061,3 +3061,22 @@ distinct tiny points, few repeats) never feels and a compact program feels at ev
 closing point. The adapter is re-read under the same settings without the penalty, and
 greedily without it, before any training change; if the drawings end and rank, the
 sampler was the confound throughout Gate M as well.
+
+## 2026-09-22 — Edits in pixels survive re-vectorisation: recolour four times in five, erase three in four, move just over half
+
+**Observation.** Gate N, step three, the released model. Each held-out icon's program
+was edited exactly - its most used colour turned red, its middle path erased, its last
+path moved 8 units - and the edited render handed to the image branch. Over 93
+drawings the result is closer to the edited render than to the original 70% of the
+time (recolour 81%, erase 71%, move 58%), and the right edited icon is first among the
+31 edited renders 55% of the time (chance 0.032; recolour 52%, erase 65%, move 48%).
+40% end within 2,048 tokens; 26% enter the codec. Passed the retrieval bar (0.5),
+missed the edit-reflected bar (0.75) by five points: falsified, narrowly.
+
+**Reading.** A raster edit followed by re-vectorisation is a working loop today, with
+the released model and no training: the recolour survives almost always, the erasure
+usually, the move - the smallest change in CLIP terms, and the one a tracing model
+most easily smooths over - just over half the time. The limit is the same as in step
+one: drawings that trace edges with hundreds of segments and run past the cap. The
+fine-tuned adapter's edits and its penalty-free re-reads are next; if the penalty was
+the confound, the compact-program model should make this loop both faster and closer.
