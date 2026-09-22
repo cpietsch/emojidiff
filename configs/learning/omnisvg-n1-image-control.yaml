@@ -1,0 +1,41 @@
+# Gate N, step one: OmniSVG 1.1 4B's image branch, zero-shot, on held-out OpenMoji renders.
+#
+# Gate M showed that a caption does not reach the drawing; this gate conditions on a
+# render. Each of the 32 held-out icons is rendered by the project's renderer at 448 px
+# and given to the released model through its own image-to-SVG prompt and sampling
+# settings (temperature 0.3, top-p 0.9), two drawings each, decoded, converted into the
+# codec, rendered, and scored exactly as in Gate M: CLIP against the held-out render and
+# the rank of the right icon among all 32 held-out renders.
+#
+# Predeclared reading: the image branch reconstructs an OpenMoji icon well enough that
+# the right icon is retrieved first for at least half the drawings (chance 0.031) and
+# similarity to the held-out render averages at least 0.90 (the exact icon scores 0.994,
+# Gate M's best caption arm 0.839). Codec validity is reported against the 0.25 ceiling
+# of outlined icons, not judged.
+schema_version: 1
+study_version: omnisvg-n1-image-control
+report_root: reports/learning/omnisvg-n1-image-control
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+
+data:
+  split: primary/validation
+  icons: 32
+
+generation:
+  samples: 2
+  max_new_tokens: 2048
+  seed: 6401
+  prompt_style: image
+  temperature: 0.3
+  top_p: 0.9
+  top_k: 50
+  repetition_penalty: 1.05
+
+control_report_root: reports/learning/omnisvg-m1-control
+
+criteria:
+  min_reference_top1_rate: 0.5
+  min_clip_to_reference_mean: 0.9
+
+render:
+  size: 72

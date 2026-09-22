@@ -57,6 +57,20 @@ SYSTEM_PROMPT = (
 )
 
 
+IMAGE_INSTRUCTION = "Generate SVG code that accurately represents this image:"
+IMAGE_SIZE = 448  # the trainer's and the inference repository's target image size
+
+
+def image_condition(image: Any) -> Any:
+    """A render as the model saw its training images: 448 px RGB on white."""
+
+    from PIL import Image
+
+    rgba = image.convert("RGBA").resize((IMAGE_SIZE, IMAGE_SIZE), Image.Resampling.LANCZOS)
+    background = Image.new("RGBA", rgba.size, (255, 255, 255, 255))
+    return Image.alpha_composite(background, rgba).convert("RGB")
+
+
 def training_instruction(annotation: str) -> str:
     """The text-to-SVG instruction of OmniSVG's training script, verbatim."""
 
@@ -210,9 +224,36 @@ class OmniSVG:
         hidden = inner.model(input_ids=input_ids).last_hidden_state
         return chunked_cross_entropy(hidden, inner.lm_head, labels, chunk)
 
-    def prompt_ids(self, prompt: str, *, style: str = "release") -> dict[str, torch.Tensor]:
-        """`release`: the inference repository's prompt; `training`: the trainer's."""
+    def prompt_ids(
+        self, prompt: str, *, style: str = "release", image: Any = None
+    ) -> dict[str, torch.Tensor]:
+        """`release`: the inference repository's prompt; `training`: the trainer's;
+        `image`: the image-to-SVG prompt both repositories share, with `image` attached."""
 
+        if style == "image":
+            if image is None:
+                raise ValueError("the image style needs an image")
+            from qwen_vl_utils import process_vision_info  # type: ignore[import-untyped]
+
+            messages = [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": IMAGE_INSTRUCTION},
+                        {"type": "image", "image": image_condition(image)},
+                    ],
+                },
+            ]
+            text = self.processor.apply_chat_template(
+                messages, tokenize=False, add_generation_prompt=True
+            )
+            image_inputs, _ = process_vision_info(messages)
+            inputs = self.processor(
+                text=[text], images=image_inputs, padding=True, return_tensors="pt"
+            )
+            device = next(self.model.parameters()).device
+            return {key: value.to(device) for key, value in inputs.items()}
         if style == "training":
             messages = [
                 {"role": "system", "content": TRAINING_SYSTEM_PROMPT},
@@ -249,27 +290,40 @@ class OmniSVG:
         repetition_penalty: float = 1.05,
         style: str = "release",
         greedy: bool = False,
+        image: Any = None,
     ) -> list[torch.Tensor]:
-        """OmniSVG's own sampling settings for text-to-icon by default; returns the tokens."""
+        """OmniSVG's own sampling settings for text-to-icon by default; returns the tokens.
 
-        inputs = self.prompt_ids(prompt, style=style)
-        torch.manual_seed(seed)
-        result = self.model.generate(
-            **inputs,
-            max_new_tokens=max_new_tokens,
-            num_return_sequences=samples,
-            do_sample=not greedy,
-            temperature=None if greedy else temperature,
-            top_p=None if greedy else top_p,
-            top_k=None if greedy else top_k,
-            repetition_penalty=repetition_penalty,
-            eos_token_id=EOS,
-            pad_token_id=PAD,
-            bos_token_id=BOS,
-            use_cache=True,
+        With an image the samples are drawn one at a time, each under its own seed, so
+        the vision inputs are never expanded across a batch.
+        """
+
+        inputs = self.prompt_ids(prompt, style=style, image=image)
+        rounds = (
+            [(seed + sample, 1) for sample in range(samples)]
+            if image is not None
+            else [(seed, samples)]
         )
+        drawings: list[torch.Tensor] = []
         length = inputs["input_ids"].shape[1]
-        return [row.cpu() for row in result[:, length:]]
+        for round_seed, count in rounds:
+            torch.manual_seed(round_seed)
+            result = self.model.generate(
+                **inputs,
+                max_new_tokens=max_new_tokens,
+                num_return_sequences=count,
+                do_sample=not greedy,
+                temperature=None if greedy else temperature,
+                top_p=None if greedy else top_p,
+                top_k=None if greedy else top_k,
+                repetition_penalty=repetition_penalty,
+                eos_token_id=EOS,
+                pad_token_id=PAD,
+                bos_token_id=BOS,
+                use_cache=True,
+            )
+            drawings.extend(row.cpu() for row in result[:, length:])
+        return drawings
 
     def tokens_to_svg(self, tokens: torch.Tensor) -> tuple[str | None, dict[str, Any]]:
         return decode_tokens(self.svg_tokenizer, self.black_color_token, tokens)

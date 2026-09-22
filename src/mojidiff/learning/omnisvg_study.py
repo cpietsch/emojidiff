@@ -266,6 +266,13 @@ def evaluate(
         raise RuntimeError("evaluate needs the model in eval mode")
     for index, (row, annotation) in enumerate(zip(rows_selected, texts, strict=True)):
         prompt = caption_prompt(annotation) if style == "release" else annotation
+        image_input = None
+        if style == "image":
+            # The icon's own render, as the model would see an image to vectorise.
+            prompt = f"render of {row.hexcode}"
+            image_input = render_program(
+                _load_program(row, pilot, codec), codec, pilot.total_segment_slots, limits, 448
+            )
         clock = time.perf_counter()
         drawings = model.generate(
             prompt,
@@ -273,6 +280,7 @@ def evaluate(
             max_new_tokens=max_new_tokens,
             seed=seed + index,
             style=style,
+            image=image_input,
             **(sampling or {}),
         )
         generate_seconds += time.perf_counter() - clock

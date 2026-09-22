@@ -372,6 +372,11 @@ def _checks(summary: dict[str, Any], criteria: dict[str, Any]) -> dict[str, bool
         checks["clip_gain_over_control"] = bool(control) and float(control["gain_ci95"][0]) > 0
     if "min_ended_rate" in criteria:
         checks["ended_rate"] = summary["ended_rate"] >= float(criteria["min_ended_rate"])
+    if "min_clip_to_reference_mean" in criteria:
+        value = summary["clip_to_reference"]["mean"]
+        checks["clip_to_reference"] = value is not None and value >= float(
+            criteria["min_clip_to_reference_mean"]
+        )
     if "min_reference_top1_rate" in criteria:
         checks["reference_top1_rate"] = summary["reference_rank"]["top1_rate"] >= float(
             criteria["min_reference_top1_rate"]
