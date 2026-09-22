@@ -181,6 +181,7 @@ def run_omnisvg_study(config_path: Path) -> dict[str, Any]:
         limits=limits,
         size=size,
         sampling=sampling,
+        rerank=int(generation.get("rerank", 0)),
     )
     rows_payload = b"".join(
         (json.dumps(record, sort_keys=True, separators=(",", ":")) + "\n").encode()
@@ -239,6 +240,7 @@ def evaluate(
     size: int,
     train_sequences: set[tuple[int, ...]] | None = None,
     sampling: dict[str, Any] | None = None,
+    rerank: int = 0,
 ) -> tuple[dict[str, Any], list[dict[str, Any]], bytes]:
     """Draw every selected icon from its annotation and score the drawings.
 
@@ -247,6 +249,11 @@ def evaluate(
     already high, so the rank of the right icon says whether a drawing is of *this*
     icon rather than of an emoji. `train_sequences` lets a fine-tune count drawings
     that reproduce a training icon token for token.
+
+    With `rerank` above `samples` and an image condition, that many candidates are
+    drawn and the `samples` closest to the conditioning render in pixels are kept: the
+    render is the input, so choosing the candidate that reproduces it is decoding, not
+    peeking. The candidates' spread is reported.
     """
 
     annotations = captions(pilot.raw_root)
@@ -276,7 +283,7 @@ def evaluate(
         clock = time.perf_counter()
         drawings = model.generate(
             prompt,
-            samples=samples,
+            samples=max(rerank, samples) if image_input is not None else samples,
             max_new_tokens=max_new_tokens,
             seed=seed + index,
             style=style,
@@ -284,6 +291,9 @@ def evaluate(
             **(sampling or {}),
         )
         generate_seconds += time.perf_counter() - clock
+        rerank_info: dict[str, Any] = {}
+        if image_input is not None and len(drawings) > samples:
+            drawings, rerank_info = _closest_in_pixels(model, drawings, image_input, samples, size)
         row_tiles = [references[index]]
         for sample_index, tokens in enumerate(drawings):
             record: dict[str, Any] = {
@@ -292,6 +302,7 @@ def evaluate(
                 "prompt": prompt,
                 "prompt_style": style,
                 "sample": sample_index,
+                **rerank_info,
             }
             if train_sequences is not None:
                 trimmed, _ = trim_drawing(tokens)
@@ -353,6 +364,7 @@ def evaluate(
         "max_new_tokens": max_new_tokens,
         "prompt_style": style,
         "sampling": sampling or {},
+        "rerank": rerank,
         "drawings": len(rows),
         "decoded_rate": len(decoded) / len(rows),
         "ended_rate": sum(1 for record in rows if record.get("decode_ended")) / len(rows),
@@ -393,6 +405,34 @@ def evaluate(
     if train_sequences is not None:
         summary["memorised_exactly"] = sum(1 for record in rows if record.get("memorised_exactly"))
     return summary, rows, sheet
+
+
+def _closest_in_pixels(
+    model: OmniSVG, drawings: list[torch.Tensor], condition: Image.Image, keep: int, size: int
+) -> tuple[list[torch.Tensor], dict[str, Any]]:
+    """Keep the candidates whose raw render is closest to the conditioning render."""
+
+    target = np.asarray(condition.resize((size, size)), dtype=np.float32)
+    errors: list[float] = []
+    for tokens in drawings:
+        svg, _ = model.tokens_to_svg(tokens)
+        try:
+            picture = guarded(STEP_SECONDS, render_raw, svg, size) if svg is not None else None
+        except Exception:  # noqa: BLE001
+            picture = None
+        if picture is None:
+            errors.append(1.0)
+        else:
+            errors.append(
+                float(np.abs(np.asarray(picture, dtype=np.float32) - target).mean() / 255.0)
+            )
+    order = sorted(range(len(drawings)), key=lambda i: errors[i])
+    return [drawings[i] for i in order[:keep]], {
+        "rerank_candidates": len(drawings),
+        "rerank_error_best": errors[order[0]],
+        "rerank_error_median": float(np.median(errors)),
+        "rerank_error_worst": errors[order[-1]],
+    }
 
 
 def _count(rows: list[dict[str, Any]], key: str) -> dict[str, int]:
