@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-22T15:03:02Z
+Updated: 2026-09-22T21:19:58Z
 
 ## Current hypothesis and evidence
 
@@ -613,17 +613,24 @@ direction that remains open is conditioning on more than a caption - a partial i
 family sibling, or a reference render - with the text prior as the vehicle, because it
 already writes the codec's form. The synthesis is in `reports/findings.md`.
 
-Gate N conditions on a render instead of a caption. Step one passed its predeclared
-bars: OmniSVG's released image branch, given a held-out icon's own 448 px render,
-retrieves the right icon first among the 32 held-out renders for 39 of 64 drawings
-(0.609; chance 0.031; Gate M's best caption arm 0.094) at 0.905 similarity - the first
-held-out reconstruction in the project's history, with the warning sign, the UP!
-button, the mushroom, the shopping cart, the tired face and the airplane recognisable
-on the sheet. Half the drawings run past 2,048 tokens tracing raster edges and only
-0.33 enter the codec; the image-branch LoRA fine-tune on OpenMoji's 2,681
-render-to-program pairs (exact encoder, cached 448 px renders) is registered with
-predeclared criteria and queued behind its smoke test. The editing direction this
-opens: a raster edit followed by re-vectorisation.
+Gate N conditions on a render instead of a caption, and has the project's first
+satisfying reconstruction result. OmniSVG's released image branch, given a held-out
+icon's own 448 px render, retrieves the right icon first among the 32 held-out renders
+for 39 of 64 drawings zero-shot (chance 0.031; Gate M's best caption arm 0.094), and for
+**49 of 64 with best-of-six decoding** - six candidates, the two closest to the input
+render in pixels kept - at 0.944 similarity, passing its predeclared bars with no
+training; the sheet is recognisable almost everywhere. Edits made in pixels (a
+recolour, an erased part, a moved part on exactly edited programs) survive
+re-vectorisation 70% of the time with the released model (recolour 81%, erase 71%,
+move 58%). Three fine-tuning arms in OpenMoji's compact dialect - language-model
+adapters, plus the vision merger, plus selection on free-running drawings - all fitted
+the corpus (held-out likelihood 2.6 to 1.1 nats) and drew worse from their first 50
+steps; the failure is located at the first point of a drawing, which the adapters do
+not ground in the image and which likelihood cannot see. Overnight: the split-dialect
+arm (OpenMoji split at 10 units, the released model's own dialect), then either the
+split adapter's edits or a pipeline test that fine-tunes on the model's own drawings.
+The editing direction this opens: a raster edit followed by re-vectorisation with
+best-of-K decoding against the edited render.
 
 ## Last completed action and verification
 

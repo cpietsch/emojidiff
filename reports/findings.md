@@ -3128,3 +3128,26 @@ there, the compact dialect was the problem and the split model is the one to car
 if it degrades too, the fault is in the training pipeline and invisible to
 likelihood. Meanwhile the released model with best-of-six decoding against the input
 render is being read, a training-free route to the same bars.
+
+## 2026-09-22 — Best-of-six against the input render: the right icon first for three quarters, no training
+
+**Observation.** The released image branch, six candidates per held-out render under its
+own sampler, the two whose renders are closest in pixels to the input kept and scored as
+before. The right icon is first among the 32 held-out renders for **49 of 64 drawings**
+(0.766; the plain control 0.609; chance 0.031), in the top five for 56, mean rank 3.5.
+Similarity to the held-out render 0.944 mean and 0.955 median (control 0.905; the exact
+icon 0.994); paired gain over the plain control +0.040 with an interval of +0.025 to
++0.055, 25 of 32 icons improved. 70% end (control 50%), the median drawing is 681 tokens
+(control 1,802), 39% enter the codec (control 14%). Passed both predeclared bars: the
+gain interval excludes zero, and top-1 clears 0.75. The sheet
+(`reports/learning/omnisvg-n1-image-control-rerank/samples.png`) is recognisable almost
+everywhere; the hedgehog, the anatomical heart and the vulcan salute still fail.
+
+**Reading.** The render is the model's input, so choosing among its own candidates by
+how well they reproduce it is decoding, not peeking, and it fixes most of what the
+zero-shot control got wrong: the long unfinished edge tracings lose to the shorter
+candidates that end, and colour and layout errors lose to candidates that got them
+right. Six drawings for two kept costs 53 s per kept drawing on this card. After three
+fine-tuning arms that fitted the corpus and drew worse, the result that meets Gate N's
+bars is the released model with a better decoder. The same decoding is applied to the
+edits next; the fine-tuning arms continue overnight as the tests they are.

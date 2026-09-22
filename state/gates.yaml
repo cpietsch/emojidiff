@@ -201,12 +201,14 @@ gates:
       render-to-program pairs close the remaining gap?
     evidence: >-
       Opened 2026-09-22 after Gate M; PROJECT_PLAN.md section 17 states the design.
-      Step one passed: OmniSVG's released image branch, given a held-out icon's own
-      render, retrieves the right icon first among the 32 held-out renders for 39 of
-      64 drawings (chance 0.031; the best caption arm 0.094) at 0.905 similarity, the
-      project's first held-out reconstruction. Half the drawings run past 2,048 tokens
-      tracing raster edges and 0.33 enter the codec; the image-branch fine-tune on
-      2,681 render-to-program pairs is registered and queued.
+      Step one passed twice: OmniSVG's released image branch retrieves the right icon
+      first for 39 of 64 drawings zero-shot, and for 49 of 64 with best-of-six decoding
+      against the input render (similarity 0.944; paired gain over the plain control
+      with an interval excluding zero; no training). Edits made in pixels survive
+      re-vectorisation 70% of the time with the released model. Three fine-tuning arms
+      in OpenMoji's compact dialect fitted the corpus and drew worse from their first
+      50 steps - the failure is the first point, which likelihood cannot see; the
+      split-dialect arm and a pipeline test run overnight.
   - id: Gate K
     title: Research interface and narrative
     status: open
