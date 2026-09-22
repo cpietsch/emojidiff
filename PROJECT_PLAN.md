@@ -842,3 +842,43 @@ suffix-only loss with trainable new token rows; its custom drawing vocabulary is
 back as an ablation, because new geometry tokens trained on 2,681 icons are the
 position this project has just measured its way out of, and its router and browser
 export follow the generators rather than precede them.
+
+## 17. Direction after Gate M: condition on a render
+
+Gate M answered its question: fine-tuned on 2,681 captioned icons, neither OmniSVG in
+its own tokens nor Qwen3.5-2B in the codec's text names an icon from a caption. Both
+learn the palette, the categories and the stock parts; retrieval of the right icon
+among 32 held-out renders never rose above 0.094 (chance 0.031). What a caption cannot
+carry, a render can: it states the shapes, the colours and the layout outright, and
+OmniSVG's image branch was trained for exactly that reading on two million SVGs.
+
+### Gate N - a render as the condition
+
+**Question.** Given an icon's render, does a pretrained prior return the icon - closely
+enough that the right icon is retrieved first among the held-out renders and the codec
+takes the result - and does fine-tuning the image branch on OpenMoji's own render-to-
+program pairs close the remaining gap in colour, count and the codec's form?
+
+**Why this is the editing direction.** If a render round-trips through the prior into
+the codec, an edit becomes a raster edit followed by re-vectorisation: recolour, erase,
+move or redraw a part in pixels, then ask the prior for the program. That is the
+setting Gate L's masked model was built for, reached through a model that already
+draws. The caption returns as a secondary condition, for the parts a raster edit
+cannot express.
+
+**Steps, each registered with predeclared criteria on the same 32 held-out icons.**
+
+1. The released image branch, zero-shot, on the held-out icons' own 448 px renders:
+   the right icon first for at least half the drawings, similarity at least 0.90.
+2. LoRA on the language model with render-to-program pairs from the training split,
+   in OmniSVG's own tokens through the exact encoder; read against step 1 on the
+   paired gain, retrieval, codec validity against the 0.25 outlined ceiling, and
+   memorisation against training icons.
+3. Edits: a recolour, an erased part and a moved part applied in the raster, the
+   prior asked for the program, the result read against the edited reference with
+   Gate L's continuity measures beside CLIP.
+
+**What would falsify it.** A zero-shot reading that reconstructs the smoke icon but not
+the held-out set (step 1 below its bars); a fine-tune whose paired gain interval
+includes zero; or edits whose re-vectorised programs drift on the untouched parts
+more than Gate L's copy policy. Each closes the step it belongs to, in the registry.

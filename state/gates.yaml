@@ -191,6 +191,19 @@ gates:
       32 held-out renders never rose above 0.094 in any arm (chance 0.031). The open
       direction is conditioning on more than a caption, with the text prior as the
       vehicle.
+  - id: Gate N
+    title: A render as the condition
+    status: open
+    question: >-
+      Given an icon's render, does a pretrained prior return the icon closely enough
+      that the right icon is retrieved first among the held-out renders and the codec
+      takes the result, and does fine-tuning the image branch on OpenMoji's own
+      render-to-program pairs close the remaining gap?
+    evidence: >-
+      Opened 2026-09-22 after Gate M; PROJECT_PLAN.md section 17 states the design.
+      One-icon smoke: OmniSVG's released image branch reconstructed the UP! button at
+      CLIP 0.999. The registered zero-shot control on all 32 held-out renders is
+      running with predeclared bars of 0.5 top-1 retrieval and 0.90 similarity.
   - id: Gate K
     title: Research interface and narrative
     status: open
