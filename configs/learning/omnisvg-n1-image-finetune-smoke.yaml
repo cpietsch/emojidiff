@@ -1,0 +1,40 @@
+# Smoke test of the image-branch fine-tune: two steps on eight icons, two drawings. Not a run.
+schema_version: 1
+study_version: omnisvg-n1-image-finetune-smoke
+report_root: data/processed/prior/omnisvg-n1-image-smoke
+checkpoint_root: data/processed/prior/omnisvg-n1-image-smoke
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+
+data:
+  icons: 2
+  train_icons: 8
+
+training:
+  condition: image
+  lora: {rank: 16, alpha: 32, dropout: 0.05}
+  max_tokens: 2400
+  held_out_icons: 2
+  steps: 2
+  accumulate: 2
+  eval_every: 1
+  patience_evals: 6
+  loss_chunk: 512
+  learning_rate: 1.0e-4
+  weight_decay: 0.0
+  warmup_steps: 1
+  seed: 6401
+
+generation:
+  samples: 1
+  max_new_tokens: 256
+  seed: 6401
+  prompt_style: image
+  temperature: 0.3
+  top_p: 0.9
+  top_k: 50
+  repetition_penalty: 1.05
+
+control_report_root: reports/learning/omnisvg-n1-image-control
+
+render:
+  size: 72

@@ -1,0 +1,62 @@
+# Gate N, step two: OmniSVG 1.1 4B's image branch fine-tuned with LoRA on OpenMoji's own
+# render-to-program pairs.
+#
+# Every training icon is rendered by the project's renderer at 448 px and paired with
+# its drawing in OmniSVG's own tokens (the exact encoder), under the image-to-SVG prompt
+# the trainer and the inference repository share; the loss is on the drawing tokens.
+# Rank-16 adapters on the language model's linear projections; the vision tower, the
+# vocabulary and the embeddings stay as released. Selection by held-out likelihood on
+# 32 validation icons disjoint from the 32 evaluation icons. The evaluation is the image
+# control's: the same held-out renders, decoding and scoring.
+#
+# Predeclared criteria, against omnisvg-n1-image-control:
+#   - the per-icon gain in similarity to the held-out render has a paired bootstrap 95%
+#     interval that excludes zero;
+#   - the right icon is retrieved first for at least 0.75 of the drawings;
+#   - at least 90% of drawings end within 2,048 tokens;
+#   - no drawing reproduces a training icon token for token.
+# Codec validity is reported against the 0.25 ceiling of outlined icons, not judged.
+schema_version: 1
+study_version: omnisvg-n1-image-finetune
+report_root: reports/learning/omnisvg-n1-image-finetune
+checkpoint_root: data/processed/prior/omnisvg-n1-image-finetune
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+
+data:
+  icons: 32
+
+training:
+  condition: image
+  lora: {rank: 16, alpha: 32, dropout: 0.05}
+  max_tokens: 2400
+  held_out_icons: 32
+  steps: 500
+  accumulate: 8
+  eval_every: 25
+  patience_evals: 6
+  loss_chunk: 512
+  learning_rate: 1.0e-4
+  weight_decay: 0.0
+  warmup_steps: 25
+  seed: 6401
+
+generation:
+  samples: 2
+  max_new_tokens: 2048
+  seed: 6401
+  prompt_style: image
+  temperature: 0.3
+  top_p: 0.9
+  top_k: 50
+  repetition_penalty: 1.05
+
+control_report_root: reports/learning/omnisvg-n1-image-control
+
+criteria:
+  clip_gain_over_control_ci_excludes_zero: true
+  min_reference_top1_rate: 0.75
+  min_ended_rate: 0.9
+  max_memorised_exactly: 0
+
+render:
+  size: 72

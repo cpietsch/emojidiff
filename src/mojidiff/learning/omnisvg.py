@@ -214,14 +214,23 @@ class OmniSVG:
         return inner
 
     def suffix_loss(
-        self, input_ids: torch.Tensor, labels: torch.Tensor, chunk: int
+        self,
+        input_ids: torch.Tensor,
+        labels: torch.Tensor,
+        chunk: int,
+        *,
+        vision: dict[str, torch.Tensor] | None = None,
     ) -> tuple[torch.Tensor, int]:
-        """Summed cross-entropy on the labelled positions, one vocabulary chunk at a time."""
+        """Summed cross-entropy on the labelled positions, one vocabulary chunk at a time.
+
+        `vision` carries `pixel_values` and `image_grid_thw` for an image-conditioned
+        example; the image tokens sit inside `input_ids` where the processor put them.
+        """
 
         from mojidiff.learning.prior import chunked_cross_entropy
 
         inner = self._inner()
-        hidden = inner.model(input_ids=input_ids).last_hidden_state
+        hidden = inner.model(input_ids=input_ids, **(vision or {})).last_hidden_state
         return chunked_cross_entropy(hidden, inner.lm_head, labels, chunk)
 
     def prompt_ids(

@@ -28,13 +28,22 @@ from typing import Any
 import numpy as np
 import torch
 import yaml
+from PIL import Image
 
-from mojidiff.learning.omnisvg import OMNISVG_REPO, OMNISVG_REVISION, OmniSVG
+from mojidiff.learning.omnisvg import IMAGE_SIZE, OMNISVG_REPO, OMNISVG_REVISION, OmniSVG
 from mojidiff.learning.omnisvg_encode import encode_rows
-from mojidiff.learning.omnisvg_study import CLIP_REPO, CLIP_REVISION, Clip, captions, evaluate
+from mojidiff.learning.omnisvg_study import (
+    CLIP_REPO,
+    CLIP_REVISION,
+    Clip,
+    captions,
+    evaluate,
+    render_program,
+)
 from mojidiff.learning.openmoji_pilot import (
     OpenMojiPilotError,
     PilotRow,
+    _load_program,
     _select_rows,
     _selected_codec,
     load_openmoji_pilot_config,
@@ -45,6 +54,29 @@ from mojidiff.representation.codec_study import _write_bytes_artifact
 from mojidiff.representation.renderer import RenderLimits
 
 DEFAULT_CACHE = Path("data/processed/prior/omnisvg-tokens")
+DEFAULT_RENDER_CACHE = Path("data/processed/prior/omnisvg-renders-448")
+
+
+def render_rows(
+    rows: tuple[PilotRow, ...], pilot: Any, codec: Any, limits: RenderLimits, cache_root: Path
+) -> dict[str, Path]:
+    """Each row's program rendered at the model's image size, cached as PNG by hexcode."""
+
+    cache_root.mkdir(parents=True, exist_ok=True)
+    paths: dict[str, Path] = {}
+    for row in rows:
+        path = cache_root / f"{row.hexcode}.png"
+        if not path.is_file():
+            image = render_program(
+                _load_program(row, pilot, codec),
+                codec,
+                pilot.total_segment_slots,
+                limits,
+                IMAGE_SIZE,
+            )
+            image.save(path, format="PNG", optimize=True)
+        paths[row.hexcode] = path
+    return paths
 
 
 def run_omnisvg_finetune(config_path: Path) -> dict[str, Any]:
@@ -86,8 +118,17 @@ def run_omnisvg_finetune(config_path: Path) -> dict[str, Any]:
     train_tokens, train_failures = encode_rows(train_rows, pilot.raw_root, cache_root)
     select_tokens, select_failures = encode_rows(select_rows, pilot.raw_root, cache_root)
     max_tokens = int(training["max_tokens"])
-    train, excluded_train = _examples(model, train_rows, train_tokens, annotations, max_tokens)
-    select, excluded_select = _examples(model, select_rows, select_tokens, annotations, max_tokens)
+    condition = str(training.get("condition", "caption"))
+    renders: dict[str, Path] = {}
+    if condition == "image":
+        render_cache = Path(str(training.get("render_cache_root", DEFAULT_RENDER_CACHE)))
+        renders = render_rows(train_rows + select_rows, pilot, codec, limits, render_cache)
+    train, excluded_train = _examples(
+        model, train_rows, train_tokens, annotations, max_tokens, condition, renders
+    )
+    select, excluded_select = _examples(
+        model, select_rows, select_tokens, annotations, max_tokens, condition, renders
+    )
     if not train or not select:
         raise OpenMojiPilotError("no examples fit under max_tokens")
 
@@ -101,6 +142,7 @@ def run_omnisvg_finetune(config_path: Path) -> dict[str, Any]:
             "selection_encode_failures": len(select_failures),
             "excluded_selection_over_max_tokens": excluded_select,
             "max_tokens": max_tokens,
+            "condition": condition,
             "load_seconds": load_seconds,
         }
     )
@@ -124,10 +166,15 @@ def run_omnisvg_finetune(config_path: Path) -> dict[str, Any]:
         samples=int(generation["samples"]),
         max_new_tokens=int(generation["max_new_tokens"]),
         seed=int(generation["seed"]),
-        style=str(generation.get("prompt_style", "training")),
+        style=str(generation.get("prompt_style", "image" if condition == "image" else "training")),
         limits=limits,
         size=size,
         train_sequences=train_sequences,
+        sampling={
+            key: generation[key]
+            for key in ("temperature", "top_p", "top_k", "repetition_penalty", "greedy")
+            if key in generation
+        },
     )
     rows_payload = b"".join(dumps(record) for record in rows)
     _write_bytes_artifact(report_root / "drawings.jsonl", rows_payload)
@@ -168,14 +215,27 @@ def run_omnisvg_finetune(config_path: Path) -> dict[str, Any]:
 
 
 class Example:
-    """One training sequence: the trainer's prompt, then the drawing; loss on the drawing."""
+    """One training sequence: the prompt, then the drawing; loss on the drawing.
 
-    __slots__ = ("hexcode", "input_ids", "prompt_tokens")
+    An image-conditioned example keeps its render's path and rebuilds the vision
+    inputs when used, so a corpus of thousands does not hold its pixels in memory.
+    """
 
-    def __init__(self, hexcode: str, prompt_ids: torch.Tensor, drawing: torch.Tensor) -> None:
+    __slots__ = ("hexcode", "input_ids", "prompt_tokens", "render", "model")
+
+    def __init__(
+        self,
+        hexcode: str,
+        prompt_ids: torch.Tensor,
+        drawing: torch.Tensor,
+        render: Path | None = None,
+        model: OmniSVG | None = None,
+    ) -> None:
         self.hexcode = hexcode
         self.input_ids = torch.cat((prompt_ids.cpu(), drawing.cpu())).long()
         self.prompt_tokens = int(prompt_ids.numel())
+        self.render = render
+        self.model = model
 
     @property
     def length(self) -> int:
@@ -187,6 +247,13 @@ class Example:
         labels[:, : self.prompt_tokens] = -100
         return ids, labels
 
+    def vision(self) -> dict[str, torch.Tensor] | None:
+        if self.render is None or self.model is None:
+            return None
+        with Image.open(self.render) as image:
+            inputs = self.model.prompt_ids("x", style="image", image=image.convert("RGB"))
+        return {key: inputs[key] for key in ("pixel_values", "image_grid_thw")}
+
 
 def _examples(
     model: OmniSVG,
@@ -194,13 +261,23 @@ def _examples(
     tokens: dict[str, torch.Tensor],
     annotations: dict[str, str],
     max_tokens: int,
+    condition: str = "caption",
+    renders: dict[str, Path] | None = None,
 ) -> tuple[list[Example], int]:
     examples, excluded = [], 0
     for row in rows:
         if row.hexcode not in tokens:
             continue
-        prompt = model.prompt_ids(annotations.get(row.hexcode, row.hexcode), style="training")
-        example = Example(row.hexcode, prompt["input_ids"][0], tokens[row.hexcode])
+        if condition == "image":
+            render = (renders or {})[row.hexcode]
+            with Image.open(render) as image:
+                prompt = model.prompt_ids("x", style="image", image=image.convert("RGB"))
+            example = Example(
+                row.hexcode, prompt["input_ids"][0], tokens[row.hexcode], render, model
+            )
+        else:
+            prompt = model.prompt_ids(annotations.get(row.hexcode, row.hexcode), style="training")
+            example = Example(row.hexcode, prompt["input_ids"][0], tokens[row.hexcode])
         if example.length > max_tokens:
             excluded += 1  # never train on a silently truncated icon
             continue
@@ -242,7 +319,7 @@ def _train(
         with torch.inference_mode():
             for example in select:
                 ids, labels = example.tensors(device)
-                loss, n = model.suffix_loss(ids, labels, chunk)
+                loss, n = model.suffix_loss(ids, labels, chunk, vision=example.vision())
                 total, count = total + float(loss), count + n
         model.model.train()
         return total / max(count, 1)
@@ -264,7 +341,7 @@ def _train(
             example = train[order[cursor]]
             cursor += 1
             ids, labels = example.tensors(device)
-            loss, n = model.suffix_loss(ids, labels, chunk)
+            loss, n = model.suffix_loss(ids, labels, chunk, vision=example.vision())
             (loss / (accumulate * max(n, 1))).backward()  # type: ignore[no-untyped-call]
             running += float(loss.detach())
             running_tokens += n
