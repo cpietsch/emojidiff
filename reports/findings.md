@@ -3105,3 +3105,26 @@ the released model's habit (start anywhere and trace) was replaced by nothing. T
 remedy has two parts and both are in the next arm: adapters on the vision merger, so
 the image can be re-grounded into coordinates, and selection on a free-running probe
 of eight icons rather than on likelihood, which cannot see this failure at all.
+
+## 2026-09-22 — With the merger trainable and selection on drawings, no checkpoint beats zero-shot
+
+**Observation.** The second image fine-tune arm: adapters on the language model and the
+vision merger (30 M parameters), token-type ids in every forward, a free-running probe
+of eight selection icons every 50 steps, selection on the probe. The probe never beat
+the zero-shot model: similarity 0.80, 0.80, 0.85, 0.84, 0.83, 0.85 at steps 50 to 300
+with at most one of eight drawings ending, and training stopped on patience at step
+300. Held-out likelihood had fallen from 2.59 to 1.13 meanwhile. The step-300 adapters
+(evaluated because the runner kept no snapshot of the initial state - fixed since)
+draw worse than zero-shot: 14% end, the right icon first for 14 of 64 (control 39),
+paired gain -0.054 with an interval excluding zero on the wrong side. Falsified.
+
+**Reading.** Whatever can learn the first point, fine-tuning in OpenMoji's compact
+dialect harms free-running from the first 50 steps and never recovers, while
+teacher-forced likelihood keeps improving. Two hypotheses remain and one arm tests
+both: train on OpenMoji split into short segments - the dialect the released model
+was trained with (its preprocessing splits paths at 5 units; 10 keeps 85% of icons
+under the token cap) - with the same probe selection. If free-running stays healthy
+there, the compact dialect was the problem and the split model is the one to carry;
+if it degrades too, the fault is in the training pipeline and invisible to
+likelihood. Meanwhile the released model with best-of-six decoding against the input
+render is being read, a training-free route to the same bars.
