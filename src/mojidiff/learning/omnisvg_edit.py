@@ -37,6 +37,7 @@ from mojidiff.learning.omnisvg_study import (
     STEP_SECONDS,
     Clip,
     StepTimeout,
+    _closest_in_pixels,
     captions,
     guarded,
     render_program,
@@ -162,6 +163,8 @@ def run_omnisvg_edit_study(config_path: Path) -> dict[str, Any]:
         for key in ("temperature", "top_p", "top_k", "repetition_penalty", "greedy")
         if key in generation
     }
+    samples = int(generation["samples"])
+    rerank = int(generation.get("rerank", 0))
 
     started = time.perf_counter()
     model = OmniSVG.load(device)
@@ -198,7 +201,7 @@ def run_omnisvg_edit_study(config_path: Path) -> dict[str, Any]:
             clock = time.perf_counter()
             drawings = model.generate(
                 f"edited render of {row.hexcode}",
-                samples=int(generation["samples"]),
+                samples=max(rerank, samples),
                 max_new_tokens=int(generation["max_new_tokens"]),
                 seed=int(generation["seed"]) + 100 * index + list(edits).index(kind),
                 style="image",
@@ -206,6 +209,12 @@ def run_omnisvg_edit_study(config_path: Path) -> dict[str, Any]:
                 **sampling,
             )
             generate_seconds += time.perf_counter() - clock
+            rerank_info: dict[str, Any] = {}
+            if len(drawings) > samples:
+                # Chosen against the edited render - the input - never against the edited program.
+                drawings, rerank_info = _closest_in_pixels(
+                    model, drawings, condition, samples, size
+                )
             row_tiles = [original_renders[index], edited_renders[position]]
             for sample_index, tokens in enumerate(drawings):
                 record: dict[str, Any] = {
@@ -214,6 +223,7 @@ def run_omnisvg_edit_study(config_path: Path) -> dict[str, Any]:
                     "edit": kind,
                     "edit_info": info,
                     "sample": sample_index,
+                    **rerank_info,
                 }
                 svg, decode_info = model.tokens_to_svg(tokens)
                 record.update({f"decode_{key}": value for key, value in decode_info.items()})
@@ -273,7 +283,7 @@ def run_omnisvg_edit_study(config_path: Path) -> dict[str, Any]:
                 flush=True,
             )
 
-    sheet = _edit_sheet(tiles, int(generation["samples"]), size)
+    sheet = _edit_sheet(tiles, samples, size)
     payload = b"".join(dumps(record) for record in records)
     _write_bytes_artifact(report_root / "drawings.jsonl", payload)
     _write_bytes_artifact(report_root / "samples.png", sheet)
@@ -323,6 +333,7 @@ def run_omnisvg_edit_study(config_path: Path) -> dict[str, Any]:
         "icons": len(rows),
         "edits": edits,
         "sampling": sampling,
+        "rerank": rerank,
         "drawings": len(drawn),
         "per_edit": per_edit,
         "edit_reflected_rate": sum(1 for r in scored if r["edit_reflected"]) / max(len(drawn), 1),
