@@ -32,6 +32,8 @@ def test_an_omnisvg_drawing_enters_the_codec_scaled_and_in_palette() -> None:
     codec = _selected_codec(pilot)
     projected, snap = to_project_svg(_OMNISVG_STYLE, codec.palette)
     assert b"filling=" not in projected and b'viewBox="0 0 72 72"' in projected
+    current, _ = to_project_svg(_OMNISVG_STYLE.replace("#ff0000", "currentColor"), codec.palette)
+    assert b"currentColor" not in current and b'fill="#000000"' in current
     program, info = parse_into_codec(projected, codec, pilot.total_segment_slots)
     assert program is not None, info
     assert info["active_paths"] == 2 and info["segments"] >= 6

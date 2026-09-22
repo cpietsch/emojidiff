@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-21T21:00:56Z
+Updated: 2026-09-22T15:03:02Z
 
 ## Current hypothesis and evidence
 
@@ -612,6 +612,18 @@ of the right icon among the 32 held-out renders never rose above 0.094 in any ar
 direction that remains open is conditioning on more than a caption - a partial icon, a
 family sibling, or a reference render - with the text prior as the vehicle, because it
 already writes the codec's form. The synthesis is in `reports/findings.md`.
+
+Gate N conditions on a render instead of a caption. Step one passed its predeclared
+bars: OmniSVG's released image branch, given a held-out icon's own 448 px render,
+retrieves the right icon first among the 32 held-out renders for 39 of 64 drawings
+(0.609; chance 0.031; Gate M's best caption arm 0.094) at 0.905 similarity - the first
+held-out reconstruction in the project's history, with the warning sign, the UP!
+button, the mushroom, the shopping cart, the tired face and the airplane recognisable
+on the sheet. Half the drawings run past 2,048 tokens tracing raster edges and only
+0.33 enter the codec; the image-branch LoRA fine-tune on OpenMoji's 2,681
+render-to-program pairs (exact encoder, cached 448 px renders) is registered with
+predeclared criteria and queued behind its smoke test. The editing direction this
+opens: a raster edit followed by re-vectorisation.
 
 ## Last completed action and verification
 

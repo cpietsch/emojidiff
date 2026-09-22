@@ -201,9 +201,12 @@ gates:
       render-to-program pairs close the remaining gap?
     evidence: >-
       Opened 2026-09-22 after Gate M; PROJECT_PLAN.md section 17 states the design.
-      One-icon smoke: OmniSVG's released image branch reconstructed the UP! button at
-      CLIP 0.999. The registered zero-shot control on all 32 held-out renders is
-      running with predeclared bars of 0.5 top-1 retrieval and 0.90 similarity.
+      Step one passed: OmniSVG's released image branch, given a held-out icon's own
+      render, retrieves the right icon first among the 32 held-out renders for 39 of
+      64 drawings (chance 0.031; the best caption arm 0.094) at 0.905 similarity, the
+      project's first held-out reconstruction. Half the drawings run past 2,048 tokens
+      tracing raster edges and 0.33 enter the codec; the image-branch fine-tune on
+      2,681 render-to-program pairs is registered and queued.
   - id: Gate K
     title: Research interface and narrative
     status: open

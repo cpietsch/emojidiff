@@ -3010,3 +3010,32 @@ a sibling of the same family, or a reference render - the editing setting that G
 masked model was built for and that OmniSVG's image branch was trained with. The text
 prior is the vehicle to carry forward, because it already writes the codec's form; the
 next gate should give it a partial icon to complete rather than a caption to imagine.
+
+## 2026-09-22 — A render carries what a caption could not: OmniSVG's image branch returns held-out icons
+
+**Observation.** Gate N, step one. Each of the 32 held-out icons, rendered by the
+project's renderer at 448 px, given to the released OmniSVG 1.1 4B through its own
+image-to-SVG prompt and sampling, two drawings each. The right icon is retrieved first
+among the 32 held-out renders for **39 of 64 drawings** (0.609; chance 0.031; Gate M's
+best caption arm 0.094), in the top five for 46, mean rank 6.0. Similarity to the
+held-out render is 0.905 mean and 0.937 median (caption control 0.811, the exact icon
+0.994); the paired gain over the caption control is +0.093 with an interval of +0.069
+to +0.118. The sheet (`reports/learning/omnisvg-n1-image-control/samples.png`) shows the
+warning sign, the UP! button, WC, the mushroom, the hexagon, the shopping cart, the
+tired face, the airplane, the regional indicator W, the couple with heart and the
+assembly point recognisably. Both predeclared bars (0.5 top-1, 0.90 similarity) passed.
+
+**What still fails, and why it is teachable.** Only half the drawings end within 2,048
+tokens: the model traces raster edges with hundreds of tiny curves (single contours of
+500 to 1,000 segments), where OpenMoji's own programs use a few dozen. 32 fills come
+out as `currentColor`, OmniSVG's rendering of black, which the project's normalizer
+refused; the conversion now maps it to black (validity 0.14 as run, 0.33 on re-reading
+the stored drawings). Fine detail - the hedgehog, the swimmer, the water-polo player -
+is lost. All three are what 2,681 render-to-program pairs from OpenMoji itself teach:
+compact paths, the palette, and the stop.
+
+**Decision.** This is the first held-out reconstruction the project has had, and the
+editing direction is open: an edit is a raster edit followed by re-vectorisation. The
+image-branch fine-tune is registered with predeclared criteria (a paired gain over
+this control with an interval excluding zero, top-1 retrieval of 0.75, 90% ending, no
+training icon reproduced) and queued behind its smoke test.

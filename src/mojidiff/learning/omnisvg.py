@@ -451,6 +451,9 @@ def to_project_svg(svg: str, palette: tuple[str, ...]) -> tuple[bytes, dict[str,
 
     body = re.sub(r'\s+filling="\d+"', "", svg)
     body = re.sub(r"<svg[^>]*>", "", body, count=1).replace("</svg>", "")
+    # OmniSVG's decoder writes its second colour token as `currentColor`, which its own
+    # renderer paints black; the project's normalizer refuses it, so it is black here.
+    body = re.sub(r'fill="currentColor"', 'fill="#000000"', body)
     snapped, info = snap_to_palette(body, palette)
     scaled = (
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72">'

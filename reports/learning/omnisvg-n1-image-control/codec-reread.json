@@ -1,0 +1,9 @@
+{
+ "codec_valid_with_black_for_currentcolor": 21,
+ "drawings": 64,
+ "failures": {
+  "encode": 31,
+  "pack": 12
+ },
+ "rate": 0.328125
+}
