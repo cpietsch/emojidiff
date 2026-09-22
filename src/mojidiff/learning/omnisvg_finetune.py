@@ -252,7 +252,21 @@ class Example:
             return None
         with Image.open(self.render) as image:
             inputs = self.model.prompt_ids("x", style="image", image=image.convert("RGB"))
-        return {key: inputs[key] for key in ("pixel_values", "image_grid_thw")}
+        # Everything the processor made besides the token ids: the pixels, the grid and
+        # the token-type ids. Without the token-type ids the model cannot build its 3-D
+        # rotary positions and silently falls back to flat ones, which is not what
+        # generation uses - the first image fine-tune trained under that mismatch.
+        vision = {
+            key: value
+            for key, value in inputs.items()
+            if key not in ("input_ids", "attention_mask")
+        }
+        if "mm_token_type_ids" in vision:
+            # The processor typed the prompt's tokens; the drawing's are all text (0).
+            types = vision["mm_token_type_ids"]
+            tail = types.new_zeros((types.shape[0], self.length - types.shape[1]))
+            vision["mm_token_type_ids"] = torch.cat((types, tail), dim=1)
+        return vision
 
 
 def _examples(
