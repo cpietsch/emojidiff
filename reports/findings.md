@@ -3151,3 +3151,31 @@ right. Six drawings for two kept costs 53 s per kept drawing on this card. After
 fine-tuning arms that fitted the corpus and drew worse, the result that meets Gate N's
 bars is the released model with a better decoder. The same decoding is applied to the
 edits next; the fine-tuning arms continue overnight as the tests they are.
+
+## 2026-09-23 — The pipeline is sound: fine-tuned on its own drawings the model keeps drawing; the dialect is what it cannot learn
+
+**Observation.** Overnight, two arms. The split-dialect arm (OpenMoji split at 10 units,
+the released model's own segment length): the probe never beat zero-shot - 0.78 to
+0.85 over six checkpoints, no probe drawing ending - while held-out likelihood fell
+from 2.18 to 0.99; falsified like the compact arms. The pipeline test: the released
+model drew 600 training renders greedily, the 242 that ended became targets, and the
+same adapters, schedule, probe and selection were run. Its probe stayed at 0.92 to
+0.95 with half its drawings ending, above every OpenMoji-dialect probe, and on the 32
+held-out icons the selected adapters end 69% of drawings (control 50%) at a median 692
+tokens (control 1,802) with similarity 0.918 (control 0.905) and the right icon first
+for 35 of 64 (control 39) - a paired gain of +0.013 whose interval includes zero.
+Falsified on the arms' bars; passed as the test it was.
+
+**Reading.** The training forward, the data path, the probe and the selection are
+sound: the same code that harmed drawing from step 50 in three OpenMoji-dialect arms
+leaves drawing intact, shorter and more often finished, when the targets are what the
+model already draws. What this model cannot be taught by teacher forcing in 2,681
+examples is a program dialect it does not draw: compact paths whose next point is a
+large exact jump and whose close is a geometric decision, where one wrong jump becomes
+a loop that no likelihood measures. That is a sequence-level problem - scheduled
+sampling, correction data, or a render-scored objective - and it is not the cheapest
+lever. The cheapest lever already passed: best-of-six decoding against the input
+render, which took the released model from 0.61 to 0.77 top-1 with no training.
+Gate N's fine-tuning question is answered no at this scale; its decoding question is
+answered yes. A by-product for the record: the released model's repetition penalty of
+1.05 is worth 14 points of ending and 14 of retrieval to it.

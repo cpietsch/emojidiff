@@ -1,0 +1,7 @@
+{"held_out_nll":0.3580829583969109,"probe_clip_mean":0.9078494608402252,"probe_ended_rate":0.375,"probe_median_tokens":1536.0,"step":0}
+{"held_out_nll":0.23893370537826786,"probe_clip_mean":0.9170797914266586,"probe_ended_rate":0.625,"probe_median_tokens":763.0,"seconds":208.633415460994,"step":50,"train_loss":0.22962509372823633}
+{"held_out_nll":0.226131928882507,"probe_clip_mean":0.9500103443861008,"probe_ended_rate":0.75,"probe_median_tokens":540.0,"seconds":550.3841937509715,"step":100,"train_loss":0.139913647498669}
+{"held_out_nll":0.2505685768981397,"probe_clip_mean":0.9378671050071716,"probe_ended_rate":0.625,"probe_median_tokens":653.0,"seconds":873.3474636109895,"step":150,"train_loss":0.09899127848694003}
+{"held_out_nll":0.3111473820168292,"probe_clip_mean":0.9383440092206001,"probe_ended_rate":0.875,"probe_median_tokens":551.5,"seconds":1208.5608650809736,"step":200,"train_loss":0.06430982518324478}
+{"held_out_nll":0.3691779905308224,"probe_clip_mean":0.8938654884696007,"probe_ended_rate":0.375,"probe_median_tokens":1536.0,"seconds":1508.2829743360053,"step":250,"train_loss":0.04014103716419814}
+{"held_out_nll":0.39060296730379485,"probe_clip_mean":0.9124401956796646,"probe_ended_rate":0.5,"probe_median_tokens":976.5,"seconds":1883.093635268975,"step":300,"train_loss":0.02636453142146954}
