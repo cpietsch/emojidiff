@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-23T07:51:38Z
+Updated: 2026-09-23T09:47:28Z
 
 ## Current hypothesis and evidence
 
@@ -615,8 +615,8 @@ already writes the codec's form. The synthesis is in `reports/findings.md`.
 
 Gate N is closed on its answer, and it is the project's first satisfying result. Given
 a held-out icon's own 448 px render, OmniSVG's released image branch returns the icon:
-first among the 32 held-out renders for 39 of 64 drawings zero-shot and **49 of 64 with
-best-of-six decoding** - six candidates, the two closest to the input render in pixels
+first among the 32 held-out renders for 39 of 64 drawings zero-shot, **49 of 64 with
+best-of-six decoding** and 53 of 64 with best-of-twelve - six candidates, the two closest to the input render in pixels
 kept - at 0.944 similarity, passing predeclared bars with no training; the sheet is
 recognisable almost everywhere (the hedgehog, the anatomical heart and the vulcan
 salute still fail). Edits made in pixels on exactly edited programs - recolour, erase,

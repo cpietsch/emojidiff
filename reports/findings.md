@@ -3219,3 +3219,16 @@ project needs the model to write compact programs rather than its own tracings, 
 sequence-level objective: scheduled sampling or a render-scored selection during
 training, which is a new gate. The product loop this gives today is: edit in pixels,
 re-vectorise with best-of-K against the edited render, take the program.
+
+## 2026-09-23 — The decoding curve: 0.61, 0.77, 0.83 for one, six and twelve candidates
+
+**Observation.** Twelve candidates per held-out render, the two closest in pixels kept:
+the right icon first for 53 of 64 drawings (0.828), in the top five for 58, similarity
+0.954, a paired gain over best-of-six of +0.010 with an interval of +0.004 to +0.017;
+72% end; 106 s per kept drawing. The stretch bar of 0.85 was missed by one drawing.
+
+**Reading.** The curve still climbs and is flattening, at a cost that doubles each
+step: 0.61 for one candidate, 0.77 for six, 0.83 for twelve. Six is the product's K
+unless an icon is hard, and the two icons that fail at any K - the hedgehog and the
+anatomical heart - are dense, fine-featured drawings the model cannot trace within
+the token budget. Gate N's record is complete; the GPU is idle and nothing is queued.

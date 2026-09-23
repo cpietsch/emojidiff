@@ -202,8 +202,9 @@ gates:
     evidence: >-
       Answered 2026-09-23. Yes to the first: OmniSVG's released image branch retrieves
       the right icon first among 32 held-out renders for 61% of drawings zero-shot and
-      77% with best-of-six decoding against the input render (similarity 0.944, paired
-      gain with an interval excluding zero, no training); edits made in pixels and
+      77% with best-of-six decoding against the input render and 83% with twelve
+      (similarity 0.944 and 0.954, paired gains with intervals excluding zero, no
+      training); edits made in pixels and
       re-vectorised the same way identify the edited icon 71% of the time with half the
       pixel error of plain decoding. No to the second: three fine-tuning arms in two
       dialects, with the merger trainable and selection on free-running drawings, all
