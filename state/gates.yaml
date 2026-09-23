@@ -193,22 +193,25 @@ gates:
       vehicle.
   - id: Gate N
     title: A render as the condition
-    status: open
+    status: complete
     question: >-
       Given an icon's render, does a pretrained prior return the icon closely enough
       that the right icon is retrieved first among the held-out renders and the codec
       takes the result, and does fine-tuning the image branch on OpenMoji's own
       render-to-program pairs close the remaining gap?
     evidence: >-
-      Opened 2026-09-22 after Gate M; PROJECT_PLAN.md section 17 states the design.
-      Step one passed twice: OmniSVG's released image branch retrieves the right icon
-      first for 39 of 64 drawings zero-shot, and for 49 of 64 with best-of-six decoding
-      against the input render (similarity 0.944; paired gain over the plain control
-      with an interval excluding zero; no training). Edits made in pixels survive
-      re-vectorisation 70% of the time with the released model. Three fine-tuning arms
-      in OpenMoji's compact dialect fitted the corpus and drew worse from their first
-      50 steps - the failure is the first point, which likelihood cannot see; the
-      split-dialect arm and a pipeline test run overnight.
+      Answered 2026-09-23. Yes to the first: OmniSVG's released image branch retrieves
+      the right icon first among 32 held-out renders for 61% of drawings zero-shot and
+      77% with best-of-six decoding against the input render (similarity 0.944, paired
+      gain with an interval excluding zero, no training); edits made in pixels and
+      re-vectorised the same way identify the edited icon 71% of the time with half the
+      pixel error of plain decoding. No to the second: three fine-tuning arms in two
+      dialects, with the merger trainable and selection on free-running drawings, all
+      fitted the corpus and drew worse from their first 50 steps - the failure is the
+      first point and the close, sequence-level decisions teacher forcing cannot reach;
+      a pipeline test on the model's own drawings proves the code sound. Codec validity
+      is capped at 0.25 in this language by outlining. Next: more candidates and a
+      loop stop in decoding; a sequence-level objective if compact programs are needed.
   - id: Gate K
     title: Research interface and narrative
     status: open

@@ -3179,3 +3179,43 @@ render, which took the released model from 0.61 to 0.77 top-1 with no training.
 Gate N's fine-tuning question is answered no at this scale; its decoding question is
 answered yes. A by-product for the record: the released model's repetition penalty of
 1.05 is worth 14 points of ending and 14 of retrieval to it.
+
+## 2026-09-23 — Edits with best-of-six: the right edited icon first for 71%, pixel error halved; and Gate N's synthesis
+
+**Observation.** The three edits re-vectorised by the released model with six candidates
+per edited render and the closest in pixels kept. The right edited icon is first among
+the 31 edited renders for 71% of drawings (plain decoding 55%; recolour 74%, erase 81%,
+move 58%), 67% end (plain 40%), and the median pixel error to the edited render halves:
+recolour 0.044 from 0.085, erase 0.037 from 0.068, move 0.072 from 0.113. The
+edit-reflected rate - closer in CLIP to the edited render than to the original - stays
+at 70% (recolour 87%, erase 68%, move 55%) and misses its 0.75 bar again.
+
+**Reading.** The miss is the instrument's. For an erased part or an 8-unit move the
+drawing's CLIP similarity to the edited and to the original render differ by about a
+hundredth (0.947 against 0.935), so "closer to the edited" is a coin flip on tiny
+differences even when the pixel error to the edited ground truth has halved; the
+recolour, the one edit CLIP sees, is reflected 87% of the time. The measure that fits
+an exact edit is the pixel error to the edited render, and by it the loop works.
+
+**Gate N's answer.** Given an icon's render, the released OmniSVG returns the icon:
+first among 32 held-out renders for 61% of drawings zero-shot and **77% with best-of-six
+decoding against the input render**, at 0.944 similarity, passing predeclared bars with
+no training. An edit made in pixels - recolour, erase, move - re-vectorised the same
+way identifies the edited icon 71% of the time with half the pixel error of plain
+decoding. Fine-tuning the image branch on OpenMoji's own render-to-program pairs does
+not close the remaining gap: three arms in two dialects, with the merger trainable and
+selection on drawings, all fitted the corpus and drew worse from their first 50 steps,
+because a compact program's first point and closing decisions are sequence-level and
+teacher forcing cannot reach them; the pipeline test on the model's own drawings
+proves the code sound and the limit real. The by-products for the record: the
+released model's repetition penalty helps it, `currentColor` is its black, and 32 of
+the held-out icons themselves do not fit the P32/T128 bucket after outlining, so codec
+validity is capped at 0.25 in this language.
+
+**What follows.** Two directions, in order of cost. Decoding first: more candidates
+(twelve is queued) and a pixel-error stop for the loop, which is where the remaining
+failures - the hedgehog, the anatomical heart, the vulcan salute - sit. Then, if the
+project needs the model to write compact programs rather than its own tracings, a
+sequence-level objective: scheduled sampling or a render-scored selection during
+training, which is a new gate. The product loop this gives today is: edit in pixels,
+re-vectorise with best-of-K against the edited render, take the program.
