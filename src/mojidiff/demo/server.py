@@ -51,6 +51,7 @@ class Job:
     image: Image.Image
     candidates_wanted: int
     seed: int
+    max_tokens: int = 2048
     created: float = field(default_factory=time.time)
     state: str = "queued"
     started: float | None = None
@@ -65,6 +66,7 @@ class Job:
             "state": self.state,
             "position": position,
             "candidates_wanted": self.candidates_wanted,
+            "max_tokens": self.max_tokens,
             "candidates": self.candidates,
             "elapsed": round((self.finished or time.time()) - (self.started or time.time()), 1)
             if self.started
@@ -115,8 +117,8 @@ class Engine:
         self.worker.start()
 
     # ------------------------------------------------------------------ queue
-    def submit(self, image: Image.Image, candidates: int, seed: int) -> Job:
-        job = Job(uuid.uuid4().hex[:12], image, candidates, seed)
+    def submit(self, image: Image.Image, candidates: int, seed: int, max_tokens: int) -> Job:
+        job = Job(uuid.uuid4().hex[:12], image, candidates, seed, max_tokens)
         with self.lock:
             if len(self.queue) >= MAX_QUEUE:
                 raise RuntimeError("the queue is full; try again in a few minutes")
@@ -156,30 +158,32 @@ class Engine:
 
     # ------------------------------------------------------------------- work
     def _run(self, job: Job) -> None:
-        from mojidiff.learning.omnisvg import decode_tokens, parse_into_codec, to_project_svg
+        from mojidiff.learning.omnisvg import decode_tokens
 
         # The study's wall-clock guard uses signals, which only the main thread may set;
         # this worker is a thread, so the steps run unguarded and the candidate count
         # and token budget bound the work instead.
         from mojidiff.learning.omnisvg_study import render_raw
-        from mojidiff.representation.packed import serialize_packed_svg
 
         job.state, job.started = "running", time.time()
         target = np.asarray(job.image.resize((72, 72)), dtype=np.float32)
-        for index in range(job.candidates_wanted):
-            clock = time.perf_counter()
-            tokens = self.model.generate(
-                "demo",
-                samples=1,
-                max_new_tokens=2048,
-                seed=job.seed + index,
-                style="image",
-                image=job.image,
-                temperature=0.3,
-                top_p=0.9,
-                top_k=50,
-                repetition_penalty=1.05,
-            )[0]
+        clock = time.perf_counter()
+        # All candidates in one batch: one decoding pass instead of K.
+        drawings = self.model.generate(
+            "demo",
+            samples=job.candidates_wanted,
+            max_new_tokens=job.max_tokens,
+            seed=job.seed,
+            style="image",
+            image=job.image,
+            temperature=0.3,
+            top_p=0.9,
+            top_k=50,
+            repetition_penalty=1.05,
+            batched=True,
+        )
+        drawing_seconds = round(time.perf_counter() - clock, 1)
+        for index, tokens in enumerate(drawings):
             svg, info = decode_tokens(
                 self.model.svg_tokenizer, self.model.black_color_token, tokens
             )
@@ -188,7 +192,6 @@ class Engine:
                 "tokens": info["tokens"],
                 "ended": info["ended"],
                 "paths": info.get("paths"),
-                "seconds": round(time.perf_counter() - clock, 1),
                 "error": None,
                 "png": None,
             }
@@ -202,7 +205,7 @@ class Engine:
                         4,
                     )
                     candidate["png"] = _png_data_url(render_raw(svg, 144))
-                    candidate["svg"] = svg
+                    candidate.update(self._program(svg))
                 except Exception as error:  # noqa: BLE001
                     candidate["failure"] = f"render: {type(error).__name__}: {str(error)[:60]}"
             else:
@@ -211,8 +214,38 @@ class Engine:
         scored = [c for c in job.candidates if c["error"] is not None]
         if not scored:
             raise RuntimeError("no candidate could be drawn")
-        best = min(scored, key=lambda c: c["error"])
-        projected, snap = to_project_svg(best["svg"], self.codec.palette)
+        # A drawing cut at the token budget can still be closest in pixels; a complete
+        # one is preferred when any exists, and every candidate stays selectable.
+        complete = [c for c in scored if c["ended"]] or scored
+        best = min(complete, key=lambda c: c["error"])
+        job.result = {
+            "best": best["index"],
+            "error": best["error"],
+            "drawing_seconds": drawing_seconds,
+        }
+        job.state, job.finished = "done", time.time()
+        print(
+            json.dumps(
+                {
+                    "job": job.id,
+                    "candidates": job.candidates_wanted,
+                    "max_tokens": job.max_tokens,
+                    "best_error": best["error"],
+                    "codec_valid": best.get("codec_valid"),
+                    "drawing_seconds": drawing_seconds,
+                    "seconds": round(job.finished - job.started),
+                }
+            ),
+            flush=True,
+        )
+
+    def _program(self, svg: str) -> dict[str, Any]:
+        """One candidate's raw drawing as the project's 72-box program, with its verdict."""
+
+        from mojidiff.learning.omnisvg import parse_into_codec, to_project_svg
+        from mojidiff.representation.packed import serialize_packed_svg
+
+        projected, snap = to_project_svg(svg, self.codec.palette)
         try:
             program, parse_info = parse_into_codec(projected, self.codec, self.slots)
         except Exception as error:  # noqa: BLE001
@@ -222,28 +255,13 @@ class Engine:
             if program is not None
             else projected.decode()
         )
-        job.result = {
-            "best": best["index"],
-            "error": best["error"],
+        return {
             "svg": project_svg,
             "codec_valid": program is not None,
             "codec": parse_info,
             "fills_snapped": snap,
-            "png": _png_data_url(_render_svg(project_svg, 288)),
+            "program_png": _png_data_url(_render_svg(project_svg, 288)),
         }
-        job.state, job.finished = "done", time.time()
-        print(
-            json.dumps(
-                {
-                    "job": job.id,
-                    "candidates": job.candidates_wanted,
-                    "best_error": best["error"],
-                    "codec_valid": program is not None,
-                    "seconds": round(job.finished - job.started),
-                }
-            ),
-            flush=True,
-        )
 
 
 def _render_svg(svg: str, size: int) -> Image.Image:
@@ -364,7 +382,8 @@ class _Handler(http.server.BaseHTTPRequestHandler):
             image = decode_upload(str(payload["image"]))
             candidates = max(1, min(MAX_CANDIDATES, int(payload.get("candidates", 6))))
             seed = int(payload.get("seed", 0)) % 1_000_000
-            job = self.engine.submit(image, candidates, seed)
+            max_tokens = max(256, min(2048, int(payload.get("max_tokens", 2048))))
+            job = self.engine.submit(image, candidates, seed, max_tokens)
         except (KeyError, ValueError, TypeError) as error:
             self._json(400, {"error": str(error)[:120]})
             return

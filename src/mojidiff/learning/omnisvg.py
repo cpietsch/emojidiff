@@ -302,17 +302,20 @@ class OmniSVG:
         style: str = "release",
         greedy: bool = False,
         image: Any = None,
+        batched: bool = False,
     ) -> list[torch.Tensor]:
         """OmniSVG's own sampling settings for text-to-icon by default; returns the tokens.
 
-        With an image the samples are drawn one at a time, each under its own seed, so
-        the vision inputs are never expanded across a batch.
+        With an image the samples are drawn one at a time by default, each under its
+        own seed, which is what every registered run did; `batched` draws them in one
+        batch instead (the model expands its vision inputs itself), several times
+        faster on one card, which is what the live demo uses.
         """
 
         inputs = self.prompt_ids(prompt, style=style, image=image)
         rounds = (
             [(seed + sample, 1) for sample in range(samples)]
-            if image is not None
+            if image is not None and not batched
             else [(seed, samples)]
         )
         drawings: list[torch.Tensor] = []
