@@ -1,0 +1,37 @@
+# Gate N: the released image branch with best-of-twelve decoding against the input render - does the decoding curve keep climbing? Read against the best-of-six run.
+#
+# The zero-shot image control draws the right icon first for 0.61 of its drawings and
+# half its drawings run past the cap. The render is the model's input, so the candidate
+# that reproduces it best in pixels can be chosen at decoding time without peeking at
+# anything the model was not given: six candidates are drawn per icon under the same
+# sampler and seed, each is rendered and compared with the conditioning render at 72 px,
+# and the two closest are kept and scored exactly as before. Same icons, prompt and
+# control as the fine-tune arms, with their bars.
+schema_version: 1
+study_version: omnisvg-n1-image-control-rerank12
+report_root: reports/learning/omnisvg-n1-image-control-rerank12
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+
+data:
+  split: primary/validation
+  icons: 32
+
+generation:
+  samples: 2
+  rerank: 12
+  max_new_tokens: 2048
+  seed: 6401
+  prompt_style: image
+  temperature: 0.3
+  top_p: 0.9
+  top_k: 50
+  repetition_penalty: 1.05
+
+control_report_root: reports/learning/omnisvg-n1-image-control-rerank
+
+criteria:
+  clip_gain_over_control_ci_excludes_zero: true
+  min_reference_top1_rate: 0.85
+
+render:
+  size: 72
