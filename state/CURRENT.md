@@ -661,6 +661,13 @@ stalled; if it ever stops answering again, `tmux kill-session -t mojidiff-weblog
 relaunch with `--rebuild`. Do not `pkill -f serve_weblog` from a script whose own
 command line contains that text.
 
+The live re-vectorise demo is served by `scripts/serve_demo.py` in tmux session
+`mojidiff-demo`, bound to `100.69.189.78:8788` on the Tailscale interface only. It
+loads OmniSVG 1.1 4B once (7.9 GiB, about 40 s) and runs requests one at a time on the
+GPU, so it must be stopped (`tmux kill-session -t mojidiff-demo`, then check
+`pgrep -af serve_demo` - a piped launch once outlived its session and held the card)
+before any registered run needs the GPU. It writes nothing outside the process.
+
 Gate L runs execute detached in tmux sessions named `masked-<arm>` with stdout under
 the run's `data/processed/<study>/stdout.log`; a run that has exited leaves `EXIT=<code>`
 as the log's last line. Check `tmux ls` before assuming the GPU is free. The owned

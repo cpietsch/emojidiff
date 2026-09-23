@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Re-vectorise</title>
+<style>
+  :root { --ink:#1b1b1b; --muted:#6b6b6b; --line:#d9d9d9; --accent:#2b6cb0; --bg:#fafafa; --card:#fff; }
+  * { box-sizing: border-box; }
+  body { margin:0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color:var(--ink); background:var(--bg); }
+  header { padding: 18px 24px 8px; }
+  header h1 { margin:0; font-size: 22px; font-weight: 600; }
+  header p { margin: 4px 0 0; color: var(--muted); max-width: 70ch; }
+  main { display:grid; grid-template-columns: 300px minmax(480px, 1fr) minmax(320px, 1fr); gap: 16px; padding: 12px 24px 32px; }
+  @media (max-width: 1100px) { main { grid-template-columns: 1fr; } }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }
+  input[type=search] { width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font: inherit; }
+  #icons { display:grid; grid-template-columns: repeat(auto-fill, 56px); gap:6px; margin-top:8px; max-height: 60vh; overflow:auto; }
+  #icons button { width:56px; height:56px; padding:2px; border:1px solid var(--line); border-radius:6px; background:#fff; cursor:pointer; }
+  #icons button.held { border-color: var(--accent); }
+  #icons img { width:100%; height:100%; image-rendering:auto; }
+  .toolbar { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-bottom:8px; }
+  .toolbar button, .actions button { padding:6px 10px; border:1px solid var(--line); border-radius:6px; background:#fff; cursor:pointer; font: inherit; }
+  .toolbar button.on { background: var(--accent); color:#fff; border-color: var(--accent); }
+  #canvas { width: 448px; height: 448px; max-width: 100%; border:1px solid var(--line); border-radius: 6px; background:#fff; touch-action: none; cursor: crosshair; }
+  #palette { display:flex; flex-wrap:wrap; gap:4px; margin:8px 0; }
+  #palette button { width:22px; height:22px; border:1px solid var(--line); border-radius:4px; padding:0; cursor:pointer; }
+  #palette button.on { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .actions { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:10px; }
+  .actions button.primary { background: var(--accent); color:#fff; border-color: var(--accent); font-weight:600; }
+  .actions label { color: var(--muted); }
+  .status { color: var(--muted); font-size: 14px; min-height: 1.4em; margin-top: 6px; }
+  .result { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items:start; }
+  .result img { width:100%; border:1px solid var(--line); border-radius:6px; background:#fff; }
+  .result .label { font-size:12px; color:var(--muted); margin-top:4px; }
+  #candidates { display:grid; grid-template-columns: repeat(auto-fill, 96px); gap:8px; margin-top:10px; }
+  .cand { border:1px solid var(--line); border-radius:6px; padding:4px; background:#fff; font-size:12px; color:var(--muted); text-align:center; }
+  .cand.best { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(43,108,176,.25); }
+  .cand img { width:88px; height:88px; display:block; margin:0 auto 2px; }
+  .cand .pending { width:88px; height:88px; display:flex; align-items:center; justify-content:center; margin:0 auto 2px; background:#f2f2f2; border-radius:4px; }
+  textarea { width:100%; height:160px; font: 12px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace; border:1px solid var(--line); border-radius:6px; padding:6px; margin-top:8px; }
+  .badge { display:inline-block; font-size:12px; padding:2px 8px; border-radius: 999px; background:#eef; color:#335; margin-right:6px; }
+  .badge.ok { background:#e6f4ea; color:#1e5631; }
+  .badge.no { background:#fdecea; color:#7a1f1f; }
+  kbd { font: 12px ui-monospace, monospace; border:1px solid var(--line); border-radius:4px; padding:0 4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Re-vectorise</h1>
+  <p>Pick an OpenMoji icon, edit it in pixels, and ask OmniSVG for the program. It draws several candidates from the edited render and keeps the one that reproduces it best. Icons with a blue frame are held out from every experiment.</p>
+</header>
+<main>
+  <section>
+    <h2>Icon</h2>
+    <input id="search" type="search" placeholder="search annotations, e.g. cat, warning, 1F344">
+    <div id="icons"></div>
+  </section>
+
+  <section>
+    <h2>Edit</h2>
+    <div class="toolbar">
+      <button data-tool="fill" class="on" title="click a region to recolour it">Recolour</button>
+      <button data-tool="erase" title="paint white">Erase</button>
+      <button data-tool="move" title="drag a box, then drag it to move the part">Move</button>
+      <button id="undo" title="undo">Undo</button>
+      <button id="reset" title="back to the original">Reset</button>
+      <label style="margin-left:auto"><input id="upload" type="file" accept="image/png,image/jpeg" hidden><button id="uploadBtn">Upload PNG</button></label>
+    </div>
+    <div id="palette"></div>
+    <canvas id="canvas" width="448" height="448"></canvas>
+    <div class="actions">
+      <label for="k">Candidates <strong id="kval">6</strong></label>
+      <input id="k" type="range" min="1" max="12" value="6">
+      <button id="go" class="primary">Re-vectorise</button>
+    </div>
+    <div class="status" id="status">Load an icon to begin. Each candidate takes about 5 to 40 seconds on this card.</div>
+  </section>
+
+  <section>
+    <h2>Result</h2>
+    <div class="result">
+      <div><img id="inputView" alt="the edited input"><div class="label">edited input</div></div>
+      <div><img id="outputView" alt="the winning program, rendered"><div class="label" id="outputLabel">program</div></div>
+    </div>
+    <div id="badges" style="margin-top:8px"></div>
+    <div id="candidates"></div>
+    <textarea id="svg" readonly placeholder="the winning program's SVG appears here"></textarea>
+    <div class="actions"><button id="copy">Copy SVG</button><span class="status" id="copied"></span></div>
+  </section>
+</main>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const canvas = $('canvas'), ctx = canvas.getContext('2d', { willReadFrequently: true });
+  let tool = 'fill', colour = '#ea5a47', original = null, undo = [], drag = null, selection = null, job = null, poll = null;
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 448, 448);
+
+  // ---- icons
+  async function loadIcons(q = '') {
+    const r = await fetch('/icons?q=' + encodeURIComponent(q)); const d = await r.json();
+    const held = new Set(d.held_out);
+    $('icons').innerHTML = '';
+    for (const icon of d.icons) {
+      const b = document.createElement('button'); b.title = icon.annotation + ' (' + icon.hexcode + ')';
+      if (held.has(icon.hexcode)) b.className = 'held';
+      const img = document.createElement('img'); img.src = '/render/' + icon.hexcode + '.png'; img.alt = icon.annotation; img.loading = 'lazy';
+      b.appendChild(img); b.onclick = () => setImage(img.src, icon.annotation);
+      $('icons').appendChild(b);
+    }
+    if (!d.icons.length) $('icons').textContent = 'nothing matches';
+  }
+  let searchTimer; $('search').oninput = (e) => { clearTimeout(searchTimer); searchTimer = setTimeout(() => loadIcons(e.target.value), 200); };
+
+  function setImage(src, label) {
+    const img = new Image(); img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, 448, 448);
+      const s = Math.min(448 / img.width, 448 / img.height), w = img.width * s, h = img.height * s;
+      ctx.drawImage(img, (448 - w) / 2, (448 - h) / 2, w, h);
+      original = ctx.getImageData(0, 0, 448, 448); undo = []; selection = null;
+      $('status').textContent = (label || 'image') + ' loaded. Recolour, erase or move, then re-vectorise.';
+    };
+    img.src = src;
+  }
+
+  // ---- palette
+  fetch('/palette').then(r => r.json()).then(d => {
+    for (const c of d.palette) {
+      const b = document.createElement('button'); b.style.background = c; b.title = c; if (c === colour) b.className = 'on';
+      b.onclick = () => { colour = c; [...$('palette').children].forEach(x => x.className = ''); b.className = 'on'; };
+      $('palette').appendChild(b);
+    }
+  });
+
+  // ---- tools
+  document.querySelectorAll('.toolbar [data-tool]').forEach(b => b.onclick = () => {
+    tool = b.dataset.tool; document.querySelectorAll('.toolbar [data-tool]').forEach(x => x.classList.toggle('on', x === b)); selection = null; redrawSelection();
+  });
+  $('undo').onclick = () => { if (undo.length) ctx.putImageData(undo.pop(), 0, 0); };
+  $('reset').onclick = () => { if (original) { ctx.putImageData(original, 0, 0); undo = []; } };
+  $('uploadBtn').onclick = () => $('upload').click();
+  $('upload').onchange = (e) => { const f = e.target.files[0]; if (f) setImage(URL.createObjectURL(f), f.name); };
+  $('k').oninput = (e) => $('kval').textContent = e.target.value;
+
+  const pos = (e) => { const r = canvas.getBoundingClientRect(); return { x: Math.round((e.clientX - r.left) * 448 / r.width), y: Math.round((e.clientY - r.top) * 448 / r.height) }; };
+  const snapshot = () => { undo.push(ctx.getImageData(0, 0, 448, 448)); if (undo.length > 25) undo.shift(); };
+
+  function floodFill(x, y, hex) {
+    const img = ctx.getImageData(0, 0, 448, 448), d = img.data, W = 448, H = 448;
+    const i0 = (y * W + x) * 4, r0 = d[i0], g0 = d[i0 + 1], b0 = d[i0 + 2];
+    const [r, g, b] = [1, 3, 5].map(k => parseInt(hex.slice(k, k + 2), 16));
+    const tol = 48, seen = new Uint8Array(W * H), stack = [y * W + x];
+    const near = (i) => Math.abs(d[i * 4] - r0) + Math.abs(d[i * 4 + 1] - g0) + Math.abs(d[i * 4 + 2] - b0) <= tol;
+    while (stack.length) {
+      const p = stack.pop(); if (seen[p] || !near(p)) continue; seen[p] = 1;
+      d[p * 4] = r; d[p * 4 + 1] = g; d[p * 4 + 2] = b;
+      const px = p % W, py = (p - px) / W;
+      if (px > 0) stack.push(p - 1); if (px < W - 1) stack.push(p + 1); if (py > 0) stack.push(p - W); if (py < H - 1) stack.push(p + W);
+    }
+    ctx.putImageData(img, 0, 0);
+  }
+  function eraseAt(x, y) { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, 12, 0, Math.PI * 2); ctx.fill(); }
+
+  let base = null;
+  function redrawSelection() {
+    if (!base) return; ctx.putImageData(base, 0, 0);
+    if (selection) { ctx.save(); ctx.setLineDash([4, 3]); ctx.strokeStyle = '#2b6cb0'; ctx.lineWidth = 1; ctx.strokeRect(selection.x + .5, selection.y + .5, selection.w, selection.h); ctx.restore(); }
+  }
+  canvas.onpointerdown = (e) => {
+    if (!original) return; const p = pos(e); canvas.setPointerCapture(e.pointerId);
+    if (tool === 'fill') { snapshot(); floodFill(p.x, p.y, colour); }
+    else if (tool === 'erase') { snapshot(); eraseAt(p.x, p.y); drag = { erase: true }; }
+    else if (tool === 'move') {
+      if (selection && p.x >= selection.x && p.x <= selection.x + selection.w && p.y >= selection.y && p.y <= selection.y + selection.h) {
+        snapshot(); base = ctx.getImageData(0, 0, 448, 448);
+        const part = ctx.getImageData(selection.x, selection.y, selection.w, selection.h);
+        ctx.fillStyle = '#fff'; ctx.fillRect(selection.x, selection.y, selection.w, selection.h);
+        base = ctx.getImageData(0, 0, 448, 448);
+        drag = { move: true, part, start: p, sx: selection.x, sy: selection.y };
+      } else { base = ctx.getImageData(0, 0, 448, 448); drag = { select: true, start: p }; selection = null; }
+    }
+  };
+  canvas.onpointermove = (e) => {
+    if (!drag) return; const p = pos(e);
+    if (drag.erase) eraseAt(p.x, p.y);
+    else if (drag.select) { selection = { x: Math.min(drag.start.x, p.x), y: Math.min(drag.start.y, p.y), w: Math.abs(p.x - drag.start.x), h: Math.abs(p.y - drag.start.y) }; redrawSelection(); }
+    else if (drag.move) { ctx.putImageData(base, 0, 0); const nx = drag.sx + p.x - drag.start.x, ny = drag.sy + p.y - drag.start.y; ctx.putImageData(drag.part, nx, ny); selection.x = nx; selection.y = ny; }
+  };
+  canvas.onpointerup = () => { if (drag && drag.move) { base = ctx.getImageData(0, 0, 448, 448); redrawSelection(); } drag = null; };
+
+  // ---- submit and poll
+  $('go').onclick = async () => {
+    if (!original) { $('status').textContent = 'load an icon first'; return; }
+    if (selection) { const s = selection; selection = null; ctx.putImageData(base || ctx.getImageData(0, 0, 448, 448), 0, 0); }
+    const image = canvas.toDataURL('image/png');
+    $('inputView').src = image; $('outputView').removeAttribute('src'); $('svg').value = ''; $('badges').innerHTML = ''; $('candidates').innerHTML = '';
+    $('go').disabled = true; $('status').textContent = 'submitting…';
+    const r = await fetch('/jobs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ image, candidates: +$('k').value, seed: Math.floor(Math.random() * 1e6) }) });
+    const d = await r.json();
+    if (!r.ok) { $('status').textContent = 'refused: ' + d.error; $('go').disabled = false; return; }
+    job = d.id; clearInterval(poll); poll = setInterval(refresh, 1500); refresh();
+  };
+  async function refresh() {
+    const r = await fetch('/jobs/' + job); const d = await r.json();
+    const n = d.candidates_wanted, done = d.candidates.length;
+    const box = $('candidates'); box.innerHTML = '';
+    for (let i = 0; i < n; i++) {
+      const c = d.candidates[i], el = document.createElement('div'); el.className = 'cand' + (d.result && d.result.best === i ? ' best' : '');
+      if (c && c.png) el.innerHTML = `<img src="${c.png}" alt="candidate ${i + 1}">error ${c.error}<br>${c.tokens} tokens${c.ended ? '' : ', cut'}`;
+      else if (c) el.innerHTML = `<div class="pending">✕</div>${c.failure || 'no render'}`;
+      else el.innerHTML = `<div class="pending">${i === done && d.state === 'running' ? '…' : ''}</div>candidate ${i + 1}`;
+      box.appendChild(el);
+    }
+    if (d.state === 'queued') $('status').textContent = `queued, position ${d.position}`;
+    else if (d.state === 'running') $('status').textContent = `drawing candidate ${Math.min(done + 1, n)} of ${n} — ${d.elapsed}s`;
+    else if (d.state === 'failed') { $('status').textContent = 'failed: ' + d.error; clearInterval(poll); $('go').disabled = false; }
+    else if (d.state === 'done') {
+      clearInterval(poll); $('go').disabled = false;
+      $('status').textContent = `done in ${d.elapsed}s — candidate ${d.result.best + 1} wins with pixel error ${d.result.error}`;
+      $('outputView').src = d.result.png; $('svg').value = d.result.svg;
+      const codec = d.result.codec_valid ? '<span class="badge ok">codec: valid program</span>' : `<span class="badge no">codec: ${(d.result.codec.failure || 'not taken').split(':')[0]}</span>`;
+      $('badges').innerHTML = codec + `<span class="badge">${d.result.fills_snapped.fills} fills, ${d.result.fills_snapped.fills_moved} snapped to the palette</span>`;
+      $('outputLabel').textContent = d.result.codec_valid ? 'program (canonical 72-box SVG)' : 'program (scaled raw drawing)';
+    }
+  }
+  $('copy').onclick = async () => { try { await navigator.clipboard.writeText($('svg').value); $('copied').textContent = 'copied'; setTimeout(() => $('copied').textContent = '', 1500); } catch { $('copied').textContent = 'select and copy'; } };
+
+  loadIcons('');
+})();
+</script>
+</body>
+</html>
