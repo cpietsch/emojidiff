@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-24T19:56:30Z
+Updated: 2026-09-24T21:31:44Z
 
 ## Current hypothesis and evidence
 
@@ -633,12 +633,18 @@ the program. Next, in order of cost: twelve candidates and a pixel-error stop fo
 loop; then a sequence-level objective as a new gate if compact programs are needed.
 
 After Gate N the operator asked for something vector-native and proposed merging
-icons. The kitbash tool (`scripts/serve_kitbash.py`, tmux `mojidiff-kitbash`, port
-8789, CPU only) composes parts of two icons as vectors and exports through the codec.
-Gate O asks whether the Qwen3.5-2B text prior can learn OpenMoji's own merges: 1,015
-ZWJ sequences have every component in the corpus; the fine-tune on 817 of them is
-registered with predeclared criteria against two no-model baselines and running. The
-raster demo of Gate N is stopped; its code stays.
+icons. Two things came of it. The kitbash tool (`scripts/serve_kitbash.py`, tmux
+`mojidiff-kitbash`, port 8789, CPU only, no model) composes parts of two icons as
+vectors on the 72-box and exports through the codec at browser speed. Gate O asked
+whether the Qwen3.5-2B text prior can learn OpenMoji's own merges from its 1,015 ZWJ
+sequences and is closed on no: the fine-tune beats stacking the parts and ties the
+first-component baseline - it copies the base figure - and the path provenance of all
+merged icons says why: only 17% of a merged icon's paths are exact copies of its
+components' paths, 40% have no structural match, and the median icon has 0.895 of its
+paths unexplained by its parts. OpenMoji redraws a merge rather than composing it, so
+the part of merging that is composition is exactly what the kitbash tool does, and the
+rest is the drawing problem Gates M and N measured. The raster demo of Gate N is
+stopped; its code stays.
 
 ## Last completed action and verification
 

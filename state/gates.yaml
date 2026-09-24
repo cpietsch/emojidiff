@@ -215,16 +215,20 @@ gates:
       loop stop in decoding; a sequence-level objective if compact programs are needed.
   - id: Gate O
     title: Merging icons, vectors in and vectors out
-    status: open
+    status: complete
     question: >-
       Fine-tuned on OpenMoji's ZWJ pairs written as text, does the Qwen3.5-2B text
       prior merge held-out components into the true merged icon better than stacking
       them and better than keeping the first component?
     evidence: >-
-      Opened 2026-09-24; PROJECT_PLAN.md section 18 states the design. 1,015 ZWJ
-      targets have every component in the corpus. The fine-tune is registered with
-      predeclared criteria and running; the kitbash tool, a no-model vector composer
-      over the codec, is served beside it.
+      Answered no on 2026-09-24. The fine-tune beats the overlay (40 of 41 targets
+      closer) and ties the first component alone (interval -0.003 to +0.001), retrieving
+      the true target first for 0.40 where the first component does 0.54: it copies the
+      base figure. The path provenance of all 1,015 merged icons explains it: only 17%
+      of their paths are exact copies of component paths and 40% have no structural
+      match, a median 0.895 of an icon's paths unexplained by its parts - OpenMoji
+      redraws a merge rather than composing it. The kitbash tool covers the quarter
+      that is composition, exactly and instantly.
   - id: Gate K
     title: Research interface and narrative
     status: open

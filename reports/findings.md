@@ -3255,3 +3255,26 @@ to answer exactly is where a merged icon's paths come from: for each target path
 it a component's path unchanged, recoloured, moved, or new? That is a vector question
 with an exact answer per icon, and it says how much of merging is selection and
 placement - the kitbash tool's operations - and how much is drawing.
+
+## 2026-09-24 — Where a merged icon's paths come from: OpenMoji redraws, it does not kitbash; Gate O closed
+
+**Observation.** Every path of the 1,015 ZWJ targets (14,721 paths) matched against
+its components' paths in the codec's own coordinates. Exact copies: 17%. Same
+structure within one unit: 9%. Within four units: 8%. Same segment structure but
+moved or reshaped by more than four units: 26%. No structural match at all: 40%. Per
+icon, the median share of paths with no match is 0.895; a quarter of the icons are
+mostly explained by their components, and 39 of 1,015 entirely.
+
+**Reading.** A merged OpenMoji icon is a new drawing that reuses about a quarter of
+its components' paths as they are. The merge model's result now reads plainly: the
+composition rule it was asked to learn is not a selection and placement of parts but
+a redraw, which is the drawing problem Gates M and N already measured, and copying the
+base figure was the best it could do with 727 examples. The kitbash tool, by
+construction, covers the quarter that is reuse; it cannot produce the other three
+quarters, and neither can a prior fine-tuned at this scale.
+
+**Gate O's answer.** No: on OpenMoji's own merges the text prior ties the copy
+baseline and does not beat it, and the data says why. What stands is the vector
+tool for the part of merging that is composition, exact and instant, and the record
+that the rest is drawing. The gate closes; the fine-tuning route to merging is not
+worth a second arm at this data size.
