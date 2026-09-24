@@ -40,6 +40,8 @@
   .layers li { display:flex; align-items:center; gap:6px; padding:3px 6px; border:1px solid transparent; border-radius:6px; cursor:pointer; font-size:13px; }
   .layers li.on { border-color: var(--accent); background:#f3f7fc; }
   .layers svg { width:24px; height:24px; }
+  #palette button { width:18px; height:18px; border:1px solid var(--line); border-radius:4px; padding:0; margin:0 2px; cursor:pointer; vertical-align:middle; }
+  .meter-over { color:#7a1f1f; font-weight:600; }
   kbd { font: 12px ui-monospace, monospace; border:1px solid var(--line); border-radius:4px; padding:0 4px; }
 </style>
 </head>
@@ -72,6 +74,8 @@
       <button id="del">Delete</button><button id="clear">Clear</button>
       <button id="export" class="primary" style="margin-left:auto">Export program</button>
     </div>
+    <div class="row"><span class="status" style="margin:0">Recolour the selected part:</span><span id="palette"></span><button id="nudge" class="small">Nudge inside the box</button></div>
+    <div class="row"><span id="meter" class="status" style="margin:0">0 of 32 paths, 0 of 128 segments</span></div>
     <div class="status" id="status">Pick icon A and B on the left, then click parts to add them.</div>
     <ul class="layers" id="layers"></ul>
   </section>
@@ -149,7 +153,7 @@
       r.setAttribute('x', Math.min(...xs)); r.setAttribute('y', Math.min(...ys)); r.setAttribute('width', Math.max(...xs) - Math.min(...xs)); r.setAttribute('height', Math.max(...ys) - Math.min(...ys)); stage.appendChild(r); }
     refreshLayers();
   }
-  function refreshLayers() {
+  let refreshLayers = function () {
     const ul = $('layers'); ul.innerHTML = '';
     [...parts].reverse().forEach(p => {
       const li = document.createElement('li'); li.className = p === selected ? 'on' : '';
@@ -157,7 +161,7 @@
       li.appendChild(svg); li.appendChild(document.createTextNode(`${p.which}: ${p.label}  ×${p.s.toFixed(2)}${p.flip ? ' flipped' : ''}`));
       li.onclick = () => select(p); ul.appendChild(li);
     });
-  }
+  };
   const pos = (e) => { const pt = stage.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const q = pt.matrixTransform(stage.getScreenCTM().inverse()); return { x: q.x, y: q.y }; };
   stage.onpointerdown = (e) => {
     const g = e.target.closest && e.target.closest('.part'); const part = parts.find(p => p.g === g);
@@ -207,6 +211,23 @@
   };
   $('copy').onclick = async () => { try { await navigator.clipboard.writeText($('svg').value); $('copied').textContent = 'copied'; setTimeout(() => $('copied').textContent = '', 1500); } catch { $('copied').textContent = 'select and copy'; } };
 
+  fetch('/palette').then(r => r.json()).then(d => {
+    for (const c of d.palette) { const b = document.createElement('button'); b.style.background = c; b.title = c;
+      b.onclick = () => { if (!selected) return; for (const el of selected.g.querySelectorAll('path')) { if (el.getAttribute('fill') && el.getAttribute('fill') !== 'none') el.setAttribute('fill', c); else if (el.getAttribute('stroke') && el.getAttribute('stroke') !== 'none') el.setAttribute('stroke', c); } refreshLayers(); };
+      $('palette').appendChild(b); }
+  });
+  function segments(d) { return (d.match(/[LCQAlcqa]/g) || []).length; }
+  function bounds(p) { const bb = p.g.getBBox(), m = p.g.getCTM(), inv = stage.getScreenCTM().inverse();
+    const pts = [[bb.x, bb.y], [bb.x + bb.width, bb.y], [bb.x, bb.y + bb.height], [bb.x + bb.width, bb.y + bb.height]].map(([x, y]) => { const pt = stage.createSVGPoint(); pt.x = x; pt.y = y; const q = pt.matrixTransform(m).matrixTransform(inv); return [q.x, q.y]; });
+    const xs = pts.map(q => q[0]), ys = pts.map(q => q[1]); return { x0: Math.min(...xs), y0: Math.min(...ys), x1: Math.max(...xs), y1: Math.max(...ys) }; }
+  function meter() {
+    let np = 0, ns = 0, outside = false;
+    for (const p of parts) { for (const el of p.g.querySelectorAll('path')) { np++; ns += segments(el.getAttribute('d') || ''); } const b = bounds(p); if (b.x0 < -0.01 || b.y0 < -0.01 || b.x1 > 72.01 || b.y1 > 72.01) outside = true; }
+    const m = $('meter'); m.textContent = `${np} of 32 paths, about ${ns} of 128 segments` + (outside ? ' — a part is outside the box; the codec will refuse it' : '');
+    m.className = 'status ' + ((np > 32 || ns > 128 || outside) ? 'meter-over' : '');
+  }
+  $('nudge').onclick = () => { if (!selected) return; const b = bounds(selected); let dx = 0, dy = 0; if (b.x0 < 0) dx = -b.x0; if (b.x1 > 72) dx = 72 - b.x1; if (b.y0 < 0) dy = -b.y0; if (b.y1 > 72) dy = 72 - b.y1; selected.tx += dx; selected.ty += dy; apply(selected); select(selected); };
+  const _refresh = refreshLayers; refreshLayers = () => { _refresh(); meter(); };
   search('A', ''); search('B', 'hat');
 })();
 </script>
