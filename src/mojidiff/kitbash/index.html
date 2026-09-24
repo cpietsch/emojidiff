@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kitbash</title>
+<style>
+  :root { --ink:#1b1b1b; --muted:#6b6b6b; --line:#d9d9d9; --accent:#2b6cb0; --bg:#fafafa; --card:#fff; }
+  * { box-sizing: border-box; }
+  body { margin:0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color:var(--ink); background:var(--bg); }
+  header { padding: 18px 24px 8px; }
+  header h1 { margin:0; font-size: 22px; font-weight: 600; }
+  header p { margin: 4px 0 0; color: var(--muted); max-width: 80ch; }
+  main { display:grid; grid-template-columns: 340px minmax(600px, 1fr) 360px; gap: 16px; padding: 12px 24px 32px; }
+  @media (max-width: 1240px) { main { grid-template-columns: 1fr; } }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }
+  h3 { font-size: 13px; margin: 10px 0 4px; color: var(--muted); font-weight: 600; }
+  input[type=search] { width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font: inherit; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, 52px); gap:5px; margin-top:6px; max-height: 26vh; overflow:auto; }
+  .grid button { width:52px; height:52px; padding:2px; border:1px solid var(--line); border-radius:6px; background:#fff; cursor:pointer; }
+  .grid button.on { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(43,108,176,.25); }
+  .grid img, .parts svg { width:100%; height:100%; }
+  .parts { display:grid; grid-template-columns: repeat(auto-fill, 44px); gap:4px; margin-top:4px; }
+  .parts button { width:44px; height:44px; padding:2px; border:1px solid var(--line); border-radius:6px; background:#fff; cursor:pointer; }
+  .parts button:hover { border-color: var(--accent); }
+  .row { display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin: 6px 0; }
+  button.small, .row button { padding:5px 9px; border:1px solid var(--line); border-radius:6px; background:#fff; cursor:pointer; font: inherit; }
+  button.primary { background: var(--accent); color:#fff; border-color: var(--accent); font-weight:600; }
+  #stage { width: 576px; height: 576px; max-width: 100%; aspect-ratio: 1; border:1px solid var(--line); border-radius: 6px; background:#fff; touch-action:none; background-image: linear-gradient(#f3f3f3 1px, transparent 1px), linear-gradient(90deg, #f3f3f3 1px, transparent 1px); background-size: 12.5% 12.5%; }
+  #stage .part.selected { outline: none; }
+  #stage .box { fill: none; stroke: var(--accent); stroke-width: 0.35; stroke-dasharray: 1 0.7; pointer-events: none; }
+  .status { color: var(--muted); font-size: 14px; min-height: 1.4em; margin-top: 6px; }
+  .badge { display:inline-block; font-size:12px; padding:2px 8px; border-radius: 999px; background:#eef; color:#335; margin: 0 6px 6px 0; }
+  .badge.ok { background:#e6f4ea; color:#1e5631; }
+  .badge.no { background:#fdecea; color:#7a1f1f; }
+  #preview { width:100%; aspect-ratio:1; border:1px solid var(--line); border-radius:6px; background:#fff; }
+  textarea { width:100%; height:180px; font: 12px/1.35 ui-monospace, SFMono-Regular, Menlo, monospace; border:1px solid var(--line); border-radius:6px; padding:6px; margin-top:8px; }
+  .layers { list-style:none; padding:0; margin:6px 0; max-height: 20vh; overflow:auto; }
+  .layers li { display:flex; align-items:center; gap:6px; padding:3px 6px; border:1px solid transparent; border-radius:6px; cursor:pointer; font-size:13px; }
+  .layers li.on { border-color: var(--accent); background:#f3f7fc; }
+  .layers svg { width:24px; height:24px; }
+  kbd { font: 12px ui-monospace, monospace; border:1px solid var(--line); border-radius:4px; padding:0 4px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Kitbash</h1>
+  <p>Take parts from two OpenMoji icons, place and layer them on the same 72-unit box, and get the program back through the project's codec. Everything here is vector: the parts are the icons' own paths, and the export is the canonical SVG. Drag to move, <kbd>wheel</kbd> or <kbd>+</kbd>/<kbd>-</kbd> to scale, <kbd>f</kbd> to flip, <kbd>[</kbd> <kbd>]</kbd> to change layer, <kbd>Delete</kbd> to remove.</p>
+</header>
+<main>
+  <section>
+    <h2>Icons</h2>
+    <h3>A</h3>
+    <input id="qa" type="search" placeholder="search, e.g. cat, hat, 1F431">
+    <div class="grid" id="ga"></div>
+    <div class="row"><button id="allA" class="small">Add all of A</button><span id="labA" class="status"></span></div>
+    <div class="parts" id="pa"></div>
+    <h3>B</h3>
+    <input id="qb" type="search" placeholder="search">
+    <div class="grid" id="gb"></div>
+    <div class="row"><button id="allB" class="small">Add all of B</button><span id="labB" class="status"></span></div>
+    <div class="parts" id="pb"></div>
+  </section>
+
+  <section>
+    <h2>Compose</h2>
+    <svg id="stage" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="row">
+      <button id="back">Send back</button><button id="fwd">Bring forward</button>
+      <button id="smaller">Smaller</button><button id="bigger">Bigger</button><button id="flip">Flip</button>
+      <button id="del">Delete</button><button id="clear">Clear</button>
+      <button id="export" class="primary" style="margin-left:auto">Export program</button>
+    </div>
+    <div class="status" id="status">Pick icon A and B on the left, then click parts to add them.</div>
+    <ul class="layers" id="layers"></ul>
+  </section>
+
+  <section>
+    <h2>Program</h2>
+    <div id="badges"></div>
+    <svg id="preview" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg"></svg>
+    <textarea id="svg" readonly placeholder="the canonical SVG appears here after export"></textarea>
+    <div class="row"><button id="copy">Copy SVG</button><a id="download" class="small" style="display:none;text-decoration:none;border:1px solid var(--line);border-radius:6px;padding:5px 9px;color:inherit">Download .svg</a><span class="status" id="copied"></span></div>
+  </section>
+</main>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id), NS = 'http://www.w3.org/2000/svg';
+  const stage = $('stage');
+  const icons = { A: null, B: null };  // {hexcode, annotation, paths: [pathElement]}
+  let parts = [], selected = null, drag = null, seq = 0;
+
+  // ---- pickers
+  async function search(which, q) {
+    const r = await fetch('/icons?q=' + encodeURIComponent(q)); const d = await r.json();
+    const grid = $(which === 'A' ? 'ga' : 'gb'); grid.innerHTML = '';
+    for (const icon of d.icons) {
+      const b = document.createElement('button'); b.title = icon.annotation + ' (' + icon.hexcode + ')';
+      const img = document.createElement('img'); img.src = '/icon/' + icon.hexcode + '.svg'; img.alt = icon.annotation; img.loading = 'lazy';
+      b.appendChild(img); b.onclick = () => { [...grid.children].forEach(x => x.classList.toggle('on', x === b)); loadIcon(which, icon); };
+      grid.appendChild(b);
+    }
+    if (!d.icons.length) grid.textContent = 'nothing matches';
+  }
+  for (const which of ['A', 'B']) {
+    let t; $(which === 'A' ? 'qa' : 'qb').oninput = (e) => { clearTimeout(t); t = setTimeout(() => search(which, e.target.value), 200); };
+  }
+  async function loadIcon(which, icon) {
+    const text = await (await fetch('/icon/' + icon.hexcode + '.svg')).text();
+    const doc = new DOMParser().parseFromString(text, 'image/svg+xml');
+    const paths = [...doc.querySelectorAll('path')];
+    icons[which] = { ...icon, paths };
+    $(which === 'A' ? 'labA' : 'labB').textContent = icon.annotation + ' — ' + paths.length + ' paths';
+    const box = $(which === 'A' ? 'pa' : 'pb'); box.innerHTML = '';
+    paths.forEach((p, i) => {
+      const b = document.createElement('button'); b.title = 'path ' + (i + 1) + ' — click to add';
+      const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', '0 0 72 72');
+      const ghost = document.createElementNS(NS, 'g'); ghost.setAttribute('opacity', '0.18');
+      for (const q of paths) ghost.appendChild(q.cloneNode(true));
+      svg.appendChild(ghost); svg.appendChild(p.cloneNode(true));
+      b.appendChild(svg); b.onclick = () => addPart(which, [p], icon.annotation + ' · path ' + (i + 1));
+      box.appendChild(b);
+    });
+  }
+  $('allA').onclick = () => icons.A && addPart('A', icons.A.paths, icons.A.annotation);
+  $('allB').onclick = () => icons.B && addPart('B', icons.B.paths, icons.B.annotation);
+
+  // ---- parts on the stage
+  function addPart(which, paths, label) {
+    const g = document.createElementNS(NS, 'g'); g.classList.add('part');
+    for (const p of paths) g.appendChild(p.cloneNode(true));
+    stage.appendChild(g);
+    const bb = g.getBBox();
+    const part = { id: ++seq, g, label, which, tx: 0, ty: 0, s: 1, flip: false, cx: bb.x + bb.width / 2, cy: bb.y + bb.height / 2 };
+    parts.push(part); apply(part); select(part); refreshLayers();
+    $('status').textContent = label + ' added. Drag it, scale it with the wheel, layer it with [ and ].';
+  }
+  function apply(p) {
+    // translate to the placed position, scale and flip about the part's own centre
+    const sx = p.s * (p.flip ? -1 : 1);
+    p.g.setAttribute('transform', `translate(${(p.cx + p.tx).toFixed(2)} ${(p.cy + p.ty).toFixed(2)}) scale(${sx.toFixed(3)} ${p.s.toFixed(3)}) translate(${(-p.cx).toFixed(2)} ${(-p.cy).toFixed(2)})`);
+  }
+  function select(p) {
+    selected = p; stage.querySelectorAll('.box').forEach(b => b.remove());
+    if (p) { const bb = p.g.getBBox(), m = p.g.getCTM(), r = document.createElementNS(NS, 'rect'); r.classList.add('box');
+      const pts = [[bb.x, bb.y], [bb.x + bb.width, bb.y], [bb.x, bb.y + bb.height], [bb.x + bb.width, bb.y + bb.height]].map(([x, y]) => { const pt = stage.createSVGPoint(); pt.x = x; pt.y = y; const q = pt.matrixTransform(m).matrixTransform(stage.getScreenCTM().inverse()); return [q.x, q.y]; });
+      const xs = pts.map(q => q[0]), ys = pts.map(q => q[1]);
+      r.setAttribute('x', Math.min(...xs)); r.setAttribute('y', Math.min(...ys)); r.setAttribute('width', Math.max(...xs) - Math.min(...xs)); r.setAttribute('height', Math.max(...ys) - Math.min(...ys)); stage.appendChild(r); }
+    refreshLayers();
+  }
+  function refreshLayers() {
+    const ul = $('layers'); ul.innerHTML = '';
+    [...parts].reverse().forEach(p => {
+      const li = document.createElement('li'); li.className = p === selected ? 'on' : '';
+      const svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', '0 0 72 72'); const c = p.g.cloneNode(true); c.removeAttribute('transform'); svg.appendChild(c);
+      li.appendChild(svg); li.appendChild(document.createTextNode(`${p.which}: ${p.label}  ×${p.s.toFixed(2)}${p.flip ? ' flipped' : ''}`));
+      li.onclick = () => select(p); ul.appendChild(li);
+    });
+  }
+  const pos = (e) => { const pt = stage.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; const q = pt.matrixTransform(stage.getScreenCTM().inverse()); return { x: q.x, y: q.y }; };
+  stage.onpointerdown = (e) => {
+    const g = e.target.closest && e.target.closest('.part'); const part = parts.find(p => p.g === g);
+    if (!part) { select(null); return; }
+    select(part); stage.setPointerCapture(e.pointerId); drag = { part, start: pos(e), tx: part.tx, ty: part.ty };
+  };
+  stage.onpointermove = (e) => { if (!drag) return; const p = pos(e); drag.part.tx = drag.tx + p.x - drag.start.x; drag.part.ty = drag.ty + p.y - drag.start.y; apply(drag.part); select(drag.part); };
+  stage.onpointerup = () => { if (drag) { drag.part.tx = Math.round(drag.part.tx * 4) / 4; drag.part.ty = Math.round(drag.part.ty * 4) / 4; apply(drag.part); select(drag.part); } drag = null; };
+  stage.onwheel = (e) => { if (!selected) return; e.preventDefault(); scale(selected, e.deltaY < 0 ? 1.05 : 1 / 1.05); };
+  function scale(p, f) { p.s = Math.min(4, Math.max(0.1, p.s * f)); apply(p); select(p); }
+  function move(p, d) { const i = parts.indexOf(p), j = i + d; if (j < 0 || j >= parts.length) return; parts.splice(i, 1); parts.splice(j, 0, p); [...stage.querySelectorAll('.part')].forEach(g => g.remove()); for (const q of parts) stage.appendChild(q.g); select(p); }
+  function remove(p) { p.g.remove(); parts = parts.filter(q => q !== p); select(null); }
+  $('back').onclick = () => selected && move(selected, -1); $('fwd').onclick = () => selected && move(selected, 1);
+  $('smaller').onclick = () => selected && scale(selected, 1 / 1.1); $('bigger').onclick = () => selected && scale(selected, 1.1);
+  $('flip').onclick = () => { if (selected) { selected.flip = !selected.flip; apply(selected); select(selected); } };
+  $('del').onclick = () => selected && remove(selected);
+  $('clear').onclick = () => { for (const p of [...parts]) remove(p); $('status').textContent = 'cleared'; };
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || !selected) return;
+    if (e.key === 'Delete' || e.key === 'Backspace') remove(selected); else if (e.key === '+' || e.key === '=') scale(selected, 1.1); else if (e.key === '-') scale(selected, 1 / 1.1);
+    else if (e.key === 'f') $('flip').onclick(); else if (e.key === '[') move(selected, -1); else if (e.key === ']') move(selected, 1);
+    else if (e.key.startsWith('Arrow')) { const d = e.shiftKey ? 1 : 0.25; selected.tx += e.key === 'ArrowRight' ? d : e.key === 'ArrowLeft' ? -d : 0; selected.ty += e.key === 'ArrowDown' ? d : e.key === 'ArrowUp' ? -d : 0; apply(selected); select(selected); }
+    else return; e.preventDefault();
+  });
+
+  // ---- export through the codec
+  function composition() {
+    const out = document.createElementNS(NS, 'svg'); out.setAttribute('xmlns', NS); out.setAttribute('viewBox', '0 0 72 72');
+    for (const p of parts) out.appendChild(p.g.cloneNode(true));
+    out.querySelectorAll('.part').forEach(g => g.removeAttribute('class'));
+    return new XMLSerializer().serializeToString(out);
+  }
+  $('export').onclick = async () => {
+    if (!parts.length) { $('status').textContent = 'nothing to export'; return; }
+    $('status').textContent = 'running the codec…';
+    const r = await fetch('/canonical', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ svg: composition() }) });
+    const d = await r.json(); const badges = $('badges'); badges.innerHTML = '';
+    if (!d.ok) {
+      badges.innerHTML = `<span class="badge no">codec: ${d.failure || 'refused'}</span>` + (d.contours ? `<span class="badge">${d.contours} contours</span>` : '');
+      $('status').textContent = 'the codec did not take it: ' + (d.failure || '').replace(/^[a-z]+:/, '') + '. Fewer parts or smaller shapes usually fixes it.'; $('svg').value = ''; $('preview').innerHTML = ''; $('download').style.display = 'none'; return;
+    }
+    badges.innerHTML = `<span class="badge ok">codec: valid program</span><span class="badge">${d.active_paths} of ${d.capacity.paths} paths</span><span class="badge">${d.segments} of ${d.capacity.segments} segments</span>` + (d.clamped_coordinates ? `<span class="badge no">${d.clamped_coordinates} coordinates clamped</span>` : '');
+    $('svg').value = d.svg;
+    const doc = new DOMParser().parseFromString(d.svg, 'image/svg+xml'); $('preview').innerHTML = ''; for (const n of [...doc.documentElement.childNodes]) $('preview').appendChild(document.importNode(n, true));
+    const a = $('download'); a.href = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(d.svg); a.download = 'kitbash.svg'; a.style.display = 'inline-block';
+    $('status').textContent = 'exported: the program on the right is what the codec holds - coordinates on the quarter-unit lattice, paints from the palette.';
+  };
+  $('copy').onclick = async () => { try { await navigator.clipboard.writeText($('svg').value); $('copied').textContent = 'copied'; setTimeout(() => $('copied').textContent = '', 1500); } catch { $('copied').textContent = 'select and copy'; } };
+
+  search('A', ''); search('B', 'hat');
+})();
+</script>
+</body>
+</html>
