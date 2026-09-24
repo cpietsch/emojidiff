@@ -3232,3 +3232,26 @@ step: 0.61 for one candidate, 0.77 for six, 0.83 for twelve. Six is the product'
 unless an icon is hard, and the two icons that fail at any K - the hedgehog and the
 anatomical heart - are dense, fine-featured drawings the model cannot trace within
 the token budget. Gate N's record is complete; the GPU is idle and nothing is queued.
+
+## 2026-09-24 — The merge model copies the base figure: as good as the first component, not better
+
+**Observation.** Gate O, step one. Qwen3.5-2B fine-tuned with LoRA on 727 ZWJ pairs
+under 8,192 tokens; held-out likelihood 0.294 to 0.234 at step 75, rising after,
+stopped on patience at 225 steps (57 minutes, 6.7 GiB). On 48 held-out targets the
+model's merges are taken by the codec 79% of the time, 85% end, median 1,464 tokens.
+Pixel error to the true merged icon: model 0.114, the components overlaid 0.156, the
+first component alone 0.105. The model beats the overlay on 40 of 41 targets (interval
++0.036 to +0.056) and ties the first component (10 of 41 closer, interval -0.003 to
++0.001); it retrieves the true target first for 0.40 where the first component alone
+does 0.54. No training target reproduced. Falsified on three of five criteria.
+
+**Reading.** The model learned what most of the data is. A ZWJ target is usually its
+first component with a gender or skin change, so copying the base figure is a strong
+answer, and the model gives exactly that answer: the sheet shows the gender-sign
+merges as the base person unchanged and the two-person merges - a couple with a
+heart - as one person. It did not learn the composition rule, and the likelihood
+curve says more training would only overfit. Before another model arm, the question
+to answer exactly is where a merged icon's paths come from: for each target path, is
+it a component's path unchanged, recoloured, moved, or new? That is a vector question
+with an exact answer per icon, and it says how much of merging is selection and
+placement - the kitbash tool's operations - and how much is drawing.
