@@ -213,6 +213,18 @@ gates:
       a pipeline test on the model's own drawings proves the code sound. Codec validity
       is capped at 0.25 in this language by outlining. Next: more candidates and a
       loop stop in decoding; a sequence-level objective if compact programs are needed.
+  - id: Gate O
+    title: Merging icons, vectors in and vectors out
+    status: open
+    question: >-
+      Fine-tuned on OpenMoji's ZWJ pairs written as text, does the Qwen3.5-2B text
+      prior merge held-out components into the true merged icon better than stacking
+      them and better than keeping the first component?
+    evidence: >-
+      Opened 2026-09-24; PROJECT_PLAN.md section 18 states the design. 1,015 ZWJ
+      targets have every component in the corpus. The fine-tune is registered with
+      predeclared criteria and running; the kitbash tool, a no-model vector composer
+      over the codec, is served beside it.
   - id: Gate K
     title: Research interface and narrative
     status: open

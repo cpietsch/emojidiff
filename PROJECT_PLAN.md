@@ -882,3 +882,36 @@ cannot express.
 the held-out set (step 1 below its bars); a fine-tune whose paired gain interval
 includes zero; or edits whose re-vectorised programs drift on the untouched parts
 more than Gate L's copy policy. Each closes the step it belongs to, in the registry.
+
+## 18. Direction after Gate N: vectors in, vectors out
+
+The raster loop of Gate N works and is the wrong shape for a vector tool: it is as
+slow as the prior's decoding, and it rasterises a program to edit it. The operator
+asked for something vector-native and proposed merging icons. Two things follow, both
+built.
+
+**The kitbash tool** (`scripts/serve_kitbash.py`, port 8789). No model. Every pilot
+icon is served as its canonical 72-box SVG; the page takes paths from two icons,
+moves, scales, flips and layers them on one box, and exports the composition through
+the normalizer, codec and packer, returning the canonical program with its verdict.
+Interactive at the speed of the browser; the codec's capacity is the only limit.
+
+### Gate O - merging icons as a vector-to-vector task
+
+**Question.** OpenMoji's ZWJ sequences are merged icons with an exact answer: 1,015 of
+them have every component in the corpus (817 train, 107 validation, 91 test). Written
+as text - the target's annotation, each component's annotation and canonical SVG, the
+merged icon's SVG as the suffix - does the Qwen3.5-2B text prior, fine-tuned with LoRA,
+merge held-out components into the true merged icon better than the two no-model
+baselines, the components stacked on one box and the first component alone?
+
+**Criteria, predeclared.** 80% of merges taken by the codec; pixel error to the true
+merged icon lower than both baselines with paired bootstrap intervals excluding zero;
+the true target first among 48 held-out targets for half the merges; no training
+target reproduced.
+
+**What would falsify it.** The first-component baseline is strong - many targets are
+their first component with a gender or skin modification - so a model that only
+copies the first component fails the paired criterion against it; a model that
+merges by stacking fails against the overlay. Passing both means it learned
+OpenMoji's own composition rules; failing both closes the gate on this scale of data.

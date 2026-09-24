@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-23T09:47:28Z
+Updated: 2026-09-24T19:56:30Z
 
 ## Current hypothesis and evidence
 
@@ -632,6 +632,14 @@ gives today: edit in pixels, re-vectorise with best-of-K against the edited rend
 the program. Next, in order of cost: twelve candidates and a pixel-error stop for the
 loop; then a sequence-level objective as a new gate if compact programs are needed.
 
+After Gate N the operator asked for something vector-native and proposed merging
+icons. The kitbash tool (`scripts/serve_kitbash.py`, tmux `mojidiff-kitbash`, port
+8789, CPU only) composes parts of two icons as vectors and exports through the codec.
+Gate O asks whether the Qwen3.5-2B text prior can learn OpenMoji's own merges: 1,015
+ZWJ sequences have every component in the corpus; the fine-tune on 817 of them is
+registered with predeclared criteria against two no-model baselines and running. The
+raster demo of Gate N is stopped; its code stays.
+
 ## Last completed action and verification
 
 Closed Gate L on the evidence of twenty-two registered arms, all on gpubox-4080, all in
@@ -661,12 +669,12 @@ stalled; if it ever stops answering again, `tmux kill-session -t mojidiff-weblog
 relaunch with `--rebuild`. Do not `pkill -f serve_weblog` from a script whose own
 command line contains that text.
 
-The live re-vectorise demo is served by `scripts/serve_demo.py` in tmux session
-`mojidiff-demo`, bound to `100.69.189.78:8788` on the Tailscale interface only. It
-loads OmniSVG 1.1 4B once (7.9 GiB, about 40 s) and runs requests one at a time on the
-GPU, so it must be stopped (`tmux kill-session -t mojidiff-demo`, then check
-`pgrep -af serve_demo` - a piped launch once outlived its session and held the card)
-before any registered run needs the GPU. It writes nothing outside the process.
+The kitbash tool is served by `scripts/serve_kitbash.py` in tmux session
+`mojidiff-kitbash`, bound to `100.69.189.78:8789`, CPU only, no model; it reads the
+cached canonical SVGs under `data/processed/kitbash/`. The raster demo
+(`scripts/serve_demo.py`, port 8788) is stopped because it holds the card at 7.9 GiB;
+start it only when no registered run needs the GPU, and stop it with
+`tmux kill-session -t mojidiff-demo` followed by `pgrep -af serve_demo`.
 
 Gate L runs execute detached in tmux sessions named `masked-<arm>` with stdout under
 the run's `data/processed/<study>/stdout.log`; a run that has exited leaves `EXIT=<code>`
