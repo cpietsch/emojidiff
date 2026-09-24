@@ -201,6 +201,30 @@ def _finetune(
         by_split["primary/validation"], int(training["held_out_icons"]), pilot.seed + 1
     )
     held, excluded_held = _examples(prior, held_rows, pilot, codec, annotations, max_tokens)
+    report, metrics = train_lora(prior, train, held, training, device)
+    report["training"].update(
+        {
+            "excluded_train_over_max_tokens": excluded_train,
+            "excluded_held_over_max_tokens": excluded_held,
+            "max_tokens": max_tokens,
+        }
+    )
+    return report, metrics
+
+
+def train_lora(
+    prior: Prior,
+    train: list[Example],
+    held: list[Example],
+    training: dict[str, Any],
+    device: str,
+) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    """LoRA on prebuilt examples: AdamW, warmup, accumulation, selection on held-out NLL.
+
+    Any study that can write its examples as a prompt and a suffix - a caption and an
+    icon, two icons and their merge - trains through this one loop.
+    """
+
     if not train or not held:
         raise OpenMojiPilotError("no examples fit under max_tokens")
 
@@ -286,10 +310,7 @@ def _finetune(
     return {
         "training": {
             "train_icons": len(train),
-            "excluded_train_over_max_tokens": excluded_train,
             "held_out_icons": len(held),
-            "excluded_held_over_max_tokens": excluded_held,
-            "max_tokens": max_tokens,
             "steps_run": metrics[-1]["step"],
             "sequences_per_step": accumulate,
             "selected_step": best_step,

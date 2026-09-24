@@ -1,0 +1,59 @@
+# Gate O, step one: Qwen3.5-2B-Base fine-tuned with LoRA to merge icons.
+#
+# 817 training targets, each a ZWJ sequence whose components are in the corpus, written
+# as text: the target's annotation, each component's annotation and compact canonical
+# SVG, then the merged icon's SVG as the suffix that carries the loss. Rank-16 adapters
+# on every linear layer; selection by held-out likelihood on 32 validation targets
+# disjoint from the 48 evaluation targets. Examples over 8,192 tokens are excluded and
+# counted. Evaluation on 48 held-out validation targets, greedy, against the true merged
+# icon's render, beside two baselines that use no model: the components overlaid on one
+# box, and the first component alone.
+#
+# Predeclared criteria:
+#   - at least 80% of the model's merges are taken by the typed codec;
+#   - the model's pixel error to the true merged icon is lower than the overlay's and
+#     than the first component's, each with a paired bootstrap interval excluding zero;
+#   - the true target is retrieved first among the 48 held-out targets for at least half
+#     of the merges (chance 0.021);
+#   - no merge reproduces a training target's text exactly.
+schema_version: 1
+study_version: merge-o1-finetune
+mode: finetune
+report_root: reports/learning/merge-o1-finetune
+checkpoint_root: data/processed/prior/merge-o1-finetune
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+
+model:
+  source: Qwen/Qwen3.5-2B-Base
+  revision: b1485b2fa6dfa1287294f269f5fb618e03d52d7c
+
+data:
+  targets: 48
+
+training:
+  lora: {rank: 16, alpha: 32, dropout: 0.05}
+  max_tokens: 8192
+  held_out_targets: 32
+  steps: 400
+  accumulate: 8
+  eval_every: 25
+  patience_evals: 6
+  loss_chunk: 512
+  learning_rate: 1.0e-4
+  weight_decay: 0.0
+  warmup_steps: 25
+  seed: 6501
+
+generation:
+  max_new_tokens: 3072
+  seed: 6501
+
+criteria:
+  min_codec_valid_rate: 0.8
+  closer_than_overlay_ci_excludes_zero: true
+  closer_than_first_component_ci_excludes_zero: true
+  min_target_top1_rate: 0.5
+  max_memorised_exactly: 0
+
+render:
+  size: 72

@@ -1,0 +1,35 @@
+schema_version: 1
+study_version: merge-o1-finetune-smoke
+mode: finetune
+report_root: data/processed/prior/merge-o1-smoke
+checkpoint_root: data/processed/prior/merge-o1-smoke
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+
+model:
+  source: Qwen/Qwen3.5-2B-Base
+  revision: b1485b2fa6dfa1287294f269f5fb618e03d52d7c
+
+data:
+  targets: 2
+  train_targets: 6
+
+training:
+  lora: {rank: 16, alpha: 32, dropout: 0.05}
+  max_tokens: 8192
+  held_out_targets: 2
+  steps: 2
+  accumulate: 2
+  eval_every: 1
+  patience_evals: 6
+  loss_chunk: 512
+  learning_rate: 1.0e-4
+  weight_decay: 0.0
+  warmup_steps: 1
+  seed: 6501
+
+generation:
+  max_new_tokens: 96
+  seed: 6501
+
+render:
+  size: 72
