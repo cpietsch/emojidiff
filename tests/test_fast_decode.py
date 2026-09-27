@@ -99,3 +99,43 @@ def test_graph_decoding_matches_the_reference(
         fast = decoder.decode(image, stats=stats)
         assert torch.equal(fast, reference)
         assert stats.model_calls > 0
+
+
+@cuda
+def test_batched_graph_decoding_keeps_greedy_first_and_every_row_valid(
+    layout_and_tokens: tuple[SequenceLayout, torch.Tensor],
+) -> None:
+    from mojidiff.learning.autoregressive import unflatten_program
+    from mojidiff.learning.fast_decode import GraphDecoder
+    from mojidiff.learning.openmoji_pilot import _load_program
+    from mojidiff.representation.packed import validate_packed_tensor_program
+
+    layout, tokens = layout_and_tokens
+    torch.manual_seed(0)
+    config = ModelConfig(
+        image_size=32,
+        d_model=64,
+        heads=4,
+        encoder_layers=1,
+        decoder_layers=2,
+        feedforward=128,
+        metric=True,
+        fourier=6,
+        order="path",
+    )
+    model = RenderToProgram(layout, config).cuda().eval()
+    single = GraphDecoder(model, dtype=torch.float32)
+    many = GraphDecoder(model, dtype=torch.float32, batch=4)
+    image = torch.randint(0, 256, (32, 32, 3), dtype=torch.uint8)
+    reference = greedy_decode(model, image[None].cuda())
+    assert torch.equal(single.decode(image), reference)
+    greedy_rows = many.decode_many(image)
+    assert all(torch.equal(row, reference[0]) for row in greedy_rows)
+    sampled = many.decode_many(image, temperature=1.0, generator=torch.Generator().manual_seed(1))
+    assert torch.equal(sampled[0], reference[0])
+    pilot = load_openmoji_pilot_config(_CONFIG)
+    template = _load_program(load_pilot_index(pilot)[0]["primary/train"][0], pilot, layout.codec)
+    for row in sampled:
+        validate_packed_tensor_program(
+            unflatten_program(row, template, layout), layout.codec, layout.total_segment_slots
+        )
