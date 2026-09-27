@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-27
+Updated: 2026-09-27 (evening)
 
 ## Current hypothesis and evidence
 
@@ -26,27 +26,39 @@ What that phase showed about models, in one place:
 - No multi-step sampler from noise was ever run at corpus scale. No latency or VRAM
   benchmark was ever recorded; `reports/benchmarks/` is empty.
 
-The deliverable is now stated in `AGENTS.md`: a small fast model with a demo and a
-measured per-icon latency. The direction to reach it is not yet chosen. The candidates
-on the table, from the 2026-09-27 review, are: (1) a small from-scratch render-to-SVG
-model over the existing codec with affine and colour augmentation; (2) widening the
-corpus with Noto, Twemoji, Blobmoji and CC0 icon sets; (3) distilling the big prior into
-a small student; (4) a continuous latent (DeepSVG-style) model; (5) shipping the v16
-repairer inside the kitbash tool. The recommendation is (1), later adding (2).
+The deliverable is stated in `AGENTS.md`: a small fast model with a demo and a measured
+per-icon latency. The operator chose the direction on 2026-09-27: a small from-scratch
+render-to-SVG transcriber over the existing codec (`mojidiff.learning.render2svg`),
+with wider vector data, distillation, and a continuous latent model queued behind it.
+
+Render-to-SVG evidence so far:
+
+- Four-icon overfit (`r2s-overfit4-940f5d3-f7306d2b-47646604`): all four programs
+  reproduced exactly from their renders by step 100. 8.9M parameters, 148 ms per icon
+  at batch 1 on the RTX 4080, 97 decoder calls per icon, 0.63 GiB peak VRAM.
+- Full corpus without augmentation (`r2s-full-v1`, running): memorises. Training loss
+  0.03 against held-out 8.2 nats per free token by step 8000; held-out free-token
+  accuracy flat at 28% from step 1000; held-out pixel error about 0.15.
 
 ## Last completed action and verification
 
-2026-09-27: process reset. `AGENTS.md` rewritten around the deliverable (one page);
-this note cut to under 100 lines; gates and predeclared criteria dropped from the
-contract; `mojidiff.learning.telemetry` added for per-icon latency and peak VRAM;
-`mojidiff.orchestration.contract` and `scripts/audit_run_records.py` now require a
-`resource` block and a baseline on every completed run registered from 2026-09-27.
-Verified: `ruff`, strict `mypy`, `tests/test_telemetry.py`, `tests/test_contract.py`,
-full `pytest`, and the audit script against the 59 existing records (consistent).
+2026-09-27: render-to-SVG model, exact augmentation (mirror, translation, palette
+permutation; 42,896 variants cached), metric-coordinate option, and the re-vectorise
+demo (`scripts/serve_vectorise.py`, port 8790) written and committed. Verified by
+`tests/test_render2svg.py` (fast decoding equals a full-prefix decode; augmentation is
+pixel-exact and preserves the masks the loss reads; cached metric decoding equals a
+full forward), `tests/test_vectorise.py`, ruff, strict mypy.
 
 ## Active jobs
 
-None. No tmux sessions or containers are running project work.
+Chained in tmux on gpubox-4080, each writing `EXIT=` to its log under
+`/home/dev/.cache/mojidiff/`:
+
+1. `r2s-chain`: `configs/render2svg/full-v1.yaml` (no augmentation), log `r2s-full-v1.log`.
+2. `r2s-v2`: waits for 1, then `full-v2-aug.yaml`, log `r2s-full-v2-aug.log`.
+3. `r2s-v3`: waits for 2, then `full-v3-metric.yaml`, log `r2s-full-v3-metric.log`.
+
+Each run registers itself in `state/runs.jsonl` and writes `runs/<run_id>/`.
 
 ## Artifact durability
 
@@ -58,10 +70,11 @@ None. No tmux sessions or containers are running project work.
 
 ## Current blockers
 
-Direction not chosen by the operator. Nothing else blocks work on `gpubox-4080`.
+None.
 
 ## Next smallest evidence-producing action
 
-Once a direction is chosen: a four-icon fixture overfit of the chosen model that writes a
-`resource` block (latency per icon, peak VRAM) and an identity baseline through the new
-contract, so the first run of the new phase already answers "how fast".
+Read v2 and v3 against the nearest-training-icon baseline and Gate N's CLIP top-1.
+If either passes, serve its best checkpoint in the re-vectorise demo and measure it on
+the untouched test split. If neither lifts held-out accuracy, the next factor is the
+encoder: a stride-4 grid or a pretrained image backbone.
