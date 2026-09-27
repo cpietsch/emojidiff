@@ -46,6 +46,11 @@ Render-to-SVG evidence so far:
   so far. Pixel error 0.106 [0.100, 0.112] against 0.090; beats the nearest icon on 144
   of 339; CLIP top-1 0.28. Reads glyphs rather than recalling them; fills still messy.
   Overfits after about 8,000 steps with 16 cached variants.
+- Online augmentation (`r2s-full-v4-online-c0fe6d3-a854be2e-47646604`, one change from
+  v2): pixel error 0.121 against v2's 0.130; still memorises (held-out loss rises after
+  step 6,000 while training loss falls below 1).
+- Path-major order (`r2s-full-v5-path`, running): ahead of v3 at the same steps (step
+  4,000: held-out accuracy 0.51 against 0.42).
 
 ## Last completed action and verification
 
@@ -58,14 +63,15 @@ full forward), `tests/test_vectorise.py`, ruff, strict mypy.
 
 ## Active jobs
 
-In tmux on gpubox-4080; runs write `EXIT=` to their logs under `/home/dev/.cache/mojidiff/`:
+In tmux on gpubox-4080; logs under `/home/dev/.cache/mojidiff/`, each ending in `EXIT=`:
 
-1. `r2s-v4`: `configs/render2svg/full-v4-online.yaml` (online augmentation, one change
-   from v2), log `r2s-full-v4-online.log`.
-2. `r2s-v5`: waits for 1, then `full-v5-path.yaml` (path-major order, one change from
+1. `r2s-v5`: `configs/render2svg/full-v5-path.yaml` (path-major order, one change from
    v3), log `r2s-full-v5-path.log`.
-3. `vectorise`: the re-vectorise demo on http://100.69.189.78:8790/ serving v3's best
-   checkpoint through the CUDA-graph decoder.
+2. `r2s-chain2` (`/home/dev/.cache/mojidiff/chain-after-v5.sh`): waits for 1, measures
+   idle-GPU latency for v3 and v5 (`latency.log`, `runs/<id>/latency.json`), then runs
+   `full-v6-compose.yaml` (compositions, one change from v4) and
+   `full-v7-systems.yaml` (every factor that held up, 60,000 steps).
+3. `vectorise`: the demo on http://100.69.189.78:8790/ serving v3's best checkpoint.
 4. `weblog`: http://100.69.189.78:8787/.
 
 ## Artifact durability
