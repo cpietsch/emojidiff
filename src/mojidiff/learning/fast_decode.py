@@ -36,25 +36,30 @@ from mojidiff.learning.render2svg import (
     RenderToProgram,
     _DecoderBlock,
     _static_tables,
+    coordinate_value,
     path_major_positions,
 )
 
 CHUNK_SIZES = (1, 2, 4, 8, 16, 32)
 
 
+_ROWS = ("tokens", "steps", "slots", "field", "path", "axis", "role", "target")
+
+
 class _Buffers:
-    def __init__(self, size: int, features: int, vocabulary: int, device: torch.device) -> None:
-        self.tokens = torch.zeros((1, size), dtype=torch.long, device=device)
-        self.steps = torch.zeros((1, size), dtype=torch.long, device=device)
-        self.slots = torch.zeros((1, size), dtype=torch.long, device=device)
-        self.field = torch.zeros((1, size), dtype=torch.long, device=device)
-        self.path = torch.zeros((1, size), dtype=torch.long, device=device)
-        self.value = torch.zeros((1, size), dtype=torch.float32, device=device)
-        self.axis = torch.zeros((1, size), dtype=torch.long, device=device)
-        self.role = torch.zeros((1, size), dtype=torch.long, device=device)
-        self.target = torch.full((1, size), -1, dtype=torch.long, device=device)
+    """Per-chunk-size static inputs, packed so one host-to-device copy feeds a replay."""
+
+    def __init__(self, size: int, vocabulary: int, device: torch.device) -> None:
+        self.packed = torch.zeros((len(_ROWS), size), dtype=torch.long, device=device)
+        self.host = torch.zeros((len(_ROWS), size), dtype=torch.long).pin_memory()
         self.logits = torch.zeros((1, vocabulary), dtype=torch.float32, device=device)
-        self.last = torch.zeros((), dtype=torch.long, device=device)
+        self.host_logits = torch.zeros((1, vocabulary), dtype=torch.float32).pin_memory()
+        # Set when the last copy out of `host` has completed; `host` must not be
+        # rewritten before then, or an in-flight copy reads the next chunk's inputs.
+        self.copied = torch.cuda.Event()  # type: ignore[no-untyped-call]
+
+    def row(self, name: str) -> Tensor:
+        return self.packed[_ROWS.index(name)][None]
 
 
 class GraphDecoder:
@@ -100,22 +105,26 @@ class GraphDecoder:
         model = self.model
         config = self.config
         with torch.autocast("cuda", dtype=self.dtype):
-            steps = buffers.steps
-            hidden = model.token_embedding(buffers.tokens) + model.position_embedding(steps)
+            tokens = buffers.row("tokens")
+            steps = buffers.row("steps")
+            slots = buffers.row("slots")
+            hidden = model.token_embedding(tokens) + model.position_embedding(steps)
             if config.order == "path":
-                hidden = hidden + model.field_embedding(buffers.field)
-                hidden = hidden + model.path_embedding(buffers.path)
+                hidden = hidden + model.field_embedding(buffers.row("field"))
+                hidden = hidden + model.path_embedding(buffers.row("path"))
             if config.metric:
-                described = model._describe(buffers.value, buffers.axis, buffers.role)
-                keep = ((buffers.role > 0) & (buffers.tokens > 0))[..., None]
+                role = buffers.row("role")
+                value = coordinate_value(tokens, role)
+                described = model._describe(value, buffers.row("axis"), role)
+                keep = ((role > 0) & (tokens > 0))[..., None]
                 hidden = hidden + model.coordinate_projection(described * keep)
             mask = (self.key_positions[None, :] <= steps[0][:, None])[None, None]
             for index, block in enumerate(model.decoder):
                 block = cast(_DecoderBlock, block)
                 normed = block.norm_self(hidden)
                 key, value = block.self_attention.keys_values(normed)
-                self.keys[index].index_copy_(2, buffers.slots[0], key.to(self.dtype))
-                self.values[index].index_copy_(2, buffers.slots[0], value.to(self.dtype))
+                self.keys[index].index_copy_(2, slots[0], key.to(self.dtype))
+                self.values[index].index_copy_(2, slots[0], value.to(self.dtype))
                 query = block.self_attention.split(block.self_attention.query(normed))
                 attended = F.scaled_dot_product_attention(
                     query, self.keys[index], self.values[index], attn_mask=mask
@@ -132,11 +141,11 @@ class GraphDecoder:
                     attended.transpose(1, 2).reshape(1, size, -1)
                 )
                 hidden = hidden + block.feedforward(block.norm_feedforward(hidden))
-            last = hidden.index_select(1, buffers.last[None])
+            last = hidden[:, -1:]
             normed = model.norm(last)
             logits = model.head(normed)
             if config.metric:
-                target = buffers.target.index_select(1, buffers.last[None])
+                target = buffers.row("target")[:, -1:]
                 query = model.metric_query(normed)
                 candidates = model.metric_value(
                     cast(Tensor, model._candidate_features).to(query.dtype)
@@ -151,15 +160,15 @@ class GraphDecoder:
             buffers.logits.copy_(logits[:, 0].float())
 
     def _capture(self) -> None:
-        features = 0
         vocabulary = self.layout.vocabulary
         stream = torch.cuda.Stream(self.device)  # type: ignore[no-untyped-call]
         stream.wait_stream(torch.cuda.current_stream(self.device))
         with torch.no_grad(), torch.cuda.stream(stream):
             for size in CHUNK_SIZES:
-                buffers = _Buffers(size, features, vocabulary, self.device)
-                buffers.steps.copy_(torch.arange(size, device=self.device)[None])
-                buffers.slots.copy_(torch.arange(size, device=self.device)[None])
+                buffers = _Buffers(size, vocabulary, self.device)
+                buffers.packed[_ROWS.index("steps")] = torch.arange(size, device=self.device)
+                buffers.packed[_ROWS.index("slots")] = torch.arange(size, device=self.device)
+                buffers.packed[_ROWS.index("target")] = -1
                 for _ in range(3):
                     self._body(buffers)
                 self.buffers[size] = buffers
@@ -248,57 +257,57 @@ class GraphDecoder:
         return decoded_tensor[None]
 
     def _run(self, order: list[int], decoded: list[int], fed: int, step: int) -> tuple[Tensor, int]:
-        """Feed steps fed..step through the graphs; the logits predicting `step`."""
+        """Feed steps fed..step through the graphs; the logits predicting `step`.
+
+        A chunk shorter than its graph is left-padded: dummy steps come first and write
+        to the scratch slot, so the last row is always the step whose logits are read.
+        Dummies are queries too, but nothing reads their output, and real steps never
+        attend the scratch slot, which sits past every real position.
+        """
 
         calls = 0
         start = fed
         final: _Buffers | None = None
+        scratch = self.layout.length
         while start <= step:
             remaining = step + 1 - start
             size = next((s for s in CHUNK_SIZES if s >= remaining), CHUNK_SIZES[-1])
             real = min(size, remaining)
+            pad = size - real
             buffers = self.buffers[size]
-            tokens = [0] * size
-            steps = list(range(start, start + size))
-            field = [0] * size
-            path = [0] * size
-            value = [0.0] * size
-            axis = [0] * size
-            role = [0] * size
-            target = [-1] * size
-            for index in range(real):
-                current = start + index
+            host = buffers.host
+            buffers.copied.synchronize()
+            host.zero_()
+            host[_ROWS.index("target")] = -1
+            for index in range(size):
+                if index < pad:
+                    host[1, index] = start  # a legal position embedding; output unused
+                    host[2, index] = scratch
+                    continue
+                current = start + index - pad
                 previous = order[current - 1] if current > 0 else None
-                tokens[index] = decoded[previous] if previous is not None else 0
                 here = order[current]
+                token = decoded[previous] if previous is not None else 0
+                host[0, index] = token
+                host[1, index] = current
+                host[2, index] = current
                 if self.config.order == "path":
-                    field[index], path[index] = self._labels(here, decoded)
+                    host[3, index], host[4, index] = self._labels(here, decoded)
                 if self.config.metric:
                     if previous is not None:
                         role_in, axis_in = self._role(previous, decoded)
-                        token = decoded[previous]
-                        index_value = max(token - 1, 0) * 0.25
-                        value[index] = index_value - 8.0 if role_in == ROLE_CONTROL else index_value
-                        role[index], axis[index] = role_in, axis_in
+                        host[5, index] = axis_in
+                        host[6, index] = role_in
                     role_out, axis_out = self._role(here, decoded)
                     if role_out != ROLE_NONE:
-                        target[index] = (role_out - 1) * 2 + axis_out
-            scratch = self.layout.length
-            slots = [s if index < real else scratch for index, s in enumerate(steps)]
-            steps = [s if index < real else step for index, s in enumerate(steps)]
-            buffers.tokens.copy_(torch.tensor([tokens]), non_blocking=True)
-            buffers.steps.copy_(torch.tensor([steps]), non_blocking=True)
-            buffers.slots.copy_(torch.tensor([slots]), non_blocking=True)
-            buffers.field.copy_(torch.tensor([field]), non_blocking=True)
-            buffers.path.copy_(torch.tensor([path]), non_blocking=True)
-            buffers.value.copy_(torch.tensor([value]), non_blocking=True)
-            buffers.axis.copy_(torch.tensor([axis]), non_blocking=True)
-            buffers.role.copy_(torch.tensor([role]), non_blocking=True)
-            buffers.target.copy_(torch.tensor([target]), non_blocking=True)
-            buffers.last.fill_(real - 1)
+                        host[7, index] = (role_out - 1) * 2 + axis_out
+            buffers.packed.copy_(host, non_blocking=True)
+            buffers.copied.record()
             self.graphs[size].replay()
             calls += 1
             start += real
             final = buffers
         assert final is not None
-        return final.logits[0].cpu(), calls
+        final.host_logits.copy_(final.logits, non_blocking=True)
+        torch.cuda.current_stream(self.device).synchronize()
+        return final.host_logits[0].clone(), calls
