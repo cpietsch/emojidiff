@@ -36,9 +36,14 @@ Render-to-SVG evidence so far:
 - Four-icon overfit (`r2s-overfit4-940f5d3-f7306d2b-47646604`): all four programs
   reproduced exactly from their renders by step 100. 8.9M parameters, 148 ms per icon
   at batch 1 on the RTX 4080, 97 decoder calls per icon, 0.63 GiB peak VRAM.
-- Full corpus without augmentation (`r2s-full-v1`, running): memorises. Training loss
-  0.03 against held-out 8.2 nats per free token by step 8000; held-out free-token
-  accuracy flat at 28% from step 1000; held-out pixel error about 0.15.
+- Full corpus without augmentation (`r2s-full-v1-940f5d3-1974cf82-47646604`): falsified.
+  Memorises; pixel error 0.149 against 0.090 for the nearest training icon; CLIP top-1
+  0.22 against 0.61 for OmniSVG zero-shot; 629 ms per icon.
+- 16 cached exact variants per icon (`r2s-full-v2-aug-4032fbd-1e601024-47646604`):
+  falsified, but better. Pixel error 0.130; beats the nearest icon on 50 of 339;
+  draws the first, largest shape right and loses later paths; 828 ms per icon.
+- Metric coordinates (`r2s-full-v3-metric`, running): ahead of v2 at every step so far
+  (step 6,000: held-out accuracy 0.48 against 0.35, pixel error 0.113 on 64 icons).
 
 ## Last completed action and verification
 
@@ -54,9 +59,11 @@ full forward), `tests/test_vectorise.py`, ruff, strict mypy.
 Chained in tmux on gpubox-4080, each writing `EXIT=` to its log under
 `/home/dev/.cache/mojidiff/`:
 
-1. `r2s-chain`: `configs/render2svg/full-v1.yaml` (no augmentation), log `r2s-full-v1.log`.
-2. `r2s-v2`: waits for 1, then `full-v2-aug.yaml`, log `r2s-full-v2-aug.log`.
-3. `r2s-v3`: waits for 2, then `full-v3-metric.yaml`, log `r2s-full-v3-metric.log`.
+1. `r2s-v3`: `configs/render2svg/full-v3-metric.yaml`, log `r2s-full-v3-metric.log`.
+2. `r2s-v4`: waits for 1, then `full-v4-online.yaml` (online augmentation, one change
+   from v2), log `r2s-full-v4-online.log`.
+3. `r2s-v5`: waits for 2, then `full-v5-path.yaml` (path-major order, one change from
+   v3), log `r2s-full-v5-path.log`.
 
 Each run registers itself in `state/runs.jsonl` and writes `runs/<run_id>/`.
 

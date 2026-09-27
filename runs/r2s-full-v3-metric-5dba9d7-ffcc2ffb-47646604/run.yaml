@@ -1,0 +1,63 @@
+schema_version: 2
+run_id: r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604
+state: running
+planned_at: '2026-09-27T20:55:16Z'
+hypothesis: 'Trained on the 2,681 family-disjoint training icons, the 8.9M-parameter render-to-program
+  model transcribes held-out validation renders better than retrieving the closest training
+  icon. Pass requires all three: (1) mean 72 px pixel error below the nearest-training-icon
+  baseline with the paired 95% interval on the reduction excluding zero; (2) CLIP top-1 on
+  Gate N''s 32 validation icons at or above OmniSVG 4B zero-shot, 0.609; (3) median single-icon
+  latency on the RTX 4080 under 500 ms.'
+parent_run: r2s-full-v2-aug
+git_commit: 5dba9d7179daef421a144940a4e8284290f8bb1b
+dirty_patch_sha256: 9d6a9f3415f8e8bfc9ed4e77421988ef130e4ad817d82d26e7995057b6b9299d
+config: configs/render2svg/full-v3-metric.yaml
+config_sha256: ffcc2ffb9e6f21c9ed3685199841c52174e35d4ae11eb3cefb657f389a398180
+config_resolved:
+  model:
+    image_size: 144
+    d_model: 256
+    heads: 8
+    encoder_layers: 2
+    decoder_layers: 6
+    feedforward: 1024
+    dropout: 0.1
+    metric: true
+    fourier: 10
+  training:
+    steps: 20000
+    batch_size: 32
+    learning_rate: 0.0005
+    weight_decay: 0.01
+    warmup_steps: 500
+    seed: 7001
+    eval_every: 1000
+    eval_icons: 64
+    train_icons: null
+    evaluate_on_train: false
+    augment_variants: 16
+    augment_seed: 9001
+    augment_mirror: 0.5
+    augment_max_shift: 48
+    augment_colour: 0.5
+    augment_online: false
+    augment_original: 0.1
+    loader_workers: 10
+    bf16: true
+  final_eval_icons: 339
+  clip_icons: 32
+dataset:
+  pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+  cache_sha256: 476466042da98d72c2bf2774cecc18f08d50a362eefbecae97904bde7a04ef0e
+  train_icons: 2681
+  augmented_variants: 42896
+  augmented_sha256: 35c7ef3ccc5bb6e37b69a1c3c6e0738fb2bc8c800cbe071e75b0fc081bab56a8
+  evaluated_on: primary/validation
+seed: 7001
+determinism: seeded; cuDNN and SDPA kernels not forced deterministic
+model_parameters: 9011746
+command: .venv/bin/python -m mojidiff.learning.render2svg --config configs/render2svg/full-v3-metric.yaml
+outputs:
+  run_dir: runs/r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604
+  checkpoints: /home/dev/.cache/mojidiff/runs/r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604
+notes: ''
