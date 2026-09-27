@@ -3278,3 +3278,27 @@ baseline and does not beat it, and the data says why. What stands is the vector
 tool for the part of merging that is composition, exact and instant, and the record
 that the rest is drawing. The gate closes; the fine-tuning route to merging is not
 worth a second arm at this data size.
+
+## 2026-09-27 — Process reset: the deliverable replaces the gates
+
+**Observation.** A review of the whole record (Gates A to O, 134 registered runs, 101
+findings entries) found that the from-scratch negative results all reduce to one fact:
+2,681 icons of 1,376 tokens is too little data for any generative model to learn shape,
+regardless of paradigm. The pretrained-prior pivots (Gates M to O) moved to 2B to 4B
+models at 40 to 100 s per icon, away from the operator's goal of a small fast model.
+Speed, the stated goal, was never measured: `reports/benchmarks/` is empty and Gate J
+never started. The documentation (5,355 lines) recorded every result in five places,
+and predeclared criteria were falsified 52 times against 11 passes while the missing
+identity baseline went unnoticed for six Gate G runs.
+
+**Decision.** `AGENTS.md` is rewritten as a one-page contract around a single
+deliverable: a small model, fast on the RTX 4080, producing recognisable emoji as SVG
+programs, with a demo and a measured per-icon latency. Gates, predeclared criteria, and
+the remote-machine machinery leave the contract; `state/gates.yaml` and
+`PROJECT_PLAN.md` stay as history. Every completed run registered from today must carry
+a `resource` block (device, peak VRAM, train seconds, inference ms per icon, written via
+`mojidiff.learning.telemetry`) and a baseline block; `scripts/audit_run_records.py`
+enforces both through `mojidiff.orchestration.contract`. `state/CURRENT.md` is capped
+at 100 lines and rewritten rather than appended; its 825-line predecessor is archived
+as `reports/state-history-2026-09-24.md`. The direction toward the deliverable is the
+operator's choice; the candidates are listed in `state/CURRENT.md`.

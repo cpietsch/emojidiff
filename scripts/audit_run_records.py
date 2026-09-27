@@ -8,6 +8,9 @@ hand across many sessions, so it drifts. This checks the invariants that matter:
 * its declared state matches the latest state the registry recorded for it;
 * a completed run that predeclared criteria records an outcome somewhere - either a
   `predeclared_outcome` block or explicit `*_passed` flags under `result`;
+* a completed run registered on or after `RESOURCE_REQUIRED_FROM` carries a `resource`
+  block (device, peak VRAM, training seconds, inference latency per icon) and a
+  baseline comparison - see `mojidiff.orchestration.contract`;
 * the registry parses as strict JSONL, one object per line, no blanks.
 
 Exits non-zero when anything fails, so it can gate a commit.
@@ -23,6 +26,9 @@ from typing import Any
 import yaml
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_REPO_ROOT / "src"))
+
+from mojidiff.orchestration.contract import contract_problems  # noqa: E402
 
 
 def registry_states(path: Path) -> tuple[dict[str, str], list[str]]:
@@ -84,6 +90,7 @@ def main() -> int:
                 problems.append(
                     f"{run_id}: completed with predeclared criteria but records no outcome"
                 )
+        problems.extend(contract_problems(record))
 
     print(f"run records: {len(records)}   registry run ids: {len(latest)}")
     counts = {s: sum(1 for v in latest.values() if v == s) for s in sorted(set(latest.values()))}

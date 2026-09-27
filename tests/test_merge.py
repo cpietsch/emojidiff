@@ -36,7 +36,10 @@ def test_prompt_and_overlay_are_well_formed_and_the_overlay_parses() -> None:
     by_split, _, _ = load_pilot_index(pilot)
     codec = _selected_codec(pilot)
     target, components = merge_pairs(by_split)["primary/validation"][0]
-    svgs = [compact_svg(_load_program(c, pilot, codec), codec, pilot.total_segment_slots) for c in components]
+    svgs = [
+        compact_svg(_load_program(c, pilot, codec), codec, pilot.total_segment_slots)
+        for c in components
+    ]
     prompt = merge_prompt("woman surfing", [("person surfing", svgs[0]), ("female sign", svgs[1])])
     assert prompt.startswith("<!-- merge: woman surfing -->\n<!-- part: person surfing -->\n<svg")
     assert prompt.endswith("<!-- merged -->\n")
@@ -44,4 +47,6 @@ def test_prompt_and_overlay_are_well_formed_and_the_overlay_parses() -> None:
     assert stacked.startswith(SVG_OPEN) and stacked.endswith(SVG_CLOSE)
     program, info = parse_into_codec(stacked.encode(), codec, pilot.total_segment_slots)
     # Two icons' paths on one box either fit the bucket or fail for capacity, never for grammar.
-    assert program is not None or info["failure"].startswith(("pack", "encode", "projection_required"))
+    assert program is not None or info["failure"].startswith(
+        ("pack", "encode", "projection_required")
+    )
