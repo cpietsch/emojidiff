@@ -35,6 +35,8 @@ from mojidiff.learning.render2svg import (
     augment_program_tokens,
     greedy_decode,
     mirror_program_tokens,
+    path_major_order,
+    path_major_positions,
     permute_palette_tokens,
     pixel_error,
     render_program_rgb,
@@ -67,6 +69,17 @@ def pieces() -> Pieces:
     return layout, programs
 
 
+_TINY_PATH = ModelConfig(
+    image_size=32,
+    d_model=32,
+    heads=4,
+    encoder_layers=1,
+    decoder_layers=2,
+    feedforward=64,
+    metric=True,
+    fourier=6,
+    order="path",
+)
 _TINY_METRIC = ModelConfig(
     image_size=32,
     d_model=32,
@@ -80,24 +93,31 @@ _TINY_METRIC = ModelConfig(
 
 
 def _reference_decode(model: RenderToProgram, images: torch.Tensor) -> torch.Tensor:
-    """Position by position, re-reading the whole prefix, no cache and no skipping."""
+    """Step by step, re-reading the whole prefix, no cache and no skipping."""
 
     layout = model.layout
     memory = model.encode(images)
     decoded = torch.zeros((1, layout.length), dtype=torch.long)
-    for position in range(layout.length):
+    path_order = model.config.order == "path"
+    order = torch.arange(layout.length)[None].clone()
+    walker = path_major_positions(decoded[0], layout)
+    for step in range(layout.length):
+        if path_order:
+            order[0, step] = next(walker)
+        position = int(order[0, step])
         mask = legal_mask(position, decoded[0], layout)
         if int(mask.sum()) == 1:
             decoded[0, position] = int(mask.to(torch.long).argmax())
             continue
-        shifted = torch.cat((torch.zeros((1, 1), dtype=torch.long), decoded[:, :position]), 1)
-        metric = model.metric_inputs(decoded, 0, position + 1) if model.config.metric else None
-        logits, _ = model.decode(shifted, memory, metric=metric)
+        inputs, extras = model.step_inputs(decoded, order if path_order else None, 0, step + 1)
+        logits, _ = model.decode(inputs, memory, extras=extras)
         decoded[0, position] = int(logits[0, -1].masked_fill(~mask, float("-inf")).argmax())
     return decoded
 
 
-@pytest.mark.parametrize("config", [_TINY, _TINY_METRIC], ids=["plain", "metric"])
+@pytest.mark.parametrize(
+    "config", [_TINY, _TINY_METRIC, _TINY_PATH], ids=["plain", "metric", "path"]
+)
 def test_skipping_forced_positions_is_exact(pieces: Pieces, config: ModelConfig) -> None:
     layout, programs = pieces
     torch.manual_seed(0)
@@ -143,7 +163,9 @@ def test_mirror_is_an_exact_pixel_mirror(pieces: Pieces) -> None:
         )
 
 
-@pytest.mark.parametrize("config", [_TINY, _TINY_METRIC], ids=["plain", "metric"])
+@pytest.mark.parametrize(
+    "config", [_TINY, _TINY_METRIC, _TINY_PATH], ids=["plain", "metric", "path"]
+)
 def test_a_training_step_lowers_the_loss(pieces: Pieces, config: ModelConfig) -> None:
     layout, programs = pieces
     torch.manual_seed(2)
@@ -154,8 +176,9 @@ def test_a_training_step_lowers_the_loss(pieces: Pieces, config: ModelConfig) ->
     free = masks.sum(dim=-1) > 1
     optimizer = torch.optim.AdamW(model.parameters(), lr=3e-3)
     losses = []
+    order = path_major_order(tokens[0], layout)[None] if config.order == "path" else None
     for _ in range(5):
-        logits = model(images, tokens)
+        logits = model(images, tokens, order)
         loss = F.cross_entropy(logits.masked_fill(~masks, float("-inf"))[free], tokens[free])
         optimizer.zero_grad()
         loss.backward()  # type: ignore[no-untyped-call]
@@ -231,29 +254,54 @@ def test_palette_permutation_recolours_consistently(pieces: Pieces) -> None:
     assert torch.equal(back, tokens)
 
 
-def test_teacher_forced_logits_match_cached_decoding_under_metric(pieces: Pieces) -> None:
-    """The metric inputs of a chunked, cached decode equal those of one full forward."""
+@pytest.mark.parametrize("config", [_TINY_METRIC, _TINY_PATH], ids=["metric", "path"])
+def test_teacher_forced_logits_match_cached_decoding(pieces: Pieces, config: ModelConfig) -> None:
+    """Chunked cached decoding equals one full forward, at the original positions."""
 
     layout, programs = pieces
     torch.manual_seed(3)
-    model = RenderToProgram(layout, _TINY_METRIC).eval()
+    model = RenderToProgram(layout, config).eval()
     tokens = flatten_program(programs[1], layout)[None]
+    order = path_major_order(tokens[0], layout)[None] if config.order == "path" else None
     images = torch.randint(0, 256, (1, 32, 32, 3), dtype=torch.uint8)
-    full = model(images, tokens)
+    full = model(images, tokens, order)
     memory = model.encode(images)
-    shifted = torch.cat((torch.zeros((1, 1), dtype=torch.long), tokens[:, :-1]), 1)
     cache = None
-    pieces_out = []
+    chunks = []
     for start, end in ((0, 500), (500, 501), (501, layout.length)):
-        logits, cache = model.decode(
-            shifted[:, start:end],
-            memory,
-            cache,
-            offset=start,
-            metric=model.metric_inputs(tokens, start, end),
+        inputs, extras = model.step_inputs(tokens, order, start, end)
+        logits, cache = model.decode(inputs, memory, cache, offset=start, extras=extras)
+        chunks.append(logits)
+    stepwise = torch.cat(chunks, 1)
+    if order is not None:
+        stepwise = stepwise.gather(
+            1, torch.argsort(order, dim=1)[..., None].expand(-1, -1, stepwise.shape[-1])
         )
-        pieces_out.append(logits)
-    assert torch.allclose(torch.cat(pieces_out, 1), full, atol=1e-4)
+    assert torch.allclose(stepwise, full, atol=1e-4)
+
+
+def test_path_major_order_groups_each_path_with_its_segments(pieces: Pieces) -> None:
+    from mojidiff.learning.autoregressive import PATH_STRIDE, SEGMENT_STRIDE
+
+    layout, programs = pieces
+    program = programs[0]
+    tokens = flatten_program(program, layout)
+    order = path_major_order(tokens, layout)
+    assert sorted(order.tolist()) == list(range(layout.length))
+    lengths = [int(v) for v in program.path_length if int(v) > 0]
+    step = 0
+    offset = 0
+    for path, length in enumerate(lengths):
+        assert order[step : step + PATH_STRIDE].tolist() == list(
+            range(path * PATH_STRIDE, (path + 1) * PATH_STRIDE)
+        )
+        step += PATH_STRIDE
+        first = layout.path_positions + offset * SEGMENT_STRIDE
+        assert order[step : step + length * SEGMENT_STRIDE].tolist() == list(
+            range(first, first + length * SEGMENT_STRIDE)
+        )
+        step += length * SEGMENT_STRIDE
+        offset += length
 
 
 def test_coordinate_roles_follow_the_grammar(pieces: Pieces) -> None:

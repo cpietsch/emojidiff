@@ -51,7 +51,6 @@ from mojidiff.learning.autoregressive import (
     SequenceLayout,
     flatten_program,
     legal_mask,
-    teacher_forcing_inputs,
     unflatten_program,
 )
 from mojidiff.learning.telemetry import (
@@ -99,6 +98,11 @@ class ModelConfig:
     alike and a query can prefer the image cells near the previous point.
     """
     fourier: int = 10
+    order: str = "layout"
+    """"layout" decodes the packed grid as stored: every path's style and start point,
+    then every segment. "path" decodes path by path - style, start point, then that
+    path's own segments - and tells the decoder which field and which path each
+    position is. The grammar and the loss are unchanged; only the order differs."""
 
 
 @dataclass(frozen=True)
@@ -356,6 +360,13 @@ def augment_program_tokens(
     if rng.random() < config.augment_colour:
         out = permute_palette_tokens(out, layout, rng.permutation(len(layout.codec.palette)))
     return out
+
+
+def split_orders(tokens: Tensor, layout: SequenceLayout) -> Tensor:
+    """Path-major order of every program in a split; augmentation never changes it,
+    because no augmentation changes a path length."""
+
+    return torch.stack([path_major_order(row, layout) for row in tokens])
 
 
 @dataclass
@@ -673,7 +684,7 @@ def _online_batches(
     template: PackedTensorProgram,
     size: int,
     config: TrainConfig,
-) -> Iterator[tuple[Tensor, Tensor, Tensor]]:
+) -> Iterator[tuple[Tensor, Tensor, Tensor, Tensor]]:
     dataset = OnlineAugmentation(
         train.tokens.numpy().astype(np.int16), train.images.numpy(), layout, template, size, config
     )
@@ -685,7 +696,7 @@ def _online_batches(
         prefetch_factor=8 if config.loader_workers > 0 else None,
     )
     for images, tokens, indices in loader:
-        yield images, tokens, train.mask_batch(indices.numpy())
+        yield images, tokens, train.mask_batch(indices.numpy()), indices
 
 
 # --------------------------------------------------------------------------- model
@@ -757,6 +768,83 @@ def fourier_features(value: Tensor, frequencies: int) -> Tensor:
     scales = torch.pow(2.0, torch.arange(frequencies, device=value.device)) * torch.pi / 72.0
     scaled = value[..., None] * scales
     return torch.cat(((value / 72.0)[..., None], torch.sin(scaled), torch.cos(scaled)), dim=-1)
+
+
+FIELD_TYPES = 15 + 7
+"""Path metadata fields (15, start point included) plus segment slots (kind and six)."""
+
+
+def path_major_positions(decoded: Tensor, layout: SequenceLayout) -> Iterator[int]:
+    """Original positions in path-major order, read lazily from `decoded`.
+
+    Each path's fifteen metadata positions, then - once its length is known, because
+    it was decoded at the first of them - its own segment slots. The first inactive
+    path ends the program: everything not yet listed is forced padding and follows in
+    stored order. `decoded` must be filled at each yielded position before the next
+    is requested; a generator makes that the caller's natural loop.
+    """
+
+    from mojidiff.learning.autoregressive import PATH_STRIDE, SEGMENT_STRIDE
+
+    listed = np.zeros(layout.length, dtype=bool)
+    offset = 0
+    for path in range(layout.codec.max_paths):
+        base = path * PATH_STRIDE
+        for position in range(base, base + PATH_STRIDE):
+            listed[position] = True
+            yield position
+        length = int(decoded[base])
+        if length == 0:
+            break
+        for segment in range(offset, min(offset + length, layout.total_segment_slots)):
+            start = layout.path_positions + segment * SEGMENT_STRIDE
+            for position in range(start, start + SEGMENT_STRIDE):
+                listed[position] = True
+                yield position
+        offset += length
+    for remaining in np.flatnonzero(~listed):
+        yield int(remaining)
+
+
+def path_major_order(tokens: Tensor, layout: SequenceLayout) -> Tensor:
+    """The complete path-major order of a finished program, as original positions."""
+
+    return torch.tensor(list(path_major_positions(tokens, layout)), dtype=torch.long)
+
+
+def position_labels(tokens: Tensor, layout: SequenceLayout) -> tuple[Tensor, Tensor]:
+    """Field type (0-21) and owning path (0-31, 32 for padding) of every original position.
+
+    Segment slots belong to paths by the decoded path lengths, which precede them in
+    either order, so both labels are causal.
+    """
+
+    from mojidiff.learning.autoregressive import PATH_STRIDE, SEGMENT_STRIDE
+
+    batch = tokens.shape[0]
+    device = tokens.device
+    meta = torch.arange(layout.path_positions, device=device)
+    segment_positions = torch.arange(layout.path_positions, layout.length, device=device)
+    field = torch.cat(
+        (
+            meta % PATH_STRIDE,
+            PATH_STRIDE + (segment_positions - layout.path_positions) % SEGMENT_STRIDE,
+        )
+    )[None].expand(batch, -1)
+    lengths = tokens[:, 0 : layout.path_positions : PATH_STRIDE]  # (B, paths)
+    ends = lengths.cumsum(dim=1)
+    slots = (segment_positions - layout.path_positions) // SEGMENT_STRIDE
+    owner = torch.searchsorted(
+        ends.contiguous(), slots[None].expand(batch, -1).contiguous(), right=True
+    )
+    owner = torch.where(
+        slots[None] < ends[:, -1:], owner, torch.full_like(owner, layout.codec.max_paths)
+    )
+    # A path's metadata is labelled with its index whether or not the path turns out
+    # to be active: the first of those positions is the length that decides it, so any
+    # other label would depend on the token being predicted.
+    meta_path = (meta // PATH_STRIDE)[None].expand(batch, -1)
+    return field, torch.cat((meta_path, owner), dim=1)
 
 
 class _Attention(nn.Module):
@@ -880,6 +968,11 @@ class RenderToProgram(nn.Module):
         )
         self.norm = nn.LayerNorm(width)
         self.head = nn.Linear(width, layout.vocabulary)
+        if config.order not in ("layout", "path"):
+            raise ValueError(f"unknown order {config.order!r}")
+        if config.order == "path":
+            self.field_embedding = nn.Embedding(FIELD_TYPES, width)
+            self.path_embedding = nn.Embedding(layout.codec.max_paths + 1, width)
         if config.metric:
             features = 2 * config.fourier + 1
             self.grid_projection = nn.Linear(2 * features, width)
@@ -950,21 +1043,40 @@ class RenderToProgram(nn.Module):
             cast(_DecoderBlock, block).cross_attention.keys_values(memory) for block in self.decoder
         ]
 
-    def metric_inputs(self, tokens: Tensor, start: int, end: int) -> tuple[Tensor, Tensor]:
-        """Features of the input token and the target role/axis for positions start..end.
+    def step_inputs(
+        self, tokens: Tensor, order: Tensor | None, start: int, end: int
+    ) -> tuple[Tensor, dict[str, Tensor]]:
+        """Decoder inputs for sequence steps start..end.
 
-        `tokens` is the full (partially decoded) sequence. Input i is token i - 1, so its
-        features describe the previous position; the target role says what position i
-        itself will hold, which earlier tokens already determine.
+        `tokens` is the (partially decoded) program in original positions and `order`
+        the original position each step predicts (None: stored order). Step j reads the
+        token of step j - 1 and learns what step j is: its field and path under path
+        order, and under metric coordinates its role and axis, all fixed by tokens that
+        precede it.
         """
 
-        role, axis = coordinate_roles(tokens, self.tables())
-        value = coordinate_value(tokens, role)
-        described = self._describe(value, axis, role)
-        described = described * ((role > 0) & (tokens > 0))[..., None]
-        shifted = torch.cat((torch.zeros_like(described[:, :1]), described[:, :-1]), dim=1)
-        target = torch.where(role > 0, (role - 1) * 2 + axis, torch.full_like(role, -1))
-        return shifted[:, start:end], target[:, start:end]
+        if order is None:
+            order = torch.arange(tokens.shape[1], device=tokens.device)[None].expand(
+                tokens.shape[0], -1
+            )
+        sequence = tokens.gather(1, order)
+        inputs = torch.cat((torch.zeros_like(sequence[:, :1]), sequence[:, :-1]), dim=1)
+        extras: dict[str, Tensor] = {}
+        if self.config.order == "path":
+            field, path = position_labels(tokens, self.layout)
+            extras["field"] = field.gather(1, order)[:, start:end]
+            extras["path"] = path.gather(1, order)[:, start:end]
+        if self.config.metric:
+            role, axis = coordinate_roles(tokens, self.tables())
+            value = coordinate_value(tokens, role)
+            described = self._describe(value, axis, role)
+            described = described * ((role > 0) & (tokens > 0))[..., None]
+            described = described.gather(1, order[..., None].expand(-1, -1, described.shape[-1]))
+            shifted = torch.cat((torch.zeros_like(described[:, :1]), described[:, :-1]), dim=1)
+            target = torch.where(role > 0, (role - 1) * 2 + axis, torch.full_like(role, -1))
+            extras["metric_input"] = shifted[:, start:end]
+            extras["metric_target"] = target.gather(1, order)[:, start:end]
+        return inputs[:, start:end], extras
 
     def decode(
         self,
@@ -972,14 +1084,17 @@ class RenderToProgram(nn.Module):
         memory: list[tuple[Tensor, Tensor]],
         cache: list[tuple[Tensor, Tensor]] | None = None,
         offset: int = 0,
-        metric: tuple[Tensor, Tensor] | None = None,
+        extras: dict[str, Tensor] | None = None,
     ) -> tuple[Tensor, list[tuple[Tensor, Tensor]]]:
+        extras = extras or {}
         positions = torch.arange(offset, offset + inputs.shape[1], device=inputs.device)
         hidden = self.token_embedding(inputs) + self.position_embedding(positions)[None]
+        if self.config.order == "path":
+            hidden = (
+                hidden + self.field_embedding(extras["field"]) + self.path_embedding(extras["path"])
+            )
         if self.config.metric:
-            if metric is None:
-                raise ValueError("a metric model needs metric inputs")
-            hidden = hidden + self.coordinate_projection(metric[0].to(hidden.dtype))
+            hidden = hidden + self.coordinate_projection(extras["metric_input"].to(hidden.dtype))
         updated: list[tuple[Tensor, Tensor]] = []
         for index, block in enumerate(self.decoder):
             past = cache[index] if cache is not None else None
@@ -987,8 +1102,8 @@ class RenderToProgram(nn.Module):
             updated.append(present)
         normed = self.norm(hidden)
         logits: Tensor = self.head(normed)
-        if self.config.metric and metric is not None:
-            target = metric[1]
+        if self.config.metric:
+            target = extras["metric_target"]
             query = self.metric_query(normed)
             candidates = self.metric_value(
                 cast(Tensor, self._candidate_features).to(query.dtype)
@@ -1001,13 +1116,19 @@ class RenderToProgram(nn.Module):
             logits = logits + chosen * (target >= 0)[..., None].to(chosen.dtype)
         return logits, updated
 
-    def forward(self, images: Tensor, tokens: Tensor) -> Tensor:
-        """Teacher-forced logits for every position."""
+    def forward(self, images: Tensor, tokens: Tensor, order: Tensor | None = None) -> Tensor:
+        """Teacher-forced logits, returned at the original positions they predict."""
 
-        shifted, _ = teacher_forcing_inputs(tokens, self.layout)
-        metric = self.metric_inputs(tokens, 0, tokens.shape[1]) if self.config.metric else None
-        logits, _ = self.decode(shifted, self.encode(images), metric=metric)
-        return logits
+        if self.config.order == "path" and order is None:
+            raise ValueError("a path-order model needs each program's order")
+        if self.config.order == "layout":
+            order = None
+        inputs, extras = self.step_inputs(tokens, order, 0, tokens.shape[1])
+        logits, _ = self.decode(inputs, self.encode(images), extras=extras)
+        if order is None:
+            return logits
+        inverse = torch.argsort(order, dim=1)
+        return logits.gather(1, inverse[..., None].expand(-1, -1, logits.shape[-1]))
 
 
 def parameter_count(model: nn.Module) -> int:
@@ -1036,8 +1157,8 @@ def greedy_decode(
 
     Tokens the grammar forces for every icon in the batch are not predicted; they are
     queued and fed to the cache in one chunk the next time any icon has a choice. The
-    logits at a free position are therefore exactly those of a position-by-position
-    decode, at a fraction of the calls.
+    logits at a free position are therefore exactly those of a step-by-step decode, at
+    a fraction of the calls. Returns programs in original positions.
     """
 
     layout = model.layout
@@ -1045,35 +1166,39 @@ def greedy_decode(
     batch = images.shape[0]
     memory = model.encode(images)
     decoded = torch.zeros((batch, layout.length), dtype=torch.long)
+    path_order = model.config.order == "path"
+    order = torch.arange(layout.length)[None].repeat(batch, 1)
+    walkers = [path_major_positions(decoded[b], layout) for b in range(batch)] if path_order else []
     cache: list[tuple[Tensor, Tensor]] | None = None
     fed = 0
     calls = 0
-    for position in range(layout.length):
-        masks = torch.stack([legal_mask(position, decoded[b], layout) for b in range(batch)])
+    for step in range(layout.length):
+        if path_order:
+            for b in range(batch):
+                order[b, step] = next(walkers[b])
+        positions = order[:, step]
+        masks = torch.stack(
+            [legal_mask(int(positions[b]), decoded[b], layout) for b in range(batch)]
+        )
         counts = masks.sum(dim=1)
         if bool((counts == 0).any()):
-            raise ValueError(f"no legal token at position {position}")
+            raise ValueError(f"no legal token at step {step}")
         if bool((counts == 1).all()):
-            decoded[:, position] = masks.to(torch.long).argmax(dim=1)
+            decoded[torch.arange(batch), positions] = masks.to(torch.long).argmax(dim=1)
             continue
-        shifted = torch.zeros((batch, position + 1 - fed), dtype=torch.long)
-        for index, absolute in enumerate(range(fed, position + 1)):
-            shifted[:, index] = decoded[:, absolute - 1] if absolute > 0 else 0
-        metric = (
-            model.metric_inputs(decoded.to(device), fed, position + 1)
-            if model.config.metric
-            else None
+        inputs, extras = model.step_inputs(
+            decoded.to(device), order.to(device) if path_order else None, fed, step + 1
         )
-        logits, cache = model.decode(shifted.to(device), memory, cache, offset=fed, metric=metric)
+        logits, cache = model.decode(inputs, memory, cache, offset=fed, extras=extras)
         calls += 1
-        fed = position + 1
+        fed = step + 1
         scores = logits[:, -1].float().masked_fill(~masks.to(device), float("-inf"))
         if temperature > 0.0:
             probabilities = torch.softmax(scores / temperature, dim=-1)
             choice = torch.multinomial(probabilities, 1, generator=generator)[:, 0]
         else:
             choice = scores.argmax(dim=-1)
-        decoded[:, position] = choice.cpu()
+        decoded[torch.arange(batch), positions] = choice.cpu()
     if stats is not None:
         stats.model_calls += calls
         stats.positions += layout.length
@@ -1128,7 +1253,12 @@ def bootstrap_mean_interval(
 
 @torch.no_grad()
 def teacher_forced_loss(
-    model: RenderToProgram, split: SplitData, device: torch.device, count: int, bf16: bool
+    model: RenderToProgram,
+    split: SplitData,
+    device: torch.device,
+    count: int,
+    bf16: bool,
+    orders: Tensor | None = None,
 ) -> tuple[float, float]:
     """Mean NLL per free token and free-token accuracy on the first `count` icons."""
 
@@ -1141,7 +1271,8 @@ def teacher_forced_loss(
         masks = split.mask_batch(indices).to(device)
         images = split.images[indices].to(device)
         with torch.autocast("cuda", dtype=torch.bfloat16, enabled=bf16 and device.type == "cuda"):
-            logits = model(images, tokens)
+            order = orders[indices].to(device) if orders is not None else None
+            logits = model(images, tokens, order)
         free = masks.sum(dim=-1) > 1
         scores = logits.float().masked_fill(~masks, float("-inf"))[free]
         targets = tokens[free]
@@ -1245,8 +1376,8 @@ def _schedule(step: int, config: TrainConfig) -> float:
 
 def _batches(
     train: SplitData, augmented: AugmentedData | None, config: TrainConfig, rng: np.random.Generator
-) -> Iterator[tuple[Tensor, Tensor, Tensor]]:
-    """(images, tokens, masks) on CPU, drawn uniformly from originals and variants.
+) -> Iterator[tuple[Tensor, Tensor, Tensor, Tensor]]:
+    """(images, tokens, masks, source indices) on CPU, drawn uniformly from originals and variants.
 
     A variant borrows its source icon's legal masks. Mirroring and translation change
     no mask, and a palette permutation changes only rows the grammar already forces,
@@ -1283,7 +1414,7 @@ def _batches(
                 for pick in picks
             ]
         )
-        yield images, tokens, train.mask_batch(base)
+        yield images, tokens, train.mask_batch(base), torch.from_numpy(base)
 
 
 def _git(*args: str) -> str:
@@ -1410,6 +1541,9 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
     _append_registry(run_id, "running", config=str(config_path), slug=config.slug)
     print(json.dumps({"run_id": run_id, "parameters": parameter_count(model)}), flush=True)
 
+    path_order = config.model.order == "path"
+    train_orders = split_orders(train.tokens, layout) if path_order else None
+    evaluation_orders = split_orders(evaluation.tokens, layout) if path_order else None
     metrics_path = run_dir / "metrics.jsonl"
     rng = np.random.default_rng(config.training.seed)
     batches = (
@@ -1425,10 +1559,11 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
     try:
         for step in range(1, config.training.steps + 1):
             model.train()
-            images, tokens, masks = next(batches)
+            images, tokens, masks, base = next(batches)
             images, tokens, masks = images.to(device), tokens.to(device), masks.to(device)
+            order = train_orders[base].to(device) if train_orders is not None else None
             with torch.autocast("cuda", dtype=torch.bfloat16, enabled=bf16):
-                logits = model(images, tokens)
+                logits = model(images, tokens, order)
             free = masks.sum(dim=-1) > 1
             loss = F.cross_entropy(
                 logits.float().masked_fill(~masks, float("-inf"))[free], tokens[free]
@@ -1440,7 +1575,7 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
             scheduler.step()
             if step % config.training.eval_every == 0 or step == config.training.steps:
                 nll, accuracy = teacher_forced_loss(
-                    model, evaluation, device, config.training.eval_icons, bf16
+                    model, evaluation, device, config.training.eval_icons, bf16, evaluation_orders
                 )
                 errors, _, _, _ = decode_and_score(
                     model,
