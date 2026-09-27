@@ -1,0 +1,6 @@
+{
+  "checkpoint_best": "/home/dev/.cache/mojidiff/runs/r2s-full-v1-940f5d3-1974cf82-47646604/best.pt",
+  "checkpoint_latest": "/home/dev/.cache/mojidiff/runs/r2s-full-v1-940f5d3-1974cf82-47646604/latest.pt",
+  "samples": "samples.png (rows: reference, model, nearest training icon)",
+  "per_icon": "per_icon.jsonl"
+}

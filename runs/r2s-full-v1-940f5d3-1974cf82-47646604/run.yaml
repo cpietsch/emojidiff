@@ -1,0 +1,109 @@
+schema_version: 2
+run_id: r2s-full-v1-940f5d3-1974cf82-47646604
+state: completed
+planned_at: '2026-09-27T19:57:45Z'
+hypothesis: 'Trained on the 2,681 family-disjoint training icons, the 8.9M-parameter render-to-program
+  model transcribes held-out validation renders better than retrieving the closest training
+  icon. Pass requires all three: (1) mean 72 px pixel error below the nearest-training-icon
+  baseline with the paired 95% interval on the reduction excluding zero; (2) CLIP top-1 on
+  Gate N''s 32 validation icons at or above OmniSVG 4B zero-shot, 0.609; (3) median single-icon
+  latency on the RTX 4080 under 500 ms.'
+parent_run: r2s-overfit4
+git_commit: 940f5d39cfd21468836064e15eca5de3f8831f73
+dirty_patch_sha256: ce4f9416fc926524a0b2765bbfa304fcfe06d4c23b94d2cc1cb8bde84c531156
+config: configs/render2svg/full-v1.yaml
+config_sha256: 1974cf82ca22aa14adb85577ded624fba51a5429d1e645ef4ab95b2b65d7fb66
+config_resolved:
+  model:
+    image_size: 144
+    d_model: 256
+    heads: 8
+    encoder_layers: 2
+    decoder_layers: 6
+    feedforward: 1024
+    dropout: 0.1
+  training:
+    steps: 20000
+    batch_size: 32
+    learning_rate: 0.0005
+    weight_decay: 0.01
+    warmup_steps: 500
+    seed: 7001
+    eval_every: 1000
+    eval_icons: 64
+    train_icons: null
+    evaluate_on_train: false
+    augment_mirror: 0.0
+    bf16: true
+  final_eval_icons: 339
+  clip_icons: 32
+dataset:
+  pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+  cache_sha256: 476466042da98d72c2bf2774cecc18f08d50a362eefbecae97904bde7a04ef0e
+  train_icons: 2681
+  evaluated_on: primary/validation
+seed: 7001
+determinism: seeded; cuDNN and SDPA kernels not forced deterministic
+model_parameters: 8921634
+command: .venv/bin/python -m mojidiff.learning.render2svg --config configs/render2svg/full-v1.yaml
+outputs:
+  run_dir: runs/r2s-full-v1-940f5d3-1974cf82-47646604
+  checkpoints: /home/dev/.cache/mojidiff/runs/r2s-full-v1-940f5d3-1974cf82-47646604
+notes: ''
+completed_at: '2026-09-27T20:26:13Z'
+resource:
+  device: NVIDIA GeForce RTX 4080
+  torch_version: 2.14.0a0+4fdf77b940.nv26.08
+  cuda_version: '13.4'
+  python_version: 3.12.3
+  peak_vram_gib: 4.089363098144531
+  train_seconds: 1654.9081625590334
+  inference_ms_per_icon: 629.4160155230202
+  inference_p95_ms_per_icon: 655.0014589447528
+  icons_per_second: 1.5887743167276083
+  batched_ms_per_icon: 47.61035209412512
+  batched_icons_per_call: 64
+  excludes: rendering the output SVG to pixels
+baselines:
+  blank_canvas_pixel_error: 0.1720480552069557
+  nearest_training_icon_pixel_error: 0.08973124639576185
+  gate_n_omnisvg_zero_shot_top1: 0.609375
+  nearest_training_icon_clip_top1: 0.34375
+result:
+  icons: 339
+  model_pixel_error:
+  - 0.14872044521621922
+  - 0.14124088256183873
+  - 0.15610677177139445
+  model_pixel_error_median: 0.15654301643371582
+  exact_program_rate: 0.0029498525073746312
+  rendered_rate: 1.0
+  blank_pixel_error: 0.1720480552069557
+  selected_step: 19000
+  nearest_training_icon_pixel_error:
+  - 0.08973124639576185
+  - 0.0848205749792233
+  - 0.09466393787711656
+  model_minus_baseline_error_reduction:
+  - -0.058989198820457375
+  - -0.06381041379237455
+  - -0.053992881722259606
+  icons_model_beats_baseline: 16
+  clip_retrieval:
+    model_greedy:
+      top1_rate: 0.21875
+      top5_rate: 0.34375
+      mean_rank: 12.75
+      clip_to_reference_mean: 0.8145000487565994
+      chance_top1: 0.03125
+      icons: 32
+    nearest_training_icon:
+      top1_rate: 0.34375
+      top5_rate: 0.59375
+      mean_rank: 7.40625
+      clip_to_reference_mean: 0.8630629815161228
+      chance_top1: 0.03125
+      icons: 32
+    gate_n_omnisvg_zero_shot_top1: 0.609375
+    gate_n_omnisvg_best_of_12_top1: 0.828125
+  model_calls_per_icon: 500

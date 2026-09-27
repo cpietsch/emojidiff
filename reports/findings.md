@@ -3302,3 +3302,43 @@ enforces both through `mojidiff.orchestration.contract`. `state/CURRENT.md` is c
 at 100 lines and rewritten rather than appended; its 825-line predecessor is archived
 as `reports/state-history-2026-09-24.md`. The direction toward the deliverable is the
 operator's choice; the candidates are listed in `state/CURRENT.md`.
+
+## 2026-09-27 — Render-to-SVG: the overfit passes, the unaugmented corpus run memorises
+
+**Hypothesis.** A small encoder-decoder (8.9M parameters: a strided convolutional
+encoder over a 144 px render, a six-layer cached decoder with cross-attention) can
+transcribe an icon's render into its codec program. Conditioning on the render should
+remove the data starvation that sank every label-conditioned generator: the render
+carries the shape, the model only has to learn how the codec writes it down.
+
+**Observation.** The four-icon overfit (`r2s-overfit4-940f5d3-f7306d2b-47646604`)
+reproduced all four programs token for token from step 100, in 14 s of training.
+Decoding that skips grammar-forced positions is exact (tested against a full-prefix
+decode) and needed 97 decoder calls per icon instead of 1,376; latency 148 ms per icon
+at batch 1 on the RTX 4080, 0.63 GiB peak VRAM.
+
+The full-corpus run without augmentation (`r2s-full-v1-940f5d3-1974cf82-47646604`,
+2,681 train icons, 20,000 steps at batch 32) is falsified on all three predeclared
+criteria:
+
+| measure, 339 validation icons | model | nearest training icon |
+| --- | --- | --- |
+| mean 72 px pixel error | 0.149 [0.141, 0.156] | 0.090 [0.085, 0.095] |
+| CLIP top-1 on Gate N's 32 icons | 0.219 | 0.344 (OmniSVG zero-shot 0.609) |
+| latency, batch 1 | 629 ms | |
+| latency, batch 64 | 48 ms per icon | |
+
+Held-out loss rose from step 1,000 (3.81 nats per free token) to 8.2 by step 8,000
+while training loss fell to 0.03; held-out free-token accuracy stayed at 28% the whole
+run. Even at step 1,000 the render bought nothing measurable over Gate I's
+unconditional model (3.62). The samples read as a lossy lookup of memorised programs:
+simple geometric icons come back as a clean near neighbour (a circled J as a circled K,
+moon phases, clouds), organic shapes as scribbles. The model beat the nearest training
+icon on 16 of 339 icons.
+
+**Decision.** Memorisation is the failure, so the next arm changes only the data: 16
+exact augmented variants per icon (mirror, translation up to 12 view units, palette
+permutation), 42,896 in all, which no prefix can memorise. The arm after it adds shared
+metric position features between image cells and coordinates, because the flat 28%
+accuracy says the decoder has no easy way to connect a coordinate token to a place in
+the image.

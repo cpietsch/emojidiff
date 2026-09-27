@@ -1,0 +1,77 @@
+schema_version: 2
+run_id: r2s-overfit4-940f5d3-f7306d2b-47646604
+state: completed
+planned_at: '2026-09-27T19:57:24Z'
+hypothesis: An 8.9M-parameter render-to-program encoder-decoder, trained on four OpenMoji
+  icons, decodes those four icons greedily from their 144 px renders to programs whose 72
+  px renders are within 0.01 mean RGB error of the originals, in under 1,000 steps.
+parent_run: null
+git_commit: 940f5d39cfd21468836064e15eca5de3f8831f73
+dirty_patch_sha256: ''
+config: configs/render2svg/overfit-4.yaml
+config_sha256: f7306d2b7a6e50397e2b31b5332f32780ec923ba85864c5e9b444920c28a4540
+config_resolved:
+  model:
+    image_size: 144
+    d_model: 256
+    heads: 8
+    encoder_layers: 2
+    decoder_layers: 6
+    feedforward: 1024
+    dropout: 0.0
+  training:
+    steps: 800
+    batch_size: 4
+    learning_rate: 0.001
+    weight_decay: 0.01
+    warmup_steps: 50
+    seed: 7001
+    eval_every: 100
+    eval_icons: 4
+    train_icons: 4
+    evaluate_on_train: true
+    augment_mirror: 0.0
+    bf16: true
+  final_eval_icons: 4
+  clip_icons: 0
+dataset:
+  pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+  cache_sha256: 476466042da98d72c2bf2774cecc18f08d50a362eefbecae97904bde7a04ef0e
+  train_icons: 4
+  evaluated_on: primary/train
+seed: 7001
+determinism: seeded; cuDNN and SDPA kernels not forced deterministic
+model_parameters: 8921634
+command: .venv/bin/python -m mojidiff.learning.render2svg --config configs/render2svg/overfit-4.yaml
+outputs:
+  run_dir: runs/r2s-overfit4-940f5d3-f7306d2b-47646604
+  checkpoints: /home/dev/.cache/mojidiff/runs/r2s-overfit4-940f5d3-f7306d2b-47646604
+notes: ''
+completed_at: '2026-09-27T19:57:42Z'
+resource:
+  device: NVIDIA GeForce RTX 4080
+  torch_version: 2.14.0a0+4fdf77b940.nv26.08
+  cuda_version: '13.4'
+  python_version: 3.12.3
+  peak_vram_gib: 0.6286492347717285
+  train_seconds: 14.339369946043007
+  inference_ms_per_icon: 147.90797646855935
+  inference_p95_ms_per_icon: 148.98352301679552
+  icons_per_second: 6.7609605910102415
+  batched_ms_per_icon: 55.956157768378034
+  batched_icons_per_call: 4
+  excludes: rendering the output SVG to pixels
+baselines:
+  blank_canvas_pixel_error: 0.16571136377751827
+result:
+  icons: 4
+  model_pixel_error:
+  - 0.0
+  - 0.0
+  - 0.0
+  model_pixel_error_median: 0.0
+  exact_program_rate: 1.0
+  rendered_rate: 1.0
+  blank_pixel_error: 0.16571136377751827
+  selected_step: 100
+  model_calls_per_icon: 97
