@@ -1,0 +1,37 @@
+# A systems run, not a one-factor arm: every change that has held up, together, trained
+# longer because the data no longer repeats. Metric coordinates (v3: pixel error 0.130
+# -> 0.106), path-major order (v5: held-out accuracy 0.42 -> 0.51 at step 4,000 against
+# v3), online exact augmentation (v4: 0.130 -> 0.121), and compositions (v6, running
+# after this is registered; included on the argument that memorisation is what every
+# arm has hit). 60,000 steps instead of 20,000. If it passes, the factor attribution
+# comes from the one-factor arms, not from this run.
+schema_version: 1
+slug: r2s-full-v7-systems
+parent_run: r2s-full-v5-path
+hypothesis: >-
+  Trained on the 2,681 family-disjoint training icons with metric coordinates, path-major
+  order, online exact augmentation and compositions, the 9.0M-parameter render-to-program
+  model transcribes held-out validation renders better than retrieving the closest
+  training icon. Pass requires all three: (1) mean 72 px pixel error below the
+  nearest-training-icon baseline with the paired 95% interval on the reduction excluding
+  zero; (2) CLIP top-1 on Gate N's 32 validation icons at or above OmniSVG 4B zero-shot,
+  0.609; (3) median single-icon latency on the RTX 4080 under 500 ms.
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+model: {image_size: 144, d_model: 256, heads: 8, encoder_layers: 2, decoder_layers: 6, feedforward: 1024, dropout: 0.1, metric: true, fourier: 10, order: path}
+training:
+  steps: 60000
+  batch_size: 32
+  learning_rate: 0.0005
+  warmup_steps: 1000
+  eval_every: 2000
+  eval_icons: 64
+  augment_online: true
+  augment_original: 0.1
+  loader_workers: 16
+  compose_probability: 0.5
+  compose_parts: 4
+  augment_mirror: 0.5
+  augment_max_shift: 48
+  augment_colour: 0.5
+final_eval_icons: 339
+clip_icons: 32
