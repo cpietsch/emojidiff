@@ -1521,6 +1521,56 @@ def greedy_decode(
     return decoded
 
 
+@torch.no_grad()
+def rerank_decode(
+    model: RenderToProgram,
+    image: Tensor,
+    template: PackedTensorProgram,
+    *,
+    candidates: int,
+    temperature: float,
+    seed: int = 0,
+) -> tuple[Tensor, dict[str, float]]:
+    """Greedy plus sampled candidates for one render; keep the one that redraws it best.
+
+    The comparison is against the input render itself - the only thing a user would
+    supply - at the model's input size, so choosing a candidate is decoding, not peeking
+    at a reference. Returns the chosen program and the candidates' pixel errors.
+    """
+
+    layout = model.layout
+    images = image[None]
+    greedy = greedy_decode(model, images)
+    pool = [greedy]
+    if candidates > 1:
+        generator = torch.Generator(device=image.device).manual_seed(seed)
+        pool.append(
+            greedy_decode(
+                model,
+                images.expand(candidates - 1, -1, -1, -1).contiguous(),
+                temperature=temperature,
+                generator=generator,
+            )
+        )
+    tokens = torch.cat(pool)
+    target = image.cpu().numpy()
+    size = int(target.shape[0])
+    errors: list[float] = []
+    for row in tokens:
+        program = unflatten_program(row, template, layout)
+        try:
+            svg = serialize_packed_svg(program, layout.codec, layout.total_segment_slots)
+            errors.append(pixel_error(render_trusted_rgb(svg, size), target))
+        except (ValueError, IsolatedRenderError):
+            errors.append(1.0)
+    best = int(np.argmin(errors))
+    return tokens[best : best + 1], {
+        "chosen": float(best),
+        "best_error": errors[best],
+        "greedy_error": errors[0],
+    }
+
+
 # --------------------------------------------------------------------------- evaluation
 
 

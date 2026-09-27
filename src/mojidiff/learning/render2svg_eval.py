@@ -32,6 +32,7 @@ from mojidiff.learning.render2svg import (
     ModelConfig,
     RenderToProgram,
     _pilot_rows,
+    _programs_to_renders,
     bootstrap_mean_interval,
     clip_retrieval,
     contact_sheet,
@@ -41,13 +42,21 @@ from mojidiff.learning.render2svg import (
     load_corpus,
     nearest_training_icon,
     parameter_count,
+    pixel_error,
+    rerank_decode,
 )
 from mojidiff.learning.telemetry import measure_latency, resource_summary
 
 SPLITS = {"validation": "primary/validation", "test": "primary/test"}
 
 
-def evaluate_run(run_id: str, split: str, icons: int | None = None) -> dict[str, Any]:
+def evaluate_run(
+    run_id: str,
+    split: str,
+    icons: int | None = None,
+    rerank: int = 0,
+    temperature: float = 0.7,
+) -> dict[str, Any]:
     import yaml
 
     run_dir = REPO_ROOT / "runs" / run_id
@@ -73,7 +82,27 @@ def evaluate_run(run_id: str, split: str, icons: int | None = None) -> dict[str,
     library = plain["primary/train"]
 
     started = time.perf_counter()
-    errors, tokens, renders, _ = decode_and_score(model, data, template, device, count, bf16=False)
+    rerank_info: list[dict[str, float]] = []
+    if rerank > 1:
+        chosen_rows = []
+        for index in range(count):
+            row, info = rerank_decode(
+                model,
+                data.images[index].to(device),
+                template,
+                candidates=rerank,
+                temperature=temperature,
+                seed=index,
+            )
+            chosen_rows.append(row.cpu())
+            rerank_info.append(info)
+        tokens = torch.cat(chosen_rows)
+        renders = _programs_to_renders(tokens, layout, template)
+        errors = [pixel_error(render, data.targets[i].numpy()) for i, render in enumerate(renders)]
+    else:
+        errors, tokens, renders, _ = decode_and_score(
+            model, data, template, device, count, bf16=False
+        )
     decode_seconds = time.perf_counter() - started
     nearest, nearest_errors = nearest_training_icon(data.targets, library.targets, device)
     baseline = [float(v) for v in nearest_errors]
@@ -95,16 +124,34 @@ def evaluate_run(run_id: str, split: str, icons: int | None = None) -> dict[str,
         ),
         "rendered_rate": sum(1 for r in renders if r is not None) / count,
         "batched_decode_seconds": decode_seconds,
+        "rerank": {"candidates": rerank, "temperature": temperature} if rerank > 1 else None,
     }
+    if rerank_info:
+        result["rerank_chose_a_sample_rate"] = float(
+            np.mean([info["chosen"] > 0 for info in rerank_info])
+        )
 
     if split == "validation":
         selected = _select_rows(rows["primary/validation"], 32, pilot.seed + 1)
         full = plain["primary/validation"]
         positions = {h: i for i, h in enumerate(full.hexcodes)}
         chosen = [positions[row.hexcode] for row in selected]
-        from mojidiff.learning.render2svg import _programs_to_renders
-
-        clip_tokens = greedy_decode(model, full.images[chosen].to(device))
+        if rerank > 1:
+            clip_tokens = torch.cat(
+                [
+                    rerank_decode(
+                        model,
+                        full.images[i].to(device),
+                        template,
+                        candidates=rerank,
+                        temperature=temperature,
+                        seed=10_000 + i,
+                    )[0].cpu()
+                    for i in chosen
+                ]
+            )
+        else:
+            clip_tokens = greedy_decode(model, full.images[chosen].to(device))
         clip_renders = _programs_to_renders(clip_tokens, layout, template)
         references = [full.targets[i].numpy() for i in chosen]
         clip_nearest, _ = nearest_training_icon(full.targets[chosen], library.targets, device)
@@ -116,6 +163,28 @@ def evaluate_run(run_id: str, split: str, icons: int | None = None) -> dict[str,
             "gate_n_omnisvg_zero_shot_top1": 39 / 64,
         }
 
+    suffix = f"-rerank{rerank}" if rerank > 1 else ""
+    if rerank > 1:
+        one = data.images[0].to(device)
+        rerank_latency = measure_latency(
+            lambda: rerank_decode(model, one, template, candidates=rerank, temperature=temperature),
+            device=device,
+            repeats=5,
+        )
+        result["resource"] = {
+            **resource_summary(device, train_seconds=None, latency=rerank_latency).as_record(),
+            "train_seconds_null_reason": "evaluation of a trained checkpoint",
+            "decoder": f"batched reference, float32, greedy plus {rerank - 1} samples, "
+            "each rendered and compared with the input",
+            "includes": "rasterising every candidate",
+        }
+        sheet_rows = [
+            [data.targets[i].numpy(), renders[i], library.targets[int(nearest[i])].numpy()]
+            for i in range(min(24, count))
+        ]
+        (run_dir / f"eval-{split}{suffix}.png").write_bytes(contact_sheet(sheet_rows))
+        (run_dir / f"eval-{split}{suffix}.json").write_text(json.dumps(result, indent=2) + "\n")
+        return result
     graph = GraphDecoder(model, dtype=torch.float32)
     agreement = sum(
         int(torch.equal(graph.decode(data.images[i]), tokens[i : i + 1])) for i in range(8)
@@ -210,11 +279,13 @@ def main() -> None:
     parser.add_argument("--split", choices=sorted(SPLITS), default="validation")
     parser.add_argument("--icons", type=int, default=None)
     parser.add_argument("--latency-only", action="store_true")
+    parser.add_argument("--rerank", type=int, default=0, help="candidates per icon")
+    parser.add_argument("--temperature", type=float, default=0.7)
     args = parser.parse_args()
     if args.latency_only:
         print(json.dumps(latency_only(args.run, args.icons or 16)))
         return
-    result = evaluate_run(args.run, args.split, args.icons)
+    result = evaluate_run(args.run, args.split, args.icons, args.rerank, args.temperature)
     print(json.dumps(result))
 
 

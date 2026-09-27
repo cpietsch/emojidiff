@@ -404,3 +404,22 @@ def test_whole_program_masks_equal_the_positionwise_grammar(pieces: Pieces) -> N
             assert np.array_equal(program_legal_masks(tokens, layout), expected.numpy())
             checked += 1
     assert checked >= 8
+
+
+def test_reranking_returns_a_valid_program_no_worse_than_greedy(pieces: Pieces) -> None:
+    from mojidiff.learning.render2svg import rerank_decode
+
+    layout, programs = pieces
+    torch.manual_seed(5)
+    model = RenderToProgram(layout, _TINY).eval()
+    image = torch.from_numpy(
+        render_trusted_rgb(serialize_packed_svg(programs[0], layout.codec, 128), 32)
+    )
+    tokens, info = rerank_decode(model, image, programs[0], candidates=3, temperature=1.0, seed=1)
+    assert tokens.shape == (1, layout.length)
+    assert info["best_error"] <= info["greedy_error"]
+    validate_packed_tensor_program(
+        unflatten_program(tokens[0], programs[0], layout),
+        layout.codec,
+        layout.total_segment_slots,
+    )
