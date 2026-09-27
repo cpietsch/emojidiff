@@ -51,8 +51,11 @@ def test_vectorise_returns_a_valid_typed_svg() -> None:
     )
     vectoriser = Vectoriser(model, template, torch.device("cpu"))
     result = vectoriser.vectorise(np.full((32, 32, 3), 255, dtype=np.uint8))
-    assert result["ok"] and result["decoder_calls"] > 0
+    assert result["ok"] and result["decoder_calls"] > 0 and result["candidates"] == 1
     validate_typed_svg(result["svg"].encode(), RenderLimits(max_paths=80))
+    best = vectoriser.vectorise(np.full((32, 32, 3), 255, dtype=np.uint8), candidates=8)
+    assert best["ok"] and best["candidates"] == 8
+    validate_typed_svg(best["svg"].encode(), RenderLimits(max_paths=80))
 
 
 def test_the_demo_offers_only_held_out_icons() -> None:

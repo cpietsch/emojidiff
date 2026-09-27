@@ -33,6 +33,8 @@ MAX_BODY = 4 << 20
 ICON_CACHE = _REPO_ROOT / "data/processed/kitbash"
 PILOT_CONFIG = _REPO_ROOT / "configs/learning/openmoji-g1-geometric-gate-v16.yaml"
 PAGE = Path(__file__).with_name("index.html")
+CANDIDATES = 8
+"""Candidates for the best-of mode: greedy plus seven samples at temperature 0.7."""
 
 
 def canvas_to_rgb(png: bytes, size: int) -> np.ndarray:
@@ -61,11 +63,13 @@ class Vectoriser:
         self.device = device
         self.lock = threading.Lock()
         self.graph: Any = None
+        self.graph_many: Any = None
         if device.type == "cuda":
             from mojidiff.learning.fast_decode import GraphDecoder
 
             # Float32 graphs decode exactly what the evaluated batched decoder decodes.
             self.graph = GraphDecoder(model, dtype=torch.float32)
+            self.graph_many = GraphDecoder(model, dtype=torch.float32, batch=CANDIDATES)
 
     @classmethod
     def from_checkpoint(cls, checkpoint: Path) -> Vectoriser:
@@ -93,7 +97,9 @@ class Vectoriser:
     def image_size(self) -> int:
         return int(self.model.config.image_size)
 
-    def vectorise(self, rgb: np.ndarray) -> dict[str, Any]:
+    def vectorise(self, rgb: np.ndarray, candidates: int = 1) -> dict[str, Any]:
+        """Greedy, or render-and-compare over `CANDIDATES` when `candidates` > 1."""
+
         from mojidiff.learning.autoregressive import unflatten_program
         from mojidiff.learning.render2svg import DecodeStats, greedy_decode
         from mojidiff.representation.packed import serialize_packed_svg
@@ -104,7 +110,17 @@ class Vectoriser:
             if self.device.type == "cuda":
                 torch.cuda.synchronize()
             started = time.perf_counter()
-            if self.graph is not None:
+            if candidates > 1 and self.graph_many is not None:
+                from mojidiff.learning.fast_decode import rerank
+
+                tokens, _ = rerank(self.graph_many, images[0], self.template, stats=stats)
+            elif candidates > 1:
+                from mojidiff.learning.render2svg import rerank_decode
+
+                tokens, _ = rerank_decode(
+                    self.model, images[0], self.template, candidates=CANDIDATES, temperature=0.7
+                )
+            elif self.graph is not None:
                 tokens = self.graph.decode(images[0], stats=stats)
             else:
                 tokens = greedy_decode(self.model, images, stats=stats)
@@ -119,6 +135,7 @@ class Vectoriser:
             "svg": svg.decode(),
             "ms": round(elapsed, 1),
             "decoder_calls": stats.model_calls,
+            "candidates": CANDIDATES if candidates > 1 else 1,
             "paths": len(lengths),
             "segments": sum(lengths),
         }
@@ -201,11 +218,12 @@ class _Handler(http.server.BaseHTTPRequestHandler):
             data = str(payload["png"])
             png = base64.b64decode(data.split(",", 1)[1] if "," in data else data)
             rgb = canvas_to_rgb(png, self.vectoriser.image_size)
+            candidates = int(payload.get("candidates", 1))
         except (KeyError, ValueError, TypeError, OSError) as error:
             self._json(400, {"error": str(error)[:120]})
             return
         try:
-            self._json(200, self.vectoriser.vectorise(rgb))
+            self._json(200, self.vectoriser.vectorise(rgb, candidates))
         except Exception as error:  # noqa: BLE001 - report, never crash the server
             self._json(200, {"ok": False, "failure": f"{type(error).__name__}: {str(error)[:100]}"})
 

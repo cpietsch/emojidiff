@@ -61,7 +61,8 @@
     <h2>SVG program (output)</h2>
     <div id="out" class="pane"></div>
     <div class="stats" id="stats">Pick an icon to start.</div>
-    <div class="row"><button id="run" class="primary">Vectorise</button><button id="download">Download SVG</button></div>
+    <div class="row"><button id="run" class="primary">Vectorise</button><button id="download">Download SVG</button>
+      <label title="Decode eight candidates, render each, keep the one closest to your pixels"><input type="checkbox" id="best"> best of 8 (slower, closer)</label></div>
     <p class="note">Every output is a valid program in the project's codec: at most 32 paths and 128 segments, OpenMoji's palette and stroke widths. Colours are snapped to that palette.</p>
   </section>
 </main>
@@ -130,12 +131,12 @@ async function vectorise() {
   inFlight = true; dirty = false;
   stats.textContent = 'Transcribing…';
   try {
-    const response = await fetch('/vectorise', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ png: canvas.toDataURL('image/png') }) });
+    const response = await fetch('/vectorise', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ png: canvas.toDataURL('image/png'), candidates: document.getElementById('best').checked ? 8 : 1 }) });
     const data = await response.json();
     if (!data.ok) { stats.textContent = 'Failed: ' + (data.failure || data.error); return; }
     latestSvg = data.svg;
     out.innerHTML = data.svg.replace('<svg ', '<svg preserveAspectRatio="xMidYMid meet" ');
-    stats.innerHTML = '<b>' + data.ms.toFixed(0) + ' ms</b> model time · ' + data.decoder_calls + ' decoder calls · ' + data.paths + ' paths · ' + data.segments + ' segments';
+    stats.innerHTML = '<b>' + data.ms.toFixed(0) + ' ms</b> model time' + (data.candidates > 1 ? ' (best of ' + data.candidates + ', rendering included)' : '') + ' · ' + data.decoder_calls + ' decoder calls · ' + data.paths + ' paths · ' + data.segments + ' segments';
   } catch (error) {
     stats.textContent = 'Request failed: ' + error;
   } finally {
@@ -153,6 +154,7 @@ document.getElementById('eraser').onclick = () => { erasing = true; setTool(); }
 document.getElementById('undo').onclick = () => { const s = history.pop(); if (s) { ctx.putImageData(s, 0, 0); schedule(); } };
 document.getElementById('clear').onclick = () => { snapshot(); blank(); schedule(); };
 document.getElementById('run').onclick = vectorise;
+document.getElementById('best').onchange = vectorise;
 document.getElementById('download').onclick = () => {
   if (!latestSvg) return;
   const a = document.createElement('a');
