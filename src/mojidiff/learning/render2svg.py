@@ -88,6 +88,17 @@ class ModelConfig:
     decoder_layers: int = 6
     feedforward: int = 1024
     dropout: float = 0.0
+    metric: bool = False
+    """Give coordinates and image cells the same continuous position features.
+
+    Off, a coordinate token is an arbitrary category and an image cell has a learned
+    position: nothing tells the model that token 145 and the middle of the grid are
+    the same place. On, both carry Fourier features of their position in view units,
+    the input embedding of a coordinate adds them, and coordinate logits add a term
+    scored against the features of every candidate value, so neighbouring bins score
+    alike and a query can prefer the image cells near the previous point.
+    """
+    fourier: int = 10
 
 
 @dataclass(frozen=True)
@@ -607,6 +618,74 @@ def load_augmented(
 # --------------------------------------------------------------------------- model
 
 
+ROLE_NONE, ROLE_ENDPOINT, ROLE_CONTROL = 0, 1, 2
+_CONTROL_SLOTS = (0, 0, 2, 4, 0)
+"""Control slots per segment kind token (PAD, LINE, QUAD, CUBIC, CLOSE)."""
+
+
+def _static_tables(layout: SequenceLayout) -> tuple[Tensor, Tensor, Tensor]:
+    """Per position: segment slot (-1 if none), kind position (-1), path-start axis (-1)."""
+
+    from mojidiff.learning.autoregressive import PATH_FIELDS, PATH_STRIDE
+
+    slot = torch.full((layout.length,), -1, dtype=torch.long)
+    kind_position = torch.full((layout.length,), -1, dtype=torch.long)
+    start_axis = torch.full((layout.length,), -1, dtype=torch.long)
+    for position in range(layout.length):
+        found = layout.coordinate_slot_of(position)
+        if found is not None:
+            slot[position] = found[1]
+            kind_position[position] = layout.segment_type_position(found[0])
+    for path in range(layout.codec.max_paths):
+        base = path * PATH_STRIDE + len(PATH_FIELDS)
+        start_axis[base] = 0
+        start_axis[base + 1] = 1
+    return slot, kind_position, start_axis
+
+
+def coordinate_roles(
+    tokens: Tensor, tables: tuple[Tensor, Tensor, Tensor]
+) -> tuple[Tensor, Tensor]:
+    """Role (none, endpoint, control) and axis (0 x, 1 y) of every position.
+
+    A position's role depends only on earlier tokens - a segment's kind precedes its
+    coordinates - so it is known both for teacher forcing and while decoding.
+    """
+
+    slot, kind_position, start_axis = (t.to(tokens.device) for t in tables)
+    kinds = tokens.gather(1, kind_position.clamp_min(0)[None].expand(tokens.shape[0], -1))
+    kinds = torch.where(slot[None] >= 0, kinds, torch.zeros_like(kinds)).clamp(0, 4)
+    controls = torch.tensor(_CONTROL_SLOTS, device=tokens.device)[kinds]
+    used = torch.where((kinds >= 1) & (kinds <= 3), controls + 2, torch.zeros_like(controls))
+    in_segment = (slot[None] >= 0) & (slot[None] < used)
+    is_control = in_segment & (slot[None] < controls)
+    is_start = (start_axis >= 0)[None].expand_as(tokens)
+    role = torch.where(
+        is_control,
+        torch.full_like(tokens, ROLE_CONTROL),
+        torch.where(
+            in_segment | is_start, torch.full_like(tokens, ROLE_ENDPOINT), torch.zeros_like(tokens)
+        ),
+    )
+    axis = torch.where(is_start, start_axis[None].expand_as(tokens), slot[None].clamp_min(0) % 2)
+    return role, axis
+
+
+def coordinate_value(tokens: Tensor, role: Tensor) -> Tensor:
+    """View-unit value of a coordinate token: both lattices step a quarter unit."""
+
+    index = (tokens.to(torch.float32) - 1.0).clamp_min(0.0) * 0.25
+    return torch.where(role == ROLE_CONTROL, index - 8.0, index)
+
+
+def fourier_features(value: Tensor, frequencies: int) -> Tensor:
+    """[v/72, sin(2^k pi v/72), cos(2^k pi v/72)] for k < frequencies."""
+
+    scales = torch.pow(2.0, torch.arange(frequencies, device=value.device)) * torch.pi / 72.0
+    scaled = value[..., None] * scales
+    return torch.cat(((value / 72.0)[..., None], torch.sin(scaled), torch.cos(scaled)), dim=-1)
+
+
 class _Attention(nn.Module):
     def __init__(self, d_model: int, heads: int) -> None:
         super().__init__()
@@ -728,12 +807,69 @@ class RenderToProgram(nn.Module):
         )
         self.norm = nn.LayerNorm(width)
         self.head = nn.Linear(width, layout.vocabulary)
+        if config.metric:
+            features = 2 * config.fourier + 1
+            self.grid_projection = nn.Linear(2 * features, width)
+            # Input: the coordinate's features, which axis, endpoint or control.
+            self.coordinate_projection = nn.Linear(features + 4, width)
+            self.metric_query = nn.Linear(width, width)
+            self.metric_value = nn.Linear(features + 4, width)
+            tables = _static_tables(layout)
+            self.register_buffer("_slot", tables[0], persistent=False)
+            self.register_buffer("_kind_position", tables[1], persistent=False)
+            self.register_buffer("_start_axis", tables[2], persistent=False)
+            grid = config.image_size // 8
+            centres = (torch.arange(grid, dtype=torch.float32) + 0.5) * 72.0 / grid
+            ys, xs = torch.meshgrid(centres, centres, indexing="ij")
+            cell = torch.cat(
+                (
+                    fourier_features(xs.reshape(-1), config.fourier),
+                    fourier_features(ys.reshape(-1), config.fourier),
+                ),
+                dim=-1,
+            )
+            self.register_buffer("_cell_features", cell, persistent=False)
+            vocabulary = torch.arange(layout.vocabulary)
+            candidates = []
+            for role in (ROLE_ENDPOINT, ROLE_CONTROL):
+                for axis in (0, 1):
+                    value = coordinate_value(vocabulary, torch.full_like(vocabulary, role))
+                    candidates.append(
+                        self._describe(
+                            value,
+                            torch.full_like(vocabulary, axis),
+                            torch.full_like(vocabulary, role),
+                        )
+                    )
+            self.register_buffer("_candidate_features", torch.stack(candidates), persistent=False)
+
+    def _describe(self, value: Tensor, axis: Tensor, role: Tensor) -> Tensor:
+        """Features of a coordinate: Fourier of its value, its axis, its role."""
+
+        return torch.cat(
+            (
+                fourier_features(value, self.config.fourier),
+                F.one_hot(axis.clamp(0, 1), 2).to(torch.float32),
+                F.one_hot((role - 1).clamp(0, 1), 2).to(torch.float32),
+            ),
+            dim=-1,
+        )
+
+    def tables(self) -> tuple[Tensor, Tensor, Tensor]:
+        return (
+            cast(Tensor, self._slot),
+            cast(Tensor, self._kind_position),
+            cast(Tensor, self._start_axis),
+        )
 
     def encode(self, images: Tensor) -> list[tuple[Tensor, Tensor]]:
         """Per-decoder-layer cross-attention keys and values for uint8 NHWC renders."""
 
         pixels = images.permute(0, 3, 1, 2).to(self.grid_embedding.dtype) / 127.5 - 1.0
         features = self.stem(pixels).flatten(2).transpose(1, 2) + self.grid_embedding
+        if self.config.metric:
+            cells = cast(Tensor, self._cell_features).to(features.dtype)
+            features = features + self.grid_projection(cells)[None]
         for block in self.encoder:
             features = block(features)
         memory = self.encoder_norm(features)
@@ -741,27 +877,63 @@ class RenderToProgram(nn.Module):
             cast(_DecoderBlock, block).cross_attention.keys_values(memory) for block in self.decoder
         ]
 
+    def metric_inputs(self, tokens: Tensor, start: int, end: int) -> tuple[Tensor, Tensor]:
+        """Features of the input token and the target role/axis for positions start..end.
+
+        `tokens` is the full (partially decoded) sequence. Input i is token i - 1, so its
+        features describe the previous position; the target role says what position i
+        itself will hold, which earlier tokens already determine.
+        """
+
+        role, axis = coordinate_roles(tokens, self.tables())
+        value = coordinate_value(tokens, role)
+        described = self._describe(value, axis, role)
+        described = described * ((role > 0) & (tokens > 0))[..., None]
+        shifted = torch.cat((torch.zeros_like(described[:, :1]), described[:, :-1]), dim=1)
+        target = torch.where(role > 0, (role - 1) * 2 + axis, torch.full_like(role, -1))
+        return shifted[:, start:end], target[:, start:end]
+
     def decode(
         self,
         inputs: Tensor,
         memory: list[tuple[Tensor, Tensor]],
         cache: list[tuple[Tensor, Tensor]] | None = None,
         offset: int = 0,
+        metric: tuple[Tensor, Tensor] | None = None,
     ) -> tuple[Tensor, list[tuple[Tensor, Tensor]]]:
         positions = torch.arange(offset, offset + inputs.shape[1], device=inputs.device)
         hidden = self.token_embedding(inputs) + self.position_embedding(positions)[None]
+        if self.config.metric:
+            if metric is None:
+                raise ValueError("a metric model needs metric inputs")
+            hidden = hidden + self.coordinate_projection(metric[0].to(hidden.dtype))
         updated: list[tuple[Tensor, Tensor]] = []
         for index, block in enumerate(self.decoder):
             past = cache[index] if cache is not None else None
             hidden, present = block(hidden, memory[index], past)
             updated.append(present)
-        return self.head(self.norm(hidden)), updated
+        normed = self.norm(hidden)
+        logits: Tensor = self.head(normed)
+        if self.config.metric and metric is not None:
+            target = metric[1]
+            query = self.metric_query(normed)
+            candidates = self.metric_value(
+                cast(Tensor, self._candidate_features).to(query.dtype)
+            )  # (4, V, d)
+            scores = torch.einsum("bld,rvd->blrv", query, candidates) / math.sqrt(query.shape[-1])
+            chosen = scores.gather(
+                2,
+                target.clamp_min(0)[..., None, None].expand(-1, -1, 1, scores.shape[-1]),
+            )[:, :, 0]
+            logits = logits + chosen * (target >= 0)[..., None].to(chosen.dtype)
+        return logits, updated
 
     def forward(self, images: Tensor, tokens: Tensor) -> Tensor:
         """Teacher-forced logits for every position."""
 
         shifted, _ = teacher_forcing_inputs(tokens, self.layout)
-        logits, _ = self.decode(shifted, self.encode(images))
+        metric = self.metric_inputs(tokens, 0, tokens.shape[1]) if self.config.metric else None
+        logits, _ = self.decode(shifted, self.encode(images), metric=metric)
         return logits
 
 
@@ -814,7 +986,12 @@ def greedy_decode(
         shifted = torch.zeros((batch, position + 1 - fed), dtype=torch.long)
         for index, absolute in enumerate(range(fed, position + 1)):
             shifted[:, index] = decoded[:, absolute - 1] if absolute > 0 else 0
-        logits, cache = model.decode(shifted.to(device), memory, cache, offset=fed)
+        metric = (
+            model.metric_inputs(decoded.to(device), fed, position + 1)
+            if model.config.metric
+            else None
+        )
+        logits, cache = model.decode(shifted.to(device), memory, cache, offset=fed, metric=metric)
         calls += 1
         fed = position + 1
         scores = logits[:, -1].float().masked_fill(~masks.to(device), float("-inf"))

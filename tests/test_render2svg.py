@@ -67,6 +67,18 @@ def pieces() -> Pieces:
     return layout, programs
 
 
+_TINY_METRIC = ModelConfig(
+    image_size=32,
+    d_model=32,
+    heads=4,
+    encoder_layers=1,
+    decoder_layers=2,
+    feedforward=64,
+    metric=True,
+    fourier=6,
+)
+
+
 def _reference_decode(model: RenderToProgram, images: torch.Tensor) -> torch.Tensor:
     """Position by position, re-reading the whole prefix, no cache and no skipping."""
 
@@ -79,15 +91,17 @@ def _reference_decode(model: RenderToProgram, images: torch.Tensor) -> torch.Ten
             decoded[0, position] = int(mask.to(torch.long).argmax())
             continue
         shifted = torch.cat((torch.zeros((1, 1), dtype=torch.long), decoded[:, :position]), 1)
-        logits, _ = model.decode(shifted, memory)
+        metric = model.metric_inputs(decoded, 0, position + 1) if model.config.metric else None
+        logits, _ = model.decode(shifted, memory, metric=metric)
         decoded[0, position] = int(logits[0, -1].masked_fill(~mask, float("-inf")).argmax())
     return decoded
 
 
-def test_skipping_forced_positions_is_exact(pieces: Pieces) -> None:
+@pytest.mark.parametrize("config", [_TINY, _TINY_METRIC], ids=["plain", "metric"])
+def test_skipping_forced_positions_is_exact(pieces: Pieces, config: ModelConfig) -> None:
     layout, programs = pieces
     torch.manual_seed(0)
-    model = RenderToProgram(layout, _TINY).eval()
+    model = RenderToProgram(layout, config).eval()
     images = torch.randint(0, 256, (1, 32, 32, 3), dtype=torch.uint8)
     stats = DecodeStats()
     fast = greedy_decode(model, images, stats=stats)
@@ -129,10 +143,11 @@ def test_mirror_is_an_exact_pixel_mirror(pieces: Pieces) -> None:
         )
 
 
-def test_a_training_step_lowers_the_loss(pieces: Pieces) -> None:
+@pytest.mark.parametrize("config", [_TINY, _TINY_METRIC], ids=["plain", "metric"])
+def test_a_training_step_lowers_the_loss(pieces: Pieces, config: ModelConfig) -> None:
     layout, programs = pieces
     torch.manual_seed(2)
-    model = RenderToProgram(layout, _TINY)
+    model = RenderToProgram(layout, config)
     tokens = flatten_program(programs[0], layout)[None]
     masks = torch.stack([legal_mask(p, tokens[0], layout) for p in range(layout.length)])[None]
     images = torch.randint(0, 256, (1, 32, 32, 3), dtype=torch.uint8)
@@ -214,3 +229,52 @@ def test_palette_permutation_recolours_consistently(pieces: Pieces) -> None:
     recoloured = permute_palette_tokens(tokens, layout, rolled)
     back = permute_palette_tokens(recoloured, layout, np.argsort(rolled))
     assert torch.equal(back, tokens)
+
+
+def test_teacher_forced_logits_match_cached_decoding_under_metric(pieces: Pieces) -> None:
+    """The metric inputs of a chunked, cached decode equal those of one full forward."""
+
+    layout, programs = pieces
+    torch.manual_seed(3)
+    model = RenderToProgram(layout, _TINY_METRIC).eval()
+    tokens = flatten_program(programs[1], layout)[None]
+    images = torch.randint(0, 256, (1, 32, 32, 3), dtype=torch.uint8)
+    full = model(images, tokens)
+    memory = model.encode(images)
+    shifted = torch.cat((torch.zeros((1, 1), dtype=torch.long), tokens[:, :-1]), 1)
+    cache = None
+    pieces_out = []
+    for start, end in ((0, 500), (500, 501), (501, layout.length)):
+        logits, cache = model.decode(
+            shifted[:, start:end],
+            memory,
+            cache,
+            offset=start,
+            metric=model.metric_inputs(tokens, start, end),
+        )
+        pieces_out.append(logits)
+    assert torch.allclose(torch.cat(pieces_out, 1), full, atol=1e-4)
+
+
+def test_coordinate_roles_follow_the_grammar(pieces: Pieces) -> None:
+    from mojidiff.learning.render2svg import (
+        ROLE_CONTROL,
+        ROLE_ENDPOINT,
+        _static_tables,
+        coordinate_roles,
+        coordinate_value,
+    )
+
+    layout, programs = pieces
+    tokens = flatten_program(programs[0], layout)[None]
+    role, axis = coordinate_roles(tokens, _static_tables(layout))
+    program = programs[0]
+    # Every active path's start point is an endpoint pair (x then y).
+    first_start = 13
+    assert int(role[0, first_start]) == ROLE_ENDPOINT and int(axis[0, first_start]) == 0
+    assert int(axis[0, first_start + 1]) == 1
+    value = coordinate_value(tokens, role)
+    assert float(value[0, first_start]) == (int(program.start[0, 0]) - 1) * 0.25
+    # Controls exist exactly where the program has quadratic or cubic segments.
+    has_curves = bool(np.isin(program.segment_type, (2, 3)).any())
+    assert bool((role == ROLE_CONTROL).any()) == has_curves
