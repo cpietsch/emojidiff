@@ -31,12 +31,22 @@ from mojidiff.learning.render2svg import (
     DecodeStats,
     ModelConfig,
     RenderToProgram,
+    TrainConfig,
+    augment_program_tokens,
     greedy_decode,
     mirror_program_tokens,
+    permute_palette_tokens,
     pixel_error,
     render_program_rgb,
+    render_trusted_rgb,
+    shift_bounds,
+    translate_program_tokens,
 )
-from mojidiff.representation.packed import PackedTensorProgram, validate_packed_tensor_program
+from mojidiff.representation.packed import (
+    PackedTensorProgram,
+    serialize_packed_svg,
+    validate_packed_tensor_program,
+)
 
 _CONFIG = Path("configs/learning/openmoji-g1-geometric-gate-v16.yaml")
 _TINY = ModelConfig(
@@ -137,3 +147,70 @@ def test_a_training_step_lowers_the_loss(pieces: Pieces) -> None:
         optimizer.step()
         losses.append(float(loss.detach()))
     assert losses[-1] < losses[0]
+
+
+def test_translation_is_an_exact_pixel_shift(pieces: Pieces) -> None:
+    layout, programs = pieces
+    for program in programs:
+        tokens = flatten_program(program, layout)
+        x_low, x_high, y_low, y_high = shift_bounds(tokens, layout)
+        # Four quarter units is one view unit, which is one pixel at 72 px.
+        dx, dy = (4 if x_high >= 4 else -4), (-4 if y_low <= -4 else 4)
+        shifted = translate_program_tokens(tokens, layout, dx, dy)
+        assert shifted is not None
+        assert translate_program_tokens(tokens, layout, x_high + 1, 0) is None
+        assert translate_program_tokens(tokens, layout, 0, y_low - 1) is None
+        candidate = unflatten_program(shifted, program, layout)
+        validate_packed_tensor_program(candidate, layout.codec, layout.total_segment_slots)
+        original = render_program_rgb(program, layout, 72)
+        moved = render_program_rgb(candidate, layout, 72)
+        assert original is not None and moved is not None
+        expected = np.full_like(original, 255)
+        sx, sy = dx // 4, dy // 4
+        h, w = original.shape[:2]
+        expected[max(sy, 0) : h + min(sy, 0), max(sx, 0) : w + min(sx, 0)] = original[
+            max(-sy, 0) : h + min(-sy, 0), max(-sx, 0) : w + min(-sx, 0)
+        ]
+        assert pixel_error(moved, expected) < 0.002
+
+
+def test_trusted_renderer_matches_the_isolated_one(pieces: Pieces) -> None:
+    layout, programs = pieces
+    svg = serialize_packed_svg(programs[0], layout.codec, layout.total_segment_slots)
+    isolated = render_program_rgb(programs[0], layout, 72)
+    assert isolated is not None
+    assert np.array_equal(render_trusted_rgb(svg, 72), isolated)
+
+
+def test_augmented_variants_keep_the_source_masks_where_the_loss_reads(pieces: Pieces) -> None:
+    layout, programs = pieces
+    config = TrainConfig(augment_mirror=0.5, augment_colour=1.0, augment_max_shift=48)
+    rng = np.random.default_rng(0)
+    for program in programs:
+        tokens = flatten_program(program, layout)
+        source = torch.stack([legal_mask(p, tokens, layout) for p in range(layout.length)])
+        free = source.sum(dim=-1) > 1
+        for _ in range(3):
+            variant = augment_program_tokens(tokens, layout, rng, config)
+            assert not torch.equal(variant, tokens)
+            validate_packed_tensor_program(
+                unflatten_program(variant, program, layout),
+                layout.codec,
+                layout.total_segment_slots,
+            )
+            recomputed = torch.stack([legal_mask(p, variant, layout) for p in range(layout.length)])
+            assert torch.equal(recomputed.sum(dim=-1) > 1, free)
+            assert torch.equal(recomputed[free], source[free])
+            # And every variant token is legal under the source masks at free positions.
+            assert bool(source[free].gather(1, variant[free][:, None]).all())
+
+
+def test_palette_permutation_recolours_consistently(pieces: Pieces) -> None:
+    layout, programs = pieces
+    tokens = flatten_program(programs[0], layout)
+    identity = np.arange(len(layout.codec.palette))
+    assert torch.equal(permute_palette_tokens(tokens, layout, identity), tokens)
+    rolled = np.roll(identity, 1)
+    recoloured = permute_palette_tokens(tokens, layout, rolled)
+    back = permute_palette_tokens(recoloured, layout, np.argsort(rolled))
+    assert torch.equal(back, tokens)

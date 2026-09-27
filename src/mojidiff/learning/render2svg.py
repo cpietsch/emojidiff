@@ -104,8 +104,15 @@ class TrainConfig:
     """Restrict training to the first N training icons; the overfit fixture uses 4."""
     evaluate_on_train: bool = False
     """Score decodes on the training icons themselves, for the overfit fixture."""
-    augment_mirror: float = 0.0
-    """Probability of presenting an icon left-right mirrored, in pixels and tokens."""
+    augment_variants: int = 0
+    """Exact augmented copies per training icon, rendered once; 0 trains on originals."""
+    augment_seed: int = 9001
+    augment_mirror: float = 0.5
+    """Per-variant probability of a left-right mirror."""
+    augment_max_shift: int = 48
+    """Largest translation per axis in quarter units (48 = 12 view units)."""
+    augment_colour: float = 0.5
+    """Per-variant probability of a random permutation of the palette."""
     bf16: bool = True
 
 
@@ -208,6 +215,130 @@ def mirror_program_tokens(tokens: Tensor, layout: SequenceLayout) -> Tensor | No
                 out[position] = mirrored
             else:
                 out[position] = 290 - token
+    return out
+
+
+def _roles(
+    tokens: Tensor, layout: SequenceLayout
+) -> tuple[list[int], list[int], list[int], list[int]]:
+    """Positions carrying (endpoint x, endpoint y, control x, control y) in this program."""
+
+    from mojidiff.learning.autoregressive import PATH_FIELDS, PATH_STRIDE, SEGMENT_STRIDE
+    from mojidiff.representation.program import SegmentType
+
+    endpoint_x: list[int] = []
+    endpoint_y: list[int] = []
+    control_x: list[int] = []
+    control_y: list[int] = []
+    for path in range(layout.codec.max_paths):
+        base = path * PATH_STRIDE + len(PATH_FIELDS)
+        if int(tokens[base]) >= 1:
+            endpoint_x.append(base)
+            endpoint_y.append(base + 1)
+    controls = {int(SegmentType.LINE): 0, int(SegmentType.QUAD): 1, int(SegmentType.CUBIC): 2}
+    for segment in range(layout.total_segment_slots):
+        base = layout.path_positions + segment * SEGMENT_STRIDE
+        kind = int(tokens[base])
+        if kind not in controls:
+            continue
+        for pair in range(controls[kind] + 1):
+            position = base + 1 + 2 * pair
+            if pair < controls[kind]:
+                control_x.append(position)
+                control_y.append(position + 1)
+            else:
+                endpoint_x.append(position)
+                endpoint_y.append(position + 1)
+    return endpoint_x, endpoint_y, control_x, control_y
+
+
+def translate_program_tokens(
+    tokens: Tensor, layout: SequenceLayout, dx: int, dy: int
+) -> Tensor | None:
+    """Shift a program by (dx, dy) quarter units, or None if any coordinate would leave
+    its lattice. Endpoint and control lattices share the quarter-unit step, so a shift
+    of k units is a shift of k tokens on both - exact, with nothing rounded."""
+
+    codec = layout.codec
+    out = tokens.clone()
+    endpoint_x, endpoint_y, control_x, control_y = _roles(tokens, layout)
+    for positions, shift, top in (
+        (endpoint_x, dx, codec.coordinate_bins),
+        (endpoint_y, dy, codec.coordinate_bins),
+        (control_x, dx, codec.effective_control_coordinate_bins),
+        (control_y, dy, codec.effective_control_coordinate_bins),
+    ):
+        for position in positions:
+            value = int(tokens[position]) + shift
+            if not 1 <= value <= top:
+                return None
+            out[position] = value
+    return out
+
+
+def shift_bounds(tokens: Tensor, layout: SequenceLayout) -> tuple[int, int, int, int]:
+    """The inclusive (dx_min, dx_max, dy_min, dy_max) that keep every coordinate legal."""
+
+    codec = layout.codec
+    endpoint_x, endpoint_y, control_x, control_y = _roles(tokens, layout)
+
+    def bounds(positions: list[int], top: int) -> tuple[int, int]:
+        if not positions:
+            return -(10**6), 10**6
+        values = [int(tokens[p]) for p in positions]
+        return 1 - min(values), top - max(values)
+
+    ex = bounds(endpoint_x, codec.coordinate_bins)
+    cx = bounds(control_x, codec.effective_control_coordinate_bins)
+    ey = bounds(endpoint_y, codec.coordinate_bins)
+    cy = bounds(control_y, codec.effective_control_coordinate_bins)
+    return max(ex[0], cx[0]), min(ex[1], cx[1]), max(ey[0], cy[0]), min(ey[1], cy[1])
+
+
+def permute_palette_tokens(
+    tokens: Tensor, layout: SequenceLayout, permutation: np.ndarray
+) -> Tensor:
+    """Recolour a program: palette entry i becomes entry permutation[i] everywhere.
+
+    Fill and stroke tokens are 2 + palette index; NONE (1) and PAD (0) are untouched.
+    A bijection keeps paths that shared a colour sharing one, which is what the
+    same-layer style rule needs.
+    """
+
+    from mojidiff.learning.autoregressive import PATH_FIELDS, PATH_STRIDE
+
+    out = tokens.clone()
+    for path in range(layout.codec.max_paths):
+        for name in ("fill", "stroke"):
+            position = path * PATH_STRIDE + PATH_FIELDS.index(name)
+            token = int(tokens[position])
+            if token >= 2:
+                out[position] = 2 + int(permutation[token - 2])
+    return out
+
+
+def augment_program_tokens(
+    tokens: Tensor, layout: SequenceLayout, rng: np.random.Generator, config: TrainConfig
+) -> Tensor:
+    """One random exact variant: optional mirror, a translation, optional recolouring."""
+
+    out = tokens
+    if rng.random() < config.augment_mirror:
+        mirrored = mirror_program_tokens(out, layout)
+        if mirrored is not None:
+            out = mirrored
+    x_low, x_high, y_low, y_high = shift_bounds(out, layout)
+    limit = config.augment_max_shift
+    x_low, x_high = max(x_low, -limit), min(x_high, limit)
+    y_low, y_high = max(y_low, -limit), min(y_high, limit)
+    if x_low <= x_high and y_low <= y_high:
+        dx = int(rng.integers(x_low, x_high + 1))
+        dy = int(rng.integers(y_low, y_high + 1))
+        shifted = translate_program_tokens(out, layout, dx, dy)
+        if shifted is not None:
+            out = shifted
+    if rng.random() < config.augment_colour:
+        out = permute_palette_tokens(out, layout, rng.permutation(len(layout.codec.palette)))
     return out
 
 
@@ -346,6 +477,131 @@ def load_corpus(
     plain = {name: split("plain", name) for name in names}
     mirrored = {name: split("mirror", name) for name in names} if mirror else {}
     return plain, mirrored, layout, pilot, dataset_hash
+
+
+def render_trusted_rgb(svg: bytes, size: int) -> np.ndarray:
+    """Render our own serializer's output in process, with the worker's exact arguments.
+
+    The isolated subprocess renderer exists for untrusted SVG. Augmented training
+    programs are produced by the validated packed serializer from programs that already
+    passed the codec, so the subprocess boundary buys nothing here except a process
+    spawn per image. The typed-surface validation still runs.
+    """
+
+    import io
+
+    import cairosvg
+    from PIL import Image
+
+    from mojidiff.representation.renderer import validate_typed_svg
+
+    validate_typed_svg(svg, RenderLimits(max_paths=80))
+    png = cairosvg.svg2png(bytestring=svg, output_width=size, output_height=size, unsafe=False)
+    with Image.open(io.BytesIO(png)) as image:
+        rgba = np.asarray(image.convert("RGBA"), dtype=np.uint8)
+    return _composite_on_white(rgba)
+
+
+AUGMENT_FORMAT = 1
+"""Bump when the augmentation functions change what a seed produces."""
+
+
+@dataclass
+class AugmentedData:
+    base_index: np.ndarray  # (M,) index into the training split, for its legal masks
+    tokens: Tensor  # (M, L) long
+    images: Tensor  # (M, S, S, 3) uint8
+
+
+def _augment_chunk(
+    args: tuple[np.ndarray, np.ndarray, SequenceLayout, PackedTensorProgram, int, TrainConfig, int],
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    indices, tokens, layout, template, size, config, seed = args
+    rng = np.random.default_rng(seed)
+    kept_index: list[int] = []
+    kept_tokens: list[np.ndarray] = []
+    kept_images: list[np.ndarray] = []
+    for index, row in zip(indices, tokens, strict=True):
+        source = torch.from_numpy(row.astype(np.int64))
+        for _ in range(config.augment_variants):
+            variant = augment_program_tokens(source, layout, rng, config)
+            program = unflatten_program(variant, template, layout)
+            try:
+                validate_packed_tensor_program(program, layout.codec, layout.total_segment_slots)
+                svg = serialize_packed_svg(program, layout.codec, layout.total_segment_slots)
+                image = render_trusted_rgb(svg, size)
+            except (ValueError, IsolatedRenderError):
+                continue
+            kept_index.append(int(index))
+            kept_tokens.append(variant.numpy().astype(np.int16))
+            kept_images.append(image)
+    return (
+        np.asarray(kept_index, dtype=np.int64),
+        np.stack(kept_tokens) if kept_tokens else np.zeros((0, layout.length), np.int16),
+        np.stack(kept_images) if kept_images else np.zeros((0, size, size, 3), np.uint8),
+    )
+
+
+def load_augmented(
+    train: SplitData,
+    layout: SequenceLayout,
+    template: PackedTensorProgram,
+    size: int,
+    config: TrainConfig,
+    dataset_hash: str,
+    *,
+    workers: int = 20,
+) -> tuple[AugmentedData, str]:
+    """`augment_variants` exact variants of every training icon, rendered once and cached."""
+
+    settings = {
+        "format": AUGMENT_FORMAT,
+        "dataset": dataset_hash,
+        "icons": len(train.tokens),
+        "size": size,
+        "variants": config.augment_variants,
+        "seed": config.augment_seed,
+        "mirror": config.augment_mirror,
+        "shift": config.augment_max_shift,
+        "colour": config.augment_colour,
+    }
+    key = hashlib.sha256(json.dumps(settings, sort_keys=True).encode()).hexdigest()[:12]
+    path = CACHE_ROOT / f"render2svg-augment-{key}.npz"
+    if not path.exists():
+        tokens = train.tokens.numpy().astype(np.int16)
+        chunks = np.array_split(np.arange(len(tokens)), max(1, len(tokens) // 32))
+        jobs = [
+            (
+                chunk,
+                tokens[chunk],
+                layout,
+                template,
+                size,
+                config,
+                config.augment_seed * 100_003 + n,
+            )
+            for n, chunk in enumerate(chunks)
+        ]
+        with ProcessPoolExecutor(max_workers=workers) as pool:
+            parts = list(pool.map(_augment_chunk, jobs))
+        temporary = path.with_suffix(".tmp.npz")
+        np.savez(
+            temporary,
+            base_index=np.concatenate([p[0] for p in parts]),
+            tokens=np.concatenate([p[1] for p in parts]),
+            images=np.concatenate([p[2] for p in parts]),
+        )
+        temporary.rename(path)
+    data = np.load(path)
+    augment_hash = hashlib.sha256(path.read_bytes()).hexdigest()
+    return (
+        AugmentedData(
+            base_index=data["base_index"],
+            tokens=torch.from_numpy(data["tokens"].astype(np.int64)),
+            images=torch.from_numpy(data["images"]),
+        ),
+        augment_hash,
+    )
 
 
 # --------------------------------------------------------------------------- model
@@ -738,27 +994,46 @@ def _schedule(step: int, config: TrainConfig) -> float:
 
 
 def _batches(
-    train: SplitData, mirrored: SplitData | None, config: TrainConfig, rng: np.random.Generator
+    train: SplitData, augmented: AugmentedData | None, config: TrainConfig, rng: np.random.Generator
 ) -> Iterator[tuple[Tensor, Tensor, Tensor]]:
-    """(images, tokens, masks) on CPU; mirrored icons stand in with the set probability."""
+    """(images, tokens, masks) on CPU, drawn uniformly from originals and variants.
 
-    mirror_index: dict[str, int] = (
-        {h: i for i, h in enumerate(mirrored.hexcodes)} if mirrored is not None else {}
-    )
-    count = len(train.tokens)
+    A variant borrows its source icon's legal masks. Mirroring and translation change
+    no mask, and a palette permutation changes only rows the grammar already forces,
+    which the loss never reads; `tests/test_render2svg.py` checks this against masks
+    recomputed from the variant.
+    """
+
+    originals = len(train.tokens)
+    variants = len(augmented.tokens) if augmented is not None else 0
+    total = originals + variants
     while True:
-        indices = rng.choice(count, size=config.batch_size, replace=count < config.batch_size)
-        images = train.images[indices].clone()
-        tokens = train.tokens[indices].clone()
-        masks = train.mask_batch(indices)
-        if mirrored is not None and config.augment_mirror > 0.0:
-            for slot, index in enumerate(indices):
-                other = mirror_index.get(train.hexcodes[index])
-                if other is not None and rng.random() < config.augment_mirror:
-                    images[slot] = mirrored.images[other]
-                    tokens[slot] = mirrored.tokens[other]
-                    masks[slot] = mirrored.mask_batch(np.array([other]))[0]
-        yield images, tokens, masks
+        picks = rng.choice(total, size=config.batch_size, replace=total < config.batch_size)
+        base = np.array(
+            [
+                pick
+                if pick < originals
+                else int(cast(AugmentedData, augmented).base_index[pick - originals])
+                for pick in picks
+            ]
+        )
+        images = torch.stack(
+            [
+                train.images[pick]
+                if pick < originals
+                else cast(AugmentedData, augmented).images[pick - originals]
+                for pick in picks
+            ]
+        )
+        tokens = torch.stack(
+            [
+                train.tokens[pick]
+                if pick < originals
+                else cast(AugmentedData, augmented).tokens[pick - originals]
+                for pick in picks
+            ]
+        )
+        yield images, tokens, train.mask_batch(base)
 
 
 def _git(*args: str) -> str:
@@ -805,7 +1080,7 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
     config = load_config(config_path)
     torch.manual_seed(config.training.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    plain, mirrored, layout, pilot, dataset_hash = load_corpus(
+    plain, _mirrored, layout, pilot, dataset_hash = load_corpus(
         config.pilot_config, config.model.image_size
     )
     identity = run_identity(config_path, dataset_hash, config.slug)
@@ -822,12 +1097,17 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
         train = train.subset(config.training.train_icons)
     validation = plain["primary/validation"]
     evaluation = train if config.training.evaluate_on_train else validation
-    mirror_train = mirrored.get("primary/train") if config.training.augment_mirror else None
 
     from mojidiff.learning.openmoji_pilot import _load_program, _select_rows
 
     by_split_rows = _pilot_rows(pilot)
     template = _load_program(by_split_rows["primary/train"][0], pilot, layout.codec)
+    augmented: AugmentedData | None = None
+    augment_hash: str | None = None
+    if config.training.augment_variants > 0:
+        augmented, augment_hash = load_augmented(
+            train, layout, template, config.model.image_size, config.training, dataset_hash
+        )
 
     model = RenderToProgram(layout, config.model).to(device)
     optimizer = torch.optim.AdamW(
@@ -860,6 +1140,8 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
             "pilot_config": str(config.pilot_config),
             "cache_sha256": dataset_hash,
             "train_icons": len(train.tokens),
+            "augmented_variants": len(augmented.tokens) if augmented is not None else 0,
+            "augmented_sha256": augment_hash,
             "evaluated_on": "primary/train"
             if config.training.evaluate_on_train
             else "primary/validation",
@@ -880,7 +1162,7 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
 
     metrics_path = run_dir / "metrics.jsonl"
     rng = np.random.default_rng(config.training.seed)
-    batches = _batches(train, mirror_train, config.training, rng)
+    batches = _batches(train, augmented, config.training, rng)
     bf16 = config.training.bf16 and device.type == "cuda"
     best_error = float("inf")
     best_step = 0
@@ -1170,8 +1452,24 @@ def main() -> int:
     os.chdir(REPO_ROOT)
     if args.prepare_only:
         config = load_config(args.config)
-        _, _, _, _, dataset_hash = load_corpus(config.pilot_config, config.model.image_size)
-        print(json.dumps({"dataset_sha256": dataset_hash}))
+        plain, _, layout, pilot, dataset_hash = load_corpus(
+            config.pilot_config, config.model.image_size
+        )
+        report: dict[str, Any] = {"dataset_sha256": dataset_hash}
+        if config.training.augment_variants > 0:
+            from mojidiff.learning.openmoji_pilot import _load_program
+
+            template = _load_program(_pilot_rows(pilot)["primary/train"][0], pilot, layout.codec)
+            augmented, augment_hash = load_augmented(
+                plain["primary/train"],
+                layout,
+                template,
+                config.model.image_size,
+                config.training,
+                dataset_hash,
+            )
+            report.update(augmented_variants=len(augmented.tokens), augmented_sha256=augment_hash)
+        print(json.dumps(report))
         return 0
     train_and_evaluate(args.config)
     return 0

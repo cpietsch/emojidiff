@@ -1,0 +1,30 @@
+# One change from r2s-full-v1: 16 exact augmented variants per training icon (mirror at
+# 0.5, translation up to 12 view units per axis, palette permutation at 0.5), rendered
+# once. v1 memorised: training loss 0.17 against held-out 4.67 by step 3000, held-out
+# pixel error near a blank canvas. If augmentation is the fix, held-out loss should
+# fall instead of rise, and the pass criteria below are v1's unchanged.
+schema_version: 1
+slug: r2s-full-v2-aug
+parent_run: r2s-full-v1
+hypothesis: >-
+  Trained on the 2,681 family-disjoint training icons, the 8.9M-parameter render-to-program
+  model transcribes held-out validation renders better than retrieving the closest
+  training icon. Pass requires all three: (1) mean 72 px pixel error below the
+  nearest-training-icon baseline with the paired 95% interval on the reduction excluding
+  zero; (2) CLIP top-1 on Gate N's 32 validation icons at or above OmniSVG 4B zero-shot,
+  0.609; (3) median single-icon latency on the RTX 4080 under 500 ms.
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+model: {image_size: 144, d_model: 256, heads: 8, encoder_layers: 2, decoder_layers: 6, feedforward: 1024, dropout: 0.1}
+training:
+  steps: 20000
+  batch_size: 32
+  learning_rate: 0.0005
+  warmup_steps: 500
+  eval_every: 1000
+  eval_icons: 64
+  augment_variants: 16
+  augment_mirror: 0.5
+  augment_max_shift: 48
+  augment_colour: 0.5
+final_eval_icons: 339
+clip_icons: 32
