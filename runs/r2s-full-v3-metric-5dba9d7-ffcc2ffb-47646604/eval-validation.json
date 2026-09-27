@@ -1,0 +1,65 @@
+{
+  "run_id": "r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604",
+  "split": "primary/validation",
+  "icons": 339,
+  "precision": "float32",
+  "selected_step": 15000,
+  "model_parameters": 9011746,
+  "model_pixel_error": [
+    0.10633805472332336,
+    0.10035032278368425,
+    0.11229676729621735
+  ],
+  "model_pixel_error_median": 0.10773395746946335,
+  "nearest_training_icon_pixel_error": [
+    0.08973124639576185,
+    0.0848205749792233,
+    0.09466393787711656
+  ],
+  "model_minus_baseline_error_reduction": [
+    -0.016606808327561503,
+    -0.021771136921829446,
+    -0.011391041856956224
+  ],
+  "icons_model_beats_baseline": 144,
+  "exact_program_rate": 0.0058997050147492625,
+  "rendered_rate": 1.0,
+  "batched_decode_seconds": 117.42606896499638,
+  "clip_retrieval": {
+    "model_greedy": {
+      "top1_rate": 0.28125,
+      "top5_rate": 0.5,
+      "mean_rank": 7.75,
+      "clip_to_reference_mean": 0.8612361010164022,
+      "chance_top1": 0.03125,
+      "icons": 32
+    },
+    "nearest_training_icon": {
+      "top1_rate": 0.34375,
+      "top5_rate": 0.59375,
+      "mean_rank": 7.40625,
+      "clip_to_reference_mean": 0.8630629815161228,
+      "chance_top1": 0.03125,
+      "icons": 32
+    },
+    "gate_n_omnisvg_zero_shot_top1": 0.609375
+  },
+  "resource": {
+    "device": "NVIDIA GeForce RTX 4080",
+    "torch_version": "2.14.0a0+4fdf77b940.nv26.08",
+    "cuda_version": "13.4",
+    "python_version": "3.12.3",
+    "peak_vram_gib": 2.344343662261963,
+    "train_seconds": null,
+    "inference_ms_per_icon": 1974.0014940034598,
+    "inference_p95_ms_per_icon": 2120.072989957407,
+    "icons_per_second": 0.506585229564293,
+    "train_seconds_null_reason": "evaluation of a trained checkpoint",
+    "decoder": "fast_decode.GraphDecoder, float32, batch 1",
+    "graph_matches_batched_programs": "8 of 8",
+    "decoder_calls_first_icon": 533,
+    "batched_ms_per_icon": 278.18405467223783,
+    "batched_icons_per_call": 64,
+    "excludes": "rasterising the output SVG"
+  }
+}

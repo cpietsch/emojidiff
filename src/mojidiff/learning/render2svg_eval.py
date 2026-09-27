@@ -148,12 +148,72 @@ def evaluate_run(run_id: str, split: str, icons: int | None = None) -> dict[str,
     return result
 
 
+def latency_only(run_id: str, icons: int = 16) -> dict[str, Any]:
+    """Graph-decoder latency on `icons` validation icons, one at a time, on an idle GPU.
+
+    Quality does not depend on load; latency does. This is the measurement to quote,
+    run when nothing else holds the GPU, and it records whether anything did.
+    """
+
+    import subprocess
+
+    import yaml
+
+    run_dir = REPO_ROOT / "runs" / run_id
+    record = yaml.safe_load((run_dir / "run.yaml").read_text())
+    config = load_config(REPO_ROOT / record["config"])
+    device = torch.device("cuda")
+    plain, _, layout, _, _ = load_corpus(config.pilot_config, config.model.image_size)
+    state = torch.load(CACHE_ROOT / "runs" / run_id / "best.pt", map_location=device)
+    model = RenderToProgram(layout, ModelConfig(**state["config"])).to(device).eval()
+    model.load_state_dict(state["model"])
+    graph = GraphDecoder(model, dtype=torch.float32)
+    data = plain["primary/validation"]
+    others = subprocess.run(
+        ["nvidia-smi", "--query-compute-apps=pid", "--format=csv,noheader"],
+        capture_output=True,
+        text=True,
+        check=False,
+    ).stdout.split()
+    per_icon: list[float] = []
+    calls: list[int] = []
+    for index in range(icons):
+        stats = DecodeStats()
+        graph.decode(data.images[index], stats=stats)
+        report = measure_latency(
+            lambda index=index: graph.decode(data.images[index]),  # type: ignore[misc]
+            device=device,
+            warmup=1,
+            repeats=3,
+        )
+        per_icon.append(report.median_ms_per_icon)
+        calls.append(stats.model_calls)
+    result = {
+        "run_id": run_id,
+        "decoder": "fast_decode.GraphDecoder, float32, batch 1",
+        "icons": icons,
+        "median_ms_per_icon": float(np.median(per_icon)),
+        "p90_ms_per_icon": float(np.quantile(per_icon, 0.9)),
+        "median_decoder_calls": float(np.median(calls)),
+        "ms_per_decoder_call": sum(per_icon) / max(sum(calls), 1),
+        "gpu_processes_during_measurement": len(others),
+        "device": torch.cuda.get_device_name(device),
+        "excludes": "rasterising the output SVG",
+    }
+    (run_dir / "latency.json").write_text(json.dumps(result, indent=2) + "\n")
+    return result
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--run", required=True)
     parser.add_argument("--split", choices=sorted(SPLITS), default="validation")
     parser.add_argument("--icons", type=int, default=None)
+    parser.add_argument("--latency-only", action="store_true")
     args = parser.parse_args()
+    if args.latency_only:
+        print(json.dumps(latency_only(args.run, args.icons or 16)))
+        return
     result = evaluate_run(args.run, args.split, args.icons)
     print(json.dumps(result))
 
