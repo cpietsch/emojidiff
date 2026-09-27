@@ -1,0 +1,66 @@
+schema_version: 2
+run_id: r2s-full-v6-compose-7505e5b-6472dcf0-47646604
+state: running
+planned_at: '2026-09-27T22:30:03Z'
+hypothesis: 'Trained on the 2,681 family-disjoint training icons, the 8.9M-parameter render-to-program
+  model transcribes held-out validation renders better than retrieving the closest training
+  icon. Pass requires all three: (1) mean 72 px pixel error below the nearest-training-icon
+  baseline with the paired 95% interval on the reduction excluding zero; (2) CLIP top-1 on
+  Gate N''s 32 validation icons at or above OmniSVG 4B zero-shot, 0.609; (3) median single-icon
+  latency on the RTX 4080 under 500 ms.'
+parent_run: r2s-full-v4-online
+git_commit: 7505e5b1258bab2354bfc7debd35e8942fe11635
+dirty_patch_sha256: fdf5f8e1a15f69b8ae9b19c735cc21e3f43ae796584365850aed5b7868b070f4
+config: configs/render2svg/full-v6-compose.yaml
+config_sha256: 6472dcf00acfa20ebea4b418ce2f6fe14398a6ec29ae0d098bb5d810005b6e2f
+config_resolved:
+  model:
+    image_size: 144
+    d_model: 256
+    heads: 8
+    encoder_layers: 2
+    decoder_layers: 6
+    feedforward: 1024
+    dropout: 0.1
+    metric: false
+    fourier: 10
+    order: layout
+  training:
+    steps: 20000
+    batch_size: 32
+    learning_rate: 0.0005
+    weight_decay: 0.01
+    warmup_steps: 500
+    seed: 7001
+    eval_every: 1000
+    eval_icons: 64
+    train_icons: null
+    evaluate_on_train: false
+    augment_variants: 0
+    augment_seed: 9001
+    augment_mirror: 0.5
+    augment_max_shift: 48
+    augment_colour: 0.5
+    augment_online: true
+    compose_probability: 0.5
+    compose_parts: 4
+    augment_original: 0.1
+    loader_workers: 16
+    bf16: true
+  final_eval_icons: 339
+  clip_icons: 32
+dataset:
+  pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+  cache_sha256: 476466042da98d72c2bf2774cecc18f08d50a362eefbecae97904bde7a04ef0e
+  train_icons: 2681
+  augmented_variants: 0
+  augmented_sha256: null
+  evaluated_on: primary/validation
+seed: 7001
+determinism: seeded; cuDNN and SDPA kernels not forced deterministic
+model_parameters: 8921634
+command: .venv/bin/python -m mojidiff.learning.render2svg --config configs/render2svg/full-v6-compose.yaml
+outputs:
+  run_dir: runs/r2s-full-v6-compose-7505e5b-6472dcf0-47646604
+  checkpoints: /home/dev/.cache/mojidiff/runs/r2s-full-v6-compose-7505e5b-6472dcf0-47646604
+notes: ''

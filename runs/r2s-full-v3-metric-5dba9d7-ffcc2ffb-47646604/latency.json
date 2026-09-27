@@ -1,0 +1,12 @@
+{
+  "run_id": "r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604",
+  "decoder": "fast_decode.GraphDecoder, float32, batch 1",
+  "icons": 16,
+  "median_ms_per_icon": 434.67111949576065,
+  "p90_ms_per_icon": 768.5189290205017,
+  "median_decoder_calls": 291.0,
+  "ms_per_decoder_call": 1.478900217742677,
+  "gpu_processes_during_measurement": 2,
+  "device": "NVIDIA GeForce RTX 4080",
+  "excludes": "rasterising the output SVG"
+}

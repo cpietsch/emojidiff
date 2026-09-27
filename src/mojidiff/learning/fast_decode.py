@@ -52,6 +52,8 @@ class _Buffers:
     def __init__(self, size: int, vocabulary: int, device: torch.device) -> None:
         self.packed = torch.zeros((len(_ROWS), size), dtype=torch.long, device=device)
         self.host = torch.zeros((len(_ROWS), size), dtype=torch.long).pin_memory()
+        # Element writes through numpy cost ~0.1 us; through a torch tensor, several us.
+        self.host_view = self.host.numpy()
         self.logits = torch.zeros((1, vocabulary), dtype=torch.float32, device=device)
         self.host_logits = torch.zeros((1, vocabulary), dtype=torch.float32).pin_memory()
         # Set when the last copy out of `host` has completed; `host` must not be
@@ -275,9 +277,9 @@ class GraphDecoder:
             real = min(size, remaining)
             pad = size - real
             buffers = self.buffers[size]
-            host = buffers.host
+            host = buffers.host_view
             buffers.copied.synchronize()
-            host.zero_()
+            host.fill(0)
             host[_ROWS.index("target")] = -1
             for index in range(size):
                 if index < pad:
@@ -301,7 +303,7 @@ class GraphDecoder:
                     role_out, axis_out = self._role(here, decoded)
                     if role_out != ROLE_NONE:
                         host[7, index] = (role_out - 1) * 2 + axis_out
-            buffers.packed.copy_(host, non_blocking=True)
+            buffers.packed.copy_(buffers.host, non_blocking=True)
             buffers.copied.record()
             self.graphs[size].replay()
             calls += 1

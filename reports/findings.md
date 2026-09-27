@@ -3378,3 +3378,46 @@ in float32 is now built, and latency will be re-measured on an idle GPU.
 
 **Decision.** Online augmentation (v4, one change from v2) and path-major order (v5, one
 change from v3) are queued. Whatever holds up is combined in one longer run.
+
+## 2026-09-28 — Render-to-SVG: path-major order is the second large step; latency passes
+
+Two more one-factor arms against the same criteria.
+
+| 339 validation icons | v2 cached variants | v4 online variants | v3 metric | v5 metric + path order |
+| --- | --- | --- | --- | --- |
+| mean pixel error | 0.130 | 0.121 | 0.106 | 0.098 [0.092, 0.104] |
+| reduction vs nearest icon (0.090) | -0.040 | -0.031 | -0.017 | -0.008 [-0.012, -0.004] |
+| icons beating the nearest icon | 50 | 62 | 138 | 153 |
+| CLIP top-1 / top-5, Gate N's 32 | 0.16 / 0.50 | 0.25 / 0.53 | 0.22 / 0.50 | 0.44 / 0.72 |
+
+Run ids: `r2s-full-v4-online-c0fe6d3-a854be2e-47646604`,
+`r2s-full-v5-path-7a72de9-12766043-47646604`.
+
+**Online augmentation** (v4 against v2) is a small gain and does not stop memorisation:
+held-out loss bottoms at 2.54 by step 6,000 and rises while training loss falls below 1.
+Translations and recolourings of 2,681 shapes are still 2,681 shapes.
+
+**Path-major order** (v5 against v3) - each path's style, start point and own outline
+decoded together, each step labelled with its field and path - is the second large step
+after metric coordinates. Held-out free-token accuracy reached 0.51 by step 4,000 (v3:
+0.42), CLIP top-1 doubled, and the failure mode changed: v3 scribbled, v5 mostly drops
+paths. The apple comes back almost exactly; cutlery and swimmers lose most of their
+parts. v5 is still falsified on pixel error, by 0.008, and on CLIP top-1 (0.44 against
+OmniSVG zero-shot 0.609, which ran a 4B model at 6.5 s per drawing).
+
+**Latency, idle GPU.** Measured with the CUDA-graph decoder in float32 (which decodes the
+same programs as the batched evaluator, 8 of 8 checked), batch 1, on 16 validation
+icons, with only the idle demo server also on the GPU:
+
+| checkpoint | median ms per icon | p90 | median decoder calls | ms per call |
+| --- | --- | --- | --- | --- |
+| v3 | 435 | 769 | 291 | 1.48 |
+| v5 | 390 | 626 | 260 | 1.49 |
+
+The latency criterion (median under 500 ms) passes for both. CPU work is about 40 ms per
+icon; the rest is about a hundred small kernels per replay at batch 1. Rasterising the
+SVG is excluded.
+
+**Decision.** Compositions (v6, one change from v4) are running, then a systems run (v7)
+with metric coordinates, path order, online augmentation and compositions for 60,000
+steps. The factor attribution stays with the one-factor arms.
