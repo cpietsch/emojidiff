@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Re-vectorise</title>
+<style>
+  :root { --ink:#1b1b1b; --muted:#6b6b6b; --line:#d9d9d9; --accent:#2b6cb0; --bg:#fafafa; --card:#fff; }
+  * { box-sizing: border-box; }
+  body { margin:0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color:var(--ink); background:var(--bg); }
+  header { padding: 18px 24px 8px; }
+  header h1 { margin:0; font-size: 22px; font-weight: 600; }
+  header p { margin: 4px 0 0; color: var(--muted); max-width: 90ch; }
+  main { display:grid; grid-template-columns: 300px auto auto; gap: 16px; padding: 12px 24px 32px; align-items:start; }
+  @media (max-width: 1240px) { main { grid-template-columns: 1fr; } }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; }
+  input[type=search] { width:100%; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font: inherit; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, 52px); gap:5px; margin-top:6px; max-height: 70vh; overflow:auto; }
+  .grid button { width:52px; height:52px; padding:2px; border:1px solid var(--line); border-radius:6px; background:#fff; cursor:pointer; }
+  .grid button.on { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(43,108,176,.25); }
+  .grid img { width:100%; height:100%; }
+  .pane { width: 432px; max-width: calc(100vw - 48px); aspect-ratio: 1; border:1px solid var(--line); border-radius: 6px; background:#fff; display:block; }
+  canvas.pane { touch-action:none; cursor: crosshair; }
+  #out svg { width:100%; height:100%; display:block; }
+  .row { display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin: 8px 0 0; }
+  .row button { padding:5px 9px; border:1px solid var(--line); border-radius:6px; background:#fff; cursor:pointer; font: inherit; }
+  .row button.on { border-color: var(--accent); background:#f3f7fc; }
+  button.primary { background: var(--accent) !important; color:#fff; border-color: var(--accent) !important; font-weight:600; }
+  #palette button { width:20px; height:20px; border:1px solid var(--line); border-radius:4px; padding:0; cursor:pointer; }
+  #palette button.on { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .stats { font-variant-numeric: tabular-nums; color: var(--muted); min-height: 1.4em; margin-top: 8px; }
+  .stats b { color: var(--ink); font-weight: 600; }
+  .note { color: var(--muted); font-size: 13px; margin-top: 8px; max-width: 432px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Re-vectorise</h1>
+  <p>Pick an OpenMoji icon the model never trained on, paint on it, and a small render-to-SVG model transcribes the pixels back into an editable SVG program. The time shown is the model's own, on the RTX 4080, from pixels to a validated program.</p>
+</header>
+<main>
+  <section>
+    <h2>Held-out icons</h2>
+    <input id="q" type="search" placeholder="search, e.g. cat, flag, 1F4A1">
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section>
+    <h2>Pixels (input)</h2>
+    <canvas id="canvas" class="pane"></canvas>
+    <div class="row">
+      <button id="brush" class="on">Brush</button><button id="eraser">Eraser</button>
+      <label>size <input id="size" type="range" min="1" max="24" value="6"></label>
+      <button id="undo">Undo</button><button id="clear">Clear</button>
+    </div>
+    <div class="row" id="palette"></div>
+  </section>
+
+  <section>
+    <h2>SVG program (output)</h2>
+    <div id="out" class="pane"></div>
+    <div class="stats" id="stats">Pick an icon to start.</div>
+    <div class="row"><button id="run" class="primary">Vectorise</button><button id="download">Download SVG</button></div>
+    <p class="note">Every output is a valid program in the project's codec: at most 32 paths and 128 segments, OpenMoji's palette and stroke widths. Colours are snapped to that palette.</p>
+  </section>
+</main>
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d', { willReadFrequently: true });
+const out = document.getElementById('out');
+const stats = document.getElementById('stats');
+let size = 144, colour = '#000000', erasing = false, drawing = false, last = null;
+let history = [], latestSvg = '', pending = null, inFlight = false, dirty = false;
+
+function blank() { ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, size, size); }
+function snapshot() { history.push(ctx.getImageData(0, 0, size, size)); if (history.length > 40) history.shift(); }
+
+async function init() {
+  const config = await (await fetch('/config')).json();
+  size = config.size; canvas.width = size; canvas.height = size; blank();
+  const palette = document.getElementById('palette');
+  for (const c of config.palette) {
+    const b = document.createElement('button');
+    b.style.background = c; b.title = c;
+    if (c === colour) b.classList.add('on');
+    b.onclick = () => { colour = c; erasing = false; setTool(); palette.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); };
+    palette.appendChild(b);
+  }
+  search('');
+}
+
+async function search(q) {
+  const data = await (await fetch('/icons?q=' + encodeURIComponent(q))).json();
+  const grid = document.getElementById('grid'); grid.innerHTML = '';
+  for (const icon of data.icons) {
+    const b = document.createElement('button');
+    b.title = icon.annotation + ' (' + icon.hexcode + ')';
+    const img = document.createElement('img'); img.loading = 'lazy'; img.src = '/render/' + icon.hexcode + '.png';
+    b.appendChild(img);
+    b.onclick = () => { grid.querySelectorAll('button').forEach(x => x.classList.remove('on')); b.classList.add('on'); load(icon); };
+    grid.appendChild(b);
+  }
+}
+
+function load(icon) {
+  const img = new Image();
+  img.onload = () => { snapshot(); blank(); ctx.drawImage(img, 0, 0, size, size); vectorise(); };
+  img.src = '/render/' + icon.hexcode + '.png';
+}
+
+function point(e) {
+  const r = canvas.getBoundingClientRect();
+  return [(e.clientX - r.left) * size / r.width, (e.clientY - r.top) * size / r.height];
+}
+function stroke(a, b) {
+  ctx.strokeStyle = erasing ? '#fff' : colour;
+  ctx.lineWidth = +document.getElementById('size').value;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+}
+canvas.addEventListener('pointerdown', e => { snapshot(); drawing = true; last = point(e); stroke(last, last); canvas.setPointerCapture(e.pointerId); });
+canvas.addEventListener('pointermove', e => { if (!drawing) return; const p = point(e); stroke(last, p); last = p; });
+canvas.addEventListener('pointerup', () => { if (!drawing) return; drawing = false; schedule(); });
+
+function schedule() { clearTimeout(pending); pending = setTimeout(vectorise, 120); }
+
+async function vectorise() {
+  if (inFlight) { dirty = true; return; }
+  inFlight = true; dirty = false;
+  stats.textContent = 'Transcribing…';
+  try {
+    const response = await fetch('/vectorise', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ png: canvas.toDataURL('image/png') }) });
+    const data = await response.json();
+    if (!data.ok) { stats.textContent = 'Failed: ' + (data.failure || data.error); return; }
+    latestSvg = data.svg;
+    out.innerHTML = data.svg.replace('<svg ', '<svg preserveAspectRatio="xMidYMid meet" ');
+    stats.innerHTML = '<b>' + data.ms.toFixed(0) + ' ms</b> model time · ' + data.decoder_calls + ' decoder calls · ' + data.paths + ' paths · ' + data.segments + ' segments';
+  } catch (error) {
+    stats.textContent = 'Request failed: ' + error;
+  } finally {
+    inFlight = false;
+    if (dirty) vectorise();
+  }
+}
+
+function setTool() {
+  document.getElementById('brush').classList.toggle('on', !erasing);
+  document.getElementById('eraser').classList.toggle('on', erasing);
+}
+document.getElementById('brush').onclick = () => { erasing = false; setTool(); };
+document.getElementById('eraser').onclick = () => { erasing = true; setTool(); };
+document.getElementById('undo').onclick = () => { const s = history.pop(); if (s) { ctx.putImageData(s, 0, 0); schedule(); } };
+document.getElementById('clear').onclick = () => { snapshot(); blank(); schedule(); };
+document.getElementById('run').onclick = vectorise;
+document.getElementById('download').onclick = () => {
+  if (!latestSvg) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([latestSvg], { type: 'image/svg+xml' }));
+  a.download = 'revectorised.svg'; a.click();
+};
+let searchTimer = null;
+document.getElementById('q').addEventListener('input', e => { clearTimeout(searchTimer); searchTimer = setTimeout(() => search(e.target.value), 200); });
+init();
+</script>
+</body>
+</html>
