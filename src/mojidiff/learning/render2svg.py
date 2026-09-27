@@ -139,6 +139,9 @@ class TrainConfig:
     augment_original: float = 0.1
     """Under online augmentation, probability of presenting the unmodified icon."""
     loader_workers: int = 10
+    extra_training: tuple[str, ...] = ()
+    """Other emoji sets appended to the training split ("twemoji"); held-out concepts
+    are excluded, see `extra_data`."""
     bf16: bool = True
 
 
@@ -155,6 +158,15 @@ class Render2SvgConfig:
     notes: str = ""
 
 
+def _train_config(values: dict[str, Any]) -> TrainConfig:
+    """TrainConfig from YAML, where lists arrive for tuple-valued fields."""
+
+    fields_ = dict(values)
+    if "extra_training" in fields_:
+        fields_["extra_training"] = tuple(fields_["extra_training"])
+    return TrainConfig(**fields_)
+
+
 def load_config(path: Path) -> Render2SvgConfig:
     root = yaml.safe_load(path.read_text())
     if not isinstance(root, dict) or root.get("schema_version") != 1:
@@ -164,7 +176,7 @@ def load_config(path: Path) -> Render2SvgConfig:
         hypothesis=str(root["hypothesis"]).strip(),
         pilot_config=Path(str(root["pilot_config"])),
         model=ModelConfig(**root.get("model", {})),
-        training=TrainConfig(**root.get("training", {})),
+        training=_train_config(root.get("training", {})),
         final_eval_icons=int(root.get("final_eval_icons", 339)),
         clip_icons=int(root.get("clip_icons", 32)),
         parent_run=root.get("parent_run"),
@@ -1868,6 +1880,12 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
 
     by_split_rows = _pilot_rows(pilot)
     template = _load_program(by_split_rows["primary/train"][0], pilot, layout.codec)
+    extra_report: dict[str, Any] | None = None
+    if "twemoji" in config.training.extra_training:
+        from mojidiff.learning.extra_data import concatenate, load_twemoji
+
+        extra, extra_report = load_twemoji(layout, pilot, template, config.model.image_size)
+        train = concatenate(train, extra)
     augmented: AugmentedData | None = None
     augment_hash: str | None = None
     if config.training.augment_variants > 0 and not config.training.augment_online:
@@ -1907,6 +1925,7 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
             "cache_sha256": dataset_hash,
             "train_icons": len(train.tokens),
             "augmented_variants": len(augmented.tokens) if augmented is not None else 0,
+            "extra_training": extra_report,
             "augmented_sha256": augment_hash,
             "evaluated_on": "primary/train"
             if config.training.evaluate_on_train
@@ -2027,6 +2046,16 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
     exact = [bool(torch.equal(tokens[i], final.tokens[i])) for i in range(final_count)]
     library = plain["primary/train"]
     nearest, nearest_errors = nearest_training_icon(final.targets, library.targets, device)
+    if extra_report is not None and not config.training.evaluate_on_train:
+        # Retrieval with the same enlarged library the model trained on.
+        _, enlarged_errors = nearest_training_icon(final.targets, train.targets, device)
+        summary_extra = {
+            "nearest_training_icon_with_extra_pixel_error": bootstrap_mean_interval(
+                [float(v) for v in enlarged_errors]
+            )
+        }
+    else:
+        summary_extra = {}
     if config.training.evaluate_on_train:
         # Retrieval against a library that contains the query is exact by construction.
         baseline_errors = [float("nan")] * final_count
@@ -2045,6 +2074,7 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
         "rendered_rate": sum(1 for r in renders if r is not None) / final_count,
         "blank_pixel_error": float(np.mean(blank_errors)),
         "selected_step": best_step,
+        **summary_extra,
     }
     if not config.training.evaluate_on_train:
         summary["nearest_training_icon_pixel_error"] = bootstrap_mean_interval(baseline_errors)

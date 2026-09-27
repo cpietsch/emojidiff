@@ -1,0 +1,38 @@
+# One change from r2s-full-v7-systems: Twemoji icons that fit the codec as they are,
+# palette-snapped, appended to the training split - direction 2's first arm. Every
+# Twemoji emoji whose base matches an OpenMoji validation or test concept (or its
+# family) is excluded, so the held-out split stays held out. The external probe put
+# Twemoji's fit at 66% of 4,009 and its snapped colours at pixel error 0.034 against
+# the source. Evaluation is on OpenMoji validation as before; retrieval is reported
+# against both the OpenMoji library and the enlarged one.
+schema_version: 1
+slug: r2s-full-v8-twemoji
+parent_run: r2s-full-v7-systems
+hypothesis: >-
+  Adding the Twemoji icons that fit the codec to v7's training data lowers held-out
+  OpenMoji pixel error below v7's at the same budget, greedy decoding, with the paired
+  95% interval on the per-icon difference excluding zero. It also transcribes held-out
+  validation renders better than retrieving the closest training icon. Pass requires all three: (1) mean 72 px pixel error below the
+  nearest-training-icon baseline with the paired 95% interval on the reduction excluding
+  zero; (2) CLIP top-1 on Gate N's 32 validation icons at or above OmniSVG 4B zero-shot,
+  0.609; (3) median single-icon latency on the RTX 4080 under 500 ms.
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+model: {image_size: 144, d_model: 256, heads: 8, encoder_layers: 2, decoder_layers: 6, feedforward: 1024, dropout: 0.1, metric: true, fourier: 10, order: path}
+training:
+  steps: 60000
+  batch_size: 32
+  learning_rate: 0.0005
+  warmup_steps: 1000
+  eval_every: 2000
+  eval_icons: 64
+  augment_online: true
+  augment_original: 0.1
+  loader_workers: 16
+  compose_probability: 0.5
+  compose_parts: 4
+  augment_mirror: 0.5
+  augment_max_shift: 48
+  augment_colour: 0.5
+  extra_training: [twemoji]
+final_eval_icons: 339
+clip_icons: 32

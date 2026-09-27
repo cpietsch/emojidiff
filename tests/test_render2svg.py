@@ -423,3 +423,15 @@ def test_reranking_returns_a_valid_program_no_worse_than_greedy(pieces: Pieces) 
         layout.codec,
         layout.total_segment_slots,
     )
+
+
+def test_extra_data_excludes_held_out_concepts() -> None:
+    from mojidiff.learning.extra_data import base_key, held_out_keys
+
+    assert base_key("1f3c4-1f3fb-200d-2640-fe0f") == ("1F3C4",)
+    assert base_key("1F468-200D-1F469-200D-1F467") == ("1F468", "1F469", "1F467")
+    pilot = load_openmoji_pilot_config(_CONFIG)
+    keys = held_out_keys(pilot)
+    by_split, _, _ = load_pilot_index(pilot)
+    for row in by_split["primary/validation"][:20] + by_split["primary/test"][:20]:
+        assert base_key(row.hexcode) in keys

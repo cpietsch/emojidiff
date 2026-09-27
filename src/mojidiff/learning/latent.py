@@ -48,6 +48,7 @@ from mojidiff.learning.render2svg import (
     _pilot_rows,
     _programs_to_renders,
     _schedule,
+    _train_config,
     _write_yaml,
     bootstrap_mean_interval,
     contact_sheet,
@@ -97,7 +98,7 @@ def load_config(path: Path) -> LatentConfig:
         pilot_config=Path(str(root["pilot_config"])),
         model=ModelConfig(**root.get("model", {})),
         latent=LatentSettings(**root.get("latent", {})),
-        training=TrainConfig(**root.get("training", {})),
+        training=_train_config(root.get("training", {})),
         eval_icons=int(root.get("eval_icons", 339)),
         parent_run=root.get("parent_run"),
     )
