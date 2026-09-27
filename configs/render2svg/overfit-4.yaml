@@ -1,0 +1,22 @@
+# The cheapest test first: can the encoder-decoder memorise four icons from their renders?
+# If it cannot reproduce programs it has seen hundreds of times, nothing downstream is
+# worth running. Scored on the four training icons themselves.
+schema_version: 1
+slug: r2s-overfit4
+hypothesis: >-
+  A 7.6M-parameter render-to-program encoder-decoder, trained on four OpenMoji icons,
+  decodes those four icons greedily from their 144 px renders to programs whose 72 px
+  renders are within 0.01 mean RGB error of the originals, in under 1,000 steps.
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+model: {image_size: 144, d_model: 256, heads: 8, encoder_layers: 2, decoder_layers: 6, feedforward: 1024}
+training:
+  steps: 800
+  batch_size: 4
+  learning_rate: 0.001
+  warmup_steps: 50
+  eval_every: 100
+  eval_icons: 4
+  train_icons: 4
+  evaluate_on_train: true
+final_eval_icons: 4
+clip_icons: 0
