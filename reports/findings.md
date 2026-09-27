@@ -3455,3 +3455,38 @@ next engineering step, then an idle-GPU measurement.
 
 **Decision.** The systems run (v7) is training. It will be scored both greedy and with
 8 candidates. The test split stays untouched until one configuration is chosen.
+
+## 2026-09-28 — Direction 2, first evidence: Twemoji fits the codec; Noto and Blobmoji need work
+
+**Question.** How much of other emoji sets does the OpenMoji codec take, as it stands,
+and at what fidelity? Pinned sources, read-only under `data/raw/external/`: Twemoji
+(jdecked fork, `b6b55fe`, graphics CC-BY 4.0), Noto Emoji 2D (`e20cbc2`, Apache 2.0),
+Blobmoji (`7dd14d2`, Apache 2.0). One adapter (`mojidiff.curation.external_probe`):
+PicoSVG flattening, gradients to their mean stop colour, colours snapped to OpenMoji's
+28-colour palette, scaled into the 72-unit box, then the project's own normaliser,
+codec and P32/T128 packer. 600 icons per set, fixed seed. OpenMoji goes through the same
+adapter as the calibration row.
+
+| set (600 each) | fits P32/T128 | pixel error when it fits, median / p90 | gradients | mean colour snap (RGB) |
+| --- | --- | --- | --- | --- |
+| Twemoji | 66% | 0.036 / 0.061 | 0% | 30.6 |
+| Noto Emoji | 21% | 0.029 / 0.057 | 50% | 28.5 |
+| Blobmoji | 24% | 0.021 / 0.045 | 4% | 27.7 |
+| OpenMoji (calibration) | 37% | 0.003 / 0.005 | 0% | 0 |
+
+**Reading.** Geometry is not the obstacle; colour and budget are. When an icon fits,
+nearly all of its pixel error is the palette snap: the adapted SVG before the codec
+already sits at 0.034 (Twemoji) against 0.002 for OpenMoji. OpenMoji's own 37% through
+this adapter, against 84% on its native path, is PicoSVG outlining its strokes into
+many more segments; external sets are fill-only already, so that loss does not apply to
+them. Twemoji's failures are budget overflow and small excursions past the box edge;
+Noto's are XML entities the renderer refuses, fill opacities outside the vocabulary,
+and budget; Blobmoji's are mostly SVGs with width/height but no viewBox, which the
+adapter rejects.
+
+**Decision.** Twemoji is usable now: about 2,650 of its 4,009 icons fit the current
+codec, nearly doubling the 2,681 training icons, at the cost of snapped colours. It is
+the next data arm, excluding every Twemoji emoji whose codepoint sits in OpenMoji's
+validation or test split so held-out concepts stay held out. Noto and Blobmoji need
+adapter fixes first, and all three want a larger palette - a codec change that retrains
+from scratch, deferred until a data arm shows the extra shapes help.
