@@ -292,3 +292,5 @@
 {"config":"configs/render2svg/full-v5-path.yaml","run_id":"r2s-full-v5-path-7a72de9-12766043-47646604","slug":"r2s-full-v5-path","state":"running","timestamp":"2026-09-27T21:57:45Z"}
 {"result_file":"runs/r2s-full-v5-path-7a72de9-12766043-47646604/result.md","run_id":"r2s-full-v5-path-7a72de9-12766043-47646604","state":"completed","timestamp":"2026-09-27T22:28:36Z"}
 {"config":"configs/render2svg/full-v6-compose.yaml","run_id":"r2s-full-v6-compose-7505e5b-6472dcf0-47646604","slug":"r2s-full-v6-compose","state":"running","timestamp":"2026-09-27T22:30:03Z"}
+{"result_file":"runs/r2s-full-v6-compose-7505e5b-6472dcf0-47646604/result.md","run_id":"r2s-full-v6-compose-7505e5b-6472dcf0-47646604","state":"completed","timestamp":"2026-09-27T23:03:52Z"}
+{"config":"configs/render2svg/full-v7-systems.yaml","run_id":"r2s-full-v7-systems-42762c2-e9842024-47646604","slug":"r2s-full-v7-systems","state":"running","timestamp":"2026-09-27T23:03:56Z"}
