@@ -42,8 +42,10 @@ Render-to-SVG evidence so far:
 - 16 cached exact variants per icon (`r2s-full-v2-aug-4032fbd-1e601024-47646604`):
   falsified, but better. Pixel error 0.130; beats the nearest icon on 50 of 339;
   draws the first, largest shape right and loses later paths; 828 ms per icon.
-- Metric coordinates (`r2s-full-v3-metric`, running): ahead of v2 at every step so far
-  (step 6,000: held-out accuracy 0.48 against 0.35, pixel error 0.113 on 64 icons).
+- Metric coordinates (`r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604`): falsified, best
+  so far. Pixel error 0.106 [0.100, 0.112] against 0.090; beats the nearest icon on 144
+  of 339; CLIP top-1 0.28. Reads glyphs rather than recalling them; fills still messy.
+  Overfits after about 8,000 steps with 16 cached variants.
 
 ## Last completed action and verification
 
@@ -56,16 +58,15 @@ full forward), `tests/test_vectorise.py`, ruff, strict mypy.
 
 ## Active jobs
 
-Chained in tmux on gpubox-4080, each writing `EXIT=` to its log under
-`/home/dev/.cache/mojidiff/`:
+In tmux on gpubox-4080; runs write `EXIT=` to their logs under `/home/dev/.cache/mojidiff/`:
 
-1. `r2s-v3`: `configs/render2svg/full-v3-metric.yaml`, log `r2s-full-v3-metric.log`.
-2. `r2s-v4`: waits for 1, then `full-v4-online.yaml` (online augmentation, one change
+1. `r2s-v4`: `configs/render2svg/full-v4-online.yaml` (online augmentation, one change
    from v2), log `r2s-full-v4-online.log`.
-3. `r2s-v5`: waits for 2, then `full-v5-path.yaml` (path-major order, one change from
+2. `r2s-v5`: waits for 1, then `full-v5-path.yaml` (path-major order, one change from
    v3), log `r2s-full-v5-path.log`.
-
-Each run registers itself in `state/runs.jsonl` and writes `runs/<run_id>/`.
+3. `vectorise`: the re-vectorise demo on http://100.69.189.78:8790/ serving v3's best
+   checkpoint through the CUDA-graph decoder.
+4. `weblog`: http://100.69.189.78:8787/.
 
 ## Artifact durability
 
