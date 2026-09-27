@@ -31,47 +31,39 @@ per-icon latency. The operator chose the direction on 2026-09-27: a small from-s
 render-to-SVG transcriber over the existing codec (`mojidiff.learning.render2svg`),
 with wider vector data, distillation, and a continuous latent model queued behind it.
 
-Render-to-SVG evidence so far:
+Render-to-SVG evidence so far (339 validation icons; nearest training icon scores
+pixel error 0.090; full tables in `reports/findings.md`):
 
-- Four-icon overfit (`r2s-overfit4-940f5d3-f7306d2b-47646604`): all four programs
-  reproduced exactly from their renders by step 100. 8.9M parameters, 148 ms per icon
-  at batch 1 on the RTX 4080, 97 decoder calls per icon, 0.63 GiB peak VRAM.
-- Full corpus without augmentation (`r2s-full-v1-940f5d3-1974cf82-47646604`): falsified.
-  Memorises; pixel error 0.149 against 0.090 for the nearest training icon; CLIP top-1
-  0.22 against 0.61 for OmniSVG zero-shot; 629 ms per icon.
-- 16 cached exact variants per icon (`r2s-full-v2-aug-4032fbd-1e601024-47646604`):
-  falsified, but better. Pixel error 0.130; beats the nearest icon on 50 of 339;
-  draws the first, largest shape right and loses later paths; 828 ms per icon.
-- Metric coordinates (`r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604`): falsified, best
-  so far. Pixel error 0.106 [0.100, 0.112] against 0.090; beats the nearest icon on 144
-  of 339; CLIP top-1 0.28. Reads glyphs rather than recalling them; fills still messy.
-  Overfits after about 8,000 steps with 16 cached variants.
-- Online augmentation (`r2s-full-v4-online-c0fe6d3-a854be2e-47646604`, one change from
-  v2): pixel error 0.121 against v2's 0.130; still memorises (held-out loss rises after
-  step 6,000 while training loss falls below 1).
-- Path-major order (`r2s-full-v5-path`, running): ahead of v3 at the same steps (step
-  4,000: held-out accuracy 0.51 against 0.42).
+| run | change | pixel error | beats nearest | CLIP top-1 |
+| --- | --- | --- | --- | --- |
+| v1 | none | 0.149 | 16 | 0.22 |
+| v2 | 16 cached exact variants | 0.130 | 50 | 0.16 |
+| v4 | online variants (vs v2) | 0.121 | 62 | 0.25 |
+| v3 | metric coordinates (vs v2) | 0.106 | 138 | 0.22 |
+| v5 | path-major order (vs v3) | 0.098 | 153 | 0.44 |
+
+Every arm is still falsified on beating retrieval and on CLIP top-1 against OmniSVG
+zero-shot (0.609). v5 misses by 0.008 [0.004, 0.012] in pixels. Its failure mode is
+dropped paths, not scribbles. Latency passes: v5 decodes in 390 ms per icon median on an
+idle RTX 4080 (CUDA-graph decoder, float32, batch 1). The four-icon overfit was exact.
 
 ## Last completed action and verification
 
-2026-09-27: render-to-SVG model, exact augmentation (mirror, translation, palette
-permutation; 42,896 variants cached), metric-coordinate option, and the re-vectorise
-demo (`scripts/serve_vectorise.py`, port 8790) written and committed. Verified by
-`tests/test_render2svg.py` (fast decoding equals a full-prefix decode; augmentation is
-pixel-exact and preserves the masks the loss reads; cached metric decoding equals a
-full forward), `tests/test_vectorise.py`, ruff, strict mypy.
+2026-09-28: v5 recorded; idle-GPU latency measured for v3 and v5; compositional training
+icons, whole-program masks, reranked decoding and a uniform float32 evaluator added.
+Verified by `tests/test_render2svg.py`, `tests/test_fast_decode.py` (graph decoder equals
+the reference in float32 for all three model variants), ruff, strict mypy.
 
 ## Active jobs
 
 In tmux on gpubox-4080; logs under `/home/dev/.cache/mojidiff/`, each ending in `EXIT=`:
 
-1. `r2s-v5`: `configs/render2svg/full-v5-path.yaml` (path-major order, one change from
-   v3), log `r2s-full-v5-path.log`.
-2. `r2s-chain2` (`/home/dev/.cache/mojidiff/chain-after-v5.sh`): waits for 1, measures
-   idle-GPU latency for v3 and v5 (`latency.log`, `runs/<id>/latency.json`), then runs
-   `full-v6-compose.yaml` (compositions, one change from v4) and
-   `full-v7-systems.yaml` (every factor that held up, 60,000 steps).
-3. `vectorise`: the demo on http://100.69.189.78:8790/ serving v3's best checkpoint.
+1. `r2s-chain2` (`chain-after-v5.sh`): now running `full-v6-compose.yaml`
+   (compositions, one change from v4), then `full-v7-systems.yaml` (metric, path order,
+   online augmentation, compositions; 60,000 steps).
+2. `r2s-rerank5`: v5 re-scored with 8 render-and-compare candidates per icon, log
+   `eval-v5-rerank8.log`, output `runs/<v5>/eval-validation-rerank8.json`.
+3. `vectorise`: the demo on http://100.69.189.78:8790/ serving v5's best checkpoint.
 4. `weblog`: http://100.69.189.78:8787/.
 
 ## Artifact durability
