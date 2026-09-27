@@ -1,6 +1,6 @@
 schema_version: 2
 run_id: r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604
-state: running
+state: completed
 planned_at: '2026-09-27T20:55:16Z'
 hypothesis: 'Trained on the 2,681 family-disjoint training icons, the 8.9M-parameter render-to-program
   model transcribes held-out validation renders better than retrieving the closest training
@@ -61,3 +61,60 @@ outputs:
   run_dir: runs/r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604
   checkpoints: /home/dev/.cache/mojidiff/runs/r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604
 notes: ''
+completed_at: '2026-09-27T21:27:02Z'
+resource:
+  device: NVIDIA GeForce RTX 4080
+  torch_version: 2.14.0a0+4fdf77b940.nv26.08
+  cuda_version: '13.4'
+  python_version: 3.12.3
+  peak_vram_gib: 4.340941905975342
+  train_seconds: 1840.9157819270622
+  inference_ms_per_icon: 835.0163935101591
+  inference_p95_ms_per_icon: 837.2848490253091
+  icons_per_second: 1.1975812783702355
+  batched_ms_per_icon: 60.238850812311284
+  batched_icons_per_call: 64
+  excludes: rendering the output SVG to pixels
+baselines:
+  blank_canvas_pixel_error: 0.1720480552069557
+  nearest_training_icon_pixel_error: 0.08973124639576185
+  gate_n_omnisvg_zero_shot_top1: 0.609375
+  nearest_training_icon_clip_top1: 0.34375
+result:
+  icons: 339
+  model_pixel_error:
+  - 0.10644602797689208
+  - 0.10051784455775528
+  - 0.11263876572659288
+  model_pixel_error_median: 0.10782750695943832
+  exact_program_rate: 0.0058997050147492625
+  rendered_rate: 1.0
+  blank_pixel_error: 0.1720480552069557
+  selected_step: 15000
+  nearest_training_icon_pixel_error:
+  - 0.08973124639576185
+  - 0.0848205749792233
+  - 0.09466393787711656
+  model_minus_baseline_error_reduction:
+  - -0.01671478158113022
+  - -0.021783652132226616
+  - -0.011575207093005633
+  icons_model_beats_baseline: 138
+  clip_retrieval:
+    model_greedy:
+      top1_rate: 0.21875
+      top5_rate: 0.5
+      mean_rank: 9.34375
+      clip_to_reference_mean: 0.85855015181005
+      chance_top1: 0.03125
+      icons: 32
+    nearest_training_icon:
+      top1_rate: 0.34375
+      top5_rate: 0.59375
+      mean_rank: 7.40625
+      clip_to_reference_mean: 0.8630629815161228
+      chance_top1: 0.03125
+      icons: 32
+    gate_n_omnisvg_zero_shot_top1: 0.609375
+    gate_n_omnisvg_best_of_12_top1: 0.828125
+  model_calls_per_icon: 445

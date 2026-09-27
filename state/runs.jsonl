@@ -286,3 +286,5 @@
 {"config":"configs/render2svg/full-v2-aug.yaml","run_id":"r2s-full-v2-aug-4032fbd-1e601024-47646604","slug":"r2s-full-v2-aug","state":"running","timestamp":"2026-09-27T20:26:21Z"}
 {"result_file":"runs/r2s-full-v2-aug-4032fbd-1e601024-47646604/result.md","run_id":"r2s-full-v2-aug-4032fbd-1e601024-47646604","state":"completed","timestamp":"2026-09-27T20:54:57Z"}
 {"config":"configs/render2svg/full-v3-metric.yaml","run_id":"r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604","slug":"r2s-full-v3-metric","state":"running","timestamp":"2026-09-27T20:55:16Z"}
+{"result_file":"runs/r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604/result.md","run_id":"r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604","state":"completed","timestamp":"2026-09-27T21:27:02Z"}
+{"config":"configs/render2svg/full-v4-online.yaml","run_id":"r2s-full-v4-online-c0fe6d3-a854be2e-47646604","slug":"r2s-full-v4-online","state":"running","timestamp":"2026-09-27T21:27:19Z"}

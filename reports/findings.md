@@ -3342,3 +3342,39 @@ permutation), 42,896 in all, which no prefix can memorise. The arm after it adds
 metric position features between image cells and coordinates, because the flat 28%
 accuracy says the decoder has no easy way to connect a coordinate token to a place in
 the image.
+
+## 2026-09-27 — Render-to-SVG: exact augmentation and metric coordinates each close the gap
+
+Two arms, one change each, same pass criteria as the control (beat the nearest
+training icon in pixels with the interval excluding zero; CLIP top-1 at or above
+OmniSVG's 0.609; under 500 ms per icon). Both are falsified; both move the right way.
+
+| 339 validation icons | v1 control | v2 + 16 exact variants | v3 + metric coordinates |
+| --- | --- | --- | --- |
+| mean pixel error | 0.149 | 0.130 | 0.106 [0.101, 0.113] |
+| reduction vs nearest icon (0.090) | -0.059 | -0.040 | -0.017 [-0.022, -0.012] |
+| icons beating the nearest icon | 16 | 50 | 138 |
+| held-out free-token accuracy, best | 0.28 | 0.41 | 0.51 |
+| CLIP top-1 / top-5, Gate N's 32 | 0.22 / 0.34 | 0.16 / 0.50 | 0.22 / 0.50 |
+| selected step | 19,000 | 6,000 | 15,000 |
+
+Run ids: `r2s-full-v2-aug-4032fbd-1e601024-47646604`,
+`r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604`.
+
+**Augmentation** (v2) stopped the collapse into memorisation: held-out loss fell to
+2.66 instead of rising, and the samples show the model now reads the image for the
+first, largest shape - right place, right colour - and loses every later path.
+
+**Metric coordinates** (v3), Fourier features of view-unit position shared by encoder
+cells, coordinate inputs and candidate coordinate values, is the largest single step so
+far. The samples show glyphs being read rather than recalled: a circled J comes back as
+a J, a violin as a violin-shaped outline, an apple as red lobes in the right place.
+Fills and fine details are still messy. With 16 cached variants per icon it overfits
+again after about 8,000 steps (held-out loss 2.16 rising to 2.71).
+
+Latency in these runs is the batched reference decoder at batch 1 in bfloat16
+(628 to 835 ms) and is not the demo path; a CUDA-graph decoder that matches it exactly
+in float32 is now built, and latency will be re-measured on an idle GPU.
+
+**Decision.** Online augmentation (v4, one change from v2) and path-major order (v5, one
+change from v3) are queued. Whatever holds up is combined in one longer run.

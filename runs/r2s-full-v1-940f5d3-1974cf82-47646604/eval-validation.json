@@ -1,0 +1,65 @@
+{
+  "run_id": "r2s-full-v1-940f5d3-1974cf82-47646604",
+  "split": "primary/validation",
+  "icons": 64,
+  "precision": "float32",
+  "selected_step": 19000,
+  "model_parameters": 8921634,
+  "model_pixel_error": [
+    0.14540959941223264,
+    0.13153509852854767,
+    0.159227566892514
+  ],
+  "model_pixel_error_median": 0.1414136290550232,
+  "nearest_training_icon_pixel_error": [
+    0.10448384570190683,
+    0.0967605800324236,
+    0.11203451215696987
+  ],
+  "model_minus_baseline_error_reduction": [
+    -0.04092575371032581,
+    -0.04975024972372921,
+    -0.03226160255871945
+  ],
+  "icons_model_beats_baseline": 2,
+  "exact_program_rate": 0.015625,
+  "rendered_rate": 1.0,
+  "batched_decode_seconds": 14.585406484897248,
+  "clip_retrieval": {
+    "model_greedy": {
+      "top1_rate": 0.15625,
+      "top5_rate": 0.4375,
+      "mean_rank": 12.90625,
+      "clip_to_reference_mean": 0.8164729569107294,
+      "chance_top1": 0.03125,
+      "icons": 32
+    },
+    "nearest_training_icon": {
+      "top1_rate": 0.34375,
+      "top5_rate": 0.59375,
+      "mean_rank": 7.40625,
+      "clip_to_reference_mean": 0.8630629815161228,
+      "chance_top1": 0.03125,
+      "icons": 32
+    },
+    "gate_n_omnisvg_zero_shot_top1": 0.609375
+  },
+  "resource": {
+    "device": "NVIDIA GeForce RTX 4080",
+    "torch_version": "2.14.0a0+4fdf77b940.nv26.08",
+    "cuda_version": "13.4",
+    "python_version": "3.12.3",
+    "peak_vram_gib": 2.0891637802124023,
+    "train_seconds": null,
+    "inference_ms_per_icon": 1266.5597719606012,
+    "inference_p95_ms_per_icon": 1272.828608052805,
+    "icons_per_second": 0.7895403139577268,
+    "train_seconds_null_reason": "evaluation of a trained checkpoint",
+    "decoder": "fast_decode.GraphDecoder, float32, batch 1",
+    "graph_matches_batched_programs": "8 of 8",
+    "decoder_calls_first_icon": 370,
+    "batched_ms_per_icon": 204.34617348291795,
+    "batched_icons_per_call": 64,
+    "excludes": "rasterising the output SVG"
+  }
+}
