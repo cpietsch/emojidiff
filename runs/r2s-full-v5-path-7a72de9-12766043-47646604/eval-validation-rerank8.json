@@ -1,0 +1,66 @@
+{
+  "run_id": "r2s-full-v5-path-7a72de9-12766043-47646604",
+  "split": "primary/validation",
+  "icons": 339,
+  "precision": "float32",
+  "selected_step": 19000,
+  "model_parameters": 9025826,
+  "model_pixel_error": [
+    0.07223092219078017,
+    0.06771440423625331,
+    0.07675542642189338
+  ],
+  "model_pixel_error_median": 0.0715973749756813,
+  "nearest_training_icon_pixel_error": [
+    0.08973124639576185,
+    0.0848205749792233,
+    0.09466393787711656
+  ],
+  "model_minus_baseline_error_reduction": [
+    0.01750032420498168,
+    0.014571114789423599,
+    0.02063446817496362
+  ],
+  "icons_model_beats_baseline": 259,
+  "exact_program_rate": 0.017699115044247787,
+  "rendered_rate": 1.0,
+  "batched_decode_seconds": 3179.783815604984,
+  "rerank": {
+    "candidates": 8,
+    "temperature": 0.7
+  },
+  "rerank_chose_a_sample_rate": 0.8702064896755162,
+  "clip_retrieval": {
+    "model_greedy": {
+      "top1_rate": 0.5,
+      "top5_rate": 0.78125,
+      "mean_rank": 4.1875,
+      "clip_to_reference_mean": 0.901255514472723,
+      "chance_top1": 0.03125,
+      "icons": 32
+    },
+    "nearest_training_icon": {
+      "top1_rate": 0.34375,
+      "top5_rate": 0.59375,
+      "mean_rank": 7.40625,
+      "clip_to_reference_mean": 0.8630629815161228,
+      "chance_top1": 0.03125,
+      "icons": 32
+    },
+    "gate_n_omnisvg_zero_shot_top1": 0.609375
+  },
+  "resource": {
+    "device": "NVIDIA GeForce RTX 4080",
+    "torch_version": "2.14.0a0+4fdf77b940.nv26.08",
+    "cuda_version": "13.4",
+    "python_version": "3.12.3",
+    "peak_vram_gib": 0.7318105697631836,
+    "train_seconds": null,
+    "inference_ms_per_icon": 12894.692803965881,
+    "inference_p95_ms_per_icon": 12922.605836996809,
+    "icons_per_second": 0.07755128526151789,
+    "train_seconds_null_reason": "evaluation of a trained checkpoint",
+    "decoder": "batched reference, float32, greedy plus 7 samples, each rendered and compared with the input",
+    "includes": "rasterising every candidate"
+  }
+}

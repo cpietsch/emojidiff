@@ -3421,3 +3421,37 @@ SVG is excluded.
 **Decision.** Compositions (v6, one change from v4) are running, then a systems run (v7)
 with metric coordinates, path order, online augmentation and compositions for 60,000
 steps. The factor attribution stays with the one-factor arms.
+
+## 2026-09-28 — Compositions stop memorisation; render-and-compare decoding beats retrieval
+
+**Compositions** (`r2s-full-v6-compose-7505e5b-6472dcf0-47646604`, one change from v4):
+half the training icons are collages of whole layer groups from two to four training
+icons, each translated exactly, layers renumbered, masks recomputed. For the first time
+held-out loss never turned: it fell steadily to 1.81 at step 16,000 (v4 bottomed at 2.54
+at step 6,000 and rose), and held-out free-token accuracy reached 0.55 - higher than
+path order's 0.51, without metric coordinates or path order. On 339 validation icons,
+pixel error 0.111 against v4's 0.121, 96 icons beating the nearest training icon
+against 62, CLIP top-1 0.31 against 0.25. Still falsified against retrieval (-0.021).
+
+**Render-and-compare decoding** on v5's checkpoint, not a new training run: greedy plus
+seven samples at temperature 0.7, each rendered at the input's 144 px and compared with
+the input render; the closest is kept. Only the input is consulted, as a user would
+supply it, so this is decoding rather than peeking. One setting, not tuned.
+
+| 339 validation icons | v5 greedy | v5, 8 candidates | nearest training icon |
+| --- | --- | --- | --- |
+| mean pixel error | 0.098 | 0.072 [0.068, 0.077] | 0.090 [0.085, 0.095] |
+| reduction vs nearest icon | -0.008 | +0.018 [+0.015, +0.021] | |
+| icons beating the nearest icon | 153 | 259 | |
+| CLIP top-1 / top-5, Gate N's 32 | 0.44 / 0.72 | 0.50 / 0.78 | 0.34 / 0.59 |
+
+A sample was chosen over greedy for 87% of icons. This is the first model output in the
+project that beats retrieval from the training set in pixels, with the interval clear
+of zero. It is not v5's predeclared result - v5 was declared and scored with greedy
+decoding and stays falsified - and it still misses CLIP top-1 against OmniSVG zero-shot
+(0.50 against 0.609). Its latency as measured, 12.9 s per icon, is the batched reference
+decoder under training load and fails the budget; a batched CUDA-graph decoder is the
+next engineering step, then an idle-GPU measurement.
+
+**Decision.** The systems run (v7) is training. It will be scored both greedy and with
+8 candidates. The test split stays untouched until one configuration is chosen.
