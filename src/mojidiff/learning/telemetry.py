@@ -143,8 +143,8 @@ def resource_summary(
 
     return ResourceReport(
         device=device_name(device),
-        torch_version=torch.__version__,
-        cuda_version=torch.version.cuda if device.type == "cuda" else None,
+        torch_version=str(torch.__version__),
+        cuda_version=str(torch.version.cuda) if device.type == "cuda" else None,
         python_version=platform.python_version(),
         peak_vram_gib=peak_vram_gib(device),
         train_seconds=train_seconds,

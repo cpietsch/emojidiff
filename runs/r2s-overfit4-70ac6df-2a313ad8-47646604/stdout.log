@@ -1,0 +1,55 @@
+{"run_id": "r2s-overfit4-70ac6df-2a313ad8-47646604", "parameters": 8921634}
+{"step": 100, "train_loss": 0.0012098613660782576, "eval_nll_per_free_token": 0.0011951822500962477, "eval_free_token_accuracy": 1.0, "eval_pixel_error_mean": 0.0, "elapsed_seconds": 2.145829704008065, "learning_rate": 0.0009890738003669028}
+{"step": 200, "train_loss": 0.0005996469408273697, "eval_nll_per_free_token": 0.0005968196575458233, "eval_free_token_accuracy": 1.0, "eval_pixel_error_mean": 0.0, "elapsed_seconds": 3.874163960106671, "learning_rate": 0.0009045084971874737}
+{"step": 300, "train_loss": 0.00040685452404432, "eval_nll_per_free_token": 0.00040552625289330116, "eval_free_token_accuracy": 1.0, "eval_pixel_error_mean": 0.0, "elapsed_seconds": 5.596544824074954, "learning_rate": 0.00075}
+{"step": 400, "train_loss": 0.00031724112341180444, "eval_nll_per_free_token": 0.0003168562971628629, "eval_free_token_accuracy": 1.0, "eval_pixel_error_mean": 0.0, "elapsed_seconds": 7.310333727044053, "learning_rate": 0.0005522642316338268}
+{"step": 500, "train_loss": 0.00027231022249907255, "eval_nll_per_free_token": 0.00027160850855020374, "eval_free_token_accuracy": 1.0, "eval_pixel_error_mean": 0.0, "elapsed_seconds": 9.041453596088104, "learning_rate": 0.00034549150281252633}
+{"step": 600, "train_loss": 0.0002488429599907249, "eval_nll_per_free_token": 0.00024857275761090795, "eval_free_token_accuracy": 1.0, "eval_pixel_error_mean": 0.0, "elapsed_seconds": 10.752220466034487, "learning_rate": 0.00016543469682057105}
+{"step": 700, "train_loss": 0.00024027784820646048, "eval_nll_per_free_token": 0.00024019456826723538, "eval_free_token_accuracy": 1.0, "eval_pixel_error_mean": 0.0, "elapsed_seconds": 12.466838409076445, "learning_rate": 4.322727117869951e-05}
+{"step": 800, "train_loss": 0.00023861376394052058, "eval_nll_per_free_token": 0.00023861376138833854, "eval_free_token_accuracy": 1.0, "eval_pixel_error_mean": 0.0, "elapsed_seconds": 14.187575580086559, "learning_rate": 0.0}
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/dev/workspace/mojidiff/src/mojidiff/learning/render2svg.py", line 1168, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/dev/workspace/mojidiff/src/mojidiff/learning/render2svg.py", line 1163, in main
+    train_and_evaluate(args.config)
+  File "/home/dev/workspace/mojidiff/src/mojidiff/learning/render2svg.py", line 1069, in train_and_evaluate
+    _write_yaml(run_dir / "run.yaml", record)
+  File "/home/dev/workspace/mojidiff/src/mojidiff/learning/render2svg.py", line 788, in _write_yaml
+    path.write_text(yaml.safe_dump(value, sort_keys=False, width=88, allow_unicode=True))
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dev/workspace/mojidiff/.venv/lib/python3.12/site-packages/yaml/__init__.py", line 269, in safe_dump
+    return dump_all([data], stream, Dumper=SafeDumper, **kwds)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dev/workspace/mojidiff/.venv/lib/python3.12/site-packages/yaml/__init__.py", line 241, in dump_all
+    dumper.represent(data)
+  File "/home/dev/workspace/mojidiff/.venv/lib/python3.12/site-packages/yaml/representer.py", line 27, in represent
+    node = self.represent_data(data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dev/workspace/mojidiff/.venv/lib/python3.12/site-packages/yaml/representer.py", line 48, in represent_data
+    node = self.yaml_representers[data_types[0]](self, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dev/workspace/mojidiff/.venv/lib/python3.12/site-packages/yaml/representer.py", line 207, in represent_dict
+    return self.represent_mapping('tag:yaml.org,2002:map', data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dev/workspace/mojidiff/.venv/lib/python3.12/site-packages/yaml/representer.py", line 118, in represent_mapping
+    node_value = self.represent_data(item_value)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dev/workspace/mojidiff/.venv/lib/python3.12/site-packages/yaml/representer.py", line 48, in represent_data
+    node = self.yaml_representers[data_types[0]](self, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dev/workspace/mojidiff/.venv/lib/python3.12/site-packages/yaml/representer.py", line 207, in represent_dict
+    return self.represent_mapping('tag:yaml.org,2002:map', data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dev/workspace/mojidiff/.venv/lib/python3.12/site-packages/yaml/representer.py", line 118, in represent_mapping
+    node_value = self.represent_data(item_value)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dev/workspace/mojidiff/.venv/lib/python3.12/site-packages/yaml/representer.py", line 58, in represent_data
+    node = self.yaml_representers[None](self, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/dev/workspace/mojidiff/.venv/lib/python3.12/site-packages/yaml/representer.py", line 231, in represent_undefined
+    raise RepresenterError("cannot represent an object", data)
+yaml.representer.RepresenterError: ('cannot represent an object', '2.14.0a0+4fdf77b940.nv26.08')
+EXIT=0

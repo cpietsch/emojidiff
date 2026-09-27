@@ -1,0 +1,4 @@
+{
+  "checkpoint_best": "/home/dev/.cache/mojidiff/runs/r2s-overfit4-70ac6df-2a313ad8-47646604/best.pt",
+  "checkpoint_latest": "/home/dev/.cache/mojidiff/runs/r2s-overfit4-70ac6df-2a313ad8-47646604/latest.pt"
+}

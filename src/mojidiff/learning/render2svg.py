@@ -269,11 +269,21 @@ def _prepare_row(args: tuple[Any, Any, Any, SequenceLayout, int, bool]) -> dict[
     return record
 
 
+CORPUS_FORMAT = 1
+"""Bump when `_prepare_row` or `load_corpus` change what the cache holds."""
+
+
 def _cache_key(pilot_config: Path, image_size: int, mirror: bool) -> str:
+    """Pilot config, render size, mirroring, cache format, and the grammar sources.
+
+    The dataset hash recorded with every run is the hash of the cache file itself, so
+    this key only decides when to rebuild; it does not identify the data.
+    """
+
     digest = hashlib.sha256()
     digest.update(pilot_config.read_bytes())
-    digest.update(f"size={image_size};mirror={mirror};v=1".encode())
-    for name in ("render2svg.py", "autoregressive.py", "openmoji_pilot.py"):
+    digest.update(f"size={image_size};mirror={mirror};format={CORPUS_FORMAT}".encode())
+    for name in ("autoregressive.py", "openmoji_pilot.py"):
         digest.update((Path(__file__).parent / name).read_bytes())
     return digest.hexdigest()[:12]
 
@@ -785,7 +795,10 @@ def _append_registry(run_id: str, state: str, **extra: Any) -> None:
 
 
 def _write_yaml(path: Path, value: dict[str, Any]) -> None:
-    path.write_text(yaml.safe_dump(value, sort_keys=False, width=88, allow_unicode=True))
+    # A JSON round trip turns tuples, numpy scalars and torch's version string into
+    # plain types, so a record can never be lost to the serializer after a run.
+    plain = json.loads(json.dumps(value, default=str))
+    path.write_text(yaml.safe_dump(plain, sort_keys=False, width=88, allow_unicode=True))
 
 
 def train_and_evaluate(config_path: Path) -> dict[str, Any]:

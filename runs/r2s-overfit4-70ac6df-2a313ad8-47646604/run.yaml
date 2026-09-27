@@ -1,0 +1,54 @@
+schema_version: 2
+run_id: r2s-overfit4-70ac6df-2a313ad8-47646604
+state: failed
+planned_at: '2026-09-27T19:55:36Z'
+hypothesis: A 7.6M-parameter render-to-program encoder-decoder, trained on four OpenMoji icons,
+  decodes those four icons greedily from their 144 px renders to programs whose 72 px renders
+  are within 0.01 mean RGB error of the originals, in under 1,000 steps.
+parent_run: null
+git_commit: 70ac6df535a0903ea96f3057a26720662585ebe2
+dirty_patch_sha256: ''
+config: configs/render2svg/overfit-4.yaml
+config_sha256: 2a313ad8e603cb7c616781d93360031481786d2c4715f65a758cc6f4d6c53146
+config_resolved:
+  model:
+    image_size: 144
+    d_model: 256
+    heads: 8
+    encoder_layers: 2
+    decoder_layers: 6
+    feedforward: 1024
+    dropout: 0.0
+  training:
+    steps: 800
+    batch_size: 4
+    learning_rate: 0.001
+    weight_decay: 0.01
+    warmup_steps: 50
+    seed: 7001
+    eval_every: 100
+    eval_icons: 4
+    train_icons: 4
+    evaluate_on_train: true
+    augment_mirror: 0.0
+    bf16: true
+  final_eval_icons: 4
+  clip_icons: 0
+dataset:
+  pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+  cache_sha256: 476466042da98d72c2bf2774cecc18f08d50a362eefbecae97904bde7a04ef0e
+  train_icons: 4
+  evaluated_on: primary/train
+seed: 7001
+determinism: seeded; cuDNN and SDPA kernels not forced deterministic
+model_parameters: 8921634
+command: .venv/bin/python -m mojidiff.learning.render2svg --config configs/render2svg/overfit-4.yaml
+outputs:
+  run_dir: runs/r2s-overfit4-70ac6df-2a313ad8-47646604
+  checkpoints: /home/dev/.cache/mojidiff/runs/r2s-overfit4-70ac6df-2a313ad8-47646604
+notes: ''
+failed_at: '2026-09-27T19:56:23Z'
+failure_reason: 'record write failed after training and evaluation: yaml could not represent
+  torch.__version__ (TorchVersion); latency and final summary lost. Training metrics preserved
+  in metrics.jsonl: exact reconstruction (pixel error 0.0, free-token accuracy 1.0) of all
+  4 icons from step 100.'

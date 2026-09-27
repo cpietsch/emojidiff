@@ -46,3 +46,11 @@ def test_resource_summary_without_latency_leaves_inference_fields_null() -> None
     record = resource_summary(torch.device("cpu"), train_seconds=None, latency=None).as_record()
     assert record["inference_ms_per_icon"] is None
     assert record["icons_per_second"] is None
+
+
+def test_resource_record_is_plain_data() -> None:
+    import yaml
+
+    record = resource_summary(torch.device("cpu"), train_seconds=1.0, latency=None).as_record()
+    assert type(record["torch_version"]) is str
+    yaml.safe_dump(record)

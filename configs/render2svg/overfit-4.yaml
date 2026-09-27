@@ -4,7 +4,7 @@
 schema_version: 1
 slug: r2s-overfit4
 hypothesis: >-
-  A 7.6M-parameter render-to-program encoder-decoder, trained on four OpenMoji icons,
+  An 8.9M-parameter render-to-program encoder-decoder, trained on four OpenMoji icons,
   decodes those four icons greedily from their 144 px renders to programs whose 72 px
   renders are within 0.01 mean RGB error of the originals, in under 1,000 steps.
 pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
