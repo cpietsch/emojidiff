@@ -1,0 +1,66 @@
+{
+  "icons": 32,
+  "systems": {
+    "omnisvg zero-shot": {
+      "drawings": 64,
+      "pixel_error": [
+        0.08664829102053773,
+        0.06972321083812857,
+        0.104832488426473
+      ],
+      "codec_valid_rate": 0.140625,
+      "clip_top1": 0.609375,
+      "seconds_per_drawing": 17.055716740468597,
+      "parameters": "about 4B"
+    },
+    "omnisvg best of 6": {
+      "drawings": 64,
+      "pixel_error": [
+        0.05911577635561116,
+        0.045760559715563434,
+        0.07332800969634264
+      ],
+      "codec_valid_rate": 0.390625,
+      "clip_top1": 0.765625,
+      "seconds_per_drawing": 52.6929917183752,
+      "parameters": "about 4B"
+    },
+    "omnisvg best of 12": {
+      "drawings": 64,
+      "pixel_error": [
+        0.05084297325083753,
+        0.039083140952061515,
+        0.06428514109320531
+      ],
+      "codec_valid_rate": 0.375,
+      "clip_top1": 0.828125,
+      "seconds_per_drawing": 105.63591303512658,
+      "parameters": "about 4B"
+    },
+    "student greedy": {
+      "drawings": 32,
+      "pixel_error": [
+        0.11231699452036992,
+        0.09637265251221834,
+        0.12839079897676128
+      ],
+      "codec_valid_rate": 1.0,
+      "seconds_per_drawing": 0.4316132094063505,
+      "seconds_note": "batched reference decoder, float32, whatever else was on the GPU",
+      "parameters": 9025826
+    },
+    "student best of 8": {
+      "drawings": 32,
+      "pixel_error": [
+        0.08035399416985456,
+        0.06705851336992055,
+        0.09346264401137887
+      ],
+      "codec_valid_rate": 1.0,
+      "seconds_per_drawing": 9.818823652654828,
+      "seconds_note": "batched reference decoder, float32, whatever else was on the GPU",
+      "parameters": 9025826
+    }
+  },
+  "student_run": "r2s-full-v5-path-7a72de9-12766043-47646604"
+}

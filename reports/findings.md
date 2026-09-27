@@ -3490,3 +3490,36 @@ the next data arm, excluding every Twemoji emoji whose codepoint sits in OpenMoj
 validation or test split so held-out concepts stay held out. Noto and Blobmoji need
 adapter fixes first, and all three want a larger palette - a codec change that retrains
 from scratch, deferred until a data arm shows the extra shapes help.
+
+## 2026-09-28 — Direction 3, first evidence: the teacher draws better, and cannot teach this codec
+
+**Question.** Distilling OmniSVG 4B into the small model pays only if the teacher's
+programs are better than what the student already produces, on inputs it would be taught
+with. `scripts/distill_probe.py` compares, on Gate N's 32 validation icons and the same
+72 px references, OmniSVG's saved image-conditioned drawings from Gate N with the v5
+student's decodes (`reports/learning/distill-probe-v1/summary.json`).
+
+| system | pixel error [95% CI] | output the codec accepts | seconds per drawing |
+| --- | --- | --- | --- |
+| OmniSVG 4B, zero-shot | 0.087 [0.070, 0.105] | 14% | 17.1 |
+| OmniSVG 4B, best of 6 | 0.059 [0.046, 0.073] | 39% | 52.7 |
+| OmniSVG 4B, best of 12 | 0.051 [0.039, 0.064] | 38% | 105.6 |
+| v5 student (9.0M), greedy | 0.112 [0.096, 0.128] | 100% | 0.43 |
+| v5 student, best of 8 | 0.080 [0.067, 0.094] | 100% | 9.8 |
+
+Teacher errors are on its own SVG, not on a codec program; student seconds are the
+batched reference decoder under training load, not the graph decoder.
+
+**Reading.** In its own representation the teacher is more faithful: zero-shot it beats
+the student's greedy decode, and best-of-12 beats the student's best-of-8 by 0.03. But
+62 to 86% of its drawings do not fit the codec the student writes, and each costs 40 to
+250 times the student's time. For render-to-SVG on OpenMoji and Twemoji the student
+already trains on exact programs, which no teacher output can improve on as a target.
+Distillation would pay only for inputs that have no program at all - raster emoji, or
+text prompts - and at 17 to 106 s per drawing a 20,000-drawing corpus is 4 to 25 days
+of this GPU for a yield of 14 to 39% usable programs.
+
+**Decision.** Direction 3 is set aside for render-to-SVG: exact data (direction 2) and
+compositions dominate it. It stays open for a text-conditioned model, where no exact
+programs exist, and should be revisited if the codec is widened to accept the teacher's
+output.
