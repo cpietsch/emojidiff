@@ -60,6 +60,12 @@ class Vectoriser:
         self.template = template
         self.device = device
         self.lock = threading.Lock()
+        self.graph: Any = None
+        if device.type == "cuda":
+            from mojidiff.learning.fast_decode import GraphDecoder
+
+            # Float32 graphs decode exactly what the evaluated batched decoder decodes.
+            self.graph = GraphDecoder(model, dtype=torch.float32)
 
     @classmethod
     def from_checkpoint(cls, checkpoint: Path) -> Vectoriser:
@@ -98,7 +104,9 @@ class Vectoriser:
             if self.device.type == "cuda":
                 torch.cuda.synchronize()
             started = time.perf_counter()
-            with torch.autocast("cuda", dtype=torch.bfloat16, enabled=self.device.type == "cuda"):
+            if self.graph is not None:
+                tokens = self.graph.decode(images[0], stats=stats)
+            else:
                 tokens = greedy_decode(self.model, images, stats=stats)
             if self.device.type == "cuda":
                 torch.cuda.synchronize()
