@@ -86,7 +86,7 @@ class GraphDecoder:
         width = self.config.d_model
         heads = self.config.heads
         length = self.layout.length
-        grid = (self.config.image_size // 8) ** 2
+        grid = model.memory_length
         self.heads = heads
         self.head_dim = width // heads
         shape = (batch, heads, length + 1, self.head_dim)  # the last slot is scratch

@@ -920,9 +920,15 @@ class OnlineAugmentation(
         self.template = template
         self.size = size
         self.config = config
+        self.render_images = True
+        """False streams programs only (for models that never see pixels); the image
+        slot then holds a 1x1 placeholder and no variant is rasterised."""
 
     def _render(self, program: PackedTensorProgram) -> np.ndarray | None:
         layout = self.layout
+        if not self.render_images:
+            validate_packed_tensor_program(program, layout.codec, layout.total_segment_slots)
+            return np.zeros((1, 1, 3), dtype=np.uint8)
         try:
             validate_packed_tensor_program(program, layout.codec, layout.total_segment_slots)
             svg = serialize_packed_svg(program, layout.codec, layout.total_segment_slots)
@@ -974,7 +980,12 @@ class OnlineAugmentation(
             source = torch.from_numpy(self.tokens[index].astype(np.int64))
             order = path_major_order(source, layout)
             if rng.random() < self.config.augment_original:
-                yield torch.from_numpy(self.images[index]), source, self.masks[index], order
+                original = (
+                    torch.from_numpy(self.images[index])
+                    if self.render_images
+                    else torch.zeros((1, 1, 3), dtype=torch.uint8)
+                )
+                yield original, source, self.masks[index], order
                 continue
             variant = augment_program_tokens(source, layout, rng, self.config)
             image = self._render(unflatten_program(variant, self.template, layout))
@@ -989,6 +1000,7 @@ def _online_batches(
     template: PackedTensorProgram,
     size: int,
     config: TrainConfig,
+    render_images: bool = True,
 ) -> Iterator[tuple[Tensor, Tensor, Tensor, Tensor | None, Tensor]]:
     """(images, tokens, masks, orders, -1 source indices) from the online stream."""
 
@@ -1001,6 +1013,7 @@ def _online_batches(
         size,
         config,
     )
+    dataset.render_images = render_images
     loader = torch.utils.data.DataLoader(
         dataset,
         batch_size=config.batch_size,
@@ -1343,6 +1356,12 @@ class RenderToProgram(nn.Module):
             cast(Tensor, self._kind_position),
             cast(Tensor, self._start_axis),
         )
+
+    @property
+    def memory_length(self) -> int:
+        """How many memory tokens `encode` returns: the image grid's cells."""
+
+        return (self.config.image_size // 8) ** 2
 
     def encode(self, images: Tensor) -> list[tuple[Tensor, Tensor]]:
         """Per-decoder-layer cross-attention keys and values for uint8 NHWC renders."""
