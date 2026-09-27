@@ -383,3 +383,24 @@ def test_compositions_are_valid_and_carry_their_own_masks(pieces: Pieces) -> Non
         program = unflatten_program(variant, programs[0], layout)
         rendered = render_trusted_rgb(serialize_packed_svg(program, layout.codec, 128), 32)
         assert np.array_equal(image.numpy(), rendered)
+
+
+def test_whole_program_masks_equal_the_positionwise_grammar(pieces: Pieces) -> None:
+    from mojidiff.learning.render2svg import compose_program, program_legal_masks
+
+    layout, programs = pieces
+    rng = np.random.default_rng(4)
+    candidates = list(programs) + [compose_program(programs, layout, rng) for _ in range(4)]
+    config = TrainConfig(augment_colour=1.0)
+    checked = 0
+    for program in candidates:
+        if program is None:
+            continue
+        for tokens in (
+            flatten_program(program, layout),
+            augment_program_tokens(flatten_program(program, layout), layout, rng, config),
+        ):
+            expected = torch.stack([legal_mask(p, tokens, layout) for p in range(layout.length)])
+            assert np.array_equal(program_legal_masks(tokens, layout), expected.numpy())
+            checked += 1
+    assert checked >= 8

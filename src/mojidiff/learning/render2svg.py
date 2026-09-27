@@ -637,6 +637,130 @@ def load_augmented(
     )
 
 
+def program_legal_masks(tokens: Tensor, layout: SequenceLayout) -> np.ndarray:
+    """Every position's legal-token mask for a complete program, in one pass.
+
+    Equal, row for row, to stacking `legal_mask(p, tokens, layout)` over all positions
+    (tested on corpus icons and compositions), but it walks each path and segment once
+    instead of re-deriving path ownership and capacity at every position - which is
+    what made per-sample masks the bottleneck of the compositional data stream.
+    """
+
+    from mojidiff.learning.autoregressive import (
+        _CAP_NAMES,
+        _FILL_RULE_NAMES,
+        _JOIN_NAMES,
+        NONE,
+        PAD,
+        PATH_FIELDS,
+        PATH_STRIDE,
+        SEGMENT_STRIDE,
+    )
+    from mojidiff.representation.program import SegmentType
+
+    codec = layout.codec
+    values = [int(v) for v in tokens]
+    masks = np.zeros((layout.length, layout.vocabulary), dtype=bool)
+    field = {name: index for index, name in enumerate(PATH_FIELDS)}
+    palette = len(codec.palette)
+    stroke_sizes = {
+        "stroke_opacity": len(codec.opacities),
+        "stroke_width": len(codec.stroke_widths),
+        "linecap": len(_CAP_NAMES),
+        "linejoin": len(_JOIN_NAMES),
+        "miter_limit": len(codec.miter_limits),
+        "dash_pattern": len(codec.dash_patterns),
+    }
+    used = 0
+    all_active = True
+    highest_layer = 0
+    for path in range(codec.max_paths):
+        base = path * PATH_STRIDE
+        length = values[base]
+        row = masks[base]
+        row[0] = True
+        if all_active:
+            row[1 : min(codec.max_segments, max(layout.total_segment_slots - used, 0)) + 1] = True
+        used += length
+        if length <= 0:
+            all_active = False
+            masks[base + 1 : base + PATH_STRIDE, PAD] = True
+            continue
+        layer = values[base + field["layer"]]
+        layer_row = masks[base + field["layer"]]
+        if highest_layer >= 1:
+            layer_row[highest_layer] = True
+        layer_row[highest_layer + 1 : codec.max_paths + 1] = True
+        previous_layer = values[(path - 1) * PATH_STRIDE + field["layer"]] if path > 0 else 0
+        pinned = path > 0 and layer != 0 and layer == previous_layer
+        fill = values[base + field["fill"]]
+        stroke = values[base + field["stroke"]]
+        for name, within in field.items():
+            if within <= field["layer"]:
+                continue
+            target = masks[base + within]
+            if pinned:
+                target[values[(path - 1) * PATH_STRIDE + within]] = True
+                continue
+            if name == "opacity":
+                target[2 : len(codec.opacities) + 2] = True
+            elif name == "fill":
+                target[NONE] = True
+                target[2 : palette + 2] = True
+            elif name == "stroke":
+                if fill != NONE:
+                    target[NONE] = True
+                target[2 : palette + 2] = True
+            elif name in ("fill_opacity", "fill_rule"):
+                if fill == NONE:
+                    target[NONE] = True
+                elif name == "fill_opacity":
+                    target[2 : len(codec.opacities) + 2] = True
+                else:
+                    target[2 : len(_FILL_RULE_NAMES) + 2] = True
+            else:
+                if stroke == NONE:
+                    target[NONE] = True
+                else:
+                    if name == "dash_pattern":
+                        target[NONE] = True
+                    target[2 : stroke_sizes[name] + 2] = True
+        masks[base + len(PATH_FIELDS) : base + PATH_STRIDE, 1 : codec.coordinate_bins + 1] = True
+        highest_layer = max(highest_layer, layer)
+    owners: list[tuple[int, int] | None] = [None] * layout.total_segment_slots
+    offset = 0
+    for path in range(codec.max_paths):
+        length = values[path * PATH_STRIDE]
+        for within in range(length):
+            if offset + within < layout.total_segment_slots:
+                owners[offset + within] = (length, within)
+        offset += length
+    for segment in range(layout.total_segment_slots):
+        base = layout.path_positions + segment * SEGMENT_STRIDE
+        owner = owners[segment]
+        if owner is None:
+            masks[base, PAD] = True
+        else:
+            length, within = owner
+            masks[base, int(SegmentType.LINE)] = True
+            masks[base, int(SegmentType.QUAD)] = True
+            masks[base, int(SegmentType.CUBIC)] = True
+            if within == length - 1:
+                masks[base, int(SegmentType.CLOSE)] = True
+        kind = values[base]
+        controls = _CONTROL_SLOTS[kind] if kind in (1, 2, 3) else 0
+        coordinates = controls + 2 if kind in (1, 2, 3) else 0
+        for slot in range(6):
+            target = masks[base + 1 + slot]
+            if slot >= coordinates:
+                target[PAD] = True
+            elif slot < controls:
+                target[1 : codec.effective_control_coordinate_bins + 1] = True
+            else:
+                target[1 : codec.coordinate_bins + 1] = True
+    return masks
+
+
 def _layer_groups(program: PackedTensorProgram) -> list[tuple[int, int]]:
     """Runs of consecutive active paths sharing a layer, as [first, last) path indices."""
 
@@ -838,11 +962,11 @@ class OnlineAugmentation(
                 image = self._render(program)
                 if image is None:
                     continue
-                mask = torch.stack([legal_mask(p, tokens, layout) for p in range(layout.length)])
+                mask = program_legal_masks(tokens, layout)
                 yield (
                     torch.from_numpy(image),
                     tokens,
-                    np.packbits(mask.numpy().reshape(-1)),
+                    np.packbits(mask.reshape(-1)),
                     path_major_order(tokens, layout),
                 )
                 continue
