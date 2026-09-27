@@ -28,6 +28,7 @@ has learned nothing a lookup table does not already know.
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import json
 import math
@@ -130,6 +131,11 @@ class TrainConfig:
     """Per-variant probability of a random permutation of the palette."""
     augment_online: bool = False
     """Draw a fresh exact variant for every presentation instead of a fixed cached set."""
+    compose_probability: float = 0.0
+    """Under online augmentation, probability of a composed icon: groups of paths from
+    several training icons, each translated, painted in order on one box."""
+    compose_parts: int = 4
+    """Largest number of source icons in one composition (at least two)."""
     augment_original: float = 0.1
     """Under online augmentation, probability of presenting the unmodified icon."""
     loader_workers: int = 10
@@ -631,18 +637,152 @@ def load_augmented(
     )
 
 
-class OnlineAugmentation(torch.utils.data.IterableDataset[tuple[Tensor, Tensor, int]]):
-    """An endless stream of (render, tokens, source index), a fresh exact variant each time.
+def _layer_groups(program: PackedTensorProgram) -> list[tuple[int, int]]:
+    """Runs of consecutive active paths sharing a layer, as [first, last) path indices."""
 
-    Each loader worker seeds its own generator from (augment_seed, worker id), so the
-    stream is reproducible for a fixed worker count. The source index lets the trainer
-    borrow the source icon's legal masks, as with the cached variants.
+    lengths = [int(v) for v in program.path_length]
+    active = next((i for i, v in enumerate(lengths) if v == 0), len(lengths))
+    groups: list[tuple[int, int]] = []
+    first = 0
+    for index in range(1, active + 1):
+        if index == active or int(program.layer[index]) != int(program.layer[first]):
+            groups.append((first, index))
+            first = index
+    return groups
+
+
+def _coordinate_role_grid(segment_type: np.ndarray) -> np.ndarray:
+    """(segments, 6) roles: 0 unused, 1 endpoint, 2 control; x at even slots."""
+
+    roles = np.zeros((len(segment_type), 6), dtype=np.int64)
+    for index, kind in enumerate(segment_type):
+        controls = _CONTROL_SLOTS[int(kind)] if 0 <= int(kind) <= 4 else 0
+        used = controls + 2 if 1 <= int(kind) <= 3 else 0
+        roles[index, :controls] = ROLE_CONTROL
+        roles[index, controls:used] = ROLE_ENDPOINT
+    return roles
+
+
+def compose_program(
+    sources: Sequence[PackedTensorProgram],
+    layout: SequenceLayout,
+    rng: np.random.Generator,
+) -> PackedTensorProgram | None:
+    """A new icon from parts of several: exact, valid, or None when nothing fits.
+
+    From each source, a random contiguous run of layer groups is taken whole - its
+    styles, its compound paths, its painter order - and moved by a random translation
+    that keeps every coordinate on its lattice. Parts are painted in source order, and
+    layers are renumbered so each group keeps one layer of its own. A part that would
+    overflow the path or segment budget is skipped.
+    """
+
+    from mojidiff.learning.autoregressive import PATH_FIELDS
+
+    codec = layout.codec
+    rows: list[tuple[int, int]] = []  # (part, source layer) per path, for renumbering
+    fields: dict[str, list[int]] = {name: [] for name in PATH_FIELDS}
+    starts: list[np.ndarray] = []
+    segment_types: list[np.ndarray] = []
+    coordinates: list[np.ndarray] = []
+    total_paths = 0
+    total_segments = 0
+    for part, source in enumerate(sources):
+        groups = _layer_groups(source)
+        if not groups:
+            continue
+        first_group = int(rng.integers(len(groups)))
+        last_group = first_group + int(rng.integers(1, len(groups) - first_group + 1))
+        first, last = groups[first_group][0], groups[last_group - 1][1]
+        lengths = [int(v) for v in source.path_length]
+        offset = sum(lengths[:first])
+        count = sum(lengths[first:last])
+        if total_paths + (last - first) > codec.max_paths:
+            continue
+        if total_segments + count > layout.total_segment_slots:
+            continue
+        start = source.start[first:last].astype(np.int64).copy()
+        kinds = source.segment_type[offset : offset + count].astype(np.int64).copy()
+        coords = source.coordinates[offset : offset + count].astype(np.int64).copy()
+        roles = _coordinate_role_grid(kinds)
+        bounds = []
+        for axis in (0, 1):
+            low, high = -(10**6), 10**6
+            endpoint_values = np.concatenate(
+                (start[:, axis], coords[:, axis::2][roles[:, axis::2] == ROLE_ENDPOINT])
+            )
+            control_values = coords[:, axis::2][roles[:, axis::2] == ROLE_CONTROL]
+            if len(endpoint_values):
+                low = max(low, 1 - int(endpoint_values.min()))
+                high = min(high, codec.coordinate_bins - int(endpoint_values.max()))
+            if len(control_values):
+                low = max(low, 1 - int(control_values.min()))
+                high = min(
+                    high, codec.effective_control_coordinate_bins - int(control_values.max())
+                )
+            bounds.append((low, high))
+        if any(low > high for low, high in bounds):
+            continue
+        shift = [int(rng.integers(low, high + 1)) for low, high in bounds]
+        for axis in (0, 1):
+            start[:, axis] += shift[axis]
+            view = coords[:, axis::2]
+            view[roles[:, axis::2] > 0] += shift[axis]
+        for name in PATH_FIELDS:
+            fields[name].extend(int(v) for v in getattr(source, name)[first:last])
+        rows.extend((part, int(source.layer[index])) for index in range(first, last))
+        starts.append(start)
+        segment_types.append(kinds)
+        coordinates.append(coords)
+        total_paths += last - first
+        total_segments += count
+    if total_paths == 0 or len(starts) < 2:
+        return None
+    layer = 0
+    previous: tuple[int, int] | None = None
+    layers: list[int] = []
+    for key in rows:
+        if key != previous:
+            layer += 1
+            previous = key
+        layers.append(layer)
+    fields["layer"] = layers
+    template = sources[0]
+    result = copy.deepcopy(template)
+    for name in PATH_FIELDS:
+        array = getattr(result, name)
+        array[:] = 0
+        array[:total_paths] = fields[name]
+    result.start[:] = 0
+    result.start[:total_paths] = np.concatenate(starts)
+    result.segment_type[:] = 0
+    result.segment_type[:total_segments] = np.concatenate(segment_types)
+    result.coordinates[:] = 0
+    result.coordinates[:total_segments] = np.concatenate(coordinates)
+    try:
+        validate_packed_tensor_program(result, codec, layout.total_segment_slots)
+    except ValueError:
+        return None
+    return result
+
+
+class OnlineAugmentation(
+    torch.utils.data.IterableDataset[tuple[Tensor, Tensor, np.ndarray, Tensor]]
+):
+    """An endless stream of (render, tokens, packed legal masks, path-major order).
+
+    Each item is an original icon, a fresh exact variant of one, or - with
+    `compose_probability` - a composition of parts of several. Variants borrow their
+    source's masks (tested equal where the loss reads); compositions change structure,
+    so their masks are computed here. Each loader worker seeds its own generator from
+    (augment_seed, worker id), so the stream is reproducible for a fixed worker count.
     """
 
     def __init__(
         self,
         tokens: np.ndarray,
         images: np.ndarray,
+        masks: np.ndarray,
         layout: SequenceLayout,
         template: PackedTensorProgram,
         size: int,
@@ -651,31 +791,72 @@ class OnlineAugmentation(torch.utils.data.IterableDataset[tuple[Tensor, Tensor, 
         super().__init__()
         self.tokens = tokens
         self.images = images
+        self.masks = masks
         self.layout = layout
         self.template = template
         self.size = size
         self.config = config
 
-    def __iter__(self) -> Iterator[tuple[Tensor, Tensor, int]]:
+    def _render(self, program: PackedTensorProgram) -> np.ndarray | None:
+        layout = self.layout
+        try:
+            validate_packed_tensor_program(program, layout.codec, layout.total_segment_slots)
+            svg = serialize_packed_svg(program, layout.codec, layout.total_segment_slots)
+            return render_trusted_rgb(svg, self.size)
+        except (ValueError, IsolatedRenderError):
+            return None
+
+    def __iter__(self) -> Iterator[tuple[Tensor, Tensor, np.ndarray, Tensor]]:
         info = torch.utils.data.get_worker_info()
         worker = info.id if info is not None else 0
         rng = np.random.default_rng([self.config.augment_seed, worker])
         layout = self.layout
         while True:
+            # Drawn only when compositions are on, so a stream without them is the
+            # same stream the online arm trained on.
+            composing = self.config.compose_probability > 0.0
+            if composing and rng.random() < self.config.compose_probability:
+                parts = int(rng.integers(2, max(2, self.config.compose_parts) + 1))
+                picks = rng.integers(len(self.tokens), size=parts)
+                sources = [
+                    unflatten_program(
+                        torch.from_numpy(self.tokens[int(i)].astype(np.int64)),
+                        self.template,
+                        layout,
+                    )
+                    for i in picks
+                ]
+                composed = compose_program(sources, layout, rng)
+                if composed is None:
+                    continue
+                tokens = flatten_program(composed, layout)
+                if rng.random() < self.config.augment_colour:
+                    tokens = permute_palette_tokens(
+                        tokens, layout, rng.permutation(len(layout.codec.palette))
+                    )
+                program = unflatten_program(tokens, self.template, layout)
+                image = self._render(program)
+                if image is None:
+                    continue
+                mask = torch.stack([legal_mask(p, tokens, layout) for p in range(layout.length)])
+                yield (
+                    torch.from_numpy(image),
+                    tokens,
+                    np.packbits(mask.numpy().reshape(-1)),
+                    path_major_order(tokens, layout),
+                )
+                continue
             index = int(rng.integers(len(self.tokens)))
             source = torch.from_numpy(self.tokens[index].astype(np.int64))
+            order = path_major_order(source, layout)
             if rng.random() < self.config.augment_original:
-                yield torch.from_numpy(self.images[index]), source, index
+                yield torch.from_numpy(self.images[index]), source, self.masks[index], order
                 continue
             variant = augment_program_tokens(source, layout, rng, self.config)
-            program = unflatten_program(variant, self.template, layout)
-            try:
-                validate_packed_tensor_program(program, layout.codec, layout.total_segment_slots)
-                svg = serialize_packed_svg(program, layout.codec, layout.total_segment_slots)
-                image = render_trusted_rgb(svg, self.size)
-            except (ValueError, IsolatedRenderError):
+            image = self._render(unflatten_program(variant, self.template, layout))
+            if image is None:
                 continue
-            yield torch.from_numpy(image), variant, index
+            yield torch.from_numpy(image), variant, self.masks[index], order
 
 
 def _online_batches(
@@ -684,9 +865,17 @@ def _online_batches(
     template: PackedTensorProgram,
     size: int,
     config: TrainConfig,
-) -> Iterator[tuple[Tensor, Tensor, Tensor, Tensor]]:
+) -> Iterator[tuple[Tensor, Tensor, Tensor, Tensor | None, Tensor]]:
+    """(images, tokens, masks, orders, -1 source indices) from the online stream."""
+
     dataset = OnlineAugmentation(
-        train.tokens.numpy().astype(np.int16), train.images.numpy(), layout, template, size, config
+        train.tokens.numpy().astype(np.int16),
+        train.images.numpy(),
+        train.masks,
+        layout,
+        template,
+        size,
+        config,
     )
     loader = torch.utils.data.DataLoader(
         dataset,
@@ -695,8 +884,11 @@ def _online_batches(
         persistent_workers=config.loader_workers > 0,
         prefetch_factor=8 if config.loader_workers > 0 else None,
     )
-    for images, tokens, indices in loader:
-        yield images, tokens, train.mask_batch(indices.numpy()), indices
+    shape = (layout.length, layout.vocabulary)
+    for images, tokens, packed, orders in loader:
+        bits = np.unpackbits(packed.numpy(), axis=1)
+        masks = torch.from_numpy(bits.reshape(len(tokens), *shape)).bool()
+        yield images, tokens, masks, orders, torch.full((len(tokens),), -1)
 
 
 # --------------------------------------------------------------------------- model
@@ -1376,8 +1568,8 @@ def _schedule(step: int, config: TrainConfig) -> float:
 
 def _batches(
     train: SplitData, augmented: AugmentedData | None, config: TrainConfig, rng: np.random.Generator
-) -> Iterator[tuple[Tensor, Tensor, Tensor, Tensor]]:
-    """(images, tokens, masks, source indices) on CPU, drawn uniformly from originals and variants.
+) -> Iterator[tuple[Tensor, Tensor, Tensor, Tensor | None, Tensor]]:
+    """(images, tokens, masks, None, source indices) on CPU, from originals and variants.
 
     A variant borrows its source icon's legal masks. Mirroring and translation change
     no mask, and a palette permutation changes only rows the grammar already forces,
@@ -1414,7 +1606,7 @@ def _batches(
                 for pick in picks
             ]
         )
-        yield images, tokens, train.mask_batch(base), torch.from_numpy(base)
+        yield images, tokens, train.mask_batch(base), None, torch.from_numpy(base)
 
 
 def _git(*args: str) -> str:
@@ -1542,7 +1734,11 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
     print(json.dumps({"run_id": run_id, "parameters": parameter_count(model)}), flush=True)
 
     path_order = config.model.order == "path"
-    train_orders = split_orders(train.tokens, layout) if path_order else None
+    train_orders = (
+        split_orders(train.tokens, layout)
+        if path_order and not config.training.augment_online
+        else None
+    )
     evaluation_orders = split_orders(evaluation.tokens, layout) if path_order else None
     metrics_path = run_dir / "metrics.jsonl"
     rng = np.random.default_rng(config.training.seed)
@@ -1559,9 +1755,13 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
     try:
         for step in range(1, config.training.steps + 1):
             model.train()
-            images, tokens, masks, base = next(batches)
+            images, tokens, masks, orders, base = next(batches)
             images, tokens, masks = images.to(device), tokens.to(device), masks.to(device)
-            order = train_orders[base].to(device) if train_orders is not None else None
+            order = None
+            if path_order:
+                order = (orders if orders is not None else cast(Tensor, train_orders)[base]).to(
+                    device
+                )
             with torch.autocast("cuda", dtype=torch.bfloat16, enabled=bf16):
                 logits = model(images, tokens, order)
             free = masks.sum(dim=-1) > 1

@@ -328,24 +328,58 @@ def test_coordinate_roles_follow_the_grammar(pieces: Pieces) -> None:
     assert bool((role == ROLE_CONTROL).any()) == has_curves
 
 
+def _masks(tokens: torch.Tensor, layout: SequenceLayout) -> np.ndarray:
+    mask = torch.stack([legal_mask(p, tokens, layout) for p in range(layout.length)])
+    return np.packbits(mask.numpy().reshape(-1))
+
+
 def test_online_augmentation_streams_exact_reproducible_variants(pieces: Pieces) -> None:
     from mojidiff.learning.render2svg import OnlineAugmentation
 
     layout, programs = pieces
-    tokens = np.stack([flatten_program(p, layout).numpy() for p in programs]).astype(np.int16)
+    rows = [flatten_program(p, layout) for p in programs]
+    tokens = np.stack([r.numpy() for r in rows]).astype(np.int16)
+    masks = np.stack([_masks(r, layout) for r in rows])
     images = np.stack(
         [render_trusted_rgb(serialize_packed_svg(p, layout.codec, 128), 32) for p in programs]
     )
     config = TrainConfig(augment_original=0.0, augment_seed=5)
-    first = OnlineAugmentation(tokens, images, layout, programs[0], 32, config)
-    stream = iter(first)
+    stream = iter(OnlineAugmentation(tokens, images, masks, layout, programs[0], 32, config))
     samples = [next(stream) for _ in range(4)]
-    again = iter(OnlineAugmentation(tokens, images, layout, programs[0], 32, config))
-    for image, variant, index in samples:
-        other_image, other_variant, other_index = next(again)
-        assert index == other_index and torch.equal(variant, other_variant)
+    again = iter(OnlineAugmentation(tokens, images, masks, layout, programs[0], 32, config))
+    for image, variant, _, order in samples:
+        other_image, other_variant, _, other_order = next(again)
+        assert torch.equal(variant, other_variant) and torch.equal(order, other_order)
         assert torch.equal(image, other_image)
         program = unflatten_program(variant, programs[0], layout)
         validate_packed_tensor_program(program, layout.codec, layout.total_segment_slots)
+        rendered = render_trusted_rgb(serialize_packed_svg(program, layout.codec, 128), 32)
+        assert np.array_equal(image.numpy(), rendered)
+
+
+def test_compositions_are_valid_and_carry_their_own_masks(pieces: Pieces) -> None:
+    from mojidiff.learning.render2svg import OnlineAugmentation, compose_program
+
+    layout, programs = pieces
+    rng = np.random.default_rng(11)
+    composed = [compose_program(programs, layout, rng) for _ in range(6)]
+    kept = [c for c in composed if c is not None]
+    assert kept
+    for program in kept:
+        validate_packed_tensor_program(program, layout.codec, layout.total_segment_slots)
+        pairs = zip(program.layer, program.path_length, strict=True)
+        layers = [int(v) for v, n in pairs if int(n) > 0]
+        assert layers == sorted(layers) and layers[0] == 1
+    rows = [flatten_program(p, layout) for p in programs]
+    tokens = np.stack([r.numpy() for r in rows]).astype(np.int16)
+    masks = np.stack([_masks(r, layout) for r in rows])
+    images = np.zeros((len(programs), 32, 32, 3), dtype=np.uint8)
+    config = TrainConfig(compose_probability=1.0, compose_parts=3, augment_seed=2)
+    stream = iter(OnlineAugmentation(tokens, images, masks, layout, programs[0], 32, config))
+    for _ in range(3):
+        image, variant, packed, order = next(stream)
+        assert np.array_equal(packed, _masks(variant, layout))
+        assert torch.equal(order, path_major_order(variant, layout))
+        program = unflatten_program(variant, programs[0], layout)
         rendered = render_trusted_rgb(serialize_packed_svg(program, layout.codec, 128), 32)
         assert np.array_equal(image.numpy(), rendered)
