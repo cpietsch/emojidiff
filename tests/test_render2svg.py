@@ -278,3 +278,26 @@ def test_coordinate_roles_follow_the_grammar(pieces: Pieces) -> None:
     # Controls exist exactly where the program has quadratic or cubic segments.
     has_curves = bool(np.isin(program.segment_type, (2, 3)).any())
     assert bool((role == ROLE_CONTROL).any()) == has_curves
+
+
+def test_online_augmentation_streams_exact_reproducible_variants(pieces: Pieces) -> None:
+    from mojidiff.learning.render2svg import OnlineAugmentation
+
+    layout, programs = pieces
+    tokens = np.stack([flatten_program(p, layout).numpy() for p in programs]).astype(np.int16)
+    images = np.stack(
+        [render_trusted_rgb(serialize_packed_svg(p, layout.codec, 128), 32) for p in programs]
+    )
+    config = TrainConfig(augment_original=0.0, augment_seed=5)
+    first = OnlineAugmentation(tokens, images, layout, programs[0], 32, config)
+    stream = iter(first)
+    samples = [next(stream) for _ in range(4)]
+    again = iter(OnlineAugmentation(tokens, images, layout, programs[0], 32, config))
+    for image, variant, index in samples:
+        other_image, other_variant, other_index = next(again)
+        assert index == other_index and torch.equal(variant, other_variant)
+        assert torch.equal(image, other_image)
+        program = unflatten_program(variant, programs[0], layout)
+        validate_packed_tensor_program(program, layout.codec, layout.total_segment_slots)
+        rendered = render_trusted_rgb(serialize_packed_svg(program, layout.codec, 128), 32)
+        assert np.array_equal(image.numpy(), rendered)

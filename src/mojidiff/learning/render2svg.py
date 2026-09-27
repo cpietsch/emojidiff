@@ -124,6 +124,11 @@ class TrainConfig:
     """Largest translation per axis in quarter units (48 = 12 view units)."""
     augment_colour: float = 0.5
     """Per-variant probability of a random permutation of the palette."""
+    augment_online: bool = False
+    """Draw a fresh exact variant for every presentation instead of a fixed cached set."""
+    augment_original: float = 0.1
+    """Under online augmentation, probability of presenting the unmodified icon."""
+    loader_workers: int = 10
     bf16: bool = True
 
 
@@ -613,6 +618,74 @@ def load_augmented(
         ),
         augment_hash,
     )
+
+
+class OnlineAugmentation(torch.utils.data.IterableDataset[tuple[Tensor, Tensor, int]]):
+    """An endless stream of (render, tokens, source index), a fresh exact variant each time.
+
+    Each loader worker seeds its own generator from (augment_seed, worker id), so the
+    stream is reproducible for a fixed worker count. The source index lets the trainer
+    borrow the source icon's legal masks, as with the cached variants.
+    """
+
+    def __init__(
+        self,
+        tokens: np.ndarray,
+        images: np.ndarray,
+        layout: SequenceLayout,
+        template: PackedTensorProgram,
+        size: int,
+        config: TrainConfig,
+    ) -> None:
+        super().__init__()
+        self.tokens = tokens
+        self.images = images
+        self.layout = layout
+        self.template = template
+        self.size = size
+        self.config = config
+
+    def __iter__(self) -> Iterator[tuple[Tensor, Tensor, int]]:
+        info = torch.utils.data.get_worker_info()
+        worker = info.id if info is not None else 0
+        rng = np.random.default_rng([self.config.augment_seed, worker])
+        layout = self.layout
+        while True:
+            index = int(rng.integers(len(self.tokens)))
+            source = torch.from_numpy(self.tokens[index].astype(np.int64))
+            if rng.random() < self.config.augment_original:
+                yield torch.from_numpy(self.images[index]), source, index
+                continue
+            variant = augment_program_tokens(source, layout, rng, self.config)
+            program = unflatten_program(variant, self.template, layout)
+            try:
+                validate_packed_tensor_program(program, layout.codec, layout.total_segment_slots)
+                svg = serialize_packed_svg(program, layout.codec, layout.total_segment_slots)
+                image = render_trusted_rgb(svg, self.size)
+            except (ValueError, IsolatedRenderError):
+                continue
+            yield torch.from_numpy(image), variant, index
+
+
+def _online_batches(
+    train: SplitData,
+    layout: SequenceLayout,
+    template: PackedTensorProgram,
+    size: int,
+    config: TrainConfig,
+) -> Iterator[tuple[Tensor, Tensor, Tensor]]:
+    dataset = OnlineAugmentation(
+        train.tokens.numpy().astype(np.int16), train.images.numpy(), layout, template, size, config
+    )
+    loader = torch.utils.data.DataLoader(
+        dataset,
+        batch_size=config.batch_size,
+        num_workers=config.loader_workers,
+        persistent_workers=config.loader_workers > 0,
+        prefetch_factor=8 if config.loader_workers > 0 else None,
+    )
+    for images, tokens, indices in loader:
+        yield images, tokens, train.mask_batch(indices.numpy())
 
 
 # --------------------------------------------------------------------------- model
@@ -1281,7 +1354,7 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
     template = _load_program(by_split_rows["primary/train"][0], pilot, layout.codec)
     augmented: AugmentedData | None = None
     augment_hash: str | None = None
-    if config.training.augment_variants > 0:
+    if config.training.augment_variants > 0 and not config.training.augment_online:
         augmented, augment_hash = load_augmented(
             train, layout, template, config.model.image_size, config.training, dataset_hash
         )
@@ -1339,7 +1412,11 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
 
     metrics_path = run_dir / "metrics.jsonl"
     rng = np.random.default_rng(config.training.seed)
-    batches = _batches(train, augmented, config.training, rng)
+    batches = (
+        _online_batches(train, layout, template, config.model.image_size, config.training)
+        if config.training.augment_online
+        else _batches(train, augmented, config.training, rng)
+    )
     bf16 = config.training.bf16 and device.type == "cuda"
     best_error = float("inf")
     best_step = 0
