@@ -1,0 +1,24 @@
+# First full-corpus run: no augmentation, so the mirror arm that follows changes one
+# thing. Checkpoint selection reads the first 64 validation icons; the final numbers
+# are over all 339, so they carry a small selection bias the test split does not.
+schema_version: 1
+slug: r2s-full-v1
+parent_run: r2s-overfit4
+hypothesis: >-
+  Trained on the 2,681 family-disjoint training icons, the 8.9M-parameter render-to-program
+  model transcribes held-out validation renders better than retrieving the closest
+  training icon. Pass requires all three: (1) mean 72 px pixel error below the
+  nearest-training-icon baseline with the paired 95% interval on the reduction excluding
+  zero; (2) CLIP top-1 on Gate N's 32 validation icons at or above OmniSVG 4B zero-shot,
+  0.609; (3) median single-icon latency on the RTX 4080 under 500 ms.
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+model: {image_size: 144, d_model: 256, heads: 8, encoder_layers: 2, decoder_layers: 6, feedforward: 1024, dropout: 0.1}
+training:
+  steps: 20000
+  batch_size: 32
+  learning_rate: 0.0005
+  warmup_steps: 500
+  eval_every: 1000
+  eval_icons: 64
+final_eval_icons: 339
+clip_icons: 32
