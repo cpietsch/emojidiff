@@ -3607,3 +3607,22 @@ without a strong latent collapses early.
 
 **Decision.** One change: less KL pressure (beta 0.1, free bits 0.5 nats per dimension,
 a 32-nat floor), queued as `configs/latent/latent-v2-kl.yaml` after the Twemoji arm.
+
+**Adapter v2 (added 2026-09-28 04:20).** Expanding Illustrator's internal XML entities,
+stripping px units from numeric attributes, snapping fill opacity to the codec's nine
+values and framing content that overhangs its box raise the fit on the same 600-icon
+samples (`reports/corpus/external-probe-v2/`):
+
+| set | fit, adapter v1 | fit, adapter v2 | pixel error when it fits, median |
+| --- | --- | --- | --- |
+| Twemoji | 66.3% | 67.3% | 0.036 |
+| Noto Emoji | 20.8% | 26.5% | 0.030 |
+| Blobmoji | 23.8% | 33.2% | 0.026 |
+| OpenMoji (calibration) | 36.8% | 36.8% | 0.003 |
+
+What is left is almost entirely the 128-segment budget; Blobmoji's remaining adapter
+errors are CSS `<style>` classes and `<text>` elements. Across the three sets roughly
+4,000 more icons fit the codec as it is, before held-out exclusion. Beyond that, the
+lever is the budget itself (P48/T256, about twice the sequence length) and a wider
+palette - a new codec and a retrain, justified only if the Twemoji arm shows extra
+shapes help. The Twemoji training data stays pinned to adapter v1.

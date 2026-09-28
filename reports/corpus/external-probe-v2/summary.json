@@ -1,0 +1,99 @@
+{
+  "sample_per_set": 600,
+  "seed": 2809,
+  "adapter_version": 2,
+  "sets": {
+    "twemoji": {
+      "commit": "b6b55fef1e8636b540a6d016a4729ca8cdf2e60b",
+      "license": "CC-BY-4.0 (graphics)",
+      "sample_sha256": "e34155785252bf0826058ad74d4997a579d5f7f9fc4ffbccbaac01aa820140ad",
+      "probed": 600,
+      "fit_rate": 0.6733333333333333,
+      "failures": {
+        "pack:program needs 167 packed segments but capacity is 128": 8,
+        "pack:program needs 130 packed segments but capacity is 128": 7,
+        "pack:program needs 236 packed segments but capacity is 128": 7,
+        "pack:program needs 175 packed segments but capacity is 128": 6,
+        "pack:program needs 136 packed segments but capacity is 128": 6,
+        "encode:program needs 38 contours and up to 17 segments": 5,
+        "pack:program needs 173 packed segments but capacity is 128": 5,
+        "pack:program needs 168 packed segments but capacity is 128": 5
+      },
+      "codec_pixel_error_median": 0.03570425137877464,
+      "codec_pixel_error_p90": 0.05992001369595526,
+      "adapted_pixel_error_median": 0.03393258899450302,
+      "with_gradients_rate": 0.0,
+      "mean_snap_distance_rgb": 30.60587216917064,
+      "median_segments_when_fit": 72.0
+    },
+    "noto-emoji": {
+      "commit": "e20cbc2bbec1926686be9f9bee7d1d2cfa1fea0e",
+      "license": "Apache-2.0",
+      "sample_sha256": "bac9e4204a0ff4514b67c62ce8b622dd7db8d39534531cf5080dfacb34614c8c",
+      "probed": 600,
+      "fit_rate": 0.265,
+      "failures": {
+        "encode:program needs 61 contours and up to 29 segments": 8,
+        "pack:program needs 279 packed segments but capacity is 128": 7,
+        "pack:program needs 165 packed segments but capacity is 128": 7,
+        "pack:program needs 241 packed segments but capacity is 128": 7,
+        "pack:program needs 198 packed segments but capacity is 128": 6,
+        "pack:program needs 163 packed segments but capacity is 128": 6,
+        "pack:program needs 154 packed segments but capacity is 128": 6,
+        "encode:program needs 54 contours and up to 51 segments": 6
+      },
+      "codec_pixel_error_median": 0.02959357015788555,
+      "codec_pixel_error_p90": 0.06601937264204026,
+      "adapted_pixel_error_median": 0.02828827314078808,
+      "with_gradients_rate": 0.505,
+      "mean_snap_distance_rgb": 28.60540093852793,
+      "median_segments_when_fit": 83.0
+    },
+    "blobmoji": {
+      "commit": "7dd14d2b0141693485fd26bc35817bd290352a79",
+      "license": "Apache-2.0",
+      "sample_sha256": "4487138311e0d6eaa6b964f0610a4a8aeee201d0455c7e1aead1ea36a95ea5f2",
+      "probed": 600,
+      "fit_rate": 0.33166666666666667,
+      "failures": {
+        "adapt:ValueError": 77,
+        "pack:program needs 141 packed segments but capacity is 128": 10,
+        "pack:program needs 142 packed segments but capacity is 128": 7,
+        "pack:program needs 246 packed segments but capacity is 128": 7,
+        "pack:program needs 133 packed segments but capacity is 128": 7,
+        "pack:program needs 136 packed segments but capacity is 128": 7,
+        "encode:program needs 53 contours and up to 47 segments": 7,
+        "pack:program needs 191 packed segments but capacity is 128": 6
+      },
+      "codec_pixel_error_median": 0.025998294353485107,
+      "codec_pixel_error_p90": 0.06661386489868164,
+      "adapted_pixel_error_median": 0.02894249837845564,
+      "with_gradients_rate": 0.06166666666666667,
+      "mean_snap_distance_rgb": 27.334251779494398,
+      "median_segments_when_fit": 77.0
+    },
+    "openmoji": {
+      "commit": "17.0.0",
+      "license": "CC-BY-SA-4.0",
+      "sample_sha256": "71f539647552441f273cd9a1630312996cda0d506a688d8a0d0c639c47848ec4",
+      "probed": 600,
+      "fit_rate": 0.36833333333333335,
+      "failures": {
+        "pack:program needs 278 packed segments but capacity is 128": 12,
+        "pack:program needs 246 packed segments but capacity is 128": 10,
+        "pack:program needs 187 packed segments but capacity is 128": 9,
+        "pack:program needs 218 packed segments but capacity is 128": 8,
+        "pack:program needs 158 packed segments but capacity is 128": 8,
+        "pack:program needs 138 packed segments but capacity is 128": 7,
+        "pack:program needs 195 packed segments but capacity is 128": 7,
+        "pack:program needs 136 packed segments but capacity is 128": 7
+      },
+      "codec_pixel_error_median": 0.002989086788147688,
+      "codec_pixel_error_p90": 0.004787732847034931,
+      "adapted_pixel_error_median": 0.0016362563474103808,
+      "with_gradients_rate": 0.0,
+      "mean_snap_distance_rgb": 0.0,
+      "median_segments_when_fit": 91.0
+    }
+  }
+}
