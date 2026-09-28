@@ -48,28 +48,26 @@ Other directions (findings, 2026-09-28):
   outlines as filled shapes, OpenMoji as strokes; mixing conventions blind hurts.
 - 3, distillation: OmniSVG draws more faithfully, but 62-86% of its output misses the
   codec, at 40-250x the student's time. Set aside for render-to-SVG.
-- 4, latent model: latent-v1 samples 32 distinct emoji-like programs but cannot
-  reconstruct (KL about 16 nats per icon). latent-v2 with less KL pressure is queued.
+- 4, latent model: latent-v2 (beta 0.1) passes its criteria - own latent beats the
+  prior-mean decode by 0.013, 32 of 32 samples distinct - but reconstructs near blank
+  (0.164). Interpolations decode valid programs that jump between emoji modes. Next test
+  for this direction: per-path latents (DeepSVG-style), not a bigger single latent.
 
 ## Last completed action and verification
 
-2026-09-28: v5 recorded; idle-GPU latency measured for v3 and v5; compositional training
-icons, whole-program masks, reranked decoding and a uniform float32 evaluator added.
-Verified by `tests/test_render2svg.py`, `tests/test_fast_decode.py` (graph decoder equals
-the reference in float32 for all three model variants), ruff, strict mypy.
+2026-09-28: v7 scored once on the untouched test split (predeclared rule); v8 Twemoji,
+latent-v1/v2, external probe v1/v2, distillation and edit probes recorded in findings.
+Verified by the tests in `tests/test_render2svg.py`, `test_fast_decode.py`,
+`test_latent.py`, `test_vectorise.py`, ruff, strict mypy, and the run-record audit.
 
 ## Active jobs
 
 In tmux on gpubox-4080; logs under `/home/dev/.cache/mojidiff/`, each ending in `EXIT=`:
 
-1. `r2s-chain4`: `full-v8-twemoji.yaml` (v7 plus 2,211 Twemoji icons, 60,000 steps).
-2. `r2s-chain5`: after 1, idle best-of-8 and best-of-4 latency for v7, then v8's
-   float32 and best-of-8 evaluations (`latency.log`, `eval-v8-*.log`).
-3. `r2s-final` (`chain-final.sh`): after 2, the predeclared test-split scoring of the
-   final model (`final.log`), then `configs/latent/latent-v2-kl.yaml`; `r2s-v9` then runs
-   `full-v9-colour.yaml` (palette permutation 0.1, one change from v7).
-4. `vectorise`: the demo on http://100.69.189.78:8790/ serving v7 (greedy or best of 8).
-5. `weblog`: http://100.69.189.78:8787/.
+1. `r2s-v9`: `configs/render2svg/full-v9-colour.yaml` (palette permutation 0.1, one
+   change from v7), log `r2s-full-v9-colour.log`; compare with v7 per icon, paired.
+2. `vectorise`: the demo on http://100.69.189.78:8790/ serving v7 (greedy or best of 8).
+3. `weblog`: http://100.69.189.78:8787/.
 
 ## Artifact durability
 
@@ -85,7 +83,7 @@ None.
 
 ## Next smallest evidence-producing action
 
-Declared 2026-09-28 04:50, before v8's result: the final model is whichever of v7 and
-v8 has the lower float32 greedy validation pixel error (`eval-validation.json`); only
-that one is scored on the untouched test split, greedy and best of 8, once. Then: lower
-palette permutation (v7's remaining errors are mostly colour), and read latent-v2.
+Read v9 against v7 (paired, validation only; the test split has been used once). Then,
+by expected value: a source-convention token so external sets can be added without the
+stroke/fill clash; per-path latents for direction 4; kernel fusion for the batch-1
+decoder, which spends about 1.5 ms per call on roughly a hundred small kernels.
