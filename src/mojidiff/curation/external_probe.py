@@ -79,26 +79,76 @@ def _gradient_colours(pico_text: str) -> dict[str, str]:
     return means
 
 
-def adapt(source: bytes, palette: tuple[str, ...]) -> tuple[bytes, dict[str, Any]]:
-    """A source SVG as a 72-box, fill-only SVG in palette colours, with what it cost."""
+_ENTITY = re.compile(r'<!ENTITY\s+(\w+)\s+"([^"]*)"\s*>')
+_UNIT = re.compile(r'="(-?[\d.]+)px"')
+ADAPTER_VERSION = 2
+"""1: the probe of 2026-09-28. 2: expands internal XML entities, strips px units from
+numeric attributes, snaps fill opacity to the codec vocabulary, and shrinks content that
+overhangs the box back inside it."""
+
+
+def _clean_source(text: str) -> tuple[str, dict[str, int]]:
+    """Expand internal DTD entities (Illustrator exports) and drop px units."""
+
+    entities = dict(_ENTITY.findall(text))
+    for name, value in entities.items():
+        text = text.replace(f"&{name};", value)
+    text = re.sub(r"<!DOCTYPE[^\[>]*\[.*?\]>", "", text, flags=re.DOTALL)
+    text, units = _UNIT.subn(r'="\1"', text)
+    return text, {"entities_expanded": len(entities), "px_units_stripped": units}
+
+
+def adapt(
+    source: bytes,
+    palette: tuple[str, ...],
+    opacities: tuple[float, ...] | None = None,
+    version: int = ADAPTER_VERSION,
+) -> tuple[bytes, dict[str, Any]]:
+    """A source SVG as a 72-box, fill-only SVG in palette colours, with what it cost.
+
+    `version=1` reproduces the first probe exactly (no source cleaning, no framing of
+    overhanging content, no opacity snapping), for data built with it.
+    """
+
+    if version == 1:
+        opacities = None
 
     from picosvg.svg import SVG
 
     from mojidiff.learning.omnisvg import snap_to_palette
 
-    pico = SVG.fromstring(source.decode("utf-8", errors="replace")).topicosvg()  # type: ignore[no-untyped-call]
+    text_source = source.decode("utf-8", errors="replace")
+    cleaned: dict[str, int] = {}
+    if version >= 2:
+        text_source, cleaned = _clean_source(text_source)
+    pico = SVG.fromstring(text_source).topicosvg()  # type: ignore[no-untyped-call]
     text = pico.tostring()
     gradients = _gradient_colours(text)
     view_box = pico.view_box()
     if view_box is None:
         raise ValueError("no viewBox")
     x, y, width, height = view_box.x, view_box.y, view_box.w, view_box.h
+    shapes = list(pico.shapes())
+    shrunk = False
+    if shapes and version >= 2:
+        boxes = [shape.bounding_box() for shape in shapes]
+        low_x = min(box.x for box in boxes)
+        low_y = min(box.y for box in boxes)
+        high_x = max(box.x + box.w for box in boxes)
+        high_y = max(box.y + box.h for box in boxes)
+        if low_x < x or low_y < y or high_x > x + width or high_y > y + height:
+            # Content overhangs the source box: frame the content instead, centred.
+            x, y = min(x, low_x), min(y, low_y)
+            width = max(x + width, high_x) - x
+            height = max(y + height, high_y) - y
+            shrunk = True
     scale = 72.0 / max(width, height)
     offset_x = (72.0 - width * scale) / 2 - x * scale
     offset_y = (72.0 - height * scale) / 2 - y * scale
     paths: list[str] = []
     gradient_fills = 0
-    for shape in pico.shapes():
+    opacity_snaps = 0
+    for shape in shapes:
         fill = str(shape.fill)
         if fill.startswith("url("):
             key = fill[fill.index("#") + 1 : fill.rindex(")")]
@@ -111,6 +161,9 @@ def adapt(source: bytes, palette: tuple[str, ...]) -> tuple[bytes, dict[str, Any
         opacity = float(shape.fill_opacity) * float(shape.opacity)
         if opacity <= 0:
             continue
+        if opacities and opacity < 1 and not any(abs(opacity - v) < 1e-6 for v in opacities):
+            opacity = min(opacities, key=lambda v: abs(v - opacity))
+            opacity_snaps += 1
         attributes = f'd="{shape.d}" fill="{colour}"'
         if opacity < 1:
             attributes += f' fill-opacity="{opacity:.4f}"'
@@ -125,6 +178,9 @@ def adapt(source: bytes, palette: tuple[str, ...]) -> tuple[bytes, dict[str, Any
     return svg.encode(), {
         "shapes": len(paths),
         "gradient_fills": gradient_fills,
+        "opacity_snaps": opacity_snaps,
+        "shrunk_into_box": shrunk,
+        **cleaned,
         **{f"snap_{k}": v for k, v in snap.items()},
     }
 
@@ -154,12 +210,12 @@ def probe_one(args: tuple[str, str, bytes]) -> dict[str, Any]:
     codec = _selected_codec(pilot)
     record: dict[str, Any] = {"set": name, "key": key}
     try:
-        reference = _render_source(source)
+        reference = _render_source(_clean_source(source.decode("utf-8", "replace"))[0].encode())
     except Exception as error:  # noqa: BLE001 - a source the renderer refuses is a result
         record["failure"] = f"source_render:{type(error).__name__}"
         return record
     try:
-        adapted, info = adapt(source, codec.palette)
+        adapted, info = adapt(source, codec.palette, codec.opacities)
     except Exception as error:  # noqa: BLE001
         record["failure"] = f"adapt:{type(error).__name__}"
         return record
@@ -235,10 +291,15 @@ def main() -> None:
     parser.add_argument("--sample", type=int, default=600)
     parser.add_argument("--seed", type=int, default=2809)
     parser.add_argument("--workers", type=int, default=4)
-    parser.add_argument("--out", type=Path, default=REPO_ROOT / "reports/corpus/external-probe-v1")
+    parser.add_argument("--out", type=Path, default=REPO_ROOT / "reports/corpus/external-probe-v2")
     args = parser.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
-    report: dict[str, Any] = {"sample_per_set": args.sample, "seed": args.seed, "sets": {}}
+    report: dict[str, Any] = {
+        "sample_per_set": args.sample,
+        "seed": args.seed,
+        "adapter_version": ADAPTER_VERSION,
+        "sets": {},
+    }
     rows: list[dict[str, Any]] = []
     with ProcessPoolExecutor(max_workers=args.workers) as pool:
         for name in SOURCES:

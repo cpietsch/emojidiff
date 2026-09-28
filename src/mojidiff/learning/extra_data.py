@@ -29,6 +29,8 @@ from mojidiff.learning.render2svg import (
 )
 
 EXTRA_FORMAT = 1
+ADAPTER_VERSION = 1
+"""The `external_probe.adapt` version this data is built with; part of the cache key."""
 _MODIFIERS = {"FE0F", "FE0E", "200D", "2640", "2642", "1F3FB", "1F3FC", "1F3FD", "1F3FE", "1F3FF"}
 
 
@@ -65,7 +67,7 @@ def _prepare(args: tuple[str, bytes, SequenceLayout, Any, int]) -> dict[str, Any
 
     key, source, layout, template, size = args
     try:
-        adapted, _ = adapt(source, layout.codec.palette)
+        adapted, _ = adapt(source, layout.codec.palette, version=ADAPTER_VERSION)
     except Exception:  # noqa: BLE001 - an icon the adapter refuses is simply not used
         return None
     program, _ = parse_into_codec(adapted, layout.codec, layout.total_segment_slots)
@@ -95,6 +97,7 @@ def load_twemoji(
     kept_paths = [p for p in paths if base_key(_twemoji_hexcode(p)) not in excluded]
     settings = {
         "format": EXTRA_FORMAT,
+        **({"adapter": ADAPTER_VERSION} if ADAPTER_VERSION != 1 else {}),
         "commit": commit,
         "size": image_size,
         "palette": list(layout.codec.palette),
