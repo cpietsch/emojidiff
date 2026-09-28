@@ -73,7 +73,8 @@ In tmux on gpubox-4080; logs under `/home/dev/.cache/mojidiff/`, each ending in 
 1. `r2s-chain4`: `full-v8-twemoji.yaml` (v7 plus 2,211 Twemoji icons, 60,000 steps).
 2. `r2s-chain5`: after 1, idle best-of-8 and best-of-4 latency for v7, then v8's
    float32 and best-of-8 evaluations (`latency.log`, `eval-v8-*.log`).
-3. `r2s-chain6`: after 2, `configs/latent/latent-v2-kl.yaml`.
+3. `r2s-final` (`chain-final.sh`): after 2, the predeclared test-split scoring of the
+   final model (`final.log`), then `configs/latent/latent-v2-kl.yaml`.
 4. `vectorise`: the demo on http://100.69.189.78:8790/ serving v7 (greedy or best of 8).
 5. `weblog`: http://100.69.189.78:8787/.
 
