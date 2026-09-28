@@ -44,16 +44,21 @@ Render-to-SVG evidence (339 validation icons; nearest training icon scores pixel
 | v7 | all of the above, 60k steps | 0.077 | 225 | 0.47 bf16 / 0.63 fp32 |
 | v7 best of 8 | render-and-compare decoding | 0.057 | 298 | 0.66 |
 
-v7 (`r2s-full-v7-systems-42762c2-e9842024-47646604`) is the current model: greedy it
-beats retrieval (+0.013 [+0.009, +0.017]) at 381 ms per icon median on an idle RTX 4080
-(9.0M parameters, CUDA-graph decoder, float32). Its CLIP criterion passes only in the
-float32 re-score, so the run is recorded as falsified on criterion 2. Best-of-8 clears
-every quality bar including OmniSVG zero-shot (0.61); its graph-based latency is queued.
+v7 (`r2s-full-v7-systems-42762c2-e9842024-47646604`, 9.0M parameters) is the final model
+by the rule declared before v8's result. On the untouched test split it beats retrieval
+greedy (pixel error 0.071 against 0.087, 244 of 339 icons) and best of 8 (0.051, 286 of
+339). Idle RTX 4080, float32, rendering included for best-of: greedy 381 ms per icon
+median, best of 4 753 ms, best of 8 1,154 ms. It keeps pixel edits as often as OmniSVG
+4B on Gate N's edit test (best of 8: 0.74 reflected against 0.70). CLIP top-1 on Gate
+N's 32 icons clears OmniSVG zero-shot (0.609) in float32 (greedy 0.63, best of 8 0.66)
+but not in the run's own bfloat16 evaluation (0.47), so v7 is recorded as falsified on
+that criterion.
 
 Other directions (findings, 2026-09-28):
 
-- 2, wider data: Twemoji fits the codec at 66%; 2,211 icons kept after excluding
-  held-out concepts. v8 (v7 + Twemoji) is training.
+- 2, wider data: adapter v2 fits Twemoji 67%, Noto 27%, Blobmoji 33% as the codec
+  stands. v8 (v7 + 2,211 Twemoji icons) is worse by 0.015 paired: Twemoji writes
+  outlines as filled shapes, OpenMoji as strokes; mixing conventions blind hurts.
 - 3, distillation: OmniSVG draws more faithfully, but 62-86% of its output misses the
   codec, at 40-250x the student's time. Set aside for render-to-SVG.
 - 4, latent model: latent-v1 samples 32 distinct emoji-like programs but cannot
