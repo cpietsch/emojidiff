@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-27 (evening)
+Updated: 2026-09-28 06:40
 
 ## Current hypothesis and evidence
 
@@ -10,21 +10,8 @@ family-disjoint splits (P32/T128 bucket: 2,681 train / 339 val / 339 test), a pa
 render evaluation with bootstrap intervals, and a run registry. Its full narrative is
 `reports/findings.md`; the last long-form handoff is `reports/state-history-2026-09-24.md`.
 
-What that phase showed about models, in one place:
-
-- From scratch on 2,681 icons, neither a categorical denoiser nor a KV-cached
-  autoregressive model learns shape. The AR model reaches 0.92 of a zero-parameter
-  position-marginal floor (criterion was 0.50); 4x data and 9x capacity do not help.
-- The v16 denoiser (525k params) is a fixed-topology geometry repairer: it improves 26
-  of 32 lightly corrupted icons but never predicts topology or style. Its inference
-  latency was never measured.
-- Conditioning on a render works where a label does not: OmniSVG 4B reconstructs a
-  held-out icon from its 72 px render top-1 in 39/64 zero-shot, at 6.5 to 106 s per
-  icon. Pixel edits survive re-vectorisation 71% of the time.
-- Fine-tuning 2B to 4B pretrained priors on OpenMoji (Gates M, N, O) never beat the
-  no-model baselines and is 40 to 100 s per icon, the opposite of the deliverable.
-- No multi-step sampler from noise was ever run at corpus scale. No latency or VRAM
-  benchmark was ever recorded; `reports/benchmarks/` is empty.
+That phase's models (label-conditioned generators, a denoiser, 2B-4B fine-tunes) never
+beat their no-model baselines and never measured latency; see findings through Gate O.
 
 The deliverable is stated in `AGENTS.md`: a small fast model with a demo and a measured
 per-icon latency. The operator chose the direction on 2026-09-27: a small from-scratch
