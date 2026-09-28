@@ -67,7 +67,9 @@ No training. Serving only, in tmux on gpubox-4080:
 
 1. `vectorise`: the demo on http://100.69.189.78:8790/ serving v9's best checkpoint
    (better than v7 on validation by 0.0045 paired, colours fixed; greedy or best of 8).
-2. `weblog`: http://100.69.189.78:8787/.
+2. `gallery`: every trained model side by side on http://100.69.189.78:8791/
+   (`scripts/serve_gallery.py`; ten transcribers plus the two latent models).
+3. `weblog`: http://100.69.189.78:8787/.
 
 ## Artifact durability
 

@@ -1,0 +1,1065 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Model gallery</title>
+<style>
+  :root { --ink:#1b1b1b; --muted:#6b6b6b; --line:#d9d9d9; --accent:#2b6cb0; --bg:#fafafa; --card:#fff; --soft:#f3f7fc; --good:#2f7d4f; --bad:#b0442b; --tile:190px; }
+  * { box-sizing: border-box; }
+  html, body { overflow-x: hidden; }
+  body { margin:0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color:var(--ink); background:var(--bg); }
+  html.noscroll { overflow: hidden; }
+  header { padding: 18px 24px 6px; }
+  header h1 { margin:0; font-size: 22px; font-weight: 600; }
+  header p { margin: 4px 0 0; color: var(--muted); max-width: 100ch; }
+  .banner { margin: 8px 24px 0; padding: 8px 12px; border:1px solid #e3b5a8; background:#fdf3f0; color:var(--bad); border-radius: 8px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .banner[hidden] { display:none; }
+  .tabs { display:flex; gap:4px; padding: 10px 24px 0; border-bottom:1px solid var(--line); }
+  .tabs button { font: inherit; padding: 7px 14px; border:1px solid transparent; border-bottom:0; border-radius: 8px 8px 0 0; background: transparent; color: var(--muted); cursor:pointer; margin-bottom:-1px; }
+  .tabs button[aria-selected="true"] { background: var(--bg); border-color: var(--line); color: var(--ink); font-weight: 600; }
+  .view { display:grid; grid-template-columns: 300px minmax(0, 1fr); gap: 16px; padding: 16px 24px; align-items:start; }
+  .view[hidden] { display:none; }
+  .col { display:flex; flex-direction:column; gap: 16px; min-width:0; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px; min-width:0; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 8px; font-weight: 600; }
+  h2 .which { text-transform:none; letter-spacing:0; font-weight:400; }
+  .hint { color: var(--muted); font-size: 13px; margin: 0 0 6px; }
+  .note { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
+  .note.honest { background:#fffaf0; border:1px solid #ecd9a8; color:#5c4a1a; border-radius: 8px; padding: 10px 12px; margin:0; font-size: 14px; }
+  .row { display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-top: 8px; }
+  .row.first { margin-top: 0; }
+  input[type=search] { flex: 1 1 140px; min-width:0; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font: inherit; }
+  input[type=number] { width: 120px; padding:4px 6px; border:1px solid var(--line); border-radius:6px; font: inherit; }
+  select { font: inherit; padding: 3px 6px; border:1px solid var(--line); border-radius:6px; background:#fff; }
+  label { display:inline-flex; gap:5px; align-items:center; }
+  output { font-variant-numeric: tabular-nums; min-width: 2.2em; display:inline-block; }
+  .btn { font: inherit; font-size: 14px; padding:5px 10px; border:1px solid var(--line); border-radius:6px; background:#fff; color: var(--ink); cursor:pointer; }
+  .btn:hover:not(:disabled) { border-color:#b5b5b5; }
+  .btn:disabled { opacity:.45; cursor:default; }
+  .btn.on { border-color: var(--accent); background: var(--soft); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color:#fff; font-weight:600; }
+  .btn.mini { font-size: 12px; padding: 2px 7px; }
+  .star { margin-left:auto; min-width: 34px; }
+  .star.mini { min-width: 0; }
+  .star[aria-pressed="true"] { color:#b7791f; border-color:#e6c65c; background:#fffaf0; }
+  .count { font-size: 12px; color: var(--muted); margin-top: 6px; min-height: 1.4em; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fill, 52px); gap:5px; margin-top:4px; max-height: 36vh; overflow:auto; }
+  #view-latent .grid { max-height: 52vh; }
+  .grid button { position:relative; width:52px; height:52px; padding:2px; border:1px solid var(--line); border-radius:6px; background:#fff; cursor:pointer; }
+  .grid button[data-mark] { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(43,108,176,.25); }
+  .grid button[data-mark]::after { content: attr(data-mark); position:absolute; top:1px; left:1px; background: var(--accent); color:#fff; font-size:10px; line-height:14px; padding:0 3px; border-radius:3px; }
+  .grid button[data-mark="on"]::after { content:none; }
+  .grid img { width:100%; height:100%; display:block; }
+  canvas.paint { display:block; width: 288px; max-width: 100%; aspect-ratio: 1; border:1px solid var(--line); border-radius: 6px; background:#fff; touch-action:none; cursor: crosshair; }
+  .palette { display:flex; flex-wrap:wrap; gap:4px; margin-top: 8px; }
+  .palette button { width:22px; height:22px; padding:0; border:1px solid var(--line); border-radius:4px; cursor:pointer; }
+  .palette button.on { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .controls { display:flex; flex-wrap:wrap; gap: 8px 16px; align-items:center; background: var(--card); border:1px solid var(--line); border-radius:8px; padding: 10px 12px; }
+  .controls .legend { flex-basis: 100%; font-size: 13px; color: var(--muted); }
+  .controls .legend b.good { color: var(--good); } .controls .legend b.bad { color: var(--bad); }
+  .muted { color: var(--muted); }
+  .cards { display:grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, calc(var(--tile) + 22px)), 1fr)); gap: 10px; }
+  .card { background: var(--card); border:1px solid var(--line); border-radius:8px; padding:10px; display:flex; flex-direction:column; gap:6px; min-width:0; }
+  .card.ref { background: var(--soft); border-color:#b9cfe8; }
+  .card .top { flex: 1; display:flex; flex-direction:column; gap:4px; }
+  .card h3 { margin:0; font-size: 15px; font-weight: 600; display:flex; justify-content:space-between; align-items:baseline; gap: 8px; }
+  .card h3 small { font-weight: 400; font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .desc { margin:0; font-size: 13px; color: var(--muted); }
+  .meta { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .meta b { color: var(--ink); font-weight: 600; }
+  .meta b.good { color: var(--good); } .meta b.bad { color: var(--bad); }
+  .svgbox { display:block; width:100%; aspect-ratio: 1; padding:0; margin:0; background:#fff; border:1px solid var(--line); border-radius:6px; overflow:hidden; cursor: zoom-in; font: inherit; color: var(--muted); }
+  div.svgbox { cursor: default; }
+  .svgbox svg, .svgbox img { display:block; width:100%; height:100%; }
+  .svgbox .empty { display:flex; height:100%; align-items:center; justify-content:center; font-size: 13px; padding: 8px; text-align:center; }
+  .card.pending .svgbox, .card.stale .svgbox { opacity: .35; }
+  .status { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; min-height: 1.5em; overflow-wrap: anywhere; }
+  .status.err { color: var(--bad); }
+  .actions { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+  .spin { display:inline-block; width:11px; height:11px; margin-right:6px; vertical-align:-1px; border:2px solid var(--line); border-top-color: var(--accent); border-radius:50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .opts { display:flex; flex-direction:column; gap:8px; }
+  .opt { display:block; width:100%; text-align:left; font: inherit; padding: 8px 10px; border:1px solid var(--line); border-radius:8px; background:#fff; color: var(--ink); cursor:pointer; }
+  .opt[aria-pressed="true"] { border-color: var(--accent); background: var(--soft); box-shadow: 0 0 0 2px rgba(43,108,176,.18); }
+  .opt > span { display:block; margin-top: 2px; }
+  .opt .opt-head { display:flex; justify-content:space-between; gap:8px; margin-top:0; }
+  .opt small { color: var(--muted); font-size: 12px; }
+  .ab { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .slot { display:flex; gap:10px; align-items:center; border:1px dashed var(--line); border-radius:8px; padding:8px; min-width:0; }
+  .slot.set { border-style: solid; }
+  .slot .tag { font-weight:700; color: var(--accent); width: 14px; flex:none; }
+  .slot .thumb { width:72px; height:72px; flex:none; border:1px solid var(--line); border-radius:6px; background:#fff; overflow:hidden; }
+  .slot .thumb img { width:100%; height:100%; display:block; }
+  .slot .slot-text { min-width:0; display:flex; flex-direction:column; gap:4px; align-items:flex-start; }
+  .slot .name { font-size: 13px; overflow-wrap:anywhere; }
+  .strip { display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; }
+  .strip .tile { flex: 0 0 120px; }
+  .tile { min-width:0; display:flex; flex-direction:column; gap:3px; }
+  .tile .cap { font-size: 12px; color: var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tile.ref .svgbox { border-color:#b9cfe8; }
+  .pair { display:grid; grid-template-columns: repeat(2, minmax(0, 220px)); gap:10px; }
+  .samples { display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap:8px; max-width: 640px; }
+  .favsec { margin: 0 24px 32px; }
+  .favsec h2 span { text-transform:none; letter-spacing:0; font-weight:400; }
+  .favs { display:flex; flex-wrap:wrap; gap:10px; }
+  .fav { width:96px; position:relative; }
+  .fav .svgbox { width:96px; }
+  .fav .cap { font-size: 11px; line-height: 1.3; color: var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .fav .cap b { color: var(--ink); font-weight:600; }
+  .fav .x { position:absolute; top:3px; right:3px; width:20px; height:20px; padding:0; line-height:18px; border:1px solid var(--line); border-radius:50%; background:#fff; color: var(--muted); cursor:pointer; font-size:14px; }
+  #overlay { position:fixed; inset:0; z-index:10; background: rgba(20,20,20,.55); display:flex; justify-content:center; align-items:flex-start; padding: 3vh 12px; overflow:auto; overscroll-behavior: contain; }
+  #overlay[hidden] { display:none; }
+  .ov-panel { background: var(--card); border-radius: 10px; padding: 14px; width: min(1170px, 100%); }
+  .ov-panel.single { width: min(600px, 100%); }
+  .ov-head { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom: 10px; }
+  .ov-head b { flex: 1 1 200px; overflow-wrap:anywhere; }
+  .ov-pair { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+  .ov-pair figure { margin:0; min-width:0; }
+  .ov-pair figure[hidden] { display:none; }
+  .big { width: min(560px, calc(100vw - 56px)); aspect-ratio: 1; background:#fff; border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+  .big svg, .big img { display:block; width:100%; height:100%; }
+  figcaption { font-size: 12px; color: var(--muted); margin-top: 4px; max-width: 560px; overflow-wrap:anywhere; }
+  #ov-src { margin: 12px 0 0; max-height: 220px; overflow:auto; background:#f6f6f6; border:1px solid var(--line); border-radius:6px; padding: 8px; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-all; cursor:text; }
+  @media (max-width: 900px) {
+    header { padding: 14px 16px 6px; } .tabs { padding: 8px 16px 0; } .banner { margin: 8px 16px 0; }
+    .view { grid-template-columns: minmax(0, 1fr); padding: 12px 16px; }
+    .favsec { margin: 0 16px 24px; }
+    .ab { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (prefers-reduced-motion: reduce) { .spin { animation-duration: 3s; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Model gallery</h1>
+  <p>Every model trained in this phase, side by side on the same input. Pick a held-out icon (validation or test, never trained on) or paint, and each render-to-SVG transcriber turns the canvas into an editable SVG program in the project's codec. Times are each model's own on the RTX 4080; requests share one GPU and run one after another. Star the outputs you like.</p>
+</header>
+<div id="banner" class="banner" role="alert" hidden><span id="banner-text"></span><button type="button" class="btn mini" id="banner-retry">retry</button></div>
+<nav class="tabs" role="tablist" aria-label="Views">
+  <button type="button" role="tab" id="tab-transcribers" data-tab="transcribers" aria-controls="view-transcribers" aria-selected="true">Transcribers</button>
+  <button type="button" role="tab" id="tab-latent" data-tab="latent" aria-controls="view-latent" aria-selected="false">Latent space</button>
+</nav>
+
+<div class="view" id="view-transcribers" role="tabpanel" aria-labelledby="tab-transcribers">
+  <div class="col">
+    <section id="t-picker">
+      <h2>Held-out icons</h2>
+      <div class="row first"><input type="search" placeholder="search, e.g. cat, flag, 1F4A1" aria-label="Search held-out icons"><button type="button" class="btn random" title="A random icon from all matches, listed or not">random</button></div>
+      <div class="count"></div>
+      <div class="grid"></div>
+    </section>
+    <section>
+      <h2>Paint</h2>
+      <canvas id="canvas" class="paint" width="144" height="144" aria-label="Paint canvas, 144 by 144 pixels"></canvas>
+      <div class="row">
+        <button type="button" id="brush" class="btn on">brush</button><button type="button" id="eraser" class="btn">eraser</button>
+        <label>size <input id="size" type="range" min="1" max="24" value="6"></label>
+      </div>
+      <div class="row"><button type="button" id="undo" class="btn" title="Undo (Ctrl+Z)">undo</button><button type="button" id="clear" class="btn">clear</button></div>
+      <div class="palette" id="palette" aria-label="OpenMoji palette"></div>
+    </section>
+  </div>
+  <div class="col">
+    <div class="controls">
+      <label title="Decode eight candidates, render each, keep the one closest to the input"><input type="checkbox" id="best"> best of 8 <span class="muted">(slower)</span></label>
+      <label><input type="checkbox" id="auto" checked> auto-run on change</label>
+      <label>tiles <select id="tile"><option value="140">small</option><option value="190" selected>medium</option><option value="280">large</option></select></label>
+      <button type="button" id="run" class="btn primary">Run all</button>
+      <span id="progress" class="status"></span>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="cards" id="cards"></div>
+  </div>
+</div>
+
+<div class="view" id="view-latent" role="tabpanel" aria-labelledby="tab-latent" hidden>
+  <div class="col">
+    <section>
+      <h2>Latent model</h2>
+      <div class="opts" id="latent-models"></div>
+    </section>
+    <section id="l-picker">
+      <h2>Held-out icons</h2>
+      <p class="hint">Click sets A, the next click sets B. Shift-click always sets B.</p>
+      <div class="row first"><input type="search" placeholder="search, e.g. cat, flag, 1F4A1" aria-label="Search held-out icons"><button type="button" class="btn random" title="A random icon from all matches, listed or not (shift-click for B)">random</button></div>
+      <div class="count"></div>
+      <div class="grid"></div>
+    </section>
+  </div>
+  <div class="col">
+    <p class="note honest"><b>Read these honestly.</b> Both VAEs reconstruct poorly: a decoded posterior mean is close to blank on average, and far worse than the <span class="baseline-text">0.090</span> nearest-training-icon baseline. Interpolation frames jump between whole emoji rather than morphing. Samples are greedy decodes of z = scale &middot; N(0, I).</p>
+    <section>
+      <h2>Endpoints <span class="which"></span></h2>
+      <div class="ab">
+        <div class="slot" id="slot-a"><span class="tag">A</span><div class="thumb" id="a-thumb"></div><div class="slot-text"><span class="name" id="a-name"></span><button type="button" class="btn mini" id="a-clear">clear</button></div></div>
+        <div class="slot" id="slot-b"><span class="tag">B</span><div class="thumb" id="b-thumb"></div><div class="slot-text"><span class="name" id="b-name"></span><button type="button" class="btn mini" id="b-clear">clear</button></div></div>
+      </div>
+      <div class="row">
+        <label>steps <input id="steps" type="range" min="3" max="11" step="1" value="7"> <output id="steps-v">7</output></label>
+        <button type="button" id="interp-btn" class="btn primary">Interpolate</button>
+        <button type="button" id="recon-btn" class="btn">Reconstruct A</button>
+      </div>
+    </section>
+    <section>
+      <h2>Interpolation <span class="which"></span></h2>
+      <div class="status" id="interp-status"></div>
+      <div class="strip" id="interp"></div>
+    </section>
+    <section>
+      <h2>Reconstruction <span class="which"></span></h2>
+      <div class="status" id="recon-status"></div>
+      <div class="pair" id="recon"></div>
+    </section>
+    <section>
+      <h2>Prior samples <span class="which"></span></h2>
+      <div class="row first">
+        <label>seed <input id="seed" type="number" min="0" max="2147483647" step="1" value="0"></label>
+        <button type="button" id="new-seed" class="btn">new seed</button>
+        <label>scale <input id="scale" type="range" min="0.2" max="2" step="0.1" value="1"> <output id="scale-v">1.0</output></label>
+        <button type="button" id="sample-btn" class="btn primary">Sample</button>
+      </div>
+      <div class="status" id="sample-status"></div>
+      <div class="samples" id="samples"></div>
+    </section>
+  </div>
+</div>
+
+<section class="favsec">
+  <h2>Favourites <span id="fav-count"></span></h2>
+  <p class="hint" id="fav-note">Kept in this browser only. Click an icon's favourite to reload that icon; other favourites open large.</p>
+  <div class="favs" id="favs"></div>
+</section>
+
+<div id="overlay" hidden>
+  <div class="ov-panel" id="ov-panel" role="dialog" aria-modal="true" aria-labelledby="ov-title">
+    <div class="ov-head">
+      <b id="ov-title"></b>
+      <span class="ov-actions"><button type="button" class="btn mini" id="ov-download">download</button> <button type="button" class="btn mini" id="ov-copy">copy SVG</button></span>
+      <button type="button" class="btn mini" id="ov-close">close &times;</button>
+    </div>
+    <div class="ov-pair">
+      <figure id="ov-in-fig"><div class="big"><img id="ov-in" alt="input"></div><figcaption id="ov-in-cap">input</figcaption></figure>
+      <figure><div class="big" id="ov-out"></div><figcaption id="ov-out-cap">output</figcaption></figure>
+    </div>
+    <pre id="ov-src"></pre>
+  </div>
+</div>
+
+<script>
+'use strict';
+const SIZE = 144;
+const PALETTE = ['#000000', '#ffffff', '#92d3f5', '#61b2e4', '#ea5a47', '#d22f27', '#b1cc33', '#5c9e31', '#fcea2b', '#f1b31c', '#d0cfce', '#9b9b9a', '#3f3f3f', '#f4aa41', '#e27022', '#ffa7c0', '#e67a94', '#b399c8', '#8967aa', '#a57939', '#6a462f', '#1e50a0', '#781e32', '#186648', '#fadcbc', '#debb90', '#c19a65', '#352318'];
+const KEYS = { favs: 'mojidiff.gallery.favourites.v1', tab: 'mojidiff.gallery.tab', icon: 'mojidiff.gallery.icon', tile: 'mojidiff.gallery.tile', best: 'mojidiff.gallery.best', auto: 'mojidiff.gallery.auto', latent: 'mojidiff.gallery.latentModel' };
+const SPLIT_NAMES = { 'primary/validation': 'val', 'primary/test': 'test' };
+const ALL_ICONS = 100000; // a /icons limit above every held-out icon; the server clamps it
+const $ = id => document.getElementById(id);
+
+/* ---------------------------------------------------------------- helpers */
+
+const store = {
+  get(key, fallback) { try { const raw = localStorage.getItem(key); return raw === null ? fallback : JSON.parse(raw); } catch (_) { return fallback; } },
+  set(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch (_) { return false; } },
+};
+const isNum = x => typeof x === 'number' && Number.isFinite(x);
+
+function el(tag, props, ...children) {
+  const node = document.createElement(tag);
+  if (props) {
+    for (const [key, value] of Object.entries(props)) {
+      if (value === undefined || value === null || value === false) continue;
+      if (key === 'class') node.className = value;
+      else if (key === 'text') node.textContent = value;
+      else node.setAttribute(key, value === true ? '' : String(value));
+    }
+  }
+  for (const child of children) if (child !== null && child !== undefined && child !== '') node.append(child);
+  return node;
+}
+
+function errText(data) {
+  if (!data || typeof data !== 'object') return 'no response';
+  return String(data.error || data.failure || 'unknown error');
+}
+
+/* Every request resolves to an object; failures become {ok: false, error}. Never throws. */
+async function api(path, body) {
+  let response;
+  try {
+    response = await fetch(path, body === undefined
+      ? { cache: 'no-store' }
+      : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  } catch (error) {
+    return { ok: false, error: 'network error: ' + (error && error.message ? error.message : String(error)) };
+  }
+  let data;
+  try { data = await response.json(); } catch (_) { return { ok: false, error: 'HTTP ' + response.status + ': response was not JSON' }; }
+  if (!data || typeof data !== 'object') return { ok: false, error: 'HTTP ' + response.status + ': unexpected response' };
+  if (!response.ok) return { ok: false, error: 'HTTP ' + response.status + ': ' + (data.error || data.failure || response.statusText) };
+  return data;
+}
+
+function fnv(text) {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) { hash ^= text.charCodeAt(i); hash = Math.imul(hash, 0x01000193) >>> 0; }
+  return hash.toString(16).padStart(8, '0');
+}
+function safeName(text) { return String(text).replace(/[^A-Za-z0-9._+-]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, ''); }
+function fileName(label, rest) { return (safeName(label) || 'model') + '-' + (safeName(rest) || 'output') + '.svg'; }
+function renderUrl(hexcode) { return '/render/' + encodeURIComponent(hexcode) + '.png'; }
+
+/* Returned SVG markup comes from this server's own serializer; scale it to its box. */
+function putSvg(box, svg, emptyText) {
+  box.textContent = '';
+  if (typeof svg === 'string' && svg) box.innerHTML = svg.replace(/<svg\b/i, '<svg preserveAspectRatio="xMidYMid meet" width="100%" height="100%"');
+  else if (emptyText) box.append(el('span', { class: 'empty', text: emptyText }));
+}
+
+function setStatus(node, text, kind) {
+  node.className = 'status' + (kind === 'err' ? ' err' : '');
+  node.textContent = '';
+  if (kind === 'busy') node.append(el('span', { class: 'spin', 'aria-hidden': 'true' }));
+  node.append(text);
+}
+
+function downloadUrl(url, name) { const a = el('a', { href: url, download: name }); document.body.append(a); a.click(); a.remove(); }
+function downloadSvg(svg, name) {
+  if (!svg) return;
+  try {
+    const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+    downloadUrl(url, name);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  } catch (error) { console.error(error); }
+}
+
+/* navigator.clipboard needs a secure context; a Tailscale http:// origin is not one. */
+async function copyText(text) {
+  try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); return true; } } catch (_) { /* fall through */ }
+  try {
+    const area = el('textarea', { readonly: true, style: 'position:fixed;top:-1000px;left:0;opacity:0' });
+    area.value = text; document.body.append(area); area.select();
+    const ok = document.execCommand('copy'); area.remove(); return ok;
+  } catch (_) { return false; }
+}
+function flash(button, text) {
+  if (!button.dataset.label) button.dataset.label = button.textContent;
+  button.textContent = text;
+  clearTimeout(button._flash);
+  button._flash = setTimeout(() => { button.textContent = button.dataset.label; delete button.dataset.label; }, 1200);
+}
+
+/* ---------------------------------------------------------------- models and stats */
+
+let MODELS = [], TRANSCRIBERS = [], LATENTS = [], BASELINE = null;
+
+function params(m) { return isNum(m.parameters) ? (m.parameters / 1e6).toFixed(1) + 'M params' : ''; }
+function errClass(x) { return BASELINE === null ? '' : (x < BASELINE ? 'good' : 'bad'); }
+function num(x, digits, cls) { return el('b', { class: cls || null, text: x.toFixed(digits) }); }
+function statLine(parts) {
+  const line = el('div', { class: 'meta' });
+  parts.forEach((part, i) => { if (i) line.append(' · '); line.append(...part); });
+  return line;
+}
+function splitPrefix(stats) {
+  const where = stats && typeof stats.evaluated_on === 'string' ? stats.evaluated_on : null;
+  return where === null ? 'val' : (SPLIT_NAMES[where] || where);
+}
+function withheld(stats) {
+  const where = stats && typeof stats.evaluated_on === 'string' ? stats.evaluated_on : null;
+  return where !== null && !(where in SPLIT_NAMES);
+}
+
+function transcriberStats(m) {
+  const s = m.stats || {};
+  const parts = [];
+  const icons = isNum(s.icons) ? s.icons : null;
+  const beats = isNum(s.beats_nearest) ? s.beats_nearest : null;
+  if (isNum(s.pixel_error)) {
+    if (beats !== null || s.evaluated_on) parts.push([splitPrefix(s) + ' pixel err ', num(s.pixel_error, 3, errClass(s.pixel_error))]);
+    else parts.push(['pixel err ', num(s.pixel_error, 3), icons !== null ? ' on ' + icons + ' icons, no baseline comparison' : '']);
+  }
+  if (beats !== null) parts.push(['beats nearest ', el('b', { text: beats + (icons !== null ? '/' + icons : '') })]);
+  if (isNum(s.clip_top1)) parts.push(['CLIP top-1 ', num(s.clip_top1, 2)]);
+  if (!parts.length) parts.push([withheld(s) ? 'scored only on its training icons; scores withheld' : 'no recorded scores']);
+  return statLine(parts);
+}
+
+function latentStats(m) {
+  const s = m.stats || {};
+  const parts = [];
+  if (isNum(s.reconstruction_pixel_error)) parts.push([splitPrefix(s) + ' recon pixel err ', num(s.reconstruction_pixel_error, 3, errClass(s.reconstruction_pixel_error))]);
+  if (isNum(s.prior_mean_pixel_error)) parts.push(['prior-mean decode ', num(s.prior_mean_pixel_error, 3, errClass(s.prior_mean_pixel_error))]);
+  if (isNum(s.samples_distinct)) parts.push([el('b', { text: String(s.samples_distinct) }), ' distinct prior samples']);
+  if (!parts.length) parts.push([withheld(s) ? 'scores withheld' : 'no recorded scores']);
+  return statLine(parts);
+}
+
+/* ---------------------------------------------------------------- favourites */
+
+let favs = (() => { const v = store.get(KEYS.favs, {}); return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; })();
+
+function isFav(key) { return !!(key && favs[key]); }
+function saveFavs() {
+  const ok = store.set(KEYS.favs, favs);
+  $('fav-note').textContent = ok
+    ? 'Kept in this browser only. Click an icon\'s favourite to reload that icon; other favourites open large.'
+    : 'Could not save to browser storage (blocked or full); these favourites last until you reload.';
+}
+function paintStar(button) {
+  const key = button.dataset.key || '';
+  const on = isFav(key);
+  button.disabled = !key;
+  button.setAttribute('aria-pressed', on ? 'true' : 'false');
+  button.textContent = on ? '★' : '☆';
+  button.title = on ? 'Remove from favourites' : 'Add to favourites';
+}
+function refreshStars() { document.querySelectorAll('button.star').forEach(paintStar); }
+function toggleFav(key, make) {
+  if (!key) return;
+  if (favs[key]) delete favs[key];
+  else {
+    const entry = make();
+    if (!entry || typeof entry.svg !== 'string' || !entry.svg) return;
+    favs[key] = Object.assign(entry, { key, t: Date.now() });
+  }
+  saveFavs(); refreshStars(); renderFavs();
+}
+function starButton(key, make, mini) {
+  const button = el('button', { class: 'btn star' + (mini ? ' mini' : ''), type: 'button' });
+  if (key) button.dataset.key = key;
+  button.addEventListener('click', () => toggleFav(button.dataset.key, make));
+  paintStar(button);
+  return button;
+}
+function renderFavs() {
+  const list = Object.entries(favs)
+    .filter(([, f]) => f && typeof f === 'object' && typeof f.svg === 'string' && f.svg)
+    .map(([key, f]) => Object.assign({}, f, { key }))
+    .sort((a, b) => (b.t || 0) - (a.t || 0));
+  const wrap = $('favs');
+  wrap.textContent = '';
+  $('fav-count').textContent = list.length ? '(' + list.length + ')' : '';
+  if (!list.length) { wrap.append(el('p', { class: 'note', text: 'Star any output to keep it here.' })); return; }
+  for (const f of list) {
+    const label = String(f.label || f.model || 'model'), caption = String(f.caption || '');
+    const thumb = el('button', { class: 'svgbox', type: 'button', title: label + ' · ' + caption });
+    putSvg(thumb, f.svg);
+    thumb.addEventListener('click', () => openFav(f));
+    const remove = el('button', { class: 'x', type: 'button', title: 'Remove from favourites', 'aria-label': 'Remove from favourites', text: '×' });
+    remove.addEventListener('click', () => { delete favs[f.key]; saveFavs(); refreshStars(); renderFavs(); });
+    wrap.append(el('div', { class: 'fav' }, thumb, remove, el('div', { class: 'cap' }, el('b', { text: label })), el('div', { class: 'cap', text: caption })));
+  }
+}
+function openFav(f) {
+  if (f.kind === 'transcriber' && typeof f.hexcode === 'string' && f.hexcode) {
+    selectTab('transcribers');
+    $('best').checked = f.mode === 'best8';
+    store.set(KEYS.best, $('best').checked);
+    loadIcon({ hexcode: f.hexcode, annotation: f.annotation || f.hexcode });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    openOverlay({ title: (f.label || 'favourite') + ' · ' + (f.caption || ''), svg: f.svg, name: f.file || 'favourite.svg', outputLabel: f.caption || '' });
+  }
+}
+
+/* ---------------------------------------------------------------- overlay */
+
+let overlaySvg = '', overlayName = 'output.svg';
+function openOverlay(o) {
+  if (!o.svg) return;
+  overlaySvg = o.svg; overlayName = o.name || 'output.svg';
+  $('ov-title').textContent = o.title || '';
+  putSvg($('ov-out'), o.svg);
+  $('ov-out-cap').textContent = 'output' + (o.outputLabel ? ' · ' + o.outputLabel : '');
+  const hasInput = !!o.input;
+  $('ov-in-fig').hidden = !hasInput;
+  if (hasInput) { $('ov-in').src = o.input; $('ov-in-cap').textContent = o.inputLabel || 'input'; }
+  $('ov-panel').classList.toggle('single', !hasInput);
+  $('ov-src').textContent = o.svg;
+  $('overlay').hidden = false;
+  document.documentElement.classList.add('noscroll');
+  $('ov-close').focus();
+}
+function closeOverlay() { $('overlay').hidden = true; document.documentElement.classList.remove('noscroll'); }
+$('overlay').addEventListener('click', e => { if (e.target.closest('#ov-src, .ov-actions')) return; closeOverlay(); });
+$('ov-download').addEventListener('click', () => downloadSvg(overlaySvg, overlayName));
+$('ov-copy').addEventListener('click', async () => flash($('ov-copy'), await copyText(overlaySvg) ? 'copied' : 'copy failed'));
+
+/* ---------------------------------------------------------------- tabs */
+
+function selectTab(name) {
+  if (name !== 'transcribers' && name !== 'latent') name = 'transcribers';
+  for (const button of document.querySelectorAll('.tabs button')) {
+    const on = button.dataset.tab === name;
+    button.setAttribute('aria-selected', on ? 'true' : 'false');
+    button.tabIndex = on ? 0 : -1;
+  }
+  $('view-transcribers').hidden = name !== 'transcribers';
+  $('view-latent').hidden = name !== 'latent';
+  store.set(KEYS.tab, name);
+}
+for (const button of document.querySelectorAll('.tabs button')) button.addEventListener('click', () => selectTab(button.dataset.tab));
+
+/* ---------------------------------------------------------------- icon pickers */
+
+function makePicker(root, onPick) {
+  const input = root.querySelector('input[type=search]');
+  const grid = root.querySelector('.grid');
+  const count = root.querySelector('.count');
+  const random = root.querySelector('.random');
+  let seq = 0, timer = null, icons = [], marks = {}, query = '', everything = null;
+  function applyMarks() {
+    for (const button of grid.children) {
+      const mark = marks[button.dataset.hex];
+      if (mark) button.dataset.mark = mark; else delete button.dataset.mark;
+    }
+  }
+  async function search(text) {
+    const id = ++seq;
+    count.textContent = 'searching…';
+    const data = await api('/icons?q=' + encodeURIComponent(text));
+    if (id !== seq) return;
+    query = text; everything = null;
+    if (data.ok === false || !Array.isArray(data.icons)) {
+      icons = []; grid.textContent = '';
+      count.textContent = 'Could not list icons: ' + errText(data);
+      return;
+    }
+    icons = data.icons.filter(icon => icon && typeof icon.hexcode === 'string');
+    grid.textContent = '';
+    for (const icon of icons) {
+      const where = [icon.split, icon.group, icon.subgroup].filter(Boolean).join(' · ');
+      const button = el('button', { type: 'button', title: (icon.annotation || icon.hexcode) + ' (' + icon.hexcode + ')' + (where ? '\n' + where : ''), 'aria-label': icon.annotation || icon.hexcode });
+      button.dataset.hex = icon.hexcode;
+      button.append(el('img', { alt: '', loading: 'lazy', src: renderUrl(icon.hexcode) }));
+      button.addEventListener('click', e => onPick(icon, e));
+      grid.append(button);
+    }
+    const total = isNum(data.total) ? data.total : icons.length;
+    count.textContent = total === 0 ? 'No held-out icon matches.'
+      : icons.length < total ? 'showing ' + icons.length + ' of ' + total + ' matches'
+      : total + ' held-out icon' + (total === 1 ? '' : 's');
+    applyMarks();
+  }
+  input.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => search(input.value.trim()), 200); });
+  /* Every match of the current search, fetched once: the grid lists only the first 150. */
+  async function all() {
+    if (everything && everything.query === query) return everything.icons;
+    const asked = query;
+    const data = await api('/icons?q=' + encodeURIComponent(asked) + '&limit=' + ALL_ICONS);
+    const found = data.ok !== false && Array.isArray(data.icons) ? data.icons.filter(icon => icon && typeof icon.hexcode === 'string') : null;
+    if (!found) return icons;
+    if (asked === query) everything = { query: asked, icons: found };
+    return found;
+  }
+  async function pickRandom(e) {
+    const list = await all();
+    if (list.length) onPick(list[Math.floor(Math.random() * list.length)], e);
+  }
+  random.addEventListener('click', e => { pickRandom({ shiftKey: e.shiftKey }); });
+  return { search, pickRandom, mark(next) { marks = next; applyMarks(); } };
+}
+
+/* ---------------------------------------------------------------- canvas */
+
+const canvas = $('canvas');
+const ctx = canvas.getContext('2d', { willReadFrequently: true });
+let colour = '#000000', erasing = false, drawing = false, last = null;
+let undoStack = [];
+let source = null; // null: a drawing from scratch; else {hexcode, annotation, edited}
+
+function blank() { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, SIZE, SIZE); }
+function snapshot() { undoStack.push({ image: ctx.getImageData(0, 0, SIZE, SIZE), source }); if (undoStack.length > 40) undoStack.shift(); }
+function point(e) { const r = canvas.getBoundingClientRect(); return [(e.clientX - r.left) * SIZE / r.width, (e.clientY - r.top) * SIZE / r.height]; }
+function stroke(a, b) {
+  ctx.strokeStyle = erasing ? '#ffffff' : colour;
+  ctx.lineWidth = +$('size').value;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+}
+canvas.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  snapshot();
+  if (source && !source.edited) source = Object.assign({}, source, { edited: true });
+  drawing = true; last = point(e); stroke(last, last);
+  try { canvas.setPointerCapture(e.pointerId); } catch (_) { /* capture is optional */ }
+});
+canvas.addEventListener('pointermove', e => { if (!drawing) return; const p = point(e); stroke(last, p); last = p; });
+function endStroke() { if (!drawing) return; drawing = false; canvasChanged(); }
+canvas.addEventListener('pointerup', endStroke);
+canvas.addEventListener('pointercancel', endStroke);
+
+function setTool() { $('brush').classList.toggle('on', !erasing); $('eraser').classList.toggle('on', erasing); }
+$('brush').addEventListener('click', () => { erasing = false; setTool(); });
+$('eraser').addEventListener('click', () => { erasing = true; setTool(); });
+function undo() {
+  const state = undoStack.pop();
+  if (!state) return;
+  ctx.putImageData(state.image, 0, 0);
+  source = state.source;
+  markTranscriberPicker(); canvasChanged();
+}
+$('undo').addEventListener('click', undo);
+$('clear').addEventListener('click', () => { snapshot(); blank(); source = null; markTranscriberPicker(); canvasChanged(); });
+for (const c of PALETTE) {
+  const button = el('button', { type: 'button', title: c, 'aria-label': 'colour ' + c, style: 'background:' + c });
+  if (c === colour) button.classList.add('on');
+  button.addEventListener('click', () => {
+    colour = c; erasing = false; setTool();
+    $('palette').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === button));
+  });
+  $('palette').append(button);
+}
+
+function sourceInfo() {
+  if (!source) return { name: 'drawing', title: 'your drawing', hexcode: null, annotation: null, edited: false };
+  const title = source.annotation + ' (' + source.hexcode + ')';
+  return source.edited
+    ? { name: source.hexcode + '-edited', title: title + ', painted over', hexcode: source.hexcode, annotation: source.annotation, edited: true }
+    : { name: source.hexcode, title, hexcode: source.hexcode, annotation: source.annotation, edited: false };
+}
+
+function loadIcon(icon, onFail) {
+  const img = new Image();
+  img.onload = () => {
+    snapshot(); blank(); ctx.drawImage(img, 0, 0, SIZE, SIZE);
+    source = { hexcode: icon.hexcode, annotation: icon.annotation || icon.hexcode, edited: false };
+    store.set(KEYS.icon, { hexcode: source.hexcode, annotation: source.annotation });
+    markTranscriberPicker(); canvasChanged();
+  };
+  img.onerror = () => {
+    setStatus($('progress'), 'Could not load the render of ' + icon.hexcode + '.', 'err');
+    if (onFail) onFail();
+  };
+  img.src = renderUrl(icon.hexcode);
+}
+
+const tPicker = makePicker($('t-picker'), icon => loadIcon(icon));
+function markTranscriberPicker() { tPicker.mark(source ? { [source.hexcode]: 'on' } : {}); }
+
+/* ---------------------------------------------------------------- transcriber cards */
+
+const cards = new Map();
+let ref = null;
+
+function buildCards() {
+  const wrap = $('cards');
+  wrap.textContent = ''; cards.clear();
+  ref = { box: el('div', { class: 'svgbox' }), caption: el('p', { class: 'desc', text: 'Pick an icon on the left, or paint.' }), status: el('div', { class: 'status' }), run: null };
+  putSvg(ref.box, '', 'nothing sent yet');
+  const png = el('button', { class: 'btn', type: 'button', text: 'download PNG', disabled: true });
+  png.addEventListener('click', () => { if (ref.run) downloadUrl(ref.run.png, 'input-' + safeName(ref.run.src.name) + '.png'); });
+  ref.png = png;
+  ref.el = el('article', { class: 'card ref' },
+    el('div', { class: 'top' }, el('h3', null, el('span', { text: 'Input' }), el('small', { text: SIZE + ' px canvas' })), ref.caption, el('div', { class: 'meta', text: 'exactly what every model below received' })),
+    ref.box, ref.status, el('div', { class: 'actions' }, png));
+  wrap.append(ref.el);
+  if (!TRANSCRIBERS.length) { wrap.append(el('p', { class: 'note', text: 'The server lists no transcriber models.' })); return; }
+  for (const m of TRANSCRIBERS) {
+    const card = { m, svg: '', run: null, key: null };
+    card.box = el('button', { class: 'svgbox', type: 'button', title: 'Open large', 'aria-label': 'Open the ' + m.label + ' output large' });
+    putSvg(card.box, '', 'waiting for input');
+    card.status = el('div', { class: 'status', text: '' });
+    card.dl = el('button', { class: 'btn', type: 'button', text: 'download', disabled: true });
+    card.cp = el('button', { class: 'btn', type: 'button', text: 'copy SVG', disabled: true });
+    card.star = starButton(null, () => card.svg && card.run ? {
+      kind: 'transcriber', model: m.id, label: m.label, svg: card.svg,
+      hexcode: card.run.src.edited ? null : card.run.src.hexcode, annotation: card.run.src.annotation,
+      mode: card.run.best ? 'best8' : 'greedy',
+      caption: card.run.src.title + (card.run.best ? ' · best of 8' : ''),
+      file: fileName(m.label, card.run.src.name),
+    } : null);
+    card.el = el('article', { class: 'card', 'data-model': m.id },
+      el('div', { class: 'top' }, el('h3', null, el('span', { text: m.label || m.id }), el('small', { text: params(m) })), el('p', { class: 'desc', text: m.description || '' }), transcriberStats(m)),
+      card.box, card.status, el('div', { class: 'actions' }, card.dl, card.cp, card.star));
+    card.box.addEventListener('click', () => {
+      if (!card.svg || !card.run) return;
+      openOverlay({ title: m.label + ' · ' + card.run.src.title, svg: card.svg, name: fileName(m.label, card.run.src.name), input: card.run.png, inputLabel: 'input · ' + card.run.src.title, outputLabel: m.label + ' · ' + card.status.textContent });
+    });
+    card.dl.addEventListener('click', () => { if (card.svg && card.run) downloadSvg(card.svg, fileName(m.label, card.run.src.name)); });
+    card.cp.addEventListener('click', async () => { if (card.svg) flash(card.cp, await copyText(card.svg) ? 'copied' : 'copy failed'); });
+    cards.set(m.id, card);
+    wrap.append(card.el);
+  }
+}
+
+function cardPending(card, queued) {
+  card.el.classList.remove('stale');
+  card.el.classList.add('pending');
+  setStatus(card.status, queued ? 'queued…' : 'decoding…', 'busy');
+}
+
+function cardResult(card, run, data) {
+  card.el.classList.remove('pending', 'stale');
+  if (data && data.ok === true && typeof data.model === 'string' && data.model !== card.m.id) data = { ok: false, error: 'the answer was for model ' + data.model };
+  if (!data || data.ok !== true || typeof data.svg !== 'string' || !data.svg) {
+    card.svg = ''; card.run = run; card.key = null;
+    putSvg(card.box, '', 'no output');
+    setStatus(card.status, 'error: ' + (data && data.ok === true ? 'the answer had no SVG' : errText(data)), 'err');
+    card.status.title = '';
+  } else {
+    card.svg = data.svg; card.run = run;
+    card.key = 't|' + card.m.id + '|' + run.src.name + '|' + (run.best ? 'best8' : 'greedy') + '|' + fnv(data.svg);
+    putSvg(card.box, data.svg);
+    const bits = [];
+    if (isNum(data.ms)) bits.push(data.ms.toFixed(0) + ' ms');
+    if (isNum(data.candidates) && data.candidates > 1) bits.push('best of ' + data.candidates);
+    if (isNum(data.decoder_calls)) bits.push(data.decoder_calls + ' calls');
+    if (isNum(data.paths)) bits.push(data.paths + ' paths');
+    if (isNum(data.segments)) bits.push(data.segments + ' segments');
+    setStatus(card.status, bits.join(' · '));
+    card.status.title = isNum(data.candidates) && data.candidates > 1
+      ? 'Model time measured on the server GPU (synchronised): decoding all ' + data.candidates + ' candidates. Excludes PNG decoding and the CPU render-and-compare that picks one.'
+      : 'Model time measured on the server GPU (synchronised), excluding PNG decoding';
+  }
+  card.dl.disabled = !card.svg; card.cp.disabled = !card.svg;
+  if (card.key) card.star.dataset.key = card.key; else delete card.star.dataset.key;
+  paintStar(card.star);
+}
+
+function showRef(run) {
+  ref.run = run;
+  ref.box.textContent = '';
+  ref.box.append(el('img', { src: run.png, alt: 'the input canvas' }));
+  ref.caption.textContent = run.src.title;
+  setStatus(ref.status, run.best ? 'best of 8 per model' : 'greedy decode per model');
+  ref.png.disabled = false;
+  ref.el.classList.remove('stale');
+}
+
+/* At most two requests in flight; a new run replaces the queue, and answers from an
+   older run are dropped by the run id check. */
+const pool = { queue: [], active: 0, limit: 2 };
+function pump() {
+  while (pool.active < pool.limit && pool.queue.length) {
+    const task = pool.queue.shift();
+    pool.active++;
+    (async () => {
+      try { await task(); } catch (error) { console.error(error); } finally { pool.active--; pump(); }
+    })();
+  }
+}
+
+let runSeq = 0, runTimer = null, lastRun = null;
+function runAll() {
+  clearTimeout(runTimer);
+  if (!ref) return;
+  const id = ++runSeq;
+  const run = { id, png: canvas.toDataURL('image/png'), best: $('best').checked, src: sourceInfo() };
+  lastRun = run;
+  showRef(run);
+  const total = TRANSCRIBERS.length;
+  let done = 0;
+  if (!total) return;
+  setStatus($('progress'), '0/' + total + ' done', 'busy');
+  for (const m of TRANSCRIBERS) cardPending(cards.get(m.id), true);
+  pool.queue = TRANSCRIBERS.map(m => async () => {
+    if (id !== runSeq) return;
+    const card = cards.get(m.id);
+    cardPending(card, false);
+    const data = await api('/transcribe', { model: m.id, png: run.png, candidates: run.best ? 8 : 1 });
+    if (id !== runSeq) return;
+    cardResult(card, run, data);
+    done++;
+    if (done === total) setStatus($('progress'), total + ' models · ' + (run.best ? 'best of 8' : 'greedy'));
+    else setStatus($('progress'), done + '/' + total + ' done', 'busy');
+  });
+  pump();
+}
+
+function canvasChanged() {
+  if ($('auto').checked) { clearTimeout(runTimer); runTimer = setTimeout(runAll, 150); return; }
+  for (const card of cards.values()) card.el.classList.add('stale');
+  if (ref) ref.el.classList.add('stale');
+  setStatus($('progress'), 'Input changed · press Run all.');
+}
+
+$('run').addEventListener('click', runAll);
+$('best').addEventListener('change', () => { store.set(KEYS.best, $('best').checked); if (lastRun) canvasChanged(); });
+$('auto').addEventListener('change', () => { store.set(KEYS.auto, $('auto').checked); if ($('auto').checked && lastRun) runAll(); });
+function setTile(value) {
+  const px = [140, 190, 280].includes(+value) ? +value : 190;
+  document.documentElement.style.setProperty('--tile', px + 'px');
+  $('tile').value = String(px);
+  store.set(KEYS.tile, px);
+}
+$('tile').addEventListener('change', () => setTile($('tile').value));
+
+/* ---------------------------------------------------------------- latent space */
+
+const L = { model: null, a: null, b: null, seq: { interp: 0, recon: 0, sample: 0 }, shown: { interp: false, sample: false } };
+
+function latentPick(icon, e) {
+  const chosen = { hexcode: icon.hexcode, annotation: icon.annotation || icon.hexcode };
+  if (e && e.shiftKey) L.b = chosen;
+  else if (!L.a) L.a = chosen;
+  else if (!L.b) L.b = chosen;
+  else { L.a = chosen; L.b = null; }
+  renderSlots();
+}
+function renderSlots() {
+  for (const which of ['a', 'b']) {
+    const icon = L[which];
+    $('slot-' + which).classList.toggle('set', !!icon);
+    const thumb = $(which + '-thumb');
+    thumb.textContent = '';
+    if (icon) thumb.append(el('img', { src: renderUrl(icon.hexcode), alt: icon.annotation }));
+    $(which + '-name').textContent = icon ? icon.annotation + ' (' + icon.hexcode + ')'
+      : which === 'a' ? 'not set: click an icon' : 'not set: click a second icon, or shift-click';
+    $(which + '-clear').disabled = !icon;
+  }
+  const marks = {};
+  if (L.a) marks[L.a.hexcode] = 'A';
+  if (L.b) marks[L.b.hexcode] = L.a && L.a.hexcode === L.b.hexcode ? 'A B' : 'B';
+  lPicker.mark(marks);
+  updateLatentButtons();
+}
+$('a-clear').addEventListener('click', () => { L.a = null; renderSlots(); });
+$('b-clear').addEventListener('click', () => { L.b = null; renderSlots(); });
+
+function updateLatentButtons() {
+  $('interp-btn').disabled = !(L.model && L.a && L.b);
+  $('recon-btn').disabled = !(L.model && L.a);
+  $('sample-btn').disabled = !L.model;
+  $('new-seed').disabled = !L.model;
+}
+
+function buildLatentModels() {
+  const wrap = $('latent-models');
+  wrap.textContent = '';
+  if (!LATENTS.length) { wrap.append(el('p', { class: 'note', text: 'The server lists no latent models.' })); updateLatentButtons(); return; }
+  for (const m of LATENTS) {
+    const button = el('button', { class: 'opt', type: 'button', 'aria-pressed': 'false' },
+      el('span', { class: 'opt-head' }, el('b', { text: m.label || m.id }), el('small', { text: params(m) })),
+      el('span', { class: 'desc', text: m.description || '' }));
+    const stats = latentStats(m);
+    button.append(el('span', { class: 'meta' }, ...stats.childNodes));
+    button.dataset.id = m.id;
+    button.addEventListener('click', () => selectLatent(m, false));
+    wrap.append(button);
+  }
+  const saved = store.get(KEYS.latent, null);
+  selectLatent(LATENTS.find(m => m.id === saved) || LATENTS[0], true);
+}
+
+function selectLatent(m, initial) {
+  if (!initial && L.model && L.model.id === m.id) return;
+  L.model = m;
+  store.set(KEYS.latent, m.id);
+  for (const button of $('latent-models').children) button.setAttribute('aria-pressed', button.dataset.id === m.id ? 'true' : 'false');
+  for (const span of document.querySelectorAll('#view-latent .which')) span.textContent = '· ' + (m.label || m.id);
+  L.seq.interp++; L.seq.recon++; L.seq.sample++;
+  for (const trigger of Object.values(runLatent)) trigger.cancel(); // first called from init(), after runLatent exists
+  L.shown.interp = false; L.shown.sample = false;
+  for (const id of ['interp', 'recon', 'samples']) $(id).textContent = '';
+  const hint = initial ? '' : 'Switched to ' + (m.label || m.id) + '; run again.';
+  setStatus($('interp-status'), hint || 'Set A and B, then Interpolate.');
+  setStatus($('recon-status'), hint || 'Set A, then Reconstruct A.');
+  setStatus($('sample-status'), hint || 'Pick a seed and a scale, then Sample.');
+  updateLatentButtons();
+}
+
+function refTile(icon, caption) {
+  const box = el('div', { class: 'svgbox', title: icon.annotation + ' (' + icon.hexcode + '), rendered' });
+  box.append(el('img', { src: renderUrl(icon.hexcode), alt: icon.annotation }));
+  return el('div', { class: 'tile ref' }, box, el('div', { class: 'cap', text: caption, title: caption }));
+}
+
+function outTile(o) {
+  const box = el('button', { class: 'svgbox', type: 'button', title: 'Open large' });
+  putSvg(box, o.svg);
+  box.addEventListener('click', () => openOverlay({ title: o.title, svg: o.svg, name: o.name, input: o.input, inputLabel: o.inputLabel, outputLabel: o.caption }));
+  const dl = el('button', { class: 'btn mini', type: 'button', title: 'Download SVG', 'aria-label': 'Download SVG', text: '↓ svg' });
+  dl.addEventListener('click', () => downloadSvg(o.svg, o.name));
+  const star = starButton(o.key, () => Object.assign({ kind: 'latent', svg: o.svg, file: o.name }, o.fav), true);
+  return el('div', { class: 'tile' }, box, el('div', { class: 'cap', text: o.caption, title: o.caption }), el('div', { class: 'actions' }, dl, star));
+}
+
+function svgList(data, key) {
+  const list = data && data.ok === true ? data[key] : null;
+  return Array.isArray(list) && list.every(s => typeof s === 'string') ? list : null;
+}
+function msText(data) { return isNum(data.ms) ? data.ms.toFixed(0) + ' ms model time' : ''; }
+
+async function interpolate() {
+  const m = L.model, a = L.a, b = L.b;
+  if (!m || !a || !b) return;
+  const steps = Math.max(3, Math.min(11, Math.round(+$('steps').value) || 7));
+  const id = ++L.seq.interp;
+  setStatus($('interp-status'), 'decoding ' + steps + ' frames…', 'busy');
+  const data = await api('/latent/interpolate', { model: m.id, a: a.hexcode, b: b.hexcode, steps });
+  if (id !== L.seq.interp) return;
+  const frames = svgList(data, 'frames');
+  const strip = $('interp');
+  if (!frames) { strip.textContent = ''; L.shown.interp = false; setStatus($('interp-status'), 'error: ' + (data.ok === true ? 'no frames in the answer' : errText(data)), 'err'); return; }
+  strip.textContent = '';
+  strip.append(refTile(a, 'A · ' + a.annotation));
+  const n = frames.length;
+  frames.forEach((svg, i) => {
+    const step = (i + 1) + '/' + n;
+    strip.append(outTile({
+      svg, caption: 'frame ' + step, name: fileName(m.label, 'interp-' + a.hexcode + '-' + b.hexcode + '-' + (i + 1) + 'of' + n),
+      title: m.label + ' · interpolation ' + a.annotation + ' → ' + b.annotation + ' · frame ' + step,
+      key: 'l|' + m.id + '|interp|' + a.hexcode + '|' + b.hexcode + '|' + n + '|' + i + '|' + fnv(svg),
+      fav: { model: m.id, label: m.label, caption: a.hexcode + '→' + b.hexcode + ' ' + step },
+    }));
+  });
+  strip.append(refTile(b, 'B · ' + b.annotation));
+  L.shown.interp = true;
+  setStatus($('interp-status'), [n + ' frames between the posterior means, greedy, one batch', msText(data)].filter(Boolean).join(' · '));
+}
+
+async function reconstruct() {
+  const m = L.model, a = L.a;
+  if (!m || !a) return;
+  const id = ++L.seq.recon;
+  setStatus($('recon-status'), 'decoding…', 'busy');
+  const data = await api('/latent/reconstruct', { model: m.id, hexcode: a.hexcode });
+  if (id !== L.seq.recon) return;
+  const pair = $('recon');
+  pair.textContent = '';
+  if (!data || data.ok !== true || typeof data.svg !== 'string' || !data.svg) {
+    setStatus($('recon-status'), 'error: ' + (data && data.ok === true ? 'no SVG in the answer' : errText(data)), 'err');
+    return;
+  }
+  pair.append(refTile(a, 'A · ' + a.annotation), outTile({
+    svg: data.svg, caption: 'decoded posterior mean', name: fileName(m.label, 'recon-' + a.hexcode),
+    title: m.label + ' · reconstruction of ' + a.annotation + ' (' + a.hexcode + ')',
+    input: renderUrl(a.hexcode), inputLabel: 'A · ' + a.annotation + ' (' + a.hexcode + '), rendered',
+    key: 'l|' + m.id + '|recon|' + a.hexcode + '|' + fnv(data.svg),
+    fav: { model: m.id, label: m.label, caption: 'recon ' + a.hexcode },
+  }));
+  setStatus($('recon-status'), ['posterior mean, greedy decode', msText(data)].filter(Boolean).join(' · '));
+}
+
+function currentSeed() {
+  let seed = Math.trunc(Number($('seed').value));
+  if (!Number.isFinite(seed) || seed < 0) seed = 0;
+  seed = Math.min(seed, 2147483647);
+  $('seed').value = String(seed);
+  return seed;
+}
+function currentScale() {
+  const scale = Math.max(0.2, Math.min(2, Number($('scale').value) || 1));
+  return Math.round(scale * 10) / 10;
+}
+
+async function sample() {
+  const m = L.model;
+  if (!m) return;
+  const seed = currentSeed(), scale = currentScale();
+  const id = ++L.seq.sample;
+  setStatus($('sample-status'), 'decoding 16 samples…', 'busy');
+  const data = await api('/latent/sample', { model: m.id, count: 16, seed, scale });
+  if (id !== L.seq.sample) return;
+  const samples = svgList(data, 'samples');
+  const grid = $('samples');
+  if (!samples) { grid.textContent = ''; L.shown.sample = false; setStatus($('sample-status'), 'error: ' + (data.ok === true ? 'no samples in the answer' : errText(data)), 'err'); return; }
+  grid.textContent = '';
+  samples.forEach((svg, i) => {
+    grid.append(outTile({
+      svg, caption: '#' + (i + 1), name: fileName(m.label, 'sample-seed' + seed + '-x' + scale.toFixed(1) + '-' + (i + 1)),
+      title: m.label + ' · prior sample #' + (i + 1) + ' · seed ' + seed + ' · scale ' + scale.toFixed(1),
+      key: 'l|' + m.id + '|sample|' + seed + '|' + scale.toFixed(1) + '|' + i + '|' + fnv(svg),
+      fav: { model: m.id, label: m.label, caption: 'seed ' + seed + ' ×' + scale.toFixed(1) + ' #' + (i + 1) },
+    }));
+  });
+  L.shown.sample = true;
+  setStatus($('sample-status'), [samples.length + ' samples · z = ' + scale.toFixed(1) + ' · N(0, I), seed ' + seed + ', greedy, one batch', msText(data)].filter(Boolean).join(' · '));
+}
+
+/* At most one request per latent section: the GPU is shared, so a burst of clicks would
+   queue answers nobody waits for. A click while one is in flight only marks the section
+   to run once more, with whatever the controls say when the answer returns. */
+function oneAtATime(run, statusId) {
+  let busy = false, again = false;
+  async function go() {
+    busy = true;
+    try { await run(); } catch (error) { console.error(error); }
+    finally {
+      busy = false;
+      if (again) { again = false; go(); }
+    }
+  }
+  const trigger = () => {
+    if (!busy) { go(); return; }
+    again = true;
+    setStatus($(statusId), 'waiting for the request in flight, then running with the latest settings…', 'busy');
+  };
+  trigger.cancel = () => { again = false; };
+  return trigger;
+}
+const runLatent = { interp: oneAtATime(interpolate, 'interp-status'), recon: oneAtATime(reconstruct, 'recon-status'), sample: oneAtATime(sample, 'sample-status') };
+
+$('interp-btn').addEventListener('click', runLatent.interp);
+$('recon-btn').addEventListener('click', runLatent.recon);
+$('sample-btn').addEventListener('click', runLatent.sample);
+$('new-seed').addEventListener('click', () => { $('seed').value = String(Math.floor(Math.random() * 1000000)); runLatent.sample(); });
+$('seed').addEventListener('change', () => { currentSeed(); if (L.shown.sample) runLatent.sample(); });
+$('steps').addEventListener('input', () => { $('steps-v').textContent = $('steps').value; });
+$('steps').addEventListener('change', () => { if (L.shown.interp) runLatent.interp(); });
+$('scale').addEventListener('input', () => { $('scale-v').textContent = currentScale().toFixed(1); });
+$('scale').addEventListener('change', () => { if (L.shown.sample) runLatent.sample(); });
+
+const lPicker = makePicker($('l-picker'), latentPick);
+
+/* ---------------------------------------------------------------- keyboard */
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && !$('overlay').hidden) { closeOverlay(); return; }
+  const typing = e.target instanceof HTMLElement && e.target.closest('input, textarea, select');
+  if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z' && !typing && $('overlay').hidden && !$('view-transcribers').hidden) {
+    e.preventDefault(); undo();
+  }
+});
+
+/* ---------------------------------------------------------------- start */
+
+function showBanner(text) { $('banner-text').textContent = text; $('banner').hidden = false; }
+$('banner-retry').addEventListener('click', () => init());
+
+function loadRandomIcon() { tPicker.pickRandom(null); }
+
+async function init() {
+  $('banner').hidden = true;
+  setStatus($('progress'), 'Loading models…', 'busy');
+  const searches = Promise.all([tPicker.search(''), lPicker.search('')]);
+  const data = await api('/models');
+  if (data.ok === false || !Array.isArray(data.models)) {
+    showBanner('Could not load the model list: ' + errText(data));
+    setStatus($('progress'), 'No models loaded.', 'err');
+    return;
+  }
+  MODELS = data.models.filter(m => m && typeof m.id === 'string');
+  BASELINE = isNum(data.baseline_pixel_error) ? data.baseline_pixel_error : null;
+  TRANSCRIBERS = MODELS.filter(m => m.kind === 'transcriber');
+  LATENTS = MODELS.filter(m => m.kind === 'latent');
+  const legend = $('legend');
+  legend.textContent = '';
+  if (BASELINE !== null) {
+    legend.append('Lower pixel error is better. Baseline ', el('b', { text: BASELINE.toFixed(3) }),
+      ' = nearest training icon, on validation: ', el('b', { class: 'good', text: 'green' }), ' beats it, ',
+      el('b', { class: 'bad', text: 'red' }), ' does not. "beats nearest" counts icons where the model is closer than that icon.');
+    for (const span of document.querySelectorAll('.baseline-text')) span.textContent = BASELINE.toFixed(3);
+  } else legend.append('Lower pixel error is better.');
+  buildCards();
+  buildLatentModels();
+  renderSlots();
+  setStatus($('progress'), TRANSCRIBERS.length + ' transcribers ready.');
+  await searches;
+  const saved = store.get(KEYS.icon, null);
+  if (saved && typeof saved.hexcode === 'string' && /^[0-9A-Fa-f-]+$/.test(saved.hexcode)) loadIcon(saved, loadRandomIcon);
+  else loadRandomIcon();
+}
+
+blank();
+setTile(store.get(KEYS.tile, 190));
+$('best').checked = store.get(KEYS.best, false) === true;
+$('auto').checked = store.get(KEYS.auto, true) !== false;
+selectTab(store.get(KEYS.tab, 'transcribers'));
+renderFavs();
+updateLatentButtons();
+init();
+</script>
+</body>
+</html>
