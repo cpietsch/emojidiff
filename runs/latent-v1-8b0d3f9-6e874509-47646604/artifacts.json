@@ -1,0 +1,6 @@
+{
+  "checkpoint_best": "/home/dev/.cache/mojidiff/runs/latent-v1-8b0d3f9-6e874509-47646604/best.pt",
+  "reconstructions": "reconstructions.png (reference, reconstruction)",
+  "interpolations": "interpolations.png (one pair per row)",
+  "samples": "prior-samples.png"
+}

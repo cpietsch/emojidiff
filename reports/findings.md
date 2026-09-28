@@ -3577,3 +3577,33 @@ Best-of-8 clears all quality bars, including OmniSVG zero-shot on CLIP top-1 (0.
 decoder; the graph-based reranker is queued for an idle-GPU measurement and projects to
 about 1.3 s, because lockstep batching calls the model whenever any of the eight
 candidates has a free choice (858 calls against greedy's 255 on one icon).
+
+## 2026-09-28 — Direction 4, first evidence: a latent model that samples but cannot reconstruct
+
+`latent-v1-8b0d3f9-6e874509-47646604`: a variational autoencoder over codec programs.
+A three-layer program encoder maps a program to a 64-dimensional Gaussian latent; v7's
+decoder (metric coordinates, path order) reads it through 16 memory tokens. Trained
+30,000 steps on v7's stream without renders (online augmentation, half compositions),
+KL annealed to beta 1.0 with 0.1 nats per dimension of free bits, decoder inputs blanked
+at 0.25. Predeclared: (1) reconstruction from each icon's own latent beats the single
+prior-mean decode, paired, interval excluding zero; (2) at least 29 of 32 prior samples
+distinct.
+
+| 339 validation icons | pixel error |
+| --- | --- |
+| reconstruction from own latent | 0.182 [0.175, 0.189] |
+| decode of the prior mean (control) | 0.172 [0.165, 0.180] |
+| nearest training icon | 0.090 |
+
+**Criterion 1 is falsified**: reconstructions are worse than the prior-mean decode by
+0.010 [0.006, 0.013], and most are a single small fragment - the decoder ends the
+program after one path. **Criterion 2 passes**: 32 of 32 prior samples are distinct and
+valid by construction, and several read as emoji - a blond figure, faces, a green fruit
+- at a median pixel distance of 0.053 from their nearest training icon, so they are not
+copies. Held-out KL settled at about 16 nats per icon, some 23 bits: far too little to
+describe an icon, while teacher-forced held-out accuracy reached 0.66. The latent is
+used, but only lightly; the decoder's own prior does the rest, and free-running decoding
+without a strong latent collapses early.
+
+**Decision.** One change: less KL pressure (beta 0.1, free bits 0.5 nats per dimension,
+a 32-nat floor), queued as `configs/latent/latent-v2-kl.yaml` after the Twemoji arm.
