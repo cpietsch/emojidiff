@@ -3555,3 +3555,25 @@ the wave, moon phases, a sprout, cutlery and plate, a swimmer - and the remainin
 errors are mostly colour: a yellow cloud, a grey mushroom. Palette permutation at 0.5
 teaches that colour is independent of shape, which is true of the grammar and false of
 emoji; lowering it is a candidate arm.
+
+**v7 latency and best-of-8 (added 2026-09-28 03:40).** Idle GPU, CUDA-graph decoder,
+float32, batch 1, 16 validation icons, only the idle demo server also on the GPU:
+median **381 ms** per icon, p90 771 ms, median 255 decoder calls at 1.47 ms each.
+Criterion 3 passes. v7 greedy therefore passes criteria 1 and 3 and fails criterion 2
+as run (bfloat16 CLIP top-1 0.47), clearing it only in the float32 re-score (0.63).
+
+Best-of-8 on v7 (greedy plus seven samples at 0.7, each rendered and compared with the
+input render), float32, 339 validation icons:
+
+| | v7 greedy | v7 best of 8 | nearest training icon |
+| --- | --- | --- | --- |
+| mean pixel error | 0.077 | 0.057 [0.053, 0.061] | 0.090 |
+| reduction vs nearest icon | +0.013 | +0.033 [+0.030, +0.036] | |
+| icons beating the nearest icon | 225 | 298 | |
+| CLIP top-1 / top-5 | 0.63 / 0.94 | 0.66 / 1.00 | 0.34 / 0.59 |
+
+Best-of-8 clears all quality bars, including OmniSVG zero-shot on CLIP top-1 (0.61, a
+4B model at 17 s per drawing). Its measured latency, 4.9 s, used the batched reference
+decoder; the graph-based reranker is queued for an idle-GPU measurement and projects to
+about 1.3 s, because lockstep batching calls the model whenever any of the eight
+candidates has a free choice (858 calls against greedy's 255 on one icon).
