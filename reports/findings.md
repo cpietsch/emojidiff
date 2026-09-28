@@ -3746,3 +3746,22 @@ free-running decodes lose the thread. The render-to-SVG model already is the bet
 "encoder" for editing, because an image carries far more than 64 numbers. A useful
 latent model probably needs latent codes per path (DeepSVG's hierarchy) rather than one
 per icon; that is the next test for this direction, not a bigger single latent.
+
+## 2026-09-28 — Less palette permutation fixes the colours
+
+`r2s-full-v9-colour-621bc8e-b26ad95e-47646604`, one change from v7: palette permutation
+0.5 -> 0.1. Validation only (the test split was used once, for v7).
+
+| 339 validation icons, as run (bfloat16) | v7 | v9 |
+| --- | --- | --- |
+| mean pixel error | 0.076 | 0.072 [0.067, 0.077] |
+| v7 minus v9, paired | | +0.0045 [+0.0010, +0.0082] |
+| icons where v9 is better | | 185 of 339 |
+| icons beating the nearest training icon | 226 | 227 |
+| CLIP top-1 / top-5 | 0.47 / 0.81 | 0.53 / 0.88 |
+
+A small improvement with the interval clear of zero, and the error class it targeted is
+gone from the sheet: the cloud is grey, the mushroom red, the cloche blue. Some glyphs
+still fail (a circled J comes back as a filled blob). v9 is still falsified on the CLIP
+criterion as run (0.53 against 0.609). It is the better-validated model and now serves
+the demo; v7 remains the model with a test-split score.
