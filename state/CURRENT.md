@@ -74,7 +74,8 @@ In tmux on gpubox-4080; logs under `/home/dev/.cache/mojidiff/`, each ending in 
 2. `r2s-chain5`: after 1, idle best-of-8 and best-of-4 latency for v7, then v8's
    float32 and best-of-8 evaluations (`latency.log`, `eval-v8-*.log`).
 3. `r2s-final` (`chain-final.sh`): after 2, the predeclared test-split scoring of the
-   final model (`final.log`), then `configs/latent/latent-v2-kl.yaml`.
+   final model (`final.log`), then `configs/latent/latent-v2-kl.yaml`; `r2s-v9` then runs
+   `full-v9-colour.yaml` (palette permutation 0.1, one change from v7).
 4. `vectorise`: the demo on http://100.69.189.78:8790/ serving v7 (greedy or best of 8).
 5. `weblog`: http://100.69.189.78:8787/.
 
