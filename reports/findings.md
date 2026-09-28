@@ -3523,3 +3523,35 @@ of this GPU for a yield of 14 to 39% usable programs.
 compositions dominate it. It stays open for a text-conditioned model, where no exact
 programs exist, and should be revisited if the codec is widened to accept the teacher's
 output.
+
+## 2026-09-28 — The systems run beats retrieval with greedy decoding
+
+`r2s-full-v7-systems-42762c2-e9842024-47646604`: metric coordinates, path-major order,
+online exact augmentation and compositions together, 60,000 steps, 9.0M parameters.
+Predeclared: beat the nearest training icon in pixels with the interval excluding zero;
+CLIP top-1 at or above OmniSVG zero-shot (0.609); median latency under 500 ms.
+
+| 339 validation icons | v7, bfloat16 (as run) | v7, float32 re-score | nearest training icon |
+| --- | --- | --- | --- |
+| mean pixel error | 0.076 [0.072, 0.081] | 0.077 [0.072, 0.082] | 0.090 [0.085, 0.095] |
+| reduction vs nearest icon | +0.013 [+0.010, +0.017] | +0.013 [+0.009, +0.017] | |
+| icons beating the nearest icon | 226 | 225 | |
+| CLIP top-1 / top-5, Gate N's 32 | 0.47 / 0.81 | 0.63 / 0.94 | 0.34 / 0.59 |
+
+**Criterion 1 passes** in both precisions: the first greedy decoder in the project to
+transcribe held-out renders better than retrieving the closest training icon.
+**Criterion 2 is precision-sensitive.** The run's own bfloat16 evaluation falls short
+(0.47); the float32 re-score clears OmniSVG's 0.609 (0.63). On 32 icons one icon is
+0.031, and greedy argmax flips cascade differently in the two precisions, so neither
+number is strong evidence alone; the predeclared reading is the run's own, 0.47, and
+the run is recorded as falsified on criterion 2. **Criterion 3** is measured next on an
+idle GPU over 16 icons; the first validation icon, a complex one, took 1,389 ms at 971
+decoder calls (1.43 ms per call).
+
+The selected step was 52,000 of 60,000: pixel error kept improving while held-out
+loss rose from 1.36 (step 10,000) to 2.03, so likelihood and decoded quality parted
+ways late in training. Samples read correctly far more often - a copyright sign, a W,
+the wave, moon phases, a sprout, cutlery and plate, a swimmer - and the remaining
+errors are mostly colour: a yellow cloud, a grey mushroom. Palette permutation at 0.5
+teaches that colour is independent of shape, which is true of the grammar and false of
+emoji; lowering it is a candidate arm.
