@@ -31,33 +31,33 @@ per-icon latency. The operator chose the direction on 2026-09-27: a small from-s
 render-to-SVG transcriber over the existing codec (`mojidiff.learning.render2svg`),
 with wider vector data, distillation, and a continuous latent model queued behind it.
 
-Render-to-SVG evidence so far (339 validation icons; nearest training icon scores
-pixel error 0.090; full tables in `reports/findings.md`):
+Render-to-SVG evidence (339 validation icons; nearest training icon scores pixel error
+0.090; full tables in `reports/findings.md`):
 
 | run | change | pixel error | beats nearest | CLIP top-1 |
 | --- | --- | --- | --- | --- |
 | v1 | none | 0.149 | 16 | 0.22 |
-| v2 | 16 cached exact variants | 0.130 | 50 | 0.16 |
-| v4 | online variants (vs v2) | 0.121 | 62 | 0.25 |
-| v3 | metric coordinates (vs v2) | 0.106 | 138 | 0.22 |
-| v5 | path-major order (vs v3) | 0.098 | 153 | 0.44 |
+| v2 / v4 | cached / online exact variants | 0.130 / 0.121 | 50 / 62 | 0.16 / 0.25 |
+| v3 | metric coordinates | 0.106 | 138 | 0.22 |
+| v5 | + path-major order | 0.098 | 153 | 0.44 |
+| v6 | compositions (vs v4) | 0.111 | 96 | 0.31 |
+| v7 | all of the above, 60k steps | 0.077 | 225 | 0.47 bf16 / 0.63 fp32 |
+| v7 best of 8 | render-and-compare decoding | 0.057 | 298 | 0.66 |
 
-Every greedy arm is still falsified against retrieval. v5 decoded best-of-8 (greedy
-plus seven samples, each rendered and compared with the input) beats it: pixel error
-0.072 [0.068, 0.077] against 0.090, 259 of 339 icons; CLIP top-1 0.50 against OmniSVG's
-0.609. Compositions (v6) stopped memorisation. Latency: v5 greedy 390 ms per icon median
-on an idle RTX 4080 (CUDA-graph decoder, float32, batch 1); best-of-8 is about three
-times that under load.
+v7 (`r2s-full-v7-systems-42762c2-e9842024-47646604`) is the current model: greedy it
+beats retrieval (+0.013 [+0.009, +0.017]) at 381 ms per icon median on an idle RTX 4080
+(9.0M parameters, CUDA-graph decoder, float32). Its CLIP criterion passes only in the
+float32 re-score, so the run is recorded as falsified on criterion 2. Best-of-8 clears
+every quality bar including OmniSVG zero-shot (0.61); its graph-based latency is queued.
 
-Other directions, first evidence (all in `reports/findings.md`, 2026-09-28):
+Other directions (findings, 2026-09-28):
 
 - 2, wider data: Twemoji fits the codec at 66%; 2,211 icons kept after excluding
-  held-out concepts, nearly doubling training data. Palette snapping is the main loss.
-  Noto and Blobmoji need adapter fixes and a larger palette.
+  held-out concepts. v8 (v7 + Twemoji) is training.
 - 3, distillation: OmniSVG draws more faithfully, but 62-86% of its output misses the
   codec, at 40-250x the student's time. Set aside for render-to-SVG.
-- 4, latent model: a VAE over programs on the same decoder (`mojidiff.learning.latent`),
-  registered as `configs/latent/latent-v1.yaml`, queued.
+- 4, latent model: latent-v1 samples 32 distinct emoji-like programs but cannot
+  reconstruct (KL about 16 nats per icon). latent-v2 with less KL pressure is queued.
 
 ## Last completed action and verification
 
@@ -70,13 +70,12 @@ the reference in float32 for all three model variants), ruff, strict mypy.
 
 In tmux on gpubox-4080; logs under `/home/dev/.cache/mojidiff/`, each ending in `EXIT=`:
 
-1. `r2s-chain2`: `full-v7-systems.yaml` (metric, path order, online augmentation,
-   compositions; 60,000 steps), log `r2s-full-v7-systems.log`.
-2. `r2s-chain3` (`chain-after-v7.sh`): after 1, v7 float32 evaluation with idle-GPU
-   latency, v7 best-of-8 evaluation, `configs/latent/latent-v1.yaml`, then
-   `full-v8-twemoji.yaml` (v7 plus 2,211 Twemoji icons).
-3. `vectorise`: the demo on http://100.69.189.78:8790/ serving v5 (greedy or best of 8).
-4. `weblog`: http://100.69.189.78:8787/.
+1. `r2s-chain4`: `full-v8-twemoji.yaml` (v7 plus 2,211 Twemoji icons, 60,000 steps).
+2. `r2s-chain5`: after 1, idle best-of-8 and best-of-4 latency for v7, then v8's
+   float32 and best-of-8 evaluations (`latency.log`, `eval-v8-*.log`).
+3. `r2s-chain6`: after 2, `configs/latent/latent-v2-kl.yaml`.
+4. `vectorise`: the demo on http://100.69.189.78:8790/ serving v7 (greedy or best of 8).
+5. `weblog`: http://100.69.189.78:8787/.
 
 ## Artifact durability
 
@@ -92,7 +91,6 @@ None.
 
 ## Next smallest evidence-producing action
 
-Read v2 and v3 against the nearest-training-icon baseline and Gate N's CLIP top-1.
-If either passes, serve its best checkpoint in the re-vectorise demo and measure it on
-the untouched test split. If neither lifts held-out accuracy, the next factor is the
-encoder: a stride-4 grid or a pretrained image backbone.
+Compare v8 with v7 per icon (paired). Choose the final configuration, then score it once
+on the untouched test split, greedy and best of 8. Then: lower palette permutation (v7's
+remaining errors are mostly colour), and read latent-v2.
