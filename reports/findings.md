@@ -3716,3 +3716,33 @@ a noodle bowl, bread, ice cream, a balloon, a microphone, running figures. On th
 icons the graph decoder matched the batched decoder on 7 of 8 programs rather than 8:
 in float32 the static and growing key/value layouts are not bit-identical, and a rare
 argmax tie can flip.
+
+## 2026-09-28 — Direction 4: with less KL pressure the latent carries the icon, weakly
+
+`latent-v2-kl-efbd2e2-451268e6-47646604`, one change from latent-v1: beta 0.1 and 0.5
+nats per dimension of free bits (a 32-nat floor). Same predeclared criteria.
+
+| 339 validation icons | latent-v1 | latent-v2 |
+| --- | --- | --- |
+| held-out KL, nats per icon | about 16 | about 110 |
+| reconstruction pixel error, own latent | 0.182 | 0.164 [0.157, 0.171] |
+| decode of the prior mean (control) | 0.172 | 0.177 |
+| own latent minus prior mean, paired | -0.010 (worse) | +0.013 [+0.009, +0.017] |
+| prior samples distinct, of 32 | 32 | 32 |
+| prior samples, median distance to nearest training icon | 0.053 | 0.037 |
+
+**Both criteria pass**: each icon's own latent now decodes closer to it than the prior
+mean does, and prior samples are all distinct. But the absolute quality is low - 0.164
+is near a blank canvas (0.172) and far from retrieval (0.090) - and held-out
+reconstruction likelihood did not improve with seven times the information in the
+latent (about 690 nats in both runs). The interpolation sheet is the useful artifact:
+every point on a straight line between two icons' latents decodes to a valid program,
+and several lines pass through recognisable emoji (faces varying in skin and hair, a
+couple with a heart, hands), but the path jumps between modes rather than morphing.
+
+**Reading.** An autoregressive decoder over this 1,376-token grid with a 64-number
+latent is a weak autoencoder: the decoder's own prior carries most of each program, and
+free-running decodes lose the thread. The render-to-SVG model already is the better
+"encoder" for editing, because an image carries far more than 64 numbers. A useful
+latent model probably needs latent codes per path (DeepSVG's hierarchy) rather than one
+per icon; that is the next test for this direction, not a bigger single latent.
