@@ -1,0 +1,66 @@
+{
+  "run_id": "r2s-full-v7-systems-42762c2-e9842024-47646604",
+  "split": "primary/validation",
+  "icons": 339,
+  "precision": "float32",
+  "selected_step": 52000,
+  "model_parameters": 9025826,
+  "model_pixel_error": [
+    0.056952020463157324,
+    0.053236548752985155,
+    0.060723197766893736
+  ],
+  "model_pixel_error_median": 0.052461571991443634,
+  "nearest_training_icon_pixel_error": [
+    0.08973124639576185,
+    0.0848205749792233,
+    0.09466393787711656
+  ],
+  "model_minus_baseline_error_reduction": [
+    0.03277922593260453,
+    0.029576281772422153,
+    0.0359977817377158
+  ],
+  "icons_model_beats_baseline": 298,
+  "exact_program_rate": 0.035398230088495575,
+  "rendered_rate": 1.0,
+  "batched_decode_seconds": 863.5385579200229,
+  "rerank": {
+    "candidates": 8,
+    "temperature": 0.7
+  },
+  "rerank_chose_a_sample_rate": 0.799410029498525,
+  "clip_retrieval": {
+    "model_greedy": {
+      "top1_rate": 0.65625,
+      "top5_rate": 1.0,
+      "mean_rank": 1.46875,
+      "clip_to_reference_mean": 0.933465339243412,
+      "chance_top1": 0.03125,
+      "icons": 32
+    },
+    "nearest_training_icon": {
+      "top1_rate": 0.34375,
+      "top5_rate": 0.59375,
+      "mean_rank": 7.40625,
+      "clip_to_reference_mean": 0.8630629815161228,
+      "chance_top1": 0.03125,
+      "icons": 32
+    },
+    "gate_n_omnisvg_zero_shot_top1": 0.609375
+  },
+  "resource": {
+    "device": "NVIDIA GeForce RTX 4080",
+    "torch_version": "2.14.0a0+4fdf77b940.nv26.08",
+    "cuda_version": "13.4",
+    "python_version": "3.12.3",
+    "peak_vram_gib": 0.7322378158569336,
+    "train_seconds": null,
+    "inference_ms_per_icon": 4901.34963998571,
+    "inference_p95_ms_per_icon": 4919.013472041115,
+    "icons_per_second": 0.20402543655361738,
+    "train_seconds_null_reason": "evaluation of a trained checkpoint",
+    "decoder": "batched reference, float32, greedy plus 7 samples, each rendered and compared with the input",
+    "includes": "rasterising every candidate"
+  }
+}

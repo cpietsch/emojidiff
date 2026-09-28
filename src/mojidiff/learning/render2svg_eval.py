@@ -217,7 +217,7 @@ def evaluate_run(
     return result
 
 
-def latency_only(run_id: str, icons: int = 16) -> dict[str, Any]:
+def latency_only(run_id: str, icons: int = 16, rerank: int = 0) -> dict[str, Any]:
     """Graph-decoder latency on `icons` validation icons, one at a time, on an idle GPU.
 
     Quality does not depend on load; latency does. This is the measurement to quote,
@@ -232,12 +232,24 @@ def latency_only(run_id: str, icons: int = 16) -> dict[str, Any]:
     record = yaml.safe_load((run_dir / "run.yaml").read_text())
     config = load_config(REPO_ROOT / record["config"])
     device = torch.device("cuda")
-    plain, _, layout, _, _ = load_corpus(config.pilot_config, config.model.image_size)
+    plain, _, layout, pilot, _ = load_corpus(config.pilot_config, config.model.image_size)
     state = torch.load(CACHE_ROOT / "runs" / run_id / "best.pt", map_location=device)
     model = RenderToProgram(layout, ModelConfig(**state["config"])).to(device).eval()
     model.load_state_dict(state["model"])
-    graph = GraphDecoder(model, dtype=torch.float32)
+    from mojidiff.learning.fast_decode import rerank as graph_rerank
+    from mojidiff.learning.openmoji_pilot import _load_program
+
+    template = _load_program(_pilot_rows(pilot)["primary/train"][0], pilot, layout.codec)
+    graph = GraphDecoder(model, dtype=torch.float32, batch=max(rerank, 1))
     data = plain["primary/validation"]
+
+    def run(index: int, stats: DecodeStats | None = None) -> None:
+        image = data.images[index]
+        if rerank > 1:
+            graph_rerank(graph, image, template, seed=index, stats=stats)
+        else:
+            graph.decode(image, stats=stats)
+
     others = subprocess.run(
         ["nvidia-smi", "--query-compute-apps=pid", "--format=csv,noheader"],
         capture_output=True,
@@ -248,9 +260,9 @@ def latency_only(run_id: str, icons: int = 16) -> dict[str, Any]:
     calls: list[int] = []
     for index in range(icons):
         stats = DecodeStats()
-        graph.decode(data.images[index], stats=stats)
+        run(index, stats)
         report = measure_latency(
-            lambda index=index: graph.decode(data.images[index]),  # type: ignore[misc]
+            lambda index=index: run(index),  # type: ignore[misc]
             device=device,
             warmup=1,
             repeats=3,
@@ -259,7 +271,9 @@ def latency_only(run_id: str, icons: int = 16) -> dict[str, Any]:
         calls.append(stats.model_calls)
     result = {
         "run_id": run_id,
-        "decoder": "fast_decode.GraphDecoder, float32, batch 1",
+        "decoder": "fast_decode.GraphDecoder, float32, batch 1"
+        if rerank <= 1
+        else f"fast_decode.rerank, float32, {rerank} candidates, rendering included",
         "icons": icons,
         "median_ms_per_icon": float(np.median(per_icon)),
         "p90_ms_per_icon": float(np.quantile(per_icon, 0.9)),
@@ -269,7 +283,9 @@ def latency_only(run_id: str, icons: int = 16) -> dict[str, Any]:
         "device": torch.cuda.get_device_name(device),
         "excludes": "rasterising the output SVG",
     }
-    (run_dir / "latency.json").write_text(json.dumps(result, indent=2) + "\n")
+    (run_dir / f"latency{'-rerank' + str(rerank) if rerank > 1 else ''}.json").write_text(
+        json.dumps(result, indent=2) + "\n"
+    )
     return result
 
 
@@ -283,7 +299,7 @@ def main() -> None:
     parser.add_argument("--temperature", type=float, default=0.7)
     args = parser.parse_args()
     if args.latency_only:
-        print(json.dumps(latency_only(args.run, args.icons or 16)))
+        print(json.dumps(latency_only(args.run, args.icons or 16, args.rerank)))
         return
     result = evaluate_run(args.run, args.split, args.icons, args.rerank, args.temperature)
     print(json.dumps(result))
