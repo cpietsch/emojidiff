@@ -3682,3 +3682,15 @@ of writing them down.
 write - or external data converted to OpenMoji's stroke convention, before more data can
 be judged. Not queued tonight. By the predeclared rule v7 remains the final model and is
 the one scored on the test split.
+
+**v7 best-of-N latency (added 2026-09-28 06:00).** Idle GPU, graph-based reranker
+(`fast_decode.rerank`), float32, 16 validation icons, rendering every candidate included:
+
+| decoding | median ms per icon | p90 | median decoder calls |
+| --- | --- | --- | --- |
+| greedy | 381 | 771 | 255 |
+| best of 4 | 753 | 1,451 | 379 |
+| best of 8 | 1,154 | 1,833 | 448 |
+
+Only greedy meets the 500 ms budget; best of 8 costs about three greedy decodes, not
+eight, because the candidates share each graph replay.

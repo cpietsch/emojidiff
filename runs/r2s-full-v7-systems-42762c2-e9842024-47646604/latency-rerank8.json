@@ -1,0 +1,12 @@
+{
+  "run_id": "r2s-full-v7-systems-42762c2-e9842024-47646604",
+  "decoder": "fast_decode.rerank, float32, 8 candidates, rendering included",
+  "icons": 16,
+  "median_ms_per_icon": 1153.861652535852,
+  "p90_ms_per_icon": 1832.8728600172326,
+  "median_decoder_calls": 448.0,
+  "ms_per_decoder_call": 2.4299436700331034,
+  "gpu_processes_during_measurement": 2,
+  "device": "NVIDIA GeForce RTX 4080",
+  "excludes": "rasterising the output SVG"
+}
