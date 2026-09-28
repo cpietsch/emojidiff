@@ -1,0 +1,66 @@
+{
+  "run_id": "r2s-full-v8-twemoji-f529d3f-5f240ad1-47646604",
+  "split": "primary/validation",
+  "icons": 339,
+  "precision": "float32",
+  "selected_step": 52000,
+  "model_parameters": 9025826,
+  "model_pixel_error": [
+    0.08995824678529321,
+    0.08422960846182269,
+    0.09598003193838385
+  ],
+  "model_pixel_error_median": 0.08733836561441422,
+  "nearest_training_icon_pixel_error": [
+    0.08973124639576185,
+    0.0848205749792233,
+    0.09466393787711656
+  ],
+  "model_minus_baseline_error_reduction": [
+    -0.00022700038953135846,
+    -0.004854977993869977,
+    0.004221071922660175
+  ],
+  "icons_model_beats_baseline": 187,
+  "exact_program_rate": 0.011799410029498525,
+  "rendered_rate": 1.0,
+  "batched_decode_seconds": 51.09264111099765,
+  "rerank": null,
+  "clip_retrieval": {
+    "model_greedy": {
+      "top1_rate": 0.5625,
+      "top5_rate": 0.78125,
+      "mean_rank": 4.9375,
+      "clip_to_reference_mean": 0.8988583013415337,
+      "chance_top1": 0.03125,
+      "icons": 32
+    },
+    "nearest_training_icon": {
+      "top1_rate": 0.34375,
+      "top5_rate": 0.59375,
+      "mean_rank": 7.40625,
+      "clip_to_reference_mean": 0.8630629815161228,
+      "chance_top1": 0.03125,
+      "icons": 32
+    },
+    "gate_n_omnisvg_zero_shot_top1": 0.609375
+  },
+  "resource": {
+    "device": "NVIDIA GeForce RTX 4080",
+    "torch_version": "2.14.0a0+4fdf77b940.nv26.08",
+    "cuda_version": "13.4",
+    "python_version": "3.12.3",
+    "peak_vram_gib": 2.2999658584594727,
+    "train_seconds": null,
+    "inference_ms_per_icon": 648.9604015368968,
+    "inference_p95_ms_per_icon": 650.4107509972528,
+    "icons_per_second": 1.5409260682651138,
+    "train_seconds_null_reason": "evaluation of a trained checkpoint",
+    "decoder": "fast_decode.GraphDecoder, float32, batch 1",
+    "graph_matches_batched_programs": "8 of 8",
+    "decoder_calls_first_icon": 443,
+    "batched_ms_per_icon": 117.93851062429894,
+    "batched_icons_per_call": 64,
+    "excludes": "rasterising the output SVG"
+  }
+}

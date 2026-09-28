@@ -1,0 +1,12 @@
+{
+  "run_id": "r2s-full-v8-twemoji-f529d3f-5f240ad1-47646604",
+  "decoder": "fast_decode.GraphDecoder, float32, batch 1",
+  "icons": 16,
+  "median_ms_per_icon": 295.48639350105077,
+  "p90_ms_per_icon": 771.2905194493942,
+  "median_decoder_calls": 195.5,
+  "ms_per_decoder_call": 1.4827577118543782,
+  "gpu_processes_during_measurement": 2,
+  "device": "NVIDIA GeForce RTX 4080",
+  "excludes": "rasterising the output SVG"
+}

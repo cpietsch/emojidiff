@@ -3694,3 +3694,25 @@ the one scored on the test split.
 
 Only greedy meets the 500 ms budget; best of 8 costs about three greedy decodes, not
 eight, because the candidates share each graph replay.
+
+## 2026-09-28 — The untouched test split confirms v7
+
+Rule declared before v8's result (`state/CURRENT.md`, 04:50): the final model is
+whichever of v7 and v8 has the lower float32 greedy validation pixel error (v7 0.077,
+v8 0.090), scored once on the 339 test icons, which no run had touched.
+
+| 339 test icons | v7 greedy | v7 best of 8 | nearest training icon |
+| --- | --- | --- | --- |
+| mean pixel error | 0.071 [0.066, 0.076] | 0.051 [0.047, 0.054] | 0.087 [0.082, 0.092] |
+| reduction vs nearest icon | +0.016 [+0.011, +0.021] | +0.036 [+0.033, +0.040] | |
+| icons beating the nearest icon | 244 | 286 | |
+| programs reproduced token for token | 3.2% | | |
+
+The test numbers match validation (greedy 0.077, best of 8 0.057), so there was no
+selection overfit to the 64 checkpoint-selection icons. The sheet
+(`runs/r2s-full-v7-systems-42762c2-e9842024-47646604/eval-test-rerank8.png`) reads
+almost throughout: a globe, a crescent moon, a sleeping cloud face, grapes, a drumstick,
+a noodle bowl, bread, ice cream, a balloon, a microphone, running figures. On the test
+icons the graph decoder matched the batched decoder on 7 of 8 programs rather than 8:
+in float32 the static and growing key/value layouts are not bit-identical, and a rare
+argmax tie can flip.
