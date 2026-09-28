@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-28 06:40
+Updated: 2026-09-28 09:10
 
 ## Current hypothesis and evidence
 
@@ -30,6 +30,7 @@ Render-to-SVG evidence (339 validation icons; nearest training icon scores pixel
 | v6 | compositions (vs v4) | 0.111 | 96 | 0.31 |
 | v7 | all of the above, 60k steps | 0.077 | 225 | 0.47 bf16 / 0.63 fp32 |
 | v7 best of 8 | render-and-compare decoding | 0.057 | 298 | 0.66 |
+| v9 | palette permutation 0.1 (vs v7) | 0.072 | 227 | 0.53 bf16 |
 
 v7 (`r2s-full-v7-systems-42762c2-e9842024-47646604`, 9.0M parameters) is the final model
 by the rule declared before v8's result. On the untouched test split it beats retrieval
@@ -62,12 +63,11 @@ Verified by the tests in `tests/test_render2svg.py`, `test_fast_decode.py`,
 
 ## Active jobs
 
-In tmux on gpubox-4080; logs under `/home/dev/.cache/mojidiff/`, each ending in `EXIT=`:
+No training. Serving only, in tmux on gpubox-4080:
 
-1. `r2s-v9`: `configs/render2svg/full-v9-colour.yaml` (palette permutation 0.1, one
-   change from v7), log `r2s-full-v9-colour.log`; compare with v7 per icon, paired.
-2. `vectorise`: the demo on http://100.69.189.78:8790/ serving v7 (greedy or best of 8).
-3. `weblog`: http://100.69.189.78:8787/.
+1. `vectorise`: the demo on http://100.69.189.78:8790/ serving v9's best checkpoint
+   (better than v7 on validation by 0.0045 paired, colours fixed; greedy or best of 8).
+2. `weblog`: http://100.69.189.78:8787/.
 
 ## Artifact durability
 
@@ -83,7 +83,7 @@ None.
 
 ## Next smallest evidence-producing action
 
-Read v9 against v7 (paired, validation only; the test split has been used once). Then,
-by expected value: a source-convention token so external sets can be added without the
-stroke/fill clash; per-path latents for direction 4; kernel fusion for the batch-1
-decoder, which spends about 1.5 ms per call on roughly a hundred small kernels.
+By expected value: a source-convention token so external sets can be added without the
+stroke/fill clash (direction 2); per-path latents for direction 4; kernel fusion for the
+batch-1 decoder (about 1.5 ms per call on roughly a hundred small kernels). v9 has no
+test-split score; the split was used once, for v7, and should not be reused casually.
