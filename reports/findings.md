@@ -3653,3 +3653,32 @@ Greedy, erasing and moving a part survive only about half the time (0.52, 0.55);
 render-and-compare decoding lifts erase most. Moving a part remains the weakest edit.
 Note: the probe's seconds (4.6 greedy, 10.5 best of 8) are the batched reference decoder
 while v8 trained on the same GPU; idle graph-decoder latency is 381 ms greedy.
+
+## 2026-09-28 — Direction 2, first data arm: Twemoji makes OpenMoji transcription worse
+
+`r2s-full-v8-twemoji-f529d3f-5f240ad1-47646604`: v7 exactly, plus the 2,211 Twemoji
+icons that fit the codec (adapter v1, palette-snapped, held-out concepts excluded),
+growing the training split from 2,681 to 4,892 icons. Predeclared: lower OpenMoji
+validation pixel error than v7, paired, interval excluding zero.
+
+| 339 OpenMoji validation icons | v7 | v8 (+ Twemoji) |
+| --- | --- | --- |
+| mean pixel error | 0.076 | 0.091 [0.085, 0.097] |
+| v7 minus v8, paired | | -0.015 [-0.019, -0.011] |
+| icons where v8 is better | | 120 of 339 |
+| icons beating the nearest training icon | 226 | 190 |
+| CLIP top-1 / top-5 | 0.47 / 0.81 | 0.53 / 0.78 |
+| held-out free-token accuracy, best | 0.65 | 0.69 |
+
+**Falsified, the wrong way.** v8 predicts tokens better and draws worse. The samples say
+why: rings come back as solid discs - the copyright ring, a circled U, the half-moon -
+and a W as a black scrawl. OpenMoji writes an outline as a stroke; Twemoji, like every
+set that went through PicoSVG, writes it as a filled compound shape. Mixed without any
+signal of which convention to use, the same pixels now have two valid programs, and the
+model hedges between them. More shapes are not free when they come with a different way
+of writing them down.
+
+**Decision.** Direction 2 needs a source token - the decoder told which convention to
+write - or external data converted to OpenMoji's stroke convention, before more data can
+be judged. Not queued tonight. By the predeclared rule v7 remains the final model and is
+the one scored on the test split.
