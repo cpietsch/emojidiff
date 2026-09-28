@@ -3626,3 +3626,30 @@ errors are CSS `<style>` classes and `<text>` elements. Across the three sets ro
 lever is the budget itself (P48/T256, about twice the sequence length) and a wider
 palette - a new codec and a retrain, justified only if the Twemoji arm shows extra
 shapes help. The Twemoji training data stays pinned to adapter v1.
+
+## 2026-09-28 — Edit pixels, re-vectorise: the small model matches OmniSVG on Gate N's edit test
+
+`scripts/edit_probe.py` runs Gate N's edit test unchanged on v7 - the same 32 validation
+icons, Gate N's own exact edits (`omnisvg_edit.edited_program`: recolour the commonest
+non-black, non-white fill to red, erase the middle path, move the last path 8 units
+right), the same scores. An edit is reflected when the re-vectorised drawing is closer
+in CLIP space to the edited render than to the original; the edited icon should rank
+first among all edited renders of its kind. Results in `reports/learning/edit-probe-v1/`.
+
+| 93 edited icons | reflected | edited icon ranked first | seconds per drawing |
+| --- | --- | --- | --- |
+| OmniSVG 4B, zero-shot (Gate N) | 0.70 | 0.55 | 19.5 |
+| OmniSVG 4B, best of 6 (Gate N) | 0.70 | 0.71 | 114.7 |
+| v7 (9.0M), greedy | 0.63 | 0.65 | see note |
+| v7, best of 8 | 0.74 | 0.70 | see note |
+
+| v7 best of 8, by edit | reflected | ranked first | pixel error to edited |
+| --- | --- | --- | --- |
+| recolour | 0.87 | 0.68 | 0.061 |
+| erase | 0.74 | 0.71 | 0.056 |
+| move | 0.61 | 0.71 | 0.071 |
+
+Greedy, erasing and moving a part survive only about half the time (0.52, 0.55);
+render-and-compare decoding lifts erase most. Moving a part remains the weakest edit.
+Note: the probe's seconds (4.6 greedy, 10.5 best of 8) are the batched reference decoder
+while v8 trained on the same GPU; idle graph-decoder latency is 381 ms greedy.

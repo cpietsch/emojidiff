@@ -1,0 +1,41 @@
+{
+  "run": "r2s-full-v7-systems-42762c2-e9842024-47646604",
+  "rerank": 8,
+  "edits": {
+    "recolour": {
+      "icons": 31,
+      "edit_reflected_rate": 0.8709677419354839,
+      "edited_top1_rate": 0.6774193548387096,
+      "pixel_error_to_edited": 0.06133620684305506
+    },
+    "erase": {
+      "icons": 31,
+      "edit_reflected_rate": 0.7419354838709677,
+      "edited_top1_rate": 0.7096774193548387,
+      "pixel_error_to_edited": 0.0559727881824778
+    },
+    "move": {
+      "icons": 31,
+      "edit_reflected_rate": 0.6129032258064516,
+      "edited_top1_rate": 0.7096774193548387,
+      "pixel_error_to_edited": 0.07107967594938894
+    }
+  },
+  "edit_reflected_rate": 0.7419354838709677,
+  "edited_top1_rate": 0.6989247311827957,
+  "drawings": 93,
+  "seconds_per_drawing": 10.51561559493258,
+  "seconds_note": "batched reference decoder, float32, GPU shared with training",
+  "gate_n_omnisvg": {
+    "omnisvg zero-shot": {
+      "edit_reflected_rate": 0.699,
+      "edited_top1_rate": 0.548,
+      "seconds_per_drawing": 19.5
+    },
+    "omnisvg best of 6": {
+      "edit_reflected_rate": 0.699,
+      "edited_top1_rate": 0.71,
+      "seconds_per_drawing": 114.7
+    }
+  }
+}
