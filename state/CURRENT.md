@@ -91,6 +91,7 @@ None.
 
 ## Next smallest evidence-producing action
 
-Compare v8 with v7 per icon (paired). Choose the final configuration, then score it once
-on the untouched test split, greedy and best of 8. Then: lower palette permutation (v7's
-remaining errors are mostly colour), and read latent-v2.
+Declared 2026-09-28 04:50, before v8's result: the final model is whichever of v7 and
+v8 has the lower float32 greedy validation pixel error (`eval-validation.json`); only
+that one is scored on the untouched test split, greedy and best of 8, once. Then: lower
+palette permutation (v7's remaining errors are mostly colour), and read latent-v2.
