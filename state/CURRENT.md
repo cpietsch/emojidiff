@@ -42,10 +42,22 @@ pixel error 0.090; full tables in `reports/findings.md`):
 | v3 | metric coordinates (vs v2) | 0.106 | 138 | 0.22 |
 | v5 | path-major order (vs v3) | 0.098 | 153 | 0.44 |
 
-Every arm is still falsified on beating retrieval and on CLIP top-1 against OmniSVG
-zero-shot (0.609). v5 misses by 0.008 [0.004, 0.012] in pixels. Its failure mode is
-dropped paths, not scribbles. Latency passes: v5 decodes in 390 ms per icon median on an
-idle RTX 4080 (CUDA-graph decoder, float32, batch 1). The four-icon overfit was exact.
+Every greedy arm is still falsified against retrieval. v5 decoded best-of-8 (greedy
+plus seven samples, each rendered and compared with the input) beats it: pixel error
+0.072 [0.068, 0.077] against 0.090, 259 of 339 icons; CLIP top-1 0.50 against OmniSVG's
+0.609. Compositions (v6) stopped memorisation. Latency: v5 greedy 390 ms per icon median
+on an idle RTX 4080 (CUDA-graph decoder, float32, batch 1); best-of-8 is about three
+times that under load.
+
+Other directions, first evidence (all in `reports/findings.md`, 2026-09-28):
+
+- 2, wider data: Twemoji fits the codec at 66%; 2,211 icons kept after excluding
+  held-out concepts, nearly doubling training data. Palette snapping is the main loss.
+  Noto and Blobmoji need adapter fixes and a larger palette.
+- 3, distillation: OmniSVG draws more faithfully, but 62-86% of its output misses the
+  codec, at 40-250x the student's time. Set aside for render-to-SVG.
+- 4, latent model: a VAE over programs on the same decoder (`mojidiff.learning.latent`),
+  registered as `configs/latent/latent-v1.yaml`, queued.
 
 ## Last completed action and verification
 
@@ -58,12 +70,12 @@ the reference in float32 for all three model variants), ruff, strict mypy.
 
 In tmux on gpubox-4080; logs under `/home/dev/.cache/mojidiff/`, each ending in `EXIT=`:
 
-1. `r2s-chain2` (`chain-after-v5.sh`): now running `full-v6-compose.yaml`
-   (compositions, one change from v4), then `full-v7-systems.yaml` (metric, path order,
-   online augmentation, compositions; 60,000 steps).
-2. `r2s-rerank5`: v5 re-scored with 8 render-and-compare candidates per icon, log
-   `eval-v5-rerank8.log`, output `runs/<v5>/eval-validation-rerank8.json`.
-3. `vectorise`: the demo on http://100.69.189.78:8790/ serving v5's best checkpoint.
+1. `r2s-chain2`: `full-v7-systems.yaml` (metric, path order, online augmentation,
+   compositions; 60,000 steps), log `r2s-full-v7-systems.log`.
+2. `r2s-chain3` (`chain-after-v7.sh`): after 1, v7 float32 evaluation with idle-GPU
+   latency, v7 best-of-8 evaluation, `configs/latent/latent-v1.yaml`, then
+   `full-v8-twemoji.yaml` (v7 plus 2,211 Twemoji icons).
+3. `vectorise`: the demo on http://100.69.189.78:8790/ serving v5 (greedy or best of 8).
 4. `weblog`: http://100.69.189.78:8787/.
 
 ## Artifact durability
