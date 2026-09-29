@@ -377,7 +377,10 @@ def test_latent_reconstruct_interpolate_and_sample_decode_valid_programs(
     assert set(reconstruction) == {"ok", "svg", "ms"} and reconstruction["ok"]
     _valid(reconstruction["svg"])
     path = gallery.interpolate("l2", first, second, 3)
-    assert set(path) == {"ok", "frames", "ms"} and len(path["frames"]) == 3
+    assert set(path) == {"ok", "frames", "path", "ms"} and len(path["frames"]) == 3
+    # A vae has no path of its own: the backend's path is the straight line.
+    assert path["path"] == "lerp"
+    assert gallery.interpolate("l2", first, second, 3, path="lerp")["frames"] == path["frames"]
     for frame in path["frames"]:
         _valid(frame)
     samples = gallery.sample("l2", 3, seed=7, scale=1.0)
@@ -854,7 +857,13 @@ def test_http_transcribe_and_latent_endpoints(gallery: Gallery, address: tuple[s
     status, body = _post(
         address, "/latent/interpolate", {"model": "l2", "a": first, "b": second, "steps": 3}
     )
-    assert status == 200 and body["ok"] and len(body["frames"]) == 3
+    assert status == 200 and body["ok"] and len(body["frames"]) == 3 and body["path"] == "lerp"
+    status, straight = _post(
+        address,
+        "/latent/interpolate",
+        {"model": "l2", "a": first, "b": second, "steps": 3, "path": "lerp"},
+    )
+    assert status == 200 and straight["frames"] == body["frames"]
     request = {"model": "l2", "count": 2, "seed": 3, "scale": 0.5}
     status, body = _post(address, "/latent/sample", request)
     assert status == 200 and body["ok"] and len(body["samples"]) == 2
@@ -909,6 +918,16 @@ def test_http_refusals_are_400_413_and_decoding_failures_are_200_not_ok(
         ("/latent/reconstruct", {"model": "v9", "hexcode": hexcode}, "not a latent"),
         ("/latent/reconstruct", {"model": "l2", "hexcode": "NOPE"}, "unknown held-out icon"),
         ("/latent/interpolate", {"model": "l2", "a": hexcode, "b": hexcode, "steps": 2}, "steps"),
+        (
+            "/latent/interpolate",
+            {"model": "l2", "a": hexcode, "b": hexcode, "steps": 3, "path": "slerp"},
+            "path must be one of",
+        ),
+        (
+            "/latent/interpolate",
+            {"model": "l2", "a": hexcode, "b": hexcode, "steps": 3, "path": 1},
+            "path must be a string",
+        ),
         ("/latent/sample", {"model": "l2", "count": 1, "seed": 0}, "missing field"),
         ("/latent/sample", {"model": "l2", "count": "2", "seed": 0, "scale": 1}, "integer"),
         ("/latent/sample", {"model": "nope", "count": 1, "seed": 0, "scale": 1}, "unknown model"),

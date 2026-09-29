@@ -7,16 +7,19 @@ import json
 from collections.abc import Sequence
 from dataclasses import replace
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pytest
 import torch
 import torch.nn.functional as F
 
-from mojidiff.gallery.latent_backends import VaeBackend
+import mojidiff.learning.latent_metrics as latent_metrics
+from mojidiff.gallery.latent_backends import CanvasBackend, CanvasFlowBackend, VaeBackend
 from mojidiff.learning.autoregressive import PATH_STRIDE, SEGMENT_STRIDE, SequenceLayout
 from mojidiff.learning.autoregressive import flatten_program as flatten
 from mojidiff.learning.latent import LatentSettings, LatentToProgram
+from mojidiff.learning.latent_flow import FlowNetworkConfig, FlowTransformer, LatentFlowPrior
 from mojidiff.learning.latent_metrics import (
     BLANK,
     TWIN_ERROR,
@@ -40,6 +43,7 @@ from mojidiff.learning.latent_metrics import (
     score_backend,
     score_crossfade,
     score_interpolation,
+    settings_hash,
 )
 from mojidiff.learning.openmoji_pilot import (
     _load_program,
@@ -48,6 +52,7 @@ from mojidiff.learning.openmoji_pilot import (
     load_openmoji_pilot_config,
     load_pilot_index,
 )
+from mojidiff.learning.pixel_latent import CanvasSettings, VariationalTranscriber
 from mojidiff.learning.render2svg import (
     ModelConfig,
     RenderToProgram,
@@ -358,6 +363,13 @@ def test_report_names_carry_the_rule_and_a_settings_hash() -> None:
     assert report_name("run", "normal", replace(_SETTINGS, samples=4)) != first
     other = report_name("run", "normal", replace(_SETTINGS, copy_rule="without-twins"))
     assert other.startswith("metrics-run-normal-without-twins-")
+    # A setting added later leaves the names of the reports written before it alone (the
+    # committed baselines: ...-normal-without-twins-92b2165c, ...-refit-...-37d666a3).
+    assert settings_hash(Settings(copy_rule="without-twins")) == "92b2165c"
+    assert settings_hash(Settings(prior="refit", copy_rule="without-twins")) == "37d666a3"
+    own = report_name("run", "normal", replace(_SETTINGS, interpolation="backend"))
+    assert own.startswith("metrics-run-normal-backend-path-declared-")
+    assert own.rsplit("-", 1)[1] != first.rsplit("-", 1)[1]
 
 
 def test_a_tiny_vae_is_scored_end_to_end_under_both_priors(reference: Reference) -> None:
@@ -373,6 +385,7 @@ def test_a_tiny_vae_is_scored_end_to_end_under_both_priors(reference: Reference)
     assert samples["count"] == 3 and len(report["per_item"]["samples"]["ink"]) == 3
     assert 0.0 <= samples["clip_precision"][0] <= 1.0 and 0.0 <= samples["copy_rate"][0] <= 1.0
     assert strips["pairs"] == 1 and strips["frames"] == 3 and strips["jump_share_even"] == 0.5
+    assert strips["path"] == "lerp"
     if strips["static_pairs"]:
         assert strips["jump_share"] is None and strips["jump_share_static_as_cut"][0] == 1.0
     else:
@@ -425,3 +438,59 @@ def test_the_crossfade_reference_scores_a_transcriber_on_blended_renders(
     endpoint = 0.5 * (pixel_error(renders[0], targets[a]) + pixel_error(renders[-1], targets[b]))
     assert report["per_item"]["interpolation"]["endpoint"] == [endpoint]
     assert report["per_item"]["interpolation"]["pairs"] == [[a, b]]
+
+
+def test_the_backend_path_is_scored_only_when_asked_and_named_in_the_report(
+    reference: Reference, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """With interpolation "backend" the pairs are scored along canvas-flow's own path,
+    slerp through its prior's noise, and the report says so; by default they are scored
+    along the straight line between the posterior means - the frozen VT's lerp, exactly
+    what the same VT scores under `canvas`. A backend without a path of its own is
+    refused rather than silently scored along the line."""
+
+    torch.manual_seed(0)
+    vt = VariationalTranscriber(reference.layout, _TINY, CanvasSettings(channels=2)).eval()
+    network = FlowTransformer(
+        FlowNetworkConfig(channels=2, grid=4, d_model=32, layers=1, heads=4, frequency_dim=32)
+    )
+    generator = torch.Generator().manual_seed(1)
+    with torch.no_grad():
+        for parameter in network.parameters():  # off the zero start: a non-zero velocity
+            parameter.add_(0.05 * torch.randn(parameter.shape, generator=generator))
+    prior = LatentFlowPrior(network, torch.tensor([0.5, -0.2]), torch.tensor([1.5, 0.8]), steps=4)
+    flow, canvas = CanvasFlowBackend(vt, prior, graphs=False), CanvasBackend(vt, graphs=False)
+    scored: list[torch.Tensor] = []
+    real = latent_metrics.score_interpolation
+
+    def spy(
+        given: Reference, programs: torch.Tensor, pairs: list[tuple[int, int]], frames: int
+    ) -> Any:
+        scored.append(programs.clone())
+        return real(given, programs, pairs, frames)
+
+    monkeypatch.setattr(latent_metrics, "score_interpolation", spy)
+    own = replace(_SETTINGS, interpolation="backend")
+    report, _ = score_backend(flow, reference, own)
+    json.dumps(report, allow_nan=False)
+    assert report["interpolation"]["path"] == "slerp-through-prior-noise"
+    ((a, b),) = fixed_pairs(4, 1, _SETTINGS.pair_seed)
+    weights = torch.linspace(0.0, 1.0, 3).view(-1, 1, 1, 1)
+    with torch.no_grad():
+        means, _ = vt.posterior(reference.validation.images[[a, b]])
+        slerp = prior.slerp_path(means[0], means[1], 3)
+        line = (1 - weights) * means[0] + weights * means[1]
+        assert torch.equal(scored[-1], greedy_decode(vt, slerp))
+        assert not torch.equal(slerp, line)
+        straight = greedy_decode(vt, line)
+    resources = report["resources"]
+    assert resources["prior_ms_per_draw"] > 0.0 and resources["end_to_end_ms_batch_1"] > 0.0
+    # The default: the straight line, the same strips as the VT under `canvas`.
+    lerp, _ = score_backend(flow, reference, _SETTINGS)
+    plain, _ = score_backend(canvas, reference, _SETTINGS)
+    assert lerp["interpolation"]["path"] == plain["interpolation"]["path"] == "lerp"
+    assert torch.equal(scored[-2], straight) and torch.equal(scored[-1], straight)
+    with pytest.raises(ValueError, match="has none"):
+        score_backend(canvas, reference, own)
+    with pytest.raises(ValueError, match="unknown interpolation"):
+        score_backend(canvas, reference, replace(_SETTINGS, interpolation="curvy"))

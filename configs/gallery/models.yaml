@@ -10,7 +10,10 @@
 #   backend      latent models only: how the checkpoint loads, encodes, decodes and
 #                samples - a name in mojidiff.gallery.latent_backends.BACKENDS
 #                (`vae`: LatentToProgram with its N(0, I) prior; `canvas`:
-#                pixel_latent.VariationalTranscriber, an 18 x 18 x c grid with N(0, I)).
+#                pixel_latent.VariationalTranscriber, an 18 x 18 x c grid with N(0, I);
+#                `canvas-flow`: latent_flow's rectified-flow prior over a frozen VT, which
+#                its checkpoint names, with slerp interpolation through the prior's noise;
+#                /latent/interpolate with `path: lerp` gives the VT's straight line).
 #                A new kind of latent model adds a backend there, then an entry here.
 #
 # An unknown field or backend, a duplicate id, or a missing checkpoint stops the gallery

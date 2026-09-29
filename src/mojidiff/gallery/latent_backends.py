@@ -18,12 +18,25 @@ a spatial grid, one vector per path):
   always draws the same latents. A Gaussian prior returns `scale` * N(0, I); a learned
   prior (a flow, say) applies `scale` to the noise it starts from.
 
-and optionally `decode_one(latent)` - one latent, (*latent_shape), to one program,
-(1376,), by a CUDA graph when the backend captured one. Reconstruction uses it when it
-exists and `decode` otherwise. Interpolation is linear in latent space for every
-backend, all frames decoded in one batch. The gallery runs `encode`, `decode`,
-`decode_one` and `sample` under its global GPU lock, so a backend may use the device in
-any of them.
+and optionally
+
+* `decode_one(latent)` - one latent, (*latent_shape), to one program, (1376,), by a
+  CUDA graph when the backend captured one. Reconstruction uses it when it exists and
+  `decode` otherwise.
+* `interpolate(first, second, steps)` - `steps` latents, (steps, *latent_shape), on the
+  device, from `first` to `second` (two posterior means on the device), with
+  `interpolation_path`, a short name for that path that the gallery's answers and the
+  harness's reports carry. Without it the gallery interpolates linearly in latent space
+  ("lerp"). The gallery takes the backend's path unless a request asks for `path:
+  "lerp"`; either way all frames decode in one batch. The metrics harness
+  (`latent_metrics`) scores the linear path unless it runs with `--interpolation
+  backend`, and records which path it scored.
+* `parts` - every module the backend runs, when that is more than `model` (a prior over
+  a frozen decoder, say): the gallery counts their parameters against the run record's
+  `model_parameters`.
+
+The gallery runs `encode`, `decode`, `decode_one`, `interpolate` and `sample` under its
+global GPU lock, so a backend may use the device in any of them.
 
 Precision. Both backends encode and decode in IEEE float32 (`precision.strict_float32`,
 TF32 off) and capture their CUDA graphs that way: with TF32 on, a latent's greedy decode
@@ -53,6 +66,10 @@ Backends
 * `canvas` - `pixel_latent.VariationalTranscriber` (vt): the posterior mean of the
   icon's render, a (c, 18, 18) grid, and N(0, I) - the prior-hole control until a
   learned prior over the grid exists (a flow prior is a backend of its own).
+* `canvas-flow` - `latent_flow.LatentFlowPrior` (lfp) over a frozen VT, whose path the
+  flow checkpoint records: the VT's encoder and decoder, the flow as the prior (`scale`
+  multiplies the noise it starts from), `interpolate` as slerp through the prior's
+  noise ("slerp-through-prior-noise"), and `parts` the VT and the flow.
 """
 
 from __future__ import annotations
@@ -61,10 +78,16 @@ from collections.abc import Callable, Mapping
 from typing import Any, Protocol, cast, runtime_checkable
 
 import torch
-from torch import Tensor
+from torch import Tensor, nn
 
 from mojidiff.learning.autoregressive import SequenceLayout
 from mojidiff.learning.latent import LatentSettings, LatentToProgram
+from mojidiff.learning.latent_flow import (
+    LatentFlowPrior,
+    load_flow_checkpoint,
+    load_flow_parent,
+    trajectory_indices,
+)
 from mojidiff.learning.pixel_latent import VariationalTranscriber, load_checkpoint
 from mojidiff.learning.precision import strict_float32
 from mojidiff.learning.render2svg import ModelConfig, RenderToProgram, greedy_decode
@@ -199,8 +222,79 @@ def _canvas(
     return CanvasBackend(load_checkpoint(state, layout).to(device))
 
 
+# --------------------------------------------------------------------------- canvas-flow
+
+
+class CanvasFlowBackend:
+    """A rectified-flow prior (`latent_flow`, lfp) over a frozen VT. Encoding, decoding
+    and single decodes are the VT's (`CanvasBackend`); the prior is the flow, Euler
+    steps from `scale` * N(0, I) in its standardised space to z_hat_0. `interpolate`
+    goes through the prior's noise: both posterior means are inverted by the reverse
+    ODE, their noises slerped, and every frame integrated forward, so each frame is a
+    prior sample. Everything in IEEE float32 (TF32 off)."""
+
+    interpolation_path = "slerp-through-prior-noise"
+
+    def __init__(
+        self, vt: VariationalTranscriber, prior: LatentFlowPrior, *, graphs: bool = True
+    ) -> None:
+        self.canvas = CanvasBackend(vt, graphs=graphs)
+        self.model = self.canvas.model
+        self.latent_shape: tuple[int, ...] = self.canvas.latent_shape
+        if tuple(prior.latent_shape) != self.latent_shape:
+            raise ValueError(f"a flow over {prior.latent_shape} for a VT of {self.latent_shape}")
+        self.prior = prior.eval()
+        self.device = next(vt.parameters()).device
+
+    @property
+    def parts(self) -> tuple[nn.Module, ...]:
+        """The VT and the flow: the sampler as served, parameters counted together."""
+
+        return (self.canvas.model, self.prior)
+
+    def encode(self, tokens: Tensor, images: Tensor) -> Tensor:
+        return self.canvas.encode(tokens, images)
+
+    def decode(self, latents: Tensor) -> Tensor:
+        return self.canvas.decode(latents)
+
+    def decode_one(self, latent: Tensor) -> Tensor:
+        return self.canvas.decode_one(latent)
+
+    def sample(self, count: int, generator: torch.Generator, scale: float) -> Tensor:
+        noise = scale * torch.randn(count, *self.latent_shape, generator=generator)
+        with strict_float32():
+            latents, _ = self.prior.generate(noise.to(self.device))
+        return latents.cpu()
+
+    def interpolate(self, first: Tensor, second: Tensor, steps: int) -> Tensor:
+        with strict_float32():
+            return self.prior.slerp_path(first.to(self.device), second.to(self.device), steps)
+
+    def trajectory(self, generator: torch.Generator, scale: float, frames: int = 8) -> Tensor:
+        """z_hat_0 at `frames` times of one trajectory (`trajectory_indices`: t = 1 down to
+        2 / steps), then the sample ("watch it draw"), (frames + 1, *latent_shape) on the
+        CPU, fewer frames when the sampler has fewer steps. The page does not show it
+        yet."""
+
+        noise = scale * torch.randn(1, *self.latent_shape, generator=generator)
+        indices = trajectory_indices(self.prior.steps, frames)
+        with strict_float32():
+            final, recorded = self.prior.generate(noise.to(self.device), record_at=indices)
+        return torch.cat([frame for _, frame in recorded] + [final]).cpu()
+
+
+def _canvas_flow(
+    state: Mapping[str, Any], layout: SequenceLayout, device: torch.device
+) -> CanvasFlowBackend:
+    # The VT the flow was trained over, from the path and sha256 its checkpoint records.
+    vt = load_flow_parent(state, layout).to(device)
+    return CanvasFlowBackend(vt, load_flow_checkpoint(state).to(device))
+
+
 BACKENDS: dict[str, BackendFactory] = {
     "vae": _vae,
     "canvas": _canvas,
+    "canvas-flow": _canvas_flow,
 }
 """Backend name, as `backend:` in the registry file, to its factory."""

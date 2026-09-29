@@ -74,6 +74,10 @@ HELD_OUT_SPLITS = ("primary/validation", "primary/test")
 ICON_FIELDS = ("hexcode", "annotation", "split", "group", "subgroup")
 ICON_LIMIT = 150
 INTERPOLATION_STEPS = (3, 11)
+INTERPOLATION_PATHS = ("backend", "lerp")
+"""`backend`: the backend's own path when it has one (canvas-flow: slerp through its
+prior's noise), else the straight line; `lerp`: always the straight line between the two
+posterior means."""
 SAMPLE_COUNT = (1, 16)
 SAMPLE_SCALE = (0.2, 2.0)
 RERANK_TEMPERATURE = 0.7
@@ -631,7 +635,10 @@ class Gallery:
             started = time.perf_counter()
             loaded, state = load_model(spec, layout, device)
             model = loaded if isinstance(loaded, RenderToProgram) else loaded.model
-            count = parameter_count(model)
+            # A backend that runs more than its decoder (a prior over a frozen VT) lists
+            # every module in `parts`; its run record counts them all.
+            parts = getattr(loaded, "parts", None) or (model,)
+            count = sum(parameter_count(part) for part in parts)
             try:
                 recorded = run_record(spec, runs_root).get("model_parameters")
             except FileNotFoundError:
@@ -883,26 +890,39 @@ class Gallery:
         decoded, ms = self._run(loaded, work)
         return {"ok": True, "svg": self._svg(loaded, decoded)[0], "ms": ms}
 
-    def interpolate(self, model_id: str, a: str, b: str, steps: int) -> dict[str, Any]:
-        """`steps` frames on the straight line between two posterior means, one batch."""
+    def interpolate(
+        self, model_id: str, a: str, b: str, steps: int, path: str = "backend"
+    ) -> dict[str, Any]:
+        """`steps` frames between two posterior means, decoded in one batch. With `path`
+        "backend", the backend's own path when it has an `interpolate` (canvas-flow:
+        slerp through its prior's noise), else the straight line; with "lerp", the
+        straight line always. The answer's `path` names the path taken."""
 
         loaded, backend = self._latent(model_id)
         low, high = INTERPOLATION_STEPS
         if not low <= steps <= high:
             raise GalleryError(f"steps must be {low}..{high}, got {steps}")
+        if path not in INTERPOLATION_PATHS:
+            raise GalleryError(f"path must be one of {', '.join(INTERPOLATION_PATHS)}")
+        own = getattr(backend, "interpolate", None) if path == "backend" else None
+        taken = "lerp" if own is None else str(getattr(backend, "interpolation_path", "backend"))
         encoded = self._encoded(loaded, backend, [a, b])
         length = loaded.model.layout.length
 
         def work() -> Tensor:
             means = encoded()
-            weights = torch.linspace(0.0, 1.0, steps, device=self.device)
-            weights = weights.view(steps, *(1,) * (means.dim() - 1))
-            path = (1.0 - weights) * means[0] + weights * means[1]
-            return _shaped(loaded, "decode", backend.decode(path), (steps, length))
+            if own is not None:
+                shape = (steps, *backend.latent_shape)
+                latents = _shaped(loaded, "interpolate", own(means[0], means[1], steps), shape)
+            else:
+                weights = torch.linspace(0.0, 1.0, steps, device=self.device)
+                weights = weights.view(steps, *(1,) * (means.dim() - 1))
+                latents = (1.0 - weights) * means[0] + weights * means[1]
+            return _shaped(loaded, "decode", backend.decode(latents), (steps, length))
 
         decoded, ms = self._run(loaded, work)
         frames = [self._svg(loaded, row)[0] for row in decoded]
-        return {"ok": True, "frames": frames, "ms": ms}
+        return {"ok": True, "frames": frames, "path": taken, "ms": ms}
 
     def sample(self, model_id: str, count: int, seed: int, scale: float) -> dict[str, Any]:
         """`count` draws from the backend's prior at `scale` (for a vae z = scale *
@@ -1075,7 +1095,8 @@ def _reconstruct(gallery: Gallery, payload: Mapping[str, Any]) -> Work:
 def _interpolate(gallery: Gallery, payload: Mapping[str, Any]) -> Work:
     model_id, a, b = _text(payload, "model"), _text(payload, "a"), _text(payload, "b")
     steps = _integer(payload, "steps")
-    return lambda: gallery.interpolate(model_id, a, b, steps)
+    path = _text(payload, "path") if "path" in payload else "backend"
+    return lambda: gallery.interpolate(model_id, a, b, steps, path)
 
 
 def _sample(gallery: Gallery, payload: Mapping[str, Any]) -> Work:

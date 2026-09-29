@@ -6,7 +6,10 @@ by the same measures (the staged latent plan, section 1):
 
 * Sets: 339 prior draws (seed 23); the first 339 validation icons, reconstructed from
   their posterior means; 32 validation pairs (rng 17, latent.py's pairs) interpolated
-  linearly over 9 frames. Decoding is greedy in IEEE float32 (TF32 off,
+  over 9 frames - linearly between the posterior means by default, or along the
+  backend's own `interpolate` with `--interpolation backend` (canvas-flow: slerp through
+  its prior's noise), refused for a backend without one; the report's
+  `interpolation.path` names the path scored. Decoding is greedy in IEEE float32 (TF32 off,
   `precision.strict_float32`; with TF32 on, a decode depends on the batch it sits in);
   renders are scored at 72 px. The command line runs everything, CLIP included, that
   way and records the flags.
@@ -44,11 +47,20 @@ posterior means instead of the backend's prior. A transcriber's registry id scor
 pixel-crossfade reference instead: each frame alpha-blends the pair's renders, the
 transcriber writes it down greedily, and only the interpolation block is filled.
 
-Reports are named by run, prior and a hash of the settings, record the sha256 of the
-scoring code and any uncommitted source, and are never overwritten without
-`--overwrite`.
+Resources: decoding is timed batched and at batch 1 (`inference_ms_per_icon`, decode
+only, as every report measures it); the prior's batched draw is timed apart
+(`prior_ms_per_draw`: a learned prior integrates here, a Gaussian one only draws), and
+`end_to_end_ms_batch_1` times one draw plus one decode together.
+
+Reports are named by run, prior, interpolation path (only when not the straight line)
+and a hash of the settings, record the sha256 of the scoring code, the checkpoint (and a
+prior's frozen parent) and any uncommitted source, and are never overwritten without
+`--overwrite`. Schema 3 added `interpolation.path`; every schema-2 report scored the
+straight line.
 
     python -m mojidiff.learning.latent_metrics --registry-id l2 --copy-rule RULE [--prior refit]
+    python -m mojidiff.learning.latent_metrics --registry-id lf1 --copy-rule RULE \
+        --interpolation backend  # canvas-flow's slerp path
     python -m mojidiff.learning.latent_metrics --registry-id v9 --copy-rule RULE  # crossfade
 """
 
@@ -58,7 +70,7 @@ import argparse
 import hashlib
 import json
 import time
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, cast
@@ -113,6 +125,9 @@ TWIN_ERROR = 0.002
 """A validation icon within this aligned error of a training render or its mirror is a
 twin of it: a near-exact duplicate across the family-disjoint split."""
 COPY_RULES = ("declared", "without-twins")
+INTERPOLATIONS = ("lerp", "backend")
+"""`lerp`: the straight line between the pair's posterior means, for every backend;
+`backend`: the backend's own `interpolate`, which only some backends have."""
 SHIFTS = tuple(range(-12, 13, 4))
 """Offsets per axis, in 72 px pixels (= view units), tried when aligning two renders."""
 BLANK = np.full((72, 72, 3), 255, dtype=np.uint8)
@@ -137,6 +152,13 @@ class Settings:
     shortlist: int = 16
     """Nearest library renders by CLIP and by raw pixels searched for the aligned error."""
     latency_repeats: int = 10
+    interpolation: str = "lerp"
+    """Which path the pairs are scored along (one of `INTERPOLATIONS`)."""
+
+
+LATER_SETTINGS = {"interpolation": "lerp"}
+"""Settings added after reports were written, with the value those reports used: at that
+value they are left out of the settings hash, so the same settings keep one name."""
 
 
 # --------------------------------------------------------------------------- measures
@@ -665,18 +687,33 @@ def _batched(function: Callable[[Tensor], Tensor], inputs: Tensor, batch: int) -
 
 
 def _resources(
-    device: torch.device, latency: LatencyReport, batched_ms: float, resident: float | None
+    device: torch.device,
+    latency: LatencyReport,
+    batched_ms: float,
+    resident: float | None,
+    prior: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
+    """The resource block; `prior`, for a latent model, the prior's own timings."""
+
     record = resource_summary(device, train_seconds=None, latency=latency).as_record()
     record.update(
         train_seconds_null_reason="evaluation only",
         batched_ms_per_decode=batched_ms,
         resident_before_decoding_gib=resident,
+        **(prior or {}),
         note="peak VRAM over decoding, resident weights included (the CLIP judge's when "
         "it runs on the GPU); "
         "latency is one greedy float32 decode at batch 1 (decode_one for a latent model), "
         "rendering excluded; "
-        "other GPU work may have been running",
+        + (
+            "prior_ms_per_draw is the batched prior draw per sample (a learned prior's "
+            "integration included), end_to_end_ms_batch_1 one draw plus one decode_one "
+            "timed together; the batched draw and a backend's own interpolation path run "
+            "before the peak is reset, so the peak leaves them out; "
+            if prior
+            else ""
+        )
+        + "other GPU work may have been running",
     )
     return record
 
@@ -702,6 +739,20 @@ def score_backend(
             f"the reference was calibrated under {reference.calibration['copy_rule']!r}, "
             f"the settings name {settings.copy_rule!r}"
         )
+    if settings.interpolation not in INTERPOLATIONS:
+        raise ValueError(
+            f"unknown interpolation {settings.interpolation!r}; one of {', '.join(INTERPOLATIONS)}"
+        )
+    own_path = getattr(backend, "interpolate", None)
+    if settings.interpolation == "lerp":
+        own_path, path_name = None, "lerp"
+    elif own_path is None:
+        raise ValueError(
+            "interpolation 'backend' needs a backend with its own interpolate; this one "
+            "has none: score it with interpolation 'lerp'"
+        )
+    else:
+        path_name = str(getattr(backend, "interpolation_path", "backend"))
     device, shape, batch = reference.device, tuple(backend.latent_shape), settings.batch
     validation = reference.validation
     icons = min(settings.icons, len(validation.tokens))
@@ -731,29 +782,53 @@ def score_backend(
 
     report: dict[str, Any] = {"prior": settings.prior}
     generator = torch.Generator().manual_seed(settings.sample_seed)
+    refit: RefitPrior | None = None
     if settings.prior == "refit":
-        prior = RefitPrior(encode(reference.train.tokens, reference.train.images))
-        latents = prior.sample(settings.samples, generator)
+        refit = RefitPrior(encode(reference.train.tokens, reference.train.images))
         report["refit"] = {
-            "fitted_on_training_icons": prior.count,
-            "dimensions": len(prior.mean),
-            "mean_norm": float(prior.mean.norm()),
-            "covariance_trace": float(prior.covariance.trace()),
-            "ridge": prior.ridge,
+            "fitted_on_training_icons": refit.count,
+            "dimensions": len(refit.mean),
+            "mean_norm": float(refit.mean.norm()),
+            "covariance_trace": float(refit.covariance.trace()),
+            "ridge": refit.ridge,
         }
-    elif settings.prior == "normal":
-        latents = backend.sample(settings.samples, generator, 1.0)
-    else:
+    elif settings.prior != "normal":
         raise ValueError(f"unknown prior {settings.prior!r}")
+
+    def draw(count: int, seeded: torch.Generator) -> Tensor:
+        """`count` prior draws on the CPU: the refit Gaussian, or the backend's prior."""
+
+        if refit is not None:
+            return refit.sample(count, seeded)
+        return backend.sample(count, seeded, 1.0)
+
+    started = time.perf_counter()
+    latents = draw(settings.samples, generator)  # on the CPU, so the device is done
+    prior_ms = (time.perf_counter() - started) * 1000.0 / len(latents)
     means = encode(validation.tokens[:icons], validation.images[:icons])
     endpoints = encode(validation.tokens[ends], validation.images[ends])
-    weights = torch.linspace(0.0, 1.0, settings.frames).view(-1, *([1] * len(shape)))
-    path = torch.cat(
-        [
-            (1 - weights) * endpoints[2 * p] + weights * endpoints[2 * p + 1]
-            for p in range(len(pairs))
-        ]
-    )
+    if own_path is None:
+        weights = torch.linspace(0.0, 1.0, settings.frames).view(-1, *([1] * len(shape)))
+        path = torch.cat(
+            [
+                (1 - weights) * endpoints[2 * p] + weights * endpoints[2 * p + 1]
+                for p in range(len(pairs))
+            ]
+        )
+    else:
+        strips: list[Tensor] = []
+        for p in range(len(pairs)):
+            with strict_float32():
+                strip = own_path(
+                    endpoints[2 * p].to(device), endpoints[2 * p + 1].to(device), settings.frames
+                )
+            if tuple(strip.shape) != (settings.frames, *shape):
+                raise RuntimeError(
+                    f"interpolate returned shape {tuple(strip.shape)}, expected "
+                    f"{(settings.frames, *shape)}"
+                )
+            strips.append(strip.float().cpu())
+        path = torch.cat(strips)
 
     resident = _resident(device)
     reset_peak_memory(device)
@@ -762,7 +837,7 @@ def score_backend(
     batched_ms = (time.perf_counter() - started) * 1000.0 / len(samples)
     decoded = _batched(decode, means, batch)
     zero = decode(torch.zeros(1, *shape)).cpu()
-    strips = _batched(decode, path, batch)
+    decoded_path = _batched(decode, path, batch)
     first = latents[0].to(device)
     latency = measure_latency(
         lambda: decode_single(first),
@@ -770,7 +845,24 @@ def score_backend(
         warmup=1,
         repeats=settings.latency_repeats,
     )
-    report["resources"] = _resources(device, latency, batched_ms, resident)
+    timing = torch.Generator().manual_seed(settings.sample_seed + 1)
+    end_to_end = measure_latency(
+        lambda: decode_single(draw(1, timing)[0].to(device)),
+        device=device,
+        warmup=1,
+        repeats=settings.latency_repeats,
+    )
+    report["resources"] = _resources(
+        device,
+        latency,
+        batched_ms,
+        resident,
+        {
+            "prior_ms_per_draw": prior_ms,
+            "end_to_end_ms_batch_1": end_to_end.median_ms_per_icon,
+            "end_to_end_p95_ms_batch_1": end_to_end.p95_ms_per_icon,
+        },
+    )
 
     layout, template = reference.layout, reference.template
     sample_renders = _programs_to_renders(samples, layout, template)
@@ -812,9 +904,8 @@ def score_backend(
         "true_collapsed_path_share": collapsed_share(truth, layout),
         "extent_ratio_median": float(np.median(ratios)),
     }
-    report["interpolation"], per_pair, rows = score_interpolation(
-        reference, strips, pairs, settings.frames
-    )
+    summary, per_pair, rows = score_interpolation(reference, decoded_path, pairs, settings.frames)
+    report["interpolation"] = {"path": path_name, **summary}
     report["references"] = reference_rows(reference, settings)
     report["per_item"] = {
         "samples": per_sample,
@@ -861,7 +952,7 @@ def score_crossfade(
     report = {
         "prior": "crossfade",
         "resources": _resources(device, latency, batched_ms, resident),
-        "interpolation": summary,
+        "interpolation": {"path": "crossfade", **summary},
         "per_item": {"interpolation": per_pair},
     }
     return report, contact_sheet(rows[:8])
@@ -896,16 +987,17 @@ def headline(report: dict[str, Any]) -> dict[str, Any]:
         "samples.collapsed_path_share reconstruction.pixel_error "
         "reconstruction.reduction_vs_zero_latent reconstruction.collapsed_path_share "
         "reconstruction.extent_ratio_median interpolation.endpoint_pixel_error "
-        "interpolation.jump_share interpolation.static_pairs "
+        "interpolation.path interpolation.jump_share interpolation.static_pairs "
         "interpolation.interior_fragment_rate "
         "interpolation.interior_near_blank_rate interpolation.interior_precision "
         "interpolation.detour_rate resources.batched_ms_per_decode "
-        "resources.inference_ms_per_icon resources.peak_vram_gib"
+        "resources.inference_ms_per_icon resources.end_to_end_ms_batch_1 "
+        "resources.peak_vram_gib"
     ).split()
     out: dict[str, Any] = {"run_id": report.get("run_id"), "prior": report.get("prior")}
     for pick in picks:
         block, key = pick.split(".")
-        if block in report:
+        if block in report and key in report[block]:
             value = report[block][key]
             out[pick] = value[0] if isinstance(value, list) else value
     return out
@@ -918,6 +1010,7 @@ SCORING_SOURCES = (
     "src/mojidiff/gallery/server.py",
     "src/mojidiff/learning/pixel_latent.py",
     "src/mojidiff/learning/latent.py",
+    "src/mojidiff/learning/latent_flow.py",
     "src/mojidiff/learning/render2svg.py",
     "src/mojidiff/learning/fast_decode.py",
     "src/mojidiff/learning/autoregressive.py",
@@ -939,12 +1032,18 @@ def _repo_relative(path: Path) -> str:
 def settings_hash(settings: Settings) -> str:
     """Eight hex digits naming a report's settings in its file name."""
 
-    text = json.dumps(asdict(settings), sort_keys=True)
+    values = {
+        key: value
+        for key, value in asdict(settings).items()
+        if key not in LATER_SETTINGS or value != LATER_SETTINGS[key]
+    }
+    text = json.dumps(values, sort_keys=True)
     return hashlib.sha256(text.encode()).hexdigest()[:8]
 
 
 def report_name(run_id: str, prior: str, settings: Settings) -> str:
-    return f"metrics-{run_id}-{prior}-{settings.copy_rule}-{settings_hash(settings)}"
+    path = "" if settings.interpolation == "lerp" else f"-{settings.interpolation}-path"
+    return f"metrics-{run_id}-{prior}{path}-{settings.copy_rule}-{settings_hash(settings)}"
 
 
 def main(argv: Sequence[str] | None = None) -> None:
@@ -962,6 +1061,14 @@ def main(argv: Sequence[str] | None = None) -> None:
         required=True,
         help="which validation icons calibrate the copy thresholds (module docstring); "
         "choose and record it before any copy-based criterion is scored",
+    )
+    parser.add_argument(
+        "--interpolation",
+        choices=INTERPOLATIONS,
+        default=Settings.interpolation,
+        help="lerp: the straight line between the pair's posterior means (every backend); "
+        "backend: the backend's own interpolate (canvas-flow: slerp through its prior's "
+        "noise), refused for a backend without one",
     )
     parser.add_argument("--latency-repeats", type=int, default=Settings.latency_repeats)
     parser.add_argument("--out", type=Path, default=OUT_DIR)
@@ -982,6 +1089,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         prior=args.prior,
         copy_rule=args.copy_rule,
         latency_repeats=args.latency_repeats,
+        interpolation=args.interpolation,
     )
 
     from mojidiff.gallery.server import REGISTRY, load_model, load_registry
@@ -995,8 +1103,10 @@ def main(argv: Sequence[str] | None = None) -> None:
     if args.registry_id not in specs:
         parser.error(f"no model {args.registry_id!r} in the registry ({', '.join(specs)})")
     spec = specs[args.registry_id]
-    if spec.kind == "transcriber" and args.prior != "normal":
-        parser.error("a transcriber scores the crossfade reference; --prior does not apply")
+    if spec.kind == "transcriber" and (args.prior != "normal" or args.interpolation != "lerp"):
+        parser.error(
+            "a transcriber scores the crossfade reference; --prior and --interpolation do not apply"
+        )
     name = report_name(
         spec.run_id, "crossfade" if spec.kind == "transcriber" else settings.prior, settings
     )
@@ -1026,14 +1136,22 @@ def main(argv: Sequence[str] | None = None) -> None:
             shortlist=settings.shortlist,
             copy_rule=settings.copy_rule,
         )
-        loaded, _ = load_model(spec, layout, device)
+        loaded, extras = load_model(spec, layout, device)
         if spec.kind == "latent":
             body, sheet = score_backend(cast(LatentBackend, loaded), reference, settings)
         else:
             body, sheet = score_crossfade(cast(RenderToProgram, loaded), reference, settings)
     dirty = _git("diff", "HEAD")
+    checkpoint: dict[str, Any] = {
+        "path": str(spec.checkpoint),
+        "sha256": _file_sha256(spec.checkpoint),
+    }
+    # A prior over a frozen model (canvas-flow) names that model's checkpoint and sha256.
+    for key in ("parent_checkpoint", "parent_checkpoint_sha256"):
+        if key in extras:
+            checkpoint[key] = extras[key]
     report = {
-        "schema_version": 2,
+        "schema_version": 3,
         "registry_id": spec.id,
         "run_id": spec.run_id,
         "kind": spec.kind,
@@ -1046,6 +1164,7 @@ def main(argv: Sequence[str] | None = None) -> None:
             _repo_relative(path): _file_sha256(path)
             for path in (*(REPO_ROOT / source for source in SCORING_SOURCES), Path(registry))
         },
+        "checkpoint": checkpoint,
         "dataset_sha256": dataset_hash,
         "clip": {
             "repo": CLIP_REPO,
