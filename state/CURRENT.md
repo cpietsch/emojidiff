@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-28 09:10
+Updated: 2026-09-29
 
 ## Current hypothesis and evidence
 
@@ -85,7 +85,9 @@ None.
 
 ## Next smallest evidence-producing action
 
-By expected value: a source-convention token so external sets can be added without the
-stroke/fill clash (direction 2); per-path latents for direction 4; kernel fusion for the
-batch-1 decoder (about 1.5 ms per call on roughly a hundred small kernels). v9 has no
-test-split score; the split was used once, for v7, and should not be reused casually.
+Direction set by the operator on 2026-09-29, after browsing every model in the gallery:
+focus on the latent-model approach. They like the interpolations and prior samples most
+("you can see that the model learned how to draw even if it is very bad"). Latent work
+is judged by prior-sample quality, novelty and interpolation smoothness, shown in the
+gallery's latent tab, not by reconstruction error alone. A design panel is choosing the
+first arms and a metrics harness; latent-v1 and latent-v2 are the baselines.
