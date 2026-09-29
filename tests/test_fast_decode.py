@@ -139,3 +139,34 @@ def test_batched_graph_decoding_keeps_greedy_first_and_every_row_valid(
         validate_packed_tensor_program(
             unflatten_program(row, template, layout), layout.codec, layout.total_segment_slots
         )
+
+
+@cuda
+def test_graph_decoding_matches_the_reference_for_a_blind_latent_model(
+    layout_and_tokens: tuple[SequenceLayout, torch.Tensor],
+) -> None:
+    from mojidiff.learning.fast_decode import GraphDecoder
+    from mojidiff.learning.latent import LatentSettings, LatentToProgram
+
+    layout, _ = layout_and_tokens
+    torch.manual_seed(0)
+    config = ModelConfig(
+        image_size=32,
+        d_model=64,
+        heads=4,
+        encoder_layers=1,
+        decoder_layers=2,
+        feedforward=128,
+        metric=True,
+        fourier=6,
+        order="path",
+    )
+    settings = LatentSettings(
+        latent_dim=8, memory_tokens=4, encoder_layers=1, blind_coordinates=True
+    )
+    model = LatentToProgram(layout, config, settings).cuda().eval()
+    decoder = GraphDecoder(model, dtype=torch.float32)
+    for seed in range(3):
+        latent = torch.randn(8, generator=torch.Generator().manual_seed(seed)).cuda()
+        reference = greedy_decode(model, latent[None])
+        assert torch.equal(decoder.decode(latent), reference)

@@ -48,10 +48,12 @@ from mojidiff.learning.render2svg import (
     _pilot_rows,
     _programs_to_renders,
     _schedule,
+    _static_tables,
     _train_config,
     _write_yaml,
     bootstrap_mean_interval,
     contact_sheet,
+    coordinate_roles,
     greedy_decode,
     load_corpus,
     nearest_training_icon,
@@ -74,6 +76,15 @@ class LatentSettings:
     """Per-dimension KL floor in nats; below it the KL term exerts no pull."""
     input_dropout: float = 0.25
     """Probability of blanking each decoder input token during training."""
+    blind_coordinates: bool = False
+    """Hide every earlier coordinate from the decoder, in training and decoding alike.
+
+    Input dropout blanks token ids, but the metric-coordinate features of earlier
+    coordinates were built from the unblanked program, so the decoder could always read
+    the geometry it had drawn so far and never needed the latent for it. latent-v1/v2
+    decoded the right number of paths but shrank most to points. Blind, a coordinate's
+    value can come only from the latent; kinds, styles and the grammar stay visible.
+    """
 
 
 @dataclass(frozen=True)
@@ -161,6 +172,31 @@ class LatentToProgram(RenderToProgram):
         return [
             cast(_DecoderBlock, block).cross_attention.keys_values(memory) for block in self.decoder
         ]
+
+    @property
+    def blind_coordinates(self) -> bool:
+        return self.settings.blind_coordinates
+
+    def step_inputs(
+        self, tokens: Tensor, order: Tensor | None, start: int, end: int
+    ) -> tuple[Tensor, dict[str, Tensor]]:
+        """The decoder's inputs, with earlier coordinates hidden when blind."""
+
+        inputs, extras = super().step_inputs(tokens, order, start, end)
+        if not self.settings.blind_coordinates:
+            return inputs, extras
+        if order is None:
+            order = torch.arange(tokens.shape[1], device=tokens.device)[None].expand(
+                tokens.shape[0], -1
+            )
+        role, _ = coordinate_roles(tokens, _static_tables(self.layout))
+        previous = role.gather(1, order)
+        previous = torch.cat((torch.zeros_like(previous[:, :1]), previous[:, :-1]), dim=1)
+        hidden = previous[:, start:end] > 0
+        inputs = inputs.masked_fill(hidden, 0)
+        if "metric_input" in extras:
+            extras["metric_input"] = extras["metric_input"] * (~hidden)[..., None]
+        return inputs, extras
 
     def reconstruct_logits(
         self, tokens: Tensor, order: Tensor | None, latent: Tensor, input_dropout: float

@@ -1,0 +1,39 @@
+# One change from latent-v2-kl: the decoder is blind to every earlier coordinate
+# (LatentSettings.blind_coordinates), in training and in decoding. latent-v2's input
+# dropout blanked token ids while the metric features still carried every earlier
+# coordinate, so geometry never had to come from the latent; its reconstructions keep
+# the right number of paths (10.6 against 10.1) but 57% of them span under half a unit.
+schema_version: 1
+slug: latent-v3-blind
+parent_run: latent-v2-kl
+hypothesis: >-
+  Blind to earlier coordinates, the decoder must take geometry from the latent. Pass,
+  against latent-v2 on the 339 validation icons: (1) at most 15% of reconstructed paths
+  span under half a unit (latent-v2 57%); (2) reconstruction pixel error improves on
+  latent-v2's, paired, interval excluding zero, to 0.140 or less; (3) prior samples all
+  distinct. The earlier criteria are kept below and still reported:
+  A variational autoencoder over codec programs, trained on the 2,681 training icons
+  and their compositions, keeps information in its 64-dimensional latent. Pass requires
+  (1) reconstruction pixel error on the 339 validation icons below the error of the
+  single prior-mean decode, paired, with the 95% interval on the reduction excluding
+  zero; (2) at least 29 of 32 prior samples distinct. Reported without a criterion:
+  reconstruction against the nearest training icon, interpolation and prior-sample
+  sheets, and decode latency.
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+model: {image_size: 144, d_model: 256, heads: 8, encoder_layers: 2, decoder_layers: 6, feedforward: 1024, dropout: 0.1, metric: true, fourier: 10, order: path}
+latent: {latent_dim: 64, memory_tokens: 16, encoder_layers: 3, beta: 0.1, beta_warmup_fraction: 0.3, free_bits: 0.5, input_dropout: 0.25, blind_coordinates: true}
+training:
+  steps: 30000
+  batch_size: 32
+  learning_rate: 0.0005
+  warmup_steps: 1000
+  eval_every: 2000
+  augment_online: true
+  augment_original: 0.1
+  loader_workers: 12
+  compose_probability: 0.5
+  compose_parts: 4
+  augment_mirror: 0.5
+  augment_max_shift: 48
+  augment_colour: 0.5
+eval_icons: 339

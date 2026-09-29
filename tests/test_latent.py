@@ -73,3 +73,45 @@ def test_latent_model_trains_and_decodes_valid_programs() -> None:
         validate_packed_tensor_program(
             unflatten_program(row, programs[0], layout), codec, layout.total_segment_slots
         )
+
+
+def test_blind_decoder_never_reads_an_earlier_coordinate() -> None:
+    """Changing every coordinate value leaves a blind model's logits unchanged at every
+    position, while a sighted model's change; kinds and styles still matter."""
+
+    pilot = load_openmoji_pilot_config(_CONFIG)
+    codec = _selected_codec(pilot)
+    by_split, _, _ = load_pilot_index(pilot)
+    rows = _select_rows(by_split["primary/validation"], 1, pilot.seed + 1)
+    program = _load_program(rows[0], pilot, codec)
+    layout = SequenceLayout(codec=codec, total_segment_slots=pilot.total_segment_slots)
+    tokens = flatten_program(program, layout)[None]
+    from mojidiff.learning.render2svg import _static_tables, coordinate_roles
+
+    role, _ = coordinate_roles(tokens, _static_tables(layout))
+    shifted = torch.where(role > 0, (tokens + 7).clamp(1, 289), tokens)
+    order = path_major_order(tokens[0], layout)[None]
+    config = ModelConfig(
+        image_size=32,
+        d_model=32,
+        heads=4,
+        encoder_layers=1,
+        decoder_layers=2,
+        feedforward=64,
+        metric=True,
+        fourier=6,
+        order="path",
+    )
+    latent = torch.randn(1, 8)
+    outputs = {}
+    for blind in (False, True):
+        torch.manual_seed(0)
+        settings = LatentSettings(
+            latent_dim=8, memory_tokens=4, encoder_layers=1, blind_coordinates=blind
+        )
+        model = LatentToProgram(layout, config, settings).eval()
+        with torch.no_grad():
+            first = model.reconstruct_logits(tokens, order, latent, 0.0)
+            second = model.reconstruct_logits(shifted, order, latent, 0.0)
+        outputs[blind] = torch.allclose(first, second, atol=1e-5)
+    assert outputs[True] and not outputs[False]

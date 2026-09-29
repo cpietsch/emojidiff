@@ -311,6 +311,7 @@ class GraphDecoder:
         scratch = self.layout.length
         path_order = self.config.order == "path"
         metric = self.config.metric
+        blind = bool(getattr(self.model, "blind_coordinates", False))
         while start <= step:
             remaining = step + 1 - start
             size = next((s for s in CHUNK_SIZES if s >= remaining), CHUNK_SIZES[-1])
@@ -335,9 +336,14 @@ class GraphDecoder:
                     host[0, b, index] = values[previous] if previous is not None else 0
                     if path_order:
                         host[3, b, index], host[4, b, index] = self._labels(here, values)
+                    if blind and previous is not None and self._role(previous, values)[0]:
+                        # A blind latent model never sees an earlier coordinate's value.
+                        host[0, b, index] = 0
                     if metric:
                         if previous is not None:
                             role_in, axis_in = self._role(previous, values)
+                            if blind:
+                                role_in = ROLE_NONE
                             host[5, b, index] = axis_in
                             host[6, b, index] = role_in
                         role_out, axis_out = self._role(here, values)

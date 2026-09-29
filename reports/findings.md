@@ -3765,3 +3765,36 @@ gone from the sheet: the cloud is grey, the mushroom red, the cloche blue. Some 
 still fail (a circled J comes back as a filled blob). v9 is still falsified on the CLIP
 criterion as run (0.53 against 0.609). It is the better-validated model and now serves
 the demo; v7 remains the model with a test-split score.
+
+## 2026-09-29 — Latent focus: a design panel, and two corrections to latent-v1/v2
+
+**Direction.** After browsing every model in the gallery the operator chose the latent
+models as the focus: "you can see that the model learned how to draw even if it is very
+bad". Latent work is now judged by prior samples and interpolations - blind, by the
+operator, in the gallery's latent tab - as well as by metrics.
+
+**Design panel** (four proposers, three judges, one synthesiser; the full exchange is in
+the session's workflow journal). Ranked first by two of three judges and second by the
+third: a *canvas latent* - v9 made variational, with an 18 x 18 x 8 stochastic latent
+between its image encoder and its decoder, held at a declared KL budget, then sampled by
+a small rectified-flow prior over that latent (continuous latent flow plus an
+autoregressive program decoder; not a D3PM). A per-path latent (DeepSVG-style) was ranked
+next; a coarse-render auxiliary head and a diffusion prior over latent-v2 were ranked
+last, the latter because latent-v2's decoder caps anything a prior can do. The agreed
+order: a shared metrics harness (CLIP-space precision and recall, novelty, interpolation
+jump share, fragment and collapse rates); latent-v3-blind; the canvas latent (vt-v1);
+its flow prior (lfp-v1); per-path latents only if blinding works.
+
+**Corrections, verified.** (a) latent-v1/v2 do not stop after one path: on 64 validation
+icons latent-v2 reconstructs 10.6 paths per icon against 10.1 in the truth, but 57% of
+them span under half a unit (median 0 units, against 17 in the truth); its prior samples
+have 9% such paths and a median extent of 6 units. The geometry, not the structure, is
+what collapses. (b) The 0.25 input dropout never hid a coordinate: it blanked token ids,
+while the metric-coordinate features of earlier coordinates were built from the
+unblanked program, so the decoder could always read what it had drawn and never needed
+the latent for geometry.
+
+**Next.** `configs/latent/latent-v3-blind.yaml`, one change from latent-v2: the decoder is
+blind to every earlier coordinate in training and decoding
+(`LatentSettings.blind_coordinates`; the graph decoder honours it, tested to agree with
+the reference exactly).
