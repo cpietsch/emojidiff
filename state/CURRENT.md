@@ -63,17 +63,16 @@ Verified by the tests in `tests/test_render2svg.py`, `test_fast_decode.py`,
 
 ## Active jobs
 
-In tmux on gpubox-4080; logs under `/home/dev/.cache/mojidiff/`, each ending in `EXIT=`:
+In tmux on gpubox-4080; logs under `/home/dev/.cache/mojidiff/`:
 
-1. `lfp`: `configs/latent/lfp-v1x-exploratory.yaml`, the flow prior over vt-v1 (declared
-   exploratory: vt-v1 failed A1), log `lfp-v1x.log`.
-2. `vt-v2`: waits for 1, then `configs/latent/vt-v2-c16.yaml` (the declared c = 16
-   rerun), log `vt-v2-c16.log`.
-3. `gallery`: http://100.69.189.78:8791/ - 13 models; blind Compare ratings append to
-   `reports/gallery/ratings.jsonl`. 4. `vectorise`: :8790 (v9). 5. `weblog`: :8787.
-
-After 1: add the gallery entry (backend canvas-flow), restart the gallery, score it with
-`latent_metrics` (samples, and `--interpolation backend` for slerp).
+1. `vt-v2`: `configs/latent/vt-v2-c16.yaml` (the declared c = 16 rerun of the canvas
+   latent), log `vt-v2-c16.log`, ends with `EXIT=`.
+2. `harness2` (`harness-canvas.sh`): `latent_metrics` on lf1 (default and slerp
+   interpolation) and c1, log `harness-canvas.log`, ends with `HARNESS-CANVAS-DONE`;
+   reports in `reports/latent/`. B1-B5 for lfp-v1x are read from these.
+3. `gallery`: http://100.69.189.78:8791/ - 15 models incl. the canvas flow prior (lf1)
+   and its plain-noise control (c1); blind ratings append to `reports/gallery/ratings.jsonl`.
+4. `vectorise`: :8790 (v9). 5. `weblog`: :8787.
 
 ## Artifact durability
 
