@@ -63,17 +63,17 @@ Verified by the tests in `tests/test_render2svg.py`, `test_fast_decode.py`,
 
 ## Active jobs
 
-In tmux on gpubox-4080; logs under `/home/dev/.cache/mojidiff/`:
+In tmux on gpubox-4080; logs under `/home/dev/.cache/mojidiff/`, each ending in `EXIT=`:
 
-1. `vt-v1`: `configs/latent/vt-v1.yaml`, the canvas latent stage A (variational v9,
-   c = 8 by the pre-flight), log `vt-v1.log`, ends with `EXIT=`.
-2. `harness` (`harness-chain.sh`): `latent_metrics` on l3, l2, l1 (N(0,I) and refit priors)
-   and the v9 crossfade reference, copy rule without-twins; reports in `reports/latent/`,
-   log `harness.log`, ends with `HARNESS-CHAIN-DONE`.
-3. A build workflow (not tmux): stage B, the rectified-flow prior (`latent_flow.py`).
-4. `gallery`: http://100.69.189.78:8791/ - 13 models incl. latent-v3-blind; blind Compare
-   ratings append to `reports/gallery/ratings.jsonl`.
-5. `vectorise`: http://100.69.189.78:8790/ (v9). 6. `weblog`: http://100.69.189.78:8787/.
+1. `lfp`: `configs/latent/lfp-v1x-exploratory.yaml`, the flow prior over vt-v1 (declared
+   exploratory: vt-v1 failed A1), log `lfp-v1x.log`.
+2. `vt-v2`: waits for 1, then `configs/latent/vt-v2-c16.yaml` (the declared c = 16
+   rerun), log `vt-v2-c16.log`.
+3. `gallery`: http://100.69.189.78:8791/ - 13 models; blind Compare ratings append to
+   `reports/gallery/ratings.jsonl`. 4. `vectorise`: :8790 (v9). 5. `weblog`: :8787.
+
+After 1: add the gallery entry (backend canvas-flow), restart the gallery, score it with
+`latent_metrics` (samples, and `--interpolation backend` for slerp).
 
 ## Artifact durability
 
