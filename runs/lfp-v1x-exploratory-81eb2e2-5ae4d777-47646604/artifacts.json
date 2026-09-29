@@ -1,0 +1,10 @@
+{
+  "checkpoint_best": "/home/dev/.cache/mojidiff/runs/lfp-v1x-exploratory-81eb2e2-5ae4d777-47646604/best.pt",
+  "checkpoint_latest": "/home/dev/.cache/mojidiff/runs/lfp-v1x-exploratory-81eb2e2-5ae4d777-47646604/latest.pt",
+  "latents": "/home/dev/.cache/mojidiff/latent-flow/vt-v1-74dfbd2-46380052-47646604-7b18709c9403.pt",
+  "samples": "prior-samples.png (flow samples, noise scale 1, Euler, greedy decode)",
+  "vt_normal_samples": "vt-normal-samples.png (the parent VT on the same N(0, I) seeds)",
+  "slerp": "slerp-interpolations.png (A, frames through the prior's noise, B)",
+  "lerp": "lerp-interpolations.png (A, lerp of posterior means, B)",
+  "watch_it_draw": "watch-it-draw.png (z_hat_0 at 8 flow times, then the sample)"
+}

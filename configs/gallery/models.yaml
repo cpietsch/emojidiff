@@ -83,6 +83,20 @@ models:
   label: overfit fixture
   description: trained on 4 icons only - draws one of them whatever you show it
 
+- id: lf1
+  run_id: lfp-v1x-exploratory-81eb2e2-5ae4d777-47646604
+  kind: latent
+  backend: canvas-flow
+  label: canvas flow v1
+  description: flow prior over the canvas latent (exploratory - its canvas missed A1); interpolation is slerp through the prior's noise
+
+- id: c1
+  run_id: vt-v1-74dfbd2-46380052-47646604
+  kind: latent
+  backend: canvas
+  label: canvas v1, plain noise
+  description: the canvas latent sampled from N(0, I) - the control for the flow prior
+
 - id: l3
   run_id: latent-v3-blind-e254c16-9c7db490-47646604
   kind: latent
