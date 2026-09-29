@@ -3835,3 +3835,51 @@ effectively training data. Consequences:
 copy-based criterion from here on: it is the stricter of the two (it flags more samples
 as copies), so a novelty claim made under it cannot be flattered by the threshold. The
 `declared` rule is reported beside it in every harness report.
+
+## 2026-09-29 — Blinding fixes the collapse; the canvas latent reconstructs near v9
+
+**The harness** (`latent_metrics`, copy rule without-twins; reports in `reports/latent/`)
+scored the three program-latent models on 339 prior samples, 339 reconstructions and 32
+validation pairs x 9 frames, against reference rows. Plain N(0, I) prior:
+
+| | fragment samples | reconstructed paths under 0.5 units | reconstruction pixel error | CLIP precision / recall |
+| --- | --- | --- | --- | --- |
+| latent-v1 | 0.69 | 0.21 | 0.182 | 0.54 / 0.40 |
+| latent-v2 | 0.79 | 0.39 | 0.164 | 0.37 / 0.06 |
+| latent-v3-blind | 0.16 | 0.045 | 0.173 | 0.40 / 0.17 |
+| training renders (ceiling) | 0.06 | 0.001 | | 0.54 / 0.75 |
+| collages (no parameters) | 0.15 | 0.001 | | 0.55 / 0.52 |
+
+v9 transcribing pixel crossfades of the same pairs: jump share 0.20, interior fragments
+0.07, interior precision 0.64. A full-covariance Gaussian refit of the prior lowers
+fragments for v1 and v2 (0.69 -> 0.48, 0.79 -> 0.54) and raises their precision; no
+model's copy rate exceeds 0.04.
+
+**latent-v3-blind** (`latent-v3-blind-e254c16-9c7db490-47646604`): criterion 1 passes
+(4.5% collapsed paths against latent-v2's 39%), criterion 2 fails (reconstruction 0.173,
+declared 0.140 or less), criterion 3 passes (all samples distinct). Blinding the decoder
+to earlier coordinates removed the collapse and the fragments - fragment rate 0.79 ->
+0.16 - but the paths it draws are full-size and imprecise: a single 64-number latent
+cannot say where everything goes. That is the plan's "full-size but blobby" branch.
+
+**vt-v1, the canvas latent stage A** (`vt-v1-74dfbd2-46380052-47646604`): v9 made
+variational with an 18 x 18 x 8 latent, KL held at 1,944 nats (budget 2,000, in band).
+
+| 339 validation icons, IEEE float32 | pixel error |
+| --- | --- |
+| vt-v1 from the posterior mean | 0.083 [0.078, 0.088] |
+| vt-v1 from one posterior sample | 0.083 |
+| v9 (parent) | 0.074 |
+| nearest training render or its mirror | 0.085 |
+| prior-mean decode | 0.172 |
+
+A2 and A3 pass; A1 fails narrowly. VT is non-inferior to v9 (+0.009 [+0.005, +0.013],
+margin 0.015) but does not beat retrieval once mirrors count (+0.002 [-0.002, +0.006]).
+Its N(0, I) samples fragment 33% of the time - the prior-hole control the flow prior is
+meant to fix. As declared, the canvas line gets one rerun at c = 16
+(`configs/latent/vt-v2-c16.yaml`, queued).
+
+**Exploratory flow prior.** Because the operator judges these models visually, the flow
+prior is also trained on vt-v1 now (`configs/latent/lfp-v1x-exploratory.yaml`): lfp-v1
+with only its gate relaxed to A3. Its B1-B5 outcomes will be reported as conditional on
+a stage A that failed A1; the gated lfp run follows whichever VT passes.
