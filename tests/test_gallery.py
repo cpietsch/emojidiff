@@ -1,4 +1,5 @@
-"""The model gallery's contract: every registered run, every endpoint, on tiny CPU models."""
+"""The model gallery's contract: every registered run, every endpoint, the latent
+backends and the ratings log, on tiny CPU models."""
 
 from __future__ import annotations
 
@@ -6,28 +7,40 @@ import base64
 import http.client
 import io
 import json
+import re
 import threading
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Mapping
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any, cast
 
 import numpy as np
 import pytest
 import torch
+import yaml
 from PIL import Image
 
 import mojidiff.gallery.server as gallery_server
 import mojidiff.learning.render2svg as render2svg
+from mojidiff.gallery.latent_backends import BACKENDS, LatentBackend, VaeBackend, vae_model
 from mojidiff.gallery.server import (
     BASELINE_PIXEL_ERROR,
     ICON_FIELDS,
     MAX_BODY,
     MODELS,
+    RATING_FIELDS,
+    RATING_NOTE_LIMIT,
+    REGISTRY,
     Gallery,
     GalleryError,
+    ModelSpec,
+    RatingLog,
+    load_model,
+    load_registry,
     make_server,
     model_entry,
+    registry_models,
     run_record,
 )
 from mojidiff.learning.autoregressive import SequenceLayout, flatten_program, unflatten_program
@@ -43,6 +56,7 @@ from mojidiff.learning.render2svg import (
     ModelConfig,
     RenderToProgram,
     greedy_decode,
+    render_trusted_rgb,
     rerank_decode,
 )
 from mojidiff.representation.packed import serialize_packed_svg
@@ -111,7 +125,11 @@ def tiny(parts: Parts) -> tuple[RenderToProgram, LatentToProgram]:
 
 
 @pytest.fixture(scope="module")
-def gallery(parts: Parts, tiny: tuple[RenderToProgram, LatentToProgram]) -> Gallery:
+def gallery(
+    parts: Parts,
+    tiny: tuple[RenderToProgram, LatentToProgram],
+    tmp_path_factory: pytest.TempPathFactory,
+) -> Gallery:
     _, template, programs = parts
     transcriber, latent = tiny
     return Gallery(
@@ -119,6 +137,7 @@ def gallery(parts: Parts, tiny: tuple[RenderToProgram, LatentToProgram]) -> Gall
         template,
         programs,
         torch.device("cpu"),
+        ratings=tmp_path_factory.mktemp("ratings") / "ratings.jsonl",
     )
 
 
@@ -141,8 +160,105 @@ def test_registry_lists_every_model_once_in_display_order() -> None:
     assert len({spec.run_id for spec in MODELS}) == len(MODELS)
     assert {spec.kind for spec in MODELS[:10]} == {"transcriber"}
     assert {spec.kind for spec in MODELS[10:]} == {"latent"}
+    assert {spec.backend for spec in MODELS[:10]} == {None}
+    assert {spec.backend for spec in MODELS[10:]} == {"vae"}
     for spec in MODELS:
         assert spec.checkpoint.name == "best.pt" and spec.checkpoint.parent.name == spec.run_id
+
+
+def test_registry_file_lists_exactly_the_twelve_models() -> None:
+    """The file the server loads is the twelve models, ids, order, labels, descriptions
+    and backends included; the default load reads it, and every checkpoint exists."""
+
+    assert load_registry(REGISTRY) == MODELS
+    assert registry_models() == MODELS
+    assert all(spec.checkpoint.is_file() for spec in load_registry(REGISTRY))
+
+
+def _entry(**changes: Any) -> dict[str, Any]:
+    entry = {
+        "id": "l9",
+        "run_id": "toy-run",
+        "kind": "latent",
+        "backend": "vae",
+        "label": "toy",
+        "description": "a toy latent",
+    }
+    entry.update(changes)
+    return {key: value for key, value in entry.items() if value is not None}
+
+
+def _write_registry(path: Path, entries: list[dict[str, Any]], **root: Any) -> Path:
+    path.write_text(yaml.safe_dump({"schema_version": 1, "models": entries, **root}))
+    return path
+
+
+def test_registry_refuses_malformed_entries_and_unknown_backends(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "models.yaml"
+    assert load_registry(_write_registry(path, [_entry()]))[0].backend == "vae"
+    transcriber = _entry(kind="transcriber", backend=None)
+    assert load_registry(_write_registry(path, [transcriber]))[0].backend is None
+    refused: list[tuple[list[dict[str, Any]], str]] = [
+        ([_entry(backend="nope")], "unknown backend 'nope'"),
+        ([_entry(backend=["vae"])], "unknown backend"),
+        ([_entry(backend=None)], "names no backend"),
+        ([_entry(kind="transcriber")], "takes no backend"),
+        ([_entry(kind="diffusion")], "kind must be one of"),
+        ([_entry(), _entry(run_id="other")], "duplicate id 'l9'"),
+        ([_entry(checkpoint="best.pt")], "unknown field"),
+        ([_entry(label=None)], "missing field"),
+        ([_entry(label="  ")], "label must be a non-empty string"),
+        ([_entry(run_id=7)], "run_id must be a non-empty string"),
+        ([_entry(id="../l9")], "id '../l9' must match"),
+        ([["l9"]], "not a mapping"),  # type: ignore[list-item]
+        ([], "non-empty list"),
+    ]
+    for entries, message in refused:
+        with pytest.raises(ValueError, match=re.escape(message)):
+            load_registry(_write_registry(path, entries))
+    path.write_text(yaml.safe_dump({"models": [_entry()]}))
+    with pytest.raises(ValueError, match="schema_version"):
+        load_registry(path)
+
+    # An explicit file must exist; only the default falls back to the built-in list.
+    with pytest.raises(FileNotFoundError):
+        registry_models(tmp_path / "absent.yaml")
+    said: list[str] = []
+    monkeypatch.setattr(gallery_server, "REGISTRY", tmp_path / "absent.yaml")
+    assert registry_models(log=said.append) == MODELS and "built-in" in said[0]
+
+
+def test_startup_refuses_unknown_backends_and_missing_checkpoints() -> None:
+    """Both before the corpus loads or anything binds."""
+
+    cpu = torch.device("cpu")
+    missing = ModelSpec("l9", "no-such-run-0000", "latent", "toy", "", "vae")
+    with pytest.raises(FileNotFoundError, match="missing checkpoints: .*no-such-run-0000"):
+        Gallery.from_checkpoints(cpu, [_SPECS["v9"], missing])
+    unknown = ModelSpec("l9", MODELS[-1].run_id, "latent", "toy", "", "nope")
+    with pytest.raises(ValueError, match=r"unknown latent backends: l9 \(nope\)"):
+        Gallery.from_checkpoints(cpu, [unknown])
+
+
+def test_startup_serves_a_model_without_a_run_record(tmp_path: Path) -> None:
+    """A registered model whose `runs/<run_id>/run.yaml` is absent starts with null stats
+    and a warning, as `Gallery` itself treats it, rather than failing after the corpus
+    and the earlier models have loaded."""
+
+    spec = _SPECS["l1"]
+    if not spec.checkpoint.is_file():
+        pytest.skip(f"no checkpoint for {spec.run_id}")
+    said: list[str] = []
+    served = Gallery.from_checkpoints(
+        torch.device("cpu"), [spec], ratings=None, runs_root=tmp_path, log=said.append
+    )
+    (entry,) = served.models_payload()["models"]
+    assert entry["id"] == "l1" and entry["parameters"] is None
+    assert all(value is None for value in entry["stats"].values())
+    assert any(f"no run record for {spec.run_id}" in line for line in said)
+    assert not any("parameters, its run record" in line for line in said)
 
 
 def test_registry_stats_parse_from_every_real_run_record() -> None:
@@ -258,6 +374,280 @@ def test_latent_reconstruct_interpolate_and_sample_decode_valid_programs(
     for sample in samples["samples"]:
         _valid(sample)
     assert gallery.sample("l2", 3, seed=7, scale=1.0)["samples"] == samples["samples"]
+
+
+# --------------------------------------------------------------------------- backends
+
+
+def _latent_references(
+    latent: LatentToProgram,
+    parts: Parts,
+    first: str,
+    second: str,
+    steps: int,
+    samples: torch.Tensor,
+) -> tuple[str, list[str], list[str]]:
+    """What the gallery answered before it had backends, computed from the model:
+    the posterior mean decoded, the straight line between two means decoded in one
+    batch, and given prior draws decoded in one batch."""
+
+    layout, template, programs = parts
+    with torch.no_grad():
+        mean, _ = latent.posterior(programs[first][None])
+        reconstruction = _svg_of(greedy_decode(latent, mean)[0], template, layout)
+        means, _ = latent.posterior(torch.stack((programs[first], programs[second])))
+        weights = torch.linspace(0.0, 1.0, steps)[:, None]
+        path = greedy_decode(latent, (1.0 - weights) * means[0] + weights * means[1])
+        drawn = greedy_decode(latent, samples)
+    frames = [_svg_of(row, template, layout) for row in path]
+    return reconstruction, frames, [_svg_of(row, template, layout) for row in drawn]
+
+
+def test_the_vae_backend_answers_exactly_what_the_latent_model_decodes(
+    gallery: Gallery, parts: Parts, tiny: tuple[RenderToProgram, LatentToProgram]
+) -> None:
+    _, template, programs = parts
+    _, latent = tiny
+    first, second = sorted(programs)
+    draws = 1.5 * torch.randn(4, 8, generator=torch.Generator().manual_seed(9))
+    reconstruction, frames, samples = _latent_references(latent, parts, first, second, 5, draws)
+    assert gallery.reconstruct("l2", first)["svg"] == reconstruction
+    assert gallery.interpolate("l2", first, second, 5)["frames"] == frames
+    assert gallery.sample("l2", 4, seed=9, scale=1.5)["samples"] == samples
+    # A bare LatentToProgram is served by the vae backend: given explicitly, the same.
+    explicit = Gallery(
+        [(_SPECS["l2"], VaeBackend(latent))],
+        template,
+        programs,
+        torch.device("cpu"),
+        icons=gallery.icons,
+    )
+    assert explicit.reconstruct("l2", first)["svg"] == reconstruction
+    assert explicit.sample("l2", 4, seed=9, scale=1.5)["samples"] == samples
+    assert isinstance(VaeBackend(latent), LatentBackend)
+    assert VaeBackend(latent).latent_shape == (8,)
+
+
+class _GridPrior:
+    """A toy second backend, registered by the tests alone: the tiny vae's 8-number
+    latent seen as a 2x4 grid, under a prior twice as wide, with no single decoder."""
+
+    def __init__(self, model: LatentToProgram) -> None:
+        self.model = model
+        self.latent_shape: tuple[int, ...] = (2, 4)
+        self.vae = VaeBackend(model)
+        self.images: list[torch.Tensor] = []
+
+    def encode(self, tokens: torch.Tensor, images: torch.Tensor) -> torch.Tensor:
+        self.images.append(images)
+        return self.vae.encode(tokens, images).view(-1, *self.latent_shape)
+
+    def decode(self, latents: torch.Tensor) -> torch.Tensor:
+        return self.vae.decode(latents.reshape(len(latents), -1))
+
+    def sample(self, count: int, generator: torch.Generator, scale: float) -> torch.Tensor:
+        return 2.0 * scale * torch.randn(count, *self.latent_shape, generator=generator)
+
+
+def _grid(state: Mapping[str, Any], layout: SequenceLayout, device: torch.device) -> LatentBackend:
+    return _GridPrior(vae_model(state, layout).to(device))
+
+
+def test_a_second_backend_plugs_in_by_a_registry_entry_alone(
+    gallery: Gallery,
+    parts: Parts,
+    tiny: tuple[RenderToProgram, LatentToProgram],
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Register a factory, name it in a registry file, load its checkpoint: the gallery
+    serves it - a latent of another shape, another prior - with no server change."""
+
+    layout, template, programs = parts
+    _, latent = tiny
+    checkpoint = tmp_path / "best.pt"
+    torch.save(
+        {
+            "model": latent.state_dict(),
+            "step": 3,
+            "config": asdict(_tiny()),
+            "latent": asdict(latent.settings),
+        },
+        checkpoint,
+    )
+    registry = _write_registry(tmp_path / "models.yaml", [_entry(id="g1", backend="grid")])
+    with pytest.raises(ValueError, match="unknown backend 'grid'"):
+        load_registry(registry)
+    monkeypatch.setitem(BACKENDS, "grid", _grid)
+    (spec,) = load_registry(registry)
+    backend, extras = load_model(spec, layout, torch.device("cpu"), checkpoint=checkpoint)
+    assert isinstance(backend, _GridPrior) and extras["step"] == 3 and "model" not in extras
+    said: list[str] = []
+    served = Gallery(
+        [(spec, backend)],
+        template,
+        programs,
+        torch.device("cpu"),
+        icons=gallery.icons,
+        runs_root=tmp_path,
+        log=said.append,
+    )
+    assert "no run record for toy-run" in said[0]
+    (entry,) = served.models_payload()["models"]
+    assert entry["id"] == "g1" and entry["kind"] == "latent"
+
+    first, second = sorted(programs)
+    draws = 2.0 * 0.5 * torch.randn(3, 2, 4, generator=torch.Generator().manual_seed(5))
+    reconstruction, frames, samples = _latent_references(
+        latent, parts, first, second, 4, draws.reshape(3, 8)
+    )
+    assert served.reconstruct("g1", first)["svg"] == reconstruction
+    assert served.interpolate("g1", first, second, 4)["frames"] == frames
+    assert served.sample("g1", 3, seed=5, scale=0.5)["samples"] == samples
+    # The encoder is given each icon's program render at 144 px, uint8, on the device.
+    reference = render_trusted_rgb(_svg_of(programs[first], template, layout).encode(), 144)
+    assert [tuple(images.shape) for images in backend.images] == [
+        (1, 144, 144, 3),
+        (2, 144, 144, 3),
+    ]
+    assert backend.images[0].dtype == torch.uint8
+    assert np.array_equal(backend.images[0][0].numpy(), reference)
+    assert np.array_equal(backend.images[1][0].numpy(), reference)
+
+    # A backend that breaks its contract is named in the error, not decoded.
+    monkeypatch.setattr(backend, "sample", lambda count, generator, scale: torch.zeros(count, 8))
+    with pytest.raises(RuntimeError, match=r"'grid' of 'g1': sample returned shape \(2, 8\)"):
+        served.sample("g1", 2, seed=0, scale=1.0)
+
+
+# --------------------------------------------------------------------------- ratings
+
+
+def _rating(**changes: Any) -> dict[str, Any]:
+    rating: dict[str, Any] = {
+        "model": "l2",
+        "view": "samples",
+        "score": 4,
+        "blind": False,
+        "seed": 7,
+        "scale": 1.0,
+        "a": None,
+        "b": None,
+        "steps": None,
+        "note": "",
+    }
+    rating.update(changes)
+    return rating
+
+
+@pytest.fixture
+def rated(
+    gallery: Gallery, parts: Parts, tiny: tuple[RenderToProgram, LatentToProgram], tmp_path: Path
+) -> Gallery:
+    _, template, programs = parts
+    transcriber, latent = tiny
+    return Gallery(
+        [(_SPECS["v9"], transcriber), (_SPECS["l2"], latent)],
+        template,
+        programs,
+        torch.device("cpu"),
+        icons=gallery.icons,
+        ratings=tmp_path / "gallery" / "ratings.jsonl",
+    )
+
+
+def test_ratings_are_checked_appended_and_summarised(rated: Gallery) -> None:
+    log = cast(RatingLog, rated.ratings)
+    assert not log.path.exists() and rated.ratings_payload() == {"ratings": [], "summary": {}}
+    assert rated.rate(_rating()) == {"ok": True, "count": 1}
+    (row,) = log.rows()
+    assert list(row) == ["at", "model", "run_id", *RATING_FIELDS[1:]]
+    assert re.fullmatch(r"\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ", row["at"])
+    assert row["run_id"] == _SPECS["l2"].run_id
+    assert {key: row[key] for key in RATING_FIELDS} == _rating()
+    first, second = sorted(rated.programs)
+    interpolation = _rating(
+        view="interpolation", score=2, blind=True, a=first, b=second, steps=7, note="wavy"
+    )
+    assert rated.rate(interpolation)["count"] == 2
+    bare = {key: _rating(score=5)[key] for key in ("model", "view", "score", "blind")}
+    assert rated.rate(bare)["count"] == 3
+    assert log.rows()[-1]["note"] == "" and log.rows()[-1]["seed"] is None
+    assert rated.rate(_rating(score=3, note="x" * RATING_NOTE_LIMIT, scale=2))["count"] == 4
+    assert log.rows()[-1]["scale"] == 2.0
+
+    refused: list[tuple[dict[str, Any], str]] = [
+        (_rating(score=0), "score"),
+        (_rating(score=6), "score"),
+        (_rating(score=3.5), "score"),
+        (_rating(score="3"), "score"),
+        (_rating(score=True), "score"),
+        (_rating(view="sample"), "view must be one of"),
+        (_rating(model="nope"), "unknown model"),
+        (_rating(model="v9"), "is a transcriber, not a latent"),
+        (_rating(model=3), "model must be a string"),
+        (_rating(blind="yes"), "blind"),
+        ({key: value for key, value in _rating().items() if key != "blind"}, "missing field"),
+        (_rating(seed=-1), "seed"),
+        (_rating(seed=1.5), "seed"),
+        (_rating(scale=2.5), "scale"),
+        (_rating(scale=float("nan")), "scale"),
+        (_rating(scale="1"), "scale"),
+        (_rating(a="NOT-AN-ICON"), "a must be"),
+        (_rating(b=7), "b must be"),
+        (_rating(steps=2), "steps"),
+        (_rating(steps=12), "steps"),
+        (_rating(note="x" * (RATING_NOTE_LIMIT + 1)), "note"),
+        (_rating(note=5), "note"),
+        (_rating(extra=1), "unknown rating field(s): extra"),
+    ]
+    for payload, message in refused:
+        with pytest.raises(GalleryError, match=re.escape(message)):
+            rated.rate(payload)
+    assert len(log.rows()) == 4
+
+    # History the registry has moved past: a row for an older run under the same id is
+    # kept but not averaged; a model no longer loaded keeps its own summary.
+    log.append({"model": "l2", "run_id": "older-run", "view": "samples", "score": 1})
+    log.append({"model": "l0", "run_id": "gone-run", "view": "samples", "score": 2})
+    payload = rated.ratings_payload()
+    assert len(payload["ratings"]) == 6
+    assert payload["summary"] == {
+        "l2": {
+            "samples": {"n": 3, "mean": 4.0},
+            "interpolation": {"n": 1, "mean": 2.0},
+        },
+        "l0": {"samples": {"n": 1, "mean": 2.0}},
+    }
+    assert rated.rate(_rating(score=1))["count"] == 7
+    assert rated.ratings_payload()["summary"]["l2"]["samples"] == {"n": 4, "mean": 3.25}
+
+
+def test_the_ratings_file_is_only_ever_appended(tmp_path: Path) -> None:
+    """Existing bytes stay as they are, even a line cut short; the file is never
+    replaced; concurrent appends never interleave."""
+
+    path = tmp_path / "ratings.jsonl"
+    path.write_bytes(b'{"model": "l2", "view": "samples", "score": 5}\n{"model": "l2", "vi')
+    before = path.read_bytes()
+    inode = path.stat().st_ino
+    log = RatingLog(path)
+    assert log.append({"model": "l2", "view": "samples", "score": 3}) == 2
+    after = path.read_bytes()
+    assert after.startswith(before + b"\n") and after.endswith(b"\n")
+    assert [row["score"] for row in log.rows()] == [5, 3]
+
+    def append(index: int) -> int:
+        return log.append({"model": "l2", "view": "samples", "score": 1 + index % 5})
+
+    with ThreadPoolExecutor(max_workers=8) as pool:
+        counts = list(pool.map(append, range(64)))
+    assert sorted(counts) == list(range(3, 67))
+    assert path.stat().st_ino == inode and path.read_bytes().startswith(after)
+    lines = path.read_bytes().splitlines()
+    assert len(lines) == 67 and lines[1] == b'{"model": "l2", "vi'
+    assert all(json.loads(line)["model"] == "l2" for line in lines[2:])
+    assert len(log.rows()) == 66
 
 
 def test_unknown_models_wrong_kinds_icons_and_ranges_are_refused(gallery: Gallery) -> None:
@@ -403,6 +793,40 @@ def test_http_transcribe_and_latent_endpoints(gallery: Gallery, address: tuple[s
     assert _post(address, "/latent/sample", request)[1]["samples"] == body["samples"]
 
 
+def test_http_rating_endpoints(
+    gallery: Gallery, address: tuple[str, int], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    log = cast(RatingLog, gallery.ratings)
+    count = len(log.rows())
+    status, body = _post(address, "/rating", _rating(score=5, note="clean shapes"))
+    assert status == 200 and body == {"ok": True, "count": count + 1}
+    status, kind, raw = _call(address, "GET", "/ratings")
+    ratings = json.loads(raw)
+    assert status == 200 and kind == "application/json" and set(ratings) == {"ratings", "summary"}
+    assert ratings["ratings"][-1]["note"] == "clean shapes"
+    assert ratings["ratings"][-1]["run_id"] == _SPECS["l2"].run_id
+    assert ratings["summary"] == gallery.ratings_payload()["summary"]
+    assert ratings["summary"]["l2"]["samples"]["n"] >= 1
+    refused = [
+        (_rating(score=9), "score"),
+        (_rating(model="nope"), "unknown model"),
+        ({"model": "l2", "view": "samples", "score": 3}, "missing field"),
+        (_rating(view="everything"), "view"),
+    ]
+    for payload, message in refused:
+        status, body = _post(address, "/rating", payload)
+        assert status == 400 and body["ok"] is False and message in body["error"], body
+    status, _, raw = _call(address, "POST", "/rating", b"[1]")
+    assert status == 400 and not json.loads(raw)["ok"]
+    assert len(log.rows()) == count + 1
+
+    monkeypatch.setattr(gallery, "ratings", None)
+    status, body = _post(address, "/rating", _rating())
+    assert status == 503 and body["ok"] is False
+    status, _, raw = _call(address, "GET", "/ratings")
+    assert status == 503 and not json.loads(raw)["ok"]
+
+
 def test_http_refusals_are_400_413_and_decoding_failures_are_200_not_ok(
     gallery: Gallery, address: tuple[str, int], monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -481,6 +905,9 @@ def test_cuda_graph_paths_decode_what_the_reference_decoders_decode(
 
     gallery, transcriber, latent = cuda_setup
     layout, template, _ = parts
+    backend = gallery._models["l2"].backend
+    # The vae backend reconstructs by a captured graph, not by the reference decoder.
+    assert isinstance(backend, VaeBackend) and isinstance(backend.graph, GraphDecoder)
     rgb = _icon_rgb(gallery, gallery.input_size("v9"))
     image = torch.from_numpy(rgb.copy()).cuda()
 

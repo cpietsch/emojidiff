@@ -1,16 +1,23 @@
 """Every model of this phase behind one page, to compare them by eye on the same input.
 
 Transcribers (render-to-SVG) take a canvas - a held-out icon, painted on or not - and
-return its program, greedily or best of 8 by render-and-compare. Latent models (VAEs
-over programs) reconstruct a held-out icon from its posterior mean, interpolate between
-two icons' posterior means, and decode draws from the prior. Every output is a decode
-under the grammar; nothing is retrieved. Only held-out icons are offered: validation
-and test, which no model trained on.
+return its program, greedily or best of 8 by render-and-compare. Latent models
+reconstruct a held-out icon from its posterior mean, interpolate between two icons'
+posterior means, and decode draws from the prior. Every output is a decode under the
+grammar; nothing is retrieved. Only held-out icons are offered: validation and test,
+which no model trained on.
+
+Which models load is the registry file, `configs/gallery/models.yaml` (`MODELS` below
+is its fallback when the file is absent). A latent model names a backend there - how
+its checkpoint loads, encodes, decodes and samples (`latent_backends`) - so a new kind
+of latent model joins the gallery by one backend entry and one registry entry, with no
+change here. The operator's ratings of latent models are appended, one JSON line each,
+to `reports/gallery/ratings.jsonl`, which is never rewritten.
 
 The pure parts - the registry, the run-record statistics, the `Gallery` that owns the
-loaded models - are separate from the thin HTTP layer, so tests can build a gallery
-from tiny CPU models. Bound to one explicit address, the Tailscale IP by default, like
-the other tools.
+loaded models, the rating log - are separate from the thin HTTP layer, so tests can
+build a gallery from tiny CPU models. Bound to one explicit address, the Tailscale IP by
+default, like the other tools.
 """
 
 from __future__ import annotations
@@ -19,6 +26,9 @@ import base64
 import http.server
 import io
 import json
+import math
+import os
+import re
 import sys
 import threading
 import time
@@ -33,6 +43,8 @@ import torch
 import yaml
 from torch import Tensor
 
+from mojidiff.gallery.latent_backends import BACKENDS, LatentBackend, VaeBackend, decode_one
+from mojidiff.learning.autoregressive import SequenceLayout
 from mojidiff.learning.latent import LatentToProgram
 from mojidiff.learning.render2svg import CACHE_ROOT, REPO_ROOT, RenderToProgram
 from mojidiff.representation.packed import PackedTensorProgram
@@ -52,6 +64,10 @@ RENDER_SIZE = 144
 """Size of the held-out icon PNGs; every model of the phase reads 144 px renders."""
 RUNS_ROOT = REPO_ROOT / "runs"
 PAGE = Path(__file__).with_name("index.html")
+REGISTRY = REPO_ROOT / "configs" / "gallery" / "models.yaml"
+"""The models the gallery loads; `serve_gallery.py --registry` names another file."""
+RATINGS = REPO_ROOT / "reports" / "gallery" / "ratings.jsonl"
+"""The operator's ratings, appended one JSON line each; `--ratings` names another file."""
 BASELINE_PIXEL_ERROR = 0.090
 """Nearest training icon, pixel error on validation; lower is better."""
 HELD_OUT_SPLITS = ("primary/validation", "primary/test")
@@ -65,8 +81,15 @@ RERANK_TEMPERATURE = 0.7
 RERANK_SEED = 0
 """The sampling seed of best of 8, `fast_decode.rerank`'s default: the same canvas always
 gets the same eight candidates."""
+RATING_VIEWS = ("samples", "interpolation", "reconstruction")
+RATING_SCORES = (1, 5)
+RATING_NOTE_LIMIT = 500
+RATING_FIELDS = ("model", "view", "score", "blind", "seed", "scale", "a", "b", "steps", "note")
+"""A rating's fields as posted; the server adds `at` (UTC) and the model's `run_id`."""
 
 Kind = Literal["transcriber", "latent"]
+KINDS: tuple[Kind, ...] = ("transcriber", "latent")
+MODEL_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,31}")
 T = TypeVar("T")
 
 
@@ -80,6 +103,17 @@ class ModelSpec:
     kind: Kind
     label: str
     description: str
+    backend: str | None = None
+    """A latent model's backend, a key of `latent_backends.BACKENDS`; None for a
+    transcriber."""
+
+    def __post_init__(self) -> None:
+        if self.kind not in KINDS:
+            raise ValueError(f"model {self.id!r}: kind must be one of {KINDS}, got {self.kind!r}")
+        if self.kind == "latent" and not self.backend:
+            raise ValueError(f"latent model {self.id!r} names no backend")
+        if self.kind == "transcriber" and self.backend is not None:
+            raise ValueError(f"transcriber {self.id!r} takes no backend")
 
     @property
     def checkpoint(self) -> Path:
@@ -164,6 +198,7 @@ MODELS: tuple[ModelSpec, ...] = (
         "latent",
         "latent v2",
         "VAE, beta 0.1 - the latent carries the icon, weakly",
+        "vae",
     ),
     ModelSpec(
         "l1",
@@ -171,8 +206,80 @@ MODELS: tuple[ModelSpec, ...] = (
         "latent",
         "latent v1",
         "VAE, beta 1 - samples, cannot reconstruct",
+        "vae",
     ),
 )
+"""The twelve models of the registry file as first written: its fallback when absent."""
+
+_ENTRY_FIELDS = {"id", "run_id", "kind", "label", "description", "backend"}
+
+
+def load_registry(path: Path = REGISTRY) -> tuple[ModelSpec, ...]:
+    """The models a registry file lists, in display order; refuse a malformed one.
+
+    The file is `{schema_version: 1, models: [...]}`; each entry has `id`, `run_id`,
+    `kind` (transcriber or latent), `label`, `description`, and for a latent model
+    `backend`, a name in `latent_backends.BACKENDS`. Unknown or missing fields,
+    duplicate ids and unknown backends are errors: the gallery does not start.
+    """
+
+    root = yaml.safe_load(path.read_text())
+    if not isinstance(root, dict) or root.get("schema_version") != 1:
+        raise ValueError(f"{path}: a gallery registry needs schema_version: 1")
+    entries = root.get("models")
+    if not isinstance(entries, list) or not entries:
+        raise ValueError(f"{path}: `models` must be a non-empty list")
+    specs: list[ModelSpec] = []
+    for number, entry in enumerate(entries, 1):
+        where = f"{path}: model {number}"
+        if not isinstance(entry, dict):
+            raise ValueError(f"{where} is not a mapping")
+        unknown = sorted(str(key) for key in set(entry) - _ENTRY_FIELDS)
+        if unknown:
+            raise ValueError(f"{where}: unknown field(s) {', '.join(map(str, unknown))}")
+        missing = sorted(_ENTRY_FIELDS - {"backend"} - set(entry))
+        if missing:
+            raise ValueError(f"{where}: missing field(s) {', '.join(missing)}")
+        values = {key: entry[key] for key in _ENTRY_FIELDS - {"backend"}}
+        for key, value in values.items():
+            if not isinstance(value, str) or (key != "description" and not value.strip()):
+                raise ValueError(f"{where}: {key} must be a non-empty string")
+        if not MODEL_ID.fullmatch(values["id"]):
+            raise ValueError(f"{where}: id {values['id']!r} must match {MODEL_ID.pattern}")
+        backend = entry.get("backend")
+        if backend is not None and (not isinstance(backend, str) or backend not in BACKENDS):
+            known = ", ".join(sorted(BACKENDS))
+            raise ValueError(f"{where}: unknown backend {backend!r} (known: {known})")
+        try:
+            spec = ModelSpec(
+                id=values["id"],
+                run_id=values["run_id"],
+                kind=cast(Kind, values["kind"]),
+                label=values["label"],
+                description=values["description"],
+                backend=backend,
+            )
+        except ValueError as error:
+            raise ValueError(f"{where}: {error}") from None
+        if spec.id in {earlier.id for earlier in specs}:
+            raise ValueError(f"{where}: duplicate id {spec.id!r}")
+        specs.append(spec)
+    return tuple(specs)
+
+
+def registry_models(
+    path: Path | None = None, log: Callable[[str], None] | None = None
+) -> tuple[ModelSpec, ...]:
+    """The registry file's models: `path`, or the default file, or `MODELS` when the
+    default file is absent. A path given explicitly must exist."""
+
+    if path is None:
+        if not REGISTRY.is_file():
+            if log is not None:
+                log(f"warning: no registry at {REGISTRY}; serving the built-in MODELS")
+            return MODELS
+        path = REGISTRY
+    return load_registry(path)
 
 
 def run_record(spec: ModelSpec, runs_root: Path = RUNS_ROOT) -> dict[str, Any]:
@@ -251,6 +358,93 @@ def model_entry(spec: ModelSpec, record: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+# --------------------------------------------------------------------------- ratings
+
+
+def _utc_now() -> str:
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+
+class RatingLog:
+    """The operator's ratings: one JSON object per line, only ever appended.
+
+    Appends take a lock, so concurrent requests never interleave within a line; a file
+    left without a final newline (a write cut short) gets one before the next row, and
+    rows that do not parse are skipped when read, never repaired in place.
+    """
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+        self.lock = threading.Lock()
+
+    def append(self, row: Mapping[str, Any]) -> int:
+        """Append `row`; the number of rows the file holds afterwards."""
+
+        line = (json.dumps(row) + "\n").encode()
+        with self.lock:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            with self.path.open("a+b") as handle:
+                size = handle.seek(0, os.SEEK_END)
+                if size:
+                    handle.seek(size - 1)
+                    if handle.read(1) != b"\n":
+                        line = b"\n" + line
+                handle.write(line)
+                handle.flush()
+                os.fsync(handle.fileno())
+            return len(self._read())
+
+    def rows(self) -> list[dict[str, Any]]:
+        with self.lock:
+            return self._read()
+
+    def _read(self) -> list[dict[str, Any]]:
+        if not self.path.is_file():
+            return []
+        rows = []
+        for line in self.path.read_text().splitlines():
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(row, dict):
+                rows.append(row)
+        return rows
+
+
+def _is_score(value: Any) -> bool:
+    low, high = RATING_SCORES
+    return isinstance(value, int) and not isinstance(value, bool) and low <= value <= high
+
+
+def rating_summary(
+    rows: Sequence[Mapping[str, Any]], run_ids: Mapping[str, str]
+) -> dict[str, dict[str, dict[str, Any]]]:
+    """Per model id and view, the number of ratings and their mean score.
+
+    A row counts toward a loaded model only if it rated that model's current run: an
+    id the registry has since given to another run does not inherit the old ratings.
+    Rows of models not loaded now count under their id.
+    """
+
+    scores: dict[str, dict[str, list[int]]] = {}
+    for row in rows:
+        model, view, score = row.get("model"), row.get("view"), row.get("score")
+        if not isinstance(model, str) or view not in RATING_VIEWS or not _is_score(score):
+            continue
+        current = run_ids.get(model)
+        if current is not None and row.get("run_id") != current:
+            continue
+        scores.setdefault(model, {}).setdefault(str(view), []).append(cast(int, score))
+    return {
+        model: {
+            view: {"n": len(values), "mean": round(sum(values) / len(values), 3)}
+            for view, values in views.items()
+        }
+        for model, views in scores.items()
+    }
+
+
 # --------------------------------------------------------------------------- gallery
 
 
@@ -266,9 +460,49 @@ class _Loaded:
     entry: dict[str, Any]
     lock: threading.Lock
     graph: Any = None
-    """Batch-1 CUDA graph decoder: greedy transcription, latent reconstruction."""
+    """Batch-1 CUDA graph decoder for greedy transcription (transcribers only)."""
     graph_many: Any = None
     """Batch-8 CUDA graph decoder for best of 8 (transcribers only)."""
+    backend: LatentBackend | None = None
+    """How a latent model encodes, decodes and samples (latent models only)."""
+
+
+def _as_backend(spec: ModelSpec, given: RenderToProgram | LatentBackend) -> LatentBackend:
+    """A latent model's backend: as given, or a bare `LatentToProgram` served as a vae."""
+
+    if isinstance(given, LatentToProgram):
+        return VaeBackend(given)
+    if isinstance(given, LatentBackend):
+        return given
+    raise ValueError(f"model {spec.id} does not match its kind 'latent'")
+
+
+def load_model(
+    spec: ModelSpec,
+    layout: SequenceLayout,
+    device: torch.device,
+    *,
+    checkpoint: Path | None = None,
+) -> tuple[RenderToProgram | LatentBackend, dict[str, Any]]:
+    """One model from its checkpoint (`spec.checkpoint` unless given), on `device`: a
+    transcriber, or a latent model's backend built by the factory its spec names. With
+    it, the checkpoint's other entries (`step`, `config`, ...) without the weights."""
+
+    from mojidiff.learning.render2svg import ModelConfig
+
+    if spec.kind == "latent" and spec.backend not in BACKENDS:
+        raise ValueError(f"model {spec.id}: unknown backend {spec.backend!r}")
+    # Loaded on the CPU and moved once, so no second copy of the weights sits on the
+    # device while the next model loads.
+    state = torch.load(checkpoint or spec.checkpoint, map_location="cpu")
+    loaded: RenderToProgram | LatentBackend
+    if spec.kind == "latent":
+        loaded = BACKENDS[cast(str, spec.backend)](state, layout, device)
+    else:
+        model = RenderToProgram(layout, ModelConfig(**state["config"]))
+        model.load_state_dict(state["model"])
+        loaded = model.to(device)
+    return loaded, {key: value for key, value in state.items() if key != "model"}
 
 
 class Gallery:
@@ -276,16 +510,23 @@ class Gallery:
 
     Each model has its own lock, and all device work also takes one global GPU lock:
     graph replays on one device must not interleave across request threads.
+
+    A latent model is given as its backend, or as a bare `LatentToProgram`, which the
+    `vae` backend serves. `images` are the held-out programs' renders at `RENDER_SIZE`,
+    the latent encoders' second input; an icon without one is rendered on first use.
+    Ratings are appended to `ratings`; without it the gallery records none.
     """
 
     def __init__(
         self,
-        models: Sequence[tuple[ModelSpec, RenderToProgram]],
+        models: Sequence[tuple[ModelSpec, RenderToProgram | LatentBackend]],
         template: PackedTensorProgram,
         programs: Mapping[str, Tensor],
         device: torch.device,
         *,
         icons: Sequence[Mapping[str, Any]] | None = None,
+        images: Mapping[str, Tensor] | None = None,
+        ratings: Path | None = None,
         runs_root: Path = RUNS_ROOT,
         log: Callable[[str], None] | None = None,
     ) -> None:
@@ -293,15 +534,24 @@ class Gallery:
         self.programs = dict(programs)
         self.device = device
         self.gpu_lock = threading.Lock()
+        self.ratings = None if ratings is None else RatingLog(ratings)
         source = held_out_icons() if icons is None else icons
         self.icons = [{key: icon.get(key) for key in ICON_FIELDS} for icon in source]
         self._icon_codes = {str(icon["hexcode"]) for icon in self.icons}
         self._pngs: dict[str, bytes] = {}
+        self._images: dict[str, Tensor] = dict(images or {})
         self._models: dict[str, _Loaded] = {}
-        for index, (spec, model) in enumerate(models, 1):
+        for index, (spec, given) in enumerate(models, 1):
             if spec.id in self._models:
                 raise ValueError(f"duplicate model id: {spec.id}")
-            if (spec.kind == "latent") != isinstance(model, LatentToProgram):
+            started = time.perf_counter()
+            backend: LatentBackend | None = None
+            if spec.kind == "latent":
+                backend = _as_backend(spec, given)
+                model = backend.model
+            elif isinstance(given, RenderToProgram) and not isinstance(given, LatentToProgram):
+                model = given
+            else:
                 raise ValueError(f"model {spec.id} does not match its kind {spec.kind!r}")
             try:
                 record = run_record(spec, runs_root)
@@ -309,18 +559,20 @@ class Gallery:
                 record = {}
                 if log is not None:
                     log(f"warning: no run record for {spec.run_id}; stats are null")
-            loaded = _Loaded(spec, model.eval(), model_entry(spec, record), threading.Lock())
+            entry = model_entry(spec, record)
+            loaded = _Loaded(spec, model.eval(), entry, threading.Lock(), backend=backend)
             if device.type == "cuda":
-                from mojidiff.learning.fast_decode import GraphDecoder
-
-                started = time.perf_counter()
-                # Float32 graphs decode exactly what the evaluated batched decoder decodes.
-                loaded.graph = GraphDecoder(model, dtype=torch.float32)
                 if spec.kind == "transcriber":
+                    from mojidiff.learning.fast_decode import GraphDecoder
+
+                    # Float32 graphs decode exactly what the evaluated batched decoder
+                    # decodes. A latent backend captures its own when it is built.
+                    loaded.graph = GraphDecoder(model, dtype=torch.float32)
                     loaded.graph_many = GraphDecoder(model, dtype=torch.float32, batch=CANDIDATES)
                 if log is not None:
+                    what = "graphs captured" if backend is None else f"{spec.backend} backend ready"
                     log(
-                        f"[{index}/{len(models)}] {spec.id}: graphs captured in "
+                        f"[{index}/{len(models)}] {spec.id}: {what} in "
                         f"{time.perf_counter() - started:.1f} s, "
                         f"{torch.cuda.memory_allocated(device) / 2**20:.0f} MiB allocated"
                     )
@@ -332,15 +584,24 @@ class Gallery:
         device: torch.device,
         specs: Sequence[ModelSpec] = MODELS,
         *,
+        ratings: Path | None = RATINGS,
         runs_root: Path = RUNS_ROOT,
         log: Callable[[str], None] | None = None,
     ) -> Gallery:
-        """Load every listed model's best checkpoint; refuse to start if one is missing."""
+        """Load every listed model's best checkpoint; refuse to start if one is missing
+        or names an unknown backend. A model without a run record is served with null
+        stats, as `Gallery` serves it, and a warning."""
 
-        from mojidiff.learning.latent import LatentSettings
         from mojidiff.learning.openmoji_pilot import _load_program, load_pilot_index
-        from mojidiff.learning.render2svg import ModelConfig, load_corpus, parameter_count
+        from mojidiff.learning.render2svg import load_corpus, parameter_count
 
+        unknown = [
+            f"{spec.id} ({spec.backend})"
+            for spec in specs
+            if spec.kind == "latent" and spec.backend not in BACKENDS
+        ]
+        if unknown:
+            raise ValueError("unknown latent backends: " + ", ".join(unknown))
         missing = [str(spec.checkpoint) for spec in specs if not spec.checkpoint.is_file()]
         if missing:
             raise FileNotFoundError("missing checkpoints: " + ", ".join(missing))
@@ -352,6 +613,12 @@ class Gallery:
             for split in HELD_OUT_SPLITS
             for row, hexcode in enumerate(plain[split].hexcodes)
         }
+        # The renders every model trained on, at RENDER_SIZE: the latent encoders' input.
+        images = {
+            hexcode: plain[split].images[row]
+            for split in HELD_OUT_SPLITS
+            for row, hexcode in enumerate(plain[split].hexcodes)
+        }
         del plain
         by_split, _, _ = load_pilot_index(pilot)
         template = _load_program(by_split["primary/train"][0], pilot, layout.codec)
@@ -359,30 +626,35 @@ class Gallery:
             f"corpus {dataset_hash[:10]}: {len(programs)} held-out programs "
             f"in {time.perf_counter() - started:.1f} s"
         )
-        models: list[tuple[ModelSpec, RenderToProgram]] = []
+        models: list[tuple[ModelSpec, RenderToProgram | LatentBackend]] = []
         for index, spec in enumerate(specs, 1):
             started = time.perf_counter()
-            # Loaded on the CPU and moved once, so no second copy of the weights sits on
-            # the device while the next model loads.
-            state = torch.load(spec.checkpoint, map_location="cpu")
-            config = ModelConfig(**state["config"])
-            model: RenderToProgram
-            if spec.kind == "latent":
-                model = LatentToProgram(layout, config, LatentSettings(**state["latent"]))
-            else:
-                model = RenderToProgram(layout, config)
-            model.load_state_dict(state["model"])
-            model = model.to(device)
+            loaded, state = load_model(spec, layout, device)
+            model = loaded if isinstance(loaded, RenderToProgram) else loaded.model
             count = parameter_count(model)
-            recorded = run_record(spec, runs_root).get("model_parameters")
+            try:
+                recorded = run_record(spec, runs_root).get("model_parameters")
+            except FileNotFoundError:
+                recorded = count  # nothing to check against; `Gallery` warns of the record
             if recorded != count:
                 say(f"warning: {spec.id} has {count:,} parameters, its run record {recorded}")
+            kind = spec.kind if spec.backend is None else f"{spec.kind}, {spec.backend}"
             say(
-                f"[{index}/{len(specs)}] {spec.id} {spec.run_id}: step {state['step']}, "
-                f"{count:,} parameters, {time.perf_counter() - started:.1f} s"
+                f"[{index}/{len(specs)}] {spec.id} {spec.run_id} ({kind}): "
+                f"step {state.get('step')}, {count:,} parameters, "
+                f"{time.perf_counter() - started:.1f} s"
             )
-            models.append((spec, model))
-        gallery = cls(models, template, programs, device, runs_root=runs_root, log=log)
+            models.append((spec, loaded))
+        gallery = cls(
+            models,
+            template,
+            programs,
+            device,
+            images=images,
+            ratings=ratings,
+            runs_root=runs_root,
+            log=log,
+        )
         unmatched = gallery._icon_codes - set(programs)
         if unmatched:
             say(f"warning: {len(unmatched)} held-out icons have no program for latent models")
@@ -567,53 +839,76 @@ class Gallery:
             "candidates": CANDIDATES if best else 1,
         }
 
-    def _latent(self, model_id: str) -> tuple[_Loaded, LatentToProgram]:
+    def _latent(self, model_id: str) -> tuple[_Loaded, LatentBackend]:
         loaded = self._get(model_id, "latent")
-        return loaded, cast(LatentToProgram, loaded.model)
+        return loaded, cast(LatentBackend, loaded.backend)
 
-    def reconstruct(self, model_id: str, hexcode: str) -> dict[str, Any]:
-        """The posterior mean of a held-out icon's program, decoded greedily."""
+    def _image(self, loaded: _Loaded, hexcode: str) -> Tensor:
+        """A held-out icon's program rendered at `RENDER_SIZE`, as the models trained on
+        it: from the corpus when given, else rendered once, outside every lock."""
 
-        from mojidiff.learning.render2svg import greedy_decode
+        from mojidiff.learning.render2svg import render_trusted_rgb
 
-        loaded, model = self._latent(model_id)
-        tokens = self._program(hexcode)[None]
+        image = self._images.get(hexcode)
+        if image is None:
+            svg = self._svg(loaded, self._program(hexcode))[0].encode()
+            image = self._images[hexcode] = torch.from_numpy(render_trusted_rgb(svg, RENDER_SIZE))
+        return image
+
+    def _encoded(
+        self, loaded: _Loaded, backend: LatentBackend, hexcodes: Sequence[str]
+    ) -> Callable[[], Tensor]:
+        """Work that encodes held-out icons to their posterior means on the device."""
+
+        tokens = torch.stack([self._program(hexcode) for hexcode in hexcodes])
+        images = torch.stack([self._image(loaded, hexcode) for hexcode in hexcodes])
 
         def work() -> Tensor:
-            mean, _ = model.posterior(tokens.to(self.device))
-            if loaded.graph is not None:
-                return cast(Tensor, loaded.graph.decode(mean[0]))
-            return greedy_decode(model, mean)
+            means = backend.encode(tokens.to(self.device), images.to(self.device))
+            return _shaped(loaded, "encode", means, (len(hexcodes), *backend.latent_shape))
+
+        return work
+
+    def reconstruct(self, model_id: str, hexcode: str) -> dict[str, Any]:
+        """The posterior mean of a held-out icon, decoded greedily (by the backend's
+        single decoder, a CUDA graph, when it has one)."""
+
+        loaded, backend = self._latent(model_id)
+        encoded = self._encoded(loaded, backend, [hexcode])
+        length = loaded.model.layout.length
+
+        def work() -> Tensor:
+            return _shaped(loaded, "decode_one", decode_one(backend, encoded()[0]), (length,))
 
         decoded, ms = self._run(loaded, work)
-        return {"ok": True, "svg": self._svg(loaded, decoded[0])[0], "ms": ms}
+        return {"ok": True, "svg": self._svg(loaded, decoded)[0], "ms": ms}
 
     def interpolate(self, model_id: str, a: str, b: str, steps: int) -> dict[str, Any]:
         """`steps` frames on the straight line between two posterior means, one batch."""
 
-        from mojidiff.learning.render2svg import greedy_decode
-
-        loaded, model = self._latent(model_id)
+        loaded, backend = self._latent(model_id)
         low, high = INTERPOLATION_STEPS
         if not low <= steps <= high:
             raise GalleryError(f"steps must be {low}..{high}, got {steps}")
-        tokens = torch.stack((self._program(a), self._program(b)))
+        encoded = self._encoded(loaded, backend, [a, b])
+        length = loaded.model.layout.length
 
         def work() -> Tensor:
-            means, _ = model.posterior(tokens.to(self.device))
-            weights = torch.linspace(0.0, 1.0, steps, device=self.device)[:, None]
-            return greedy_decode(model, (1.0 - weights) * means[0] + weights * means[1])
+            means = encoded()
+            weights = torch.linspace(0.0, 1.0, steps, device=self.device)
+            weights = weights.view(steps, *(1,) * (means.dim() - 1))
+            path = (1.0 - weights) * means[0] + weights * means[1]
+            return _shaped(loaded, "decode", backend.decode(path), (steps, length))
 
         decoded, ms = self._run(loaded, work)
         frames = [self._svg(loaded, row)[0] for row in decoded]
         return {"ok": True, "frames": frames, "ms": ms}
 
     def sample(self, model_id: str, count: int, seed: int, scale: float) -> dict[str, Any]:
-        """`count` prior draws z = scale * N(0, I), seeded on the CPU, one batch."""
+        """`count` draws from the backend's prior at `scale` (for a vae z = scale *
+        N(0, I)), seeded by a CPU generator, decoded in one batch."""
 
-        from mojidiff.learning.render2svg import greedy_decode
-
-        loaded, model = self._latent(model_id)
+        loaded, backend = self._latent(model_id)
         low, high = SAMPLE_COUNT
         if not low <= count <= high:
             raise GalleryError(f"count must be {low}..{high}, got {count}")
@@ -622,14 +917,115 @@ class Gallery:
         if not 0 <= seed < 2**63:
             raise GalleryError(f"seed must be a non-negative 63-bit integer, got {seed}")
         generator = torch.Generator().manual_seed(seed)
-        latents = scale * torch.randn(count, model.settings.latent_dim, generator=generator)
+        length = loaded.model.layout.length
 
         def work() -> Tensor:
-            return greedy_decode(model, latents.to(self.device))
+            # Under the GPU lock: a learned prior may run on the device.
+            drawn = backend.sample(count, generator, scale)
+            latents = _shaped(loaded, "sample", drawn, (count, *backend.latent_shape))
+            return _shaped(
+                loaded, "decode", backend.decode(latents.to(self.device)), (count, length)
+            )
 
         decoded, ms = self._run(loaded, work)
         samples = [self._svg(loaded, row)[0] for row in decoded]
         return {"ok": True, "samples": samples, "ms": ms}
+
+    # ------------------------------------------------------------------ ratings
+
+    def _rating_log(self) -> RatingLog:
+        if self.ratings is None:
+            raise GalleryError("this gallery records no ratings")
+        return self.ratings
+
+    def rating_row(self, payload: Mapping[str, Any]) -> dict[str, Any]:
+        """A posted rating, checked, as the line it appends: `at` (UTC) and the model's
+        `run_id` added. Every refusal is a `GalleryError`."""
+
+        unknown = sorted(set(payload) - set(RATING_FIELDS))
+        if unknown:
+            raise GalleryError(f"unknown rating field(s): {', '.join(map(str, unknown))}")
+        for key in ("model", "view", "score", "blind"):
+            if key not in payload:
+                raise GalleryError(f"missing field {key!r}")
+        model_id = payload["model"]
+        if not isinstance(model_id, str):
+            raise GalleryError("model must be a string")
+        loaded = self._get(model_id, "latent")
+        view = payload["view"]
+        if view not in RATING_VIEWS:
+            raise GalleryError(f"view must be one of {', '.join(RATING_VIEWS)}")
+        score = payload["score"]
+        if not _is_score(score):
+            raise GalleryError(f"score must be an integer {RATING_SCORES[0]}..{RATING_SCORES[1]}")
+        blind = payload["blind"]
+        if not isinstance(blind, bool):
+            raise GalleryError("blind must be true or false")
+        seed = payload.get("seed")
+        if seed is not None and not (
+            isinstance(seed, int) and not isinstance(seed, bool) and 0 <= seed < 2**63
+        ):
+            raise GalleryError("seed must be null or a non-negative 63-bit integer")
+        scale = payload.get("scale")
+        if scale is not None:
+            low, high = SAMPLE_SCALE
+            if isinstance(scale, bool) or not isinstance(scale, int | float):
+                raise GalleryError("scale must be null or a number")
+            if not (math.isfinite(scale) and low <= scale <= high):
+                raise GalleryError(f"scale must be null or {low}..{high}")
+            scale = float(scale)
+        icons: dict[str, str | None] = {}
+        for key in ("a", "b"):
+            hexcode = payload.get(key)
+            if hexcode is not None and not (isinstance(hexcode, str) and hexcode in self.programs):
+                raise GalleryError(f"{key} must be null or a held-out icon's hexcode")
+            icons[key] = hexcode
+        steps = payload.get("steps")
+        if steps is not None:
+            low, high = INTERPOLATION_STEPS
+            if isinstance(steps, bool) or not isinstance(steps, int) or not low <= steps <= high:
+                raise GalleryError(f"steps must be null or an integer {low}..{high}")
+        note = payload.get("note", "")
+        if not isinstance(note, str) or len(note) > RATING_NOTE_LIMIT:
+            raise GalleryError(f"note must be a string of at most {RATING_NOTE_LIMIT} characters")
+        return {
+            "at": _utc_now(),
+            "model": model_id,
+            "run_id": loaded.spec.run_id,
+            "view": view,
+            "score": score,
+            "blind": blind,
+            "seed": seed,
+            "scale": scale,
+            "a": icons["a"],
+            "b": icons["b"],
+            "steps": steps,
+            "note": note,
+        }
+
+    def rate(self, payload: Mapping[str, Any]) -> dict[str, Any]:
+        """Append one rating; the file's rating count afterwards."""
+
+        log = self._rating_log()
+        return {"ok": True, "count": log.append(self.rating_row(payload))}
+
+    def ratings_payload(self) -> dict[str, Any]:
+        """Every rating in the file, and per model and view the count and mean score."""
+
+        rows = self._rating_log().rows()
+        run_ids = {model_id: loaded.spec.run_id for model_id, loaded in self._models.items()}
+        return {"ratings": rows, "summary": rating_summary(rows, run_ids)}
+
+
+def _shaped(loaded: _Loaded, method: str, value: Tensor, shape: tuple[int, ...]) -> Tensor:
+    """`value` if it has `shape`; else a backend broke its contract, said by name."""
+
+    if tuple(value.shape) != shape:
+        raise RuntimeError(
+            f"backend {loaded.spec.backend!r} of {loaded.spec.id!r}: {method} returned "
+            f"shape {tuple(value.shape)}, expected {shape}"
+        )
+    return value
 
 
 # --------------------------------------------------------------------------- HTTP
@@ -689,11 +1085,17 @@ def _sample(gallery: Gallery, payload: Mapping[str, Any]) -> Work:
     return lambda: gallery.sample(model_id, count, seed, scale)
 
 
+def _rate(gallery: Gallery, payload: Mapping[str, Any]) -> Work:
+    # Checked before anything is written: every refusal is a GalleryError, a 400.
+    return lambda: gallery.rate(payload)
+
+
 ROUTES: dict[str, Callable[[Gallery, Mapping[str, Any]], Work]] = {
     "/transcribe": _transcribe,
     "/latent/reconstruct": _reconstruct,
     "/latent/interpolate": _interpolate,
     "/latent/sample": _sample,
+    "/rating": _rate,
 }
 
 
@@ -732,6 +1134,14 @@ class _Handler(http.server.BaseHTTPRequestHandler):
             self._json(200, {"ok": True, "models": len(self.gallery)})
         elif url.path == "/models":
             self._json(200, self.gallery.models_payload())
+        elif url.path == "/ratings":
+            if self.gallery.ratings is None:
+                self._json(503, {"ok": False, "error": "this gallery records no ratings"})
+                return
+            try:
+                self._json(200, self.gallery.ratings_payload())
+            except OSError as error:
+                self._json(500, {"ok": False, "error": f"{type(error).__name__}: {error}"[:200]})
         elif url.path == "/icons":
             fields = parse_qs(url.query)
             query = fields.get("q", [""])[0]
@@ -753,9 +1163,13 @@ class _Handler(http.server.BaseHTTPRequestHandler):
             self._json(404, {"ok": False, "error": "not found"})
 
     def do_POST(self) -> None:  # noqa: N802
-        route = ROUTES.get(urlparse(self.path).path)
+        path = urlparse(self.path).path
+        route = ROUTES.get(path)
         if route is None:
             self._json(404, {"ok": False, "error": "not found"})
+            return
+        if path == "/rating" and self.gallery.ratings is None:
+            self._json(503, {"ok": False, "error": "this gallery records no ratings"})
             return
         try:
             length = int(self.headers.get("Content-Length", "0"))
@@ -798,10 +1212,15 @@ def _log(message: str) -> None:
     print(message, file=sys.stderr, flush=True)
 
 
-def serve(host: str, port: int) -> None:
+def serve(host: str, port: int, registry: Path | None = None, ratings: Path = RATINGS) -> None:
+    """Load the registry's models (`registry`, else the default file, else `MODELS`) and
+    serve them; ratings append to `ratings`."""
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     started = time.perf_counter()
-    gallery = Gallery.from_checkpoints(device, log=_log)
+    specs = registry_models(registry, log=_log)
+    _log(f"registry {registry or REGISTRY}: {len(specs)} models; ratings to {ratings}")
+    gallery = Gallery.from_checkpoints(device, specs, ratings=ratings, log=_log)
     with make_server(gallery, host, port) as server:
         _log(
             f"gallery on http://{host}:{port} - {len(gallery)} models, "

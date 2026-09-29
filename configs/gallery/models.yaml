@@ -1,0 +1,94 @@
+# The models the gallery serves, in display order (scripts/serve_gallery.py).
+#
+# Read once at startup: edit this file and restart the gallery. Each entry:
+#   id           short, unique; the page and the ratings name the model by it
+#   run_id       the run: stats from runs/<run_id>/run.yaml, weights from
+#                ~/.cache/mojidiff/runs/<run_id>/best.pt
+#   kind         transcriber (render to SVG) or latent
+#   label        the name the page shows
+#   description  one line: what distinguishes the model
+#   backend      latent models only: how the checkpoint loads, encodes, decodes and
+#                samples - a name in mojidiff.gallery.latent_backends.BACKENDS
+#                (`vae`: LatentToProgram with its N(0, I) prior). A new kind of latent
+#                model adds a backend there, then an entry here.
+#
+# An unknown field or backend, a duplicate id, or a missing checkpoint stops the gallery
+# before it binds. Ratings name the model's id and run_id: give a retrained model a new
+# id rather than reusing one.
+
+
+schema_version: 1
+models:
+- id: v9
+  run_id: r2s-full-v9-colour-621bc8e-b26ad95e-47646604
+  kind: transcriber
+  label: v9 colour
+  description: v7 with palette permutation 0.1 - colours fixed; best on validation
+
+- id: v7
+  run_id: r2s-full-v7-systems-42762c2-e9842024-47646604
+  kind: transcriber
+  label: v7 systems
+  description: metric coordinates + path order + online variants + compositions, 60k steps; scored on test
+
+- id: v8
+  run_id: r2s-full-v8-twemoji-f529d3f-5f240ad1-47646604
+  kind: transcriber
+  label: v8 + Twemoji
+  description: v7 plus 2,211 Twemoji icons - strokes and fills clash
+
+- id: v6
+  run_id: r2s-full-v6-compose-7505e5b-6472dcf0-47646604
+  kind: transcriber
+  label: v6 compositions
+  description: online variants + collages of real parts; no metric, no path order
+
+- id: v5
+  run_id: r2s-full-v5-path-7a72de9-12766043-47646604
+  kind: transcriber
+  label: v5 path order
+  description: metric coordinates + path-major order, 16 cached variants
+
+- id: v4
+  run_id: r2s-full-v4-online-c0fe6d3-a854be2e-47646604
+  kind: transcriber
+  label: v4 online
+  description: fresh exact variant every step; no metric
+
+- id: v3
+  run_id: r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604
+  kind: transcriber
+  label: v3 metric
+  description: Fourier position features shared by image and coordinates
+
+- id: v2
+  run_id: r2s-full-v2-aug-4032fbd-1e601024-47646604
+  kind: transcriber
+  label: v2 augmented
+  description: '16 cached exact variants: mirror, shift, recolour'
+
+- id: v1
+  run_id: r2s-full-v1-940f5d3-1974cf82-47646604
+  kind: transcriber
+  label: v1 plain
+  description: no augmentation - memorises, recalls near neighbours
+
+- id: o4
+  run_id: r2s-overfit4-940f5d3-f7306d2b-47646604
+  kind: transcriber
+  label: overfit fixture
+  description: trained on 4 icons only - draws one of them whatever you show it
+
+- id: l2
+  run_id: latent-v2-kl-efbd2e2-451268e6-47646604
+  kind: latent
+  backend: vae
+  label: latent v2
+  description: VAE, beta 0.1 - the latent carries the icon, weakly
+
+- id: l1
+  run_id: latent-v1-8b0d3f9-6e874509-47646604
+  kind: latent
+  backend: vae
+  label: latent v1
+  description: VAE, beta 1 - samples, cannot reconstruct

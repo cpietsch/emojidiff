@@ -121,6 +121,48 @@
   .big svg, .big img { display:block; width:100%; height:100%; }
   figcaption { font-size: 12px; color: var(--muted); margin-top: 4px; max-width: 560px; overflow-wrap:anywhere; }
   #ov-src { margin: 12px 0 0; max-height: 220px; overflow:auto; background:#f6f6f6; border:1px solid var(--line); border-radius:6px; padding: 8px; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-all; cursor:text; }
+  .col[hidden] { display:none; }
+  .status.ok { color: var(--good); }
+  .modebar { display:flex; align-items:center; flex-wrap:wrap; gap: 6px 0; }
+  .modebar .btn { border-radius: 0; }
+  .modebar .btn:first-child { border-radius: 6px 0 0 6px; }
+  .modebar .btn + .btn { margin-left: -1px; border-radius: 0 6px 6px 0; }
+  .modebar .btn[aria-pressed="true"] { position:relative; border-color: var(--accent); background: var(--soft); font-weight: 600; }
+  .modebar .hint { margin: 0 0 0 12px; }
+  #compare-ui { --ctile: 128px; }
+  .crow { background: var(--card); border:1px solid var(--line); border-radius:8px; padding:12px; display:flex; flex-direction:column; gap:10px; min-width:0; }
+  .crow-head { display:flex; flex-wrap:wrap; align-items:baseline; gap: 2px 10px; }
+  .crow-head h3 { margin:0; font-size: 16px; font-weight: 600; }
+  .crow-head h3 small { font-weight: 400; font-size: 12px; color: var(--muted); margin-left: 6px; }
+  .crow-head .desc, .crow-head .meta { flex-basis: 100%; }
+  .crow.masked .crow-head h3 { color: var(--accent); }
+  .crow.masked .tile .actions { display:none; }
+  .cblock { min-width:0; }
+  .cblock h4 { margin: 0 0 2px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+  .cblock.pending .svgbox { opacity: .35; }
+  .cduo { display:flex; flex-wrap:wrap; gap: 10px 22px; align-items:flex-start; }
+  .cduo > .cblock:last-child { flex: 1 1 calc(2 * var(--ctile) + 8px); }
+  .cpair { display:flex; gap:8px; }
+  .cpair .tile { flex: 0 0 var(--ctile); width: var(--ctile); }
+  /* Both ends in view where the width allows: tiles shrink to 96 px before the strip scrolls. */
+  .cstrip { display:grid; grid-auto-flow: column; grid-auto-columns: minmax(96px, var(--ctile)); gap:8px; overflow-x:auto; padding-bottom: 6px; }
+  .cgrid { display:grid; grid-template-columns: repeat(auto-fill, var(--ctile)); gap:8px; }
+  .crate { display:flex; flex-wrap:wrap; gap: 8px 18px; align-items:center; border-top:1px solid var(--line); padding-top: 10px; }
+  .rgroup { display:inline-flex; flex-wrap:wrap; gap:3px; align-items:center; }
+  .rgroup .rlabel { font-size: 13px; margin-right: 3px; }
+  .btn.score { min-width: 30px; }
+  .btn.score[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color:#fff; font-weight: 600; }
+  .rmean { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; margin-left: 4px; }
+  .crate input[type=text] { flex: 1 1 220px; min-width:0; padding: 4px 8px; border:1px solid var(--line); border-radius:6px; font: inherit; font-size: 14px; }
+  .crate .status { flex-basis: 100%; min-height: 1.2em; }
+  .rsum { cursor:pointer; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+  .rsum span { text-transform:none; letter-spacing:0; font-weight:400; }
+  .rtable-wrap { overflow-x:auto; margin-top: 8px; }
+  .rtable { border-collapse: collapse; font-size: 13px; width: 100%; }
+  .rtable th, .rtable td { text-align:left; padding: 3px 10px 3px 0; border-bottom: 1px solid #eee; vertical-align: top; }
+  .rtable th { color: var(--muted); font-weight: 600; font-size: 12px; }
+  .rtable td { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .rtable td.rnote { white-space: normal; overflow-wrap: anywhere; min-width: 14ch; }
   @media (max-width: 900px) {
     header { padding: 14px 16px 6px; } .tabs { padding: 8px 16px 0; } .banner { margin: 8px 16px 0; }
     .view { grid-template-columns: minmax(0, 1fr); padding: 12px 16px; }
@@ -175,7 +217,7 @@
 
 <div class="view" id="view-latent" role="tabpanel" aria-labelledby="tab-latent" hidden>
   <div class="col">
-    <section>
+    <section id="l-models">
       <h2>Latent model</h2>
       <div class="opts" id="latent-models"></div>
     </section>
@@ -188,40 +230,76 @@
     </section>
   </div>
   <div class="col">
-    <p class="note honest"><b>Read these honestly.</b> Both VAEs reconstruct poorly: a decoded posterior mean is close to blank on average, and far worse than the <span class="baseline-text">0.090</span> nearest-training-icon baseline. Interpolation frames jump between whole emoji rather than morphing. Samples are greedy decodes of z = scale &middot; N(0, I).</p>
-    <section>
-      <h2>Endpoints <span class="which"></span></h2>
-      <div class="ab">
-        <div class="slot" id="slot-a"><span class="tag">A</span><div class="thumb" id="a-thumb"></div><div class="slot-text"><span class="name" id="a-name"></span><button type="button" class="btn mini" id="a-clear">clear</button></div></div>
-        <div class="slot" id="slot-b"><span class="tag">B</span><div class="thumb" id="b-thumb"></div><div class="slot-text"><span class="name" id="b-name"></span><button type="button" class="btn mini" id="b-clear">clear</button></div></div>
-      </div>
-      <div class="row">
-        <label>steps <input id="steps" type="range" min="3" max="11" step="1" value="7"> <output id="steps-v">7</output></label>
-        <button type="button" id="interp-btn" class="btn primary">Interpolate</button>
-        <button type="button" id="recon-btn" class="btn">Reconstruct A</button>
-      </div>
-    </section>
-    <section>
-      <h2>Interpolation <span class="which"></span></h2>
-      <div class="status" id="interp-status"></div>
-      <div class="strip" id="interp"></div>
-    </section>
-    <section>
-      <h2>Reconstruction <span class="which"></span></h2>
-      <div class="status" id="recon-status"></div>
-      <div class="pair" id="recon"></div>
-    </section>
-    <section>
-      <h2>Prior samples <span class="which"></span></h2>
-      <div class="row first">
-        <label>seed <input id="seed" type="number" min="0" max="2147483647" step="1" value="0"></label>
-        <button type="button" id="new-seed" class="btn">new seed</button>
-        <label>scale <input id="scale" type="range" min="0.2" max="2" step="0.1" value="1"> <output id="scale-v">1.0</output></label>
-        <button type="button" id="sample-btn" class="btn primary">Sample</button>
-      </div>
-      <div class="status" id="sample-status"></div>
-      <div class="samples" id="samples"></div>
-    </section>
+    <div class="modebar" role="group" aria-label="Latent view mode"><button type="button" class="btn" id="mode-compare" aria-pressed="false">Compare</button><button type="button" class="btn" id="mode-single" aria-pressed="false">Single</button><span class="hint" id="mode-hint"></span></div>
+    <p class="note honest" id="l-honest"><b>Read these honestly.</b> The two program VAEs (latent v1 and v2) reconstruct poorly: a decoded posterior mean is close to blank on average, and far worse than the <span class="baseline-text">0.090</span> nearest-training-icon baseline, and their interpolation frames jump between whole emoji rather than morphing. Samples are greedy decodes of a draw from each model's prior times the scale: z = scale &middot; N(0, I) for a VAE.</p>
+    <div class="col" id="single-ui">
+      <section>
+        <h2>Endpoints <span class="which"></span></h2>
+        <div class="ab">
+          <div class="slot" id="slot-a"><span class="tag">A</span><div class="thumb" id="a-thumb"></div><div class="slot-text"><span class="name" id="a-name"></span><button type="button" class="btn mini" id="a-clear">clear</button></div></div>
+          <div class="slot" id="slot-b"><span class="tag">B</span><div class="thumb" id="b-thumb"></div><div class="slot-text"><span class="name" id="b-name"></span><button type="button" class="btn mini" id="b-clear">clear</button></div></div>
+        </div>
+        <div class="row">
+          <label>steps <input id="steps" type="range" min="3" max="11" step="1" value="7"> <output id="steps-v">7</output></label>
+          <button type="button" id="interp-btn" class="btn primary">Interpolate</button>
+          <button type="button" id="recon-btn" class="btn">Reconstruct A</button>
+        </div>
+      </section>
+      <section>
+        <h2>Interpolation <span class="which"></span></h2>
+        <div class="status" id="interp-status"></div>
+        <div class="strip" id="interp"></div>
+      </section>
+      <section>
+        <h2>Reconstruction <span class="which"></span></h2>
+        <div class="status" id="recon-status"></div>
+        <div class="pair" id="recon"></div>
+      </section>
+      <section>
+        <h2>Prior samples <span class="which"></span></h2>
+        <div class="row first">
+          <label>seed <input id="seed" type="number" min="0" max="2147483647" step="1" value="0"></label>
+          <button type="button" id="new-seed" class="btn">new seed</button>
+          <label>scale <input id="scale" type="range" min="0.2" max="2" step="0.1" value="1"> <output id="scale-v">1.0</output></label>
+          <button type="button" id="sample-btn" class="btn primary">Sample</button>
+        </div>
+        <div class="status" id="sample-status"></div>
+        <div class="samples" id="samples"></div>
+      </section>
+    </div>
+    <div class="col" id="compare-ui" hidden>
+      <section id="c-controls">
+        <h2>Compare <span class="cwhich" id="c-which"></span></h2>
+        <p class="hint">Every latent model on the same A, B, steps, seed and scale, one row each. Rows load one model at a time, top row first. After the first Run, a change re-runs only what it affects and drops the requests still waiting. Rate each row 1 (worst) to 5 (best); every rating is saved on the server. Blind shuffles the rows and names them by letter until you reveal the names, which needs a blind rating of every row; ticking blind, or a new blind round, reshuffles the rows and clears what they showed.</p>
+        <div class="ab">
+          <div class="slot" id="c-slot-a"><span class="tag">A</span><div class="thumb" id="c-a-thumb"></div><div class="slot-text"><span class="name" id="c-a-name"></span><button type="button" class="btn mini" id="c-a-clear">clear</button></div></div>
+          <div class="slot" id="c-slot-b"><span class="tag">B</span><div class="thumb" id="c-b-thumb"></div><div class="slot-text"><span class="name" id="c-b-name"></span><button type="button" class="btn mini" id="c-b-clear">clear</button></div></div>
+        </div>
+        <div class="row">
+          <label>steps <input id="c-steps" type="range" min="3" max="11" step="1" value="7"> <output id="c-steps-v">7</output></label>
+          <label>seed <input id="c-seed" type="number" min="0" max="2147483647" step="1" value="0"></label>
+          <button type="button" id="c-new-seed" class="btn">new seed</button>
+          <label>scale <input id="c-scale" type="range" min="0.2" max="2" step="0.1" value="1"> <output id="c-scale-v">1.0</output></label>
+          <label>samples <select id="c-count"><option value="4">4</option><option value="8" selected>8</option></select></label>
+        </div>
+        <div class="row">
+          <label>thumbnails <select id="c-tile"><option value="96">96 px</option><option value="128" selected>128 px</option><option value="160">160 px</option></select></label>
+          <label title="Shuffle the rows, name them by letter, and hide names, descriptions, stats, timings, error details and mean ratings until you reveal the names. Ratings made before the reveal record blind: true. Ticking it starts a new blind round."><input type="checkbox" id="c-blind"> blind</label>
+          <button type="button" id="c-reveal" class="btn" hidden>reveal names</button>
+          <button type="button" id="c-round" class="btn" hidden title="Reshuffle and reletter the rows, clear their outputs and draw a new seed, to rate blind again">new blind round</button>
+          <button type="button" id="c-run" class="btn primary">Run</button>
+          <span id="c-progress" class="status"></span>
+        </div>
+      </section>
+      <div class="col" id="c-rows"></div>
+      <section id="ratings-sec">
+        <details id="ratings-panel">
+          <summary class="rsum">Ratings <span id="ratings-count"></span></summary>
+          <div class="row"><button type="button" class="btn mini" id="ratings-refresh">refresh</button><span class="hint" style="margin:0">Newest first. Appended on the server to reports/gallery/ratings.jsonl, never rewritten.</span></div>
+          <div id="ratings-list"></div>
+        </details>
+      </section>
+    </div>
   </div>
 </div>
 
@@ -250,7 +328,7 @@
 'use strict';
 const SIZE = 144;
 const PALETTE = ['#000000', '#ffffff', '#92d3f5', '#61b2e4', '#ea5a47', '#d22f27', '#b1cc33', '#5c9e31', '#fcea2b', '#f1b31c', '#d0cfce', '#9b9b9a', '#3f3f3f', '#f4aa41', '#e27022', '#ffa7c0', '#e67a94', '#b399c8', '#8967aa', '#a57939', '#6a462f', '#1e50a0', '#781e32', '#186648', '#fadcbc', '#debb90', '#c19a65', '#352318'];
-const KEYS = { favs: 'mojidiff.gallery.favourites.v1', tab: 'mojidiff.gallery.tab', icon: 'mojidiff.gallery.icon', tile: 'mojidiff.gallery.tile', best: 'mojidiff.gallery.best', auto: 'mojidiff.gallery.auto', latent: 'mojidiff.gallery.latentModel' };
+const KEYS = { favs: 'mojidiff.gallery.favourites.v1', tab: 'mojidiff.gallery.tab', icon: 'mojidiff.gallery.icon', tile: 'mojidiff.gallery.tile', best: 'mojidiff.gallery.best', auto: 'mojidiff.gallery.auto', latent: 'mojidiff.gallery.latentModel', mode: 'mojidiff.gallery.latentMode', count: 'mojidiff.gallery.compareCount', ctile: 'mojidiff.gallery.compareTile', blind: 'mojidiff.gallery.blind' };
 const SPLIT_NAMES = { 'primary/validation': 'val', 'primary/test': 'test' };
 const ALL_ICONS = 100000; // a /icons limit above every held-out icon; the server clamps it
 const $ = id => document.getElementById(id);
@@ -282,13 +360,14 @@ function errText(data) {
   return String(data.error || data.failure || 'unknown error');
 }
 
-/* Every request resolves to an object; failures become {ok: false, error}. Never throws. */
+/* Every request resolves to an object; failures become {ok: false, error}. Never throws.
+   A string body is sent as it is: already JSON. */
 async function api(path, body) {
   let response;
   try {
     response = await fetch(path, body === undefined
       ? { cache: 'no-store' }
-      : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      : { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: typeof body === 'string' ? body : JSON.stringify(body) });
   } catch (error) {
     return { ok: false, error: 'network error: ' + (error && error.message ? error.message : String(error)) };
   }
@@ -316,7 +395,7 @@ function putSvg(box, svg, emptyText) {
 }
 
 function setStatus(node, text, kind) {
-  node.className = 'status' + (kind === 'err' ? ' err' : '');
+  node.className = 'status' + (kind === 'err' ? ' err' : kind === 'ok' ? ' ok' : '');
   node.textContent = '';
   if (kind === 'busy') node.append(el('span', { class: 'spin', 'aria-hidden': 'true' }));
   node.append(text);
@@ -431,6 +510,13 @@ function starButton(key, make, mini) {
   paintStar(button);
   return button;
 }
+/* A latent favourite shows its model's name and its seed or icons, so next to a blind row
+   it would name that row: hidden while a blind round masks the latent models (and while
+   the model list is still loading, when the page cannot tell). Called after C exists. */
+function favHidden(f) {
+  if (f.kind !== 'latent' || !C.blind || C.revealed) return false;
+  return !MODELS.length || C.byId.has(f.model);
+}
 function renderFavs() {
   const list = Object.entries(favs)
     .filter(([, f]) => f && typeof f === 'object' && typeof f.svg === 'string' && f.svg)
@@ -440,7 +526,9 @@ function renderFavs() {
   wrap.textContent = '';
   $('fav-count').textContent = list.length ? '(' + list.length + ')' : '';
   if (!list.length) { wrap.append(el('p', { class: 'note', text: 'Star any output to keep it here.' })); return; }
-  for (const f of list) {
+  const shown = list.filter(f => !favHidden(f)), hidden = list.length - shown.length;
+  if (hidden) wrap.append(el('p', { class: 'note', style: 'flex-basis:100%;margin:0', text: hidden + ' latent favourite' + (hidden === 1 ? '' : 's') + ' hidden while blind: reveal the names or untick blind to see ' + (hidden === 1 ? 'it' : 'them') + '.' }));
+  for (const f of shown) {
     const label = String(f.label || f.model || 'model'), caption = String(f.caption || '');
     const thumb = el('button', { class: 'svgbox', type: 'button', title: label + ' · ' + caption });
     putSvg(thumb, f.svg);
@@ -791,22 +879,31 @@ const L = { model: null, a: null, b: null, seq: { interp: 0, recon: 0, sample: 0
 
 function latentPick(icon, e) {
   const chosen = { hexcode: icon.hexcode, annotation: icon.annotation || icon.hexcode };
-  if (e && e.shiftKey) L.b = chosen;
-  else if (!L.a) L.a = chosen;
-  else if (!L.b) L.b = chosen;
-  else { L.a = chosen; L.b = null; }
+  let a = L.a, b = L.b;
+  if (e && e.shiftKey) b = chosen;
+  else if (!a) a = chosen;
+  else if (!b) b = chosen;
+  else { a = chosen; b = null; }
+  setEndpoints(a, b);
+}
+/* A and B are shared by Single and Compare; Compare re-runs the views a change affects. */
+function setEndpoints(a, b) {
+  const code = icon => (icon ? icon.hexcode : null);
+  const changed = code(a) !== code(L.a) ? ['reconstruction', 'interpolation'] : code(b) !== code(L.b) ? ['interpolation'] : [];
+  L.a = a; L.b = b;
   renderSlots();
+  if (changed.length) compareChanged(changed);
 }
 function renderSlots() {
-  for (const which of ['a', 'b']) {
+  for (const prefix of ['', 'c-']) for (const which of ['a', 'b']) {
     const icon = L[which];
-    $('slot-' + which).classList.toggle('set', !!icon);
-    const thumb = $(which + '-thumb');
+    $(prefix + 'slot-' + which).classList.toggle('set', !!icon);
+    const thumb = $(prefix + which + '-thumb');
     thumb.textContent = '';
     if (icon) thumb.append(el('img', { src: renderUrl(icon.hexcode), alt: icon.annotation }));
-    $(which + '-name').textContent = icon ? icon.annotation + ' (' + icon.hexcode + ')'
+    $(prefix + which + '-name').textContent = icon ? icon.annotation + ' (' + icon.hexcode + ')'
       : which === 'a' ? 'not set: click an icon' : 'not set: click a second icon, or shift-click';
-    $(which + '-clear').disabled = !icon;
+    $(prefix + which + '-clear').disabled = !icon;
   }
   const marks = {};
   if (L.a) marks[L.a.hexcode] = 'A';
@@ -814,17 +911,23 @@ function renderSlots() {
   lPicker.mark(marks);
   updateLatentButtons();
 }
-$('a-clear').addEventListener('click', () => { L.a = null; renderSlots(); });
-$('b-clear').addEventListener('click', () => { L.b = null; renderSlots(); });
+for (const prefix of ['', 'c-']) {
+  $(prefix + 'a-clear').addEventListener('click', () => setEndpoints(null, L.b));
+  $(prefix + 'b-clear').addEventListener('click', () => setEndpoints(L.a, null));
+}
 
 function updateLatentButtons() {
   $('interp-btn').disabled = !(L.model && L.a && L.b);
   $('recon-btn').disabled = !(L.model && L.a);
   $('sample-btn').disabled = !L.model;
   $('new-seed').disabled = !L.model;
+  $('c-run').disabled = !LATENTS.length;
+  $('c-new-seed').disabled = !LATENTS.length;
 }
 
 function buildLatentModels() {
+  buildCompare();
+  setMode(savedMode() || (LATENTS.length >= 2 ? 'compare' : 'single'), false);
   const wrap = $('latent-models');
   wrap.textContent = '';
   if (!LATENTS.length) { wrap.append(el('p', { class: 'note', text: 'The server lists no latent models.' })); updateLatentButtons(); return; }
@@ -965,7 +1068,7 @@ async function sample() {
     }));
   });
   L.shown.sample = true;
-  setStatus($('sample-status'), [samples.length + ' samples · z = ' + scale.toFixed(1) + ' · N(0, I), seed ' + seed + ', greedy, one batch', msText(data)].filter(Boolean).join(' · '));
+  setStatus($('sample-status'), [samples.length + ' samples · z = ' + scale.toFixed(1) + ' × a prior draw, seed ' + seed + ', greedy, one batch', msText(data)].filter(Boolean).join(' · '));
 }
 
 /* At most one request per latent section: the GPU is shared, so a burst of clicks would
@@ -1002,6 +1105,635 @@ $('scale').addEventListener('input', () => { $('scale-v').textContent = currentS
 $('scale').addEventListener('change', () => { if (L.shown.sample) runLatent.sample(); });
 
 const lPicker = makePicker($('l-picker'), latentPick);
+
+/* ---------------------------------------------------------------- latent compare */
+
+/* Compare: every latent model on the same A, B, steps, seed and scale, one row each,
+   rated 1 to 5 (POST /rating; read back with GET /ratings). Requests go one at a time,
+   since the GPU is shared, in display order: top row first, and within a row
+   interpolation, reconstruction, samples. Each view has its own run id: a change bumps
+   the ids of the views it affects, so their queued requests are dropped and answers
+   still in flight are ignored, while the other views' queued work carries on.
+   Blind works in rounds, kept per browser tab (sessionStorage): rows shuffled in an
+   order seeded for the round and named by letter; names, descriptions, stats, timings,
+   error details, mean ratings and latent favourites are hidden. A row's mean for a view
+   shows once that view has been rated blind in the round. Names are revealed for the
+   whole round at once, after every row has a blind rating: one row revealed would name
+   the others by elimination, so no rating after the reveal is recorded blind. Ticking
+   blind, or "new blind round", starts a round: a new order and letters, outputs cleared
+   (they may have been seen with names) and a new sample seed. */
+
+const VIEWS = ['interpolation', 'reconstruction', 'samples'];
+const RATED_VIEWS = ['samples', 'interpolation', 'reconstruction'];
+const RATINGS_SHOWN = 40;
+const COMPARE_TILES = [96, 128, 160];
+const SKEYS = { seed: 'mojidiff.gallery.blind.seed', rated: 'mojidiff.gallery.blind.rated', revealed: 'mojidiff.gallery.blind.revealed' }; // the round's order seed, its blind ratings, whether its names are shown
+
+/* Per browser tab: the blind round's order, what has been rated blind in it, whether it is revealed. */
+const tabStore = {
+  get(key, fallback) { try { const raw = sessionStorage.getItem(key); return raw === null ? fallback : JSON.parse(raw); } catch (_) { return fallback; } },
+  set(key, value) { try { sessionStorage.setItem(key, JSON.stringify(value)); return true; } catch (_) { return false; } },
+};
+function plainObject(value) { return value && typeof value === 'object' && !Array.isArray(value) ? value : {}; }
+function own(object, key) { return Object.prototype.hasOwnProperty.call(object, key); }
+
+const C = {
+  mode: 'compare', blind: false, started: false,
+  rows: [], order: [], byId: new Map(), // rows in registry order; `order` is the blind order
+  seq: { interpolation: 0, reconstruction: 0, samples: 0 },
+  queue: [], busy: false, current: null, dirty: new Set(), tokens: 0,
+  ratings: null, summary: {}, ratingsError: '', ratingsSeq: 0,
+  rated: plainObject(tabStore.get(SKEYS.rated, {})),
+  revealed: tabStore.get(SKEYS.revealed, false) === true,
+  orderSeed: (() => {
+    const saved = tabStore.get(SKEYS.seed, null);
+    if (Number.isInteger(saved) && saved >= 0 && saved <= 0xffffffff) return saved;
+    const seed = Math.floor(Math.random() * 0x100000000) >>> 0;
+    tabStore.set(SKEYS.seed, seed);
+    return seed;
+  })(),
+};
+
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+/* Sorted by id first, so the order depends on the tab's seed and the set of models,
+   not on the registry's order. */
+function blindOrder(rows, seed) {
+  const out = rows.slice().sort((x, y) => (x.m.id < y.m.id ? -1 : x.m.id > y.m.id ? 1 : 0));
+  const rand = mulberry32(seed);
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+function letterOf(i) { return i < 26 ? String.fromCharCode(65 + i) : String(i + 1); }
+function displayRows() { return C.blind ? C.order : C.rows; }
+function masked(_row) { return C.blind && !C.revealed; } // a round is revealed whole, never row by row
+function rowName(row) { return masked(row) ? 'Model ' + row.letter : (row.m.label || row.m.id); }
+function fileLabel(row) { return masked(row) ? 'model-' + row.letter : (row.m.label || row.m.id); }
+function wasRated(id, view) { const views = own(C.rated, id) ? C.rated[id] : null; return !!(views && typeof views === 'object' && views[view] === true); }
+function hasRated(row) { return RATED_VIEWS.some(view => wasRated(row.m.id, view)); }
+function canSeeScores(id, view) { const row = C.byId.get(id); return !row || !masked(row) || wasRated(id, view); }
+/* A server error can name the model in ways the page cannot know (its id, its backend,
+   its latent shape), so a masked row shows none of it; the full text shows on reveal. */
+const HIDDEN_ERROR = 'details hidden while blind; reveal the names or untick blind to read them';
+function rowError(row, text) { return masked(row) ? HIDDEN_ERROR : String(text); }
+
+/* ------------------------------------------------ controls */
+
+function cSteps() { return Math.max(3, Math.min(11, Math.round(+$('c-steps').value) || 7)); }
+function cSeed() {
+  let seed = Math.trunc(Number($('c-seed').value));
+  if (!Number.isFinite(seed) || seed < 0) seed = 0;
+  seed = Math.min(seed, 2147483647);
+  $('c-seed').value = String(seed);
+  return seed;
+}
+function cScale() { return Math.round(Math.max(0.2, Math.min(2, Number($('c-scale').value) || 1)) * 10) / 10; }
+function cCount() { return $('c-count').value === '4' ? 4 : 8; }
+function viewReady(view) { return view === 'interpolation' ? !!(L.a && L.b) : view === 'reconstruction' ? !!L.a : true; }
+function viewParams(view) {
+  if (view === 'interpolation') return { a: L.a, b: L.b, steps: cSteps() };
+  if (view === 'reconstruction') return { a: L.a };
+  return { seed: cSeed(), scale: cScale(), count: cCount() };
+}
+function needText(view) { return view === 'interpolation' ? 'Set A and B.' : view === 'reconstruction' ? 'Set A.' : ''; }
+
+function setCompareTile(value) {
+  const px = COMPARE_TILES.includes(+value) ? +value : 128;
+  $('compare-ui').style.setProperty('--ctile', px + 'px');
+  $('c-tile').value = String(px);
+  store.set(KEYS.ctile, px);
+}
+
+function paintCompareTitle() {
+  const n = C.rows.length;
+  $('c-which').textContent = n ? '· ' + n + ' latent model' + (n === 1 ? '' : 's') + (C.blind ? (C.revealed ? ', blind round revealed' : ', blind') : '') : '';
+}
+function paintModeHint() {
+  $('mode-hint').textContent = C.mode === 'single' && C.blind ? 'Single names the models; blind applies to Compare, and what you see here is not blind there.' : '';
+}
+
+function setMode(mode, persist) {
+  if (mode !== 'compare' && mode !== 'single') mode = 'compare';
+  C.mode = mode;
+  if (persist) store.set(KEYS.mode, mode);
+  $('mode-compare').setAttribute('aria-pressed', mode === 'compare' ? 'true' : 'false');
+  $('mode-single').setAttribute('aria-pressed', mode === 'single' ? 'true' : 'false');
+  $('compare-ui').hidden = mode !== 'compare';
+  $('single-ui').hidden = mode !== 'single';
+  $('l-models').hidden = mode !== 'single';
+  paintModeHint();
+  paintBlindControls();
+  if (mode === 'compare' && C.started && C.dirty.size) compareRun([...C.dirty]);
+}
+function savedMode() { const mode = store.get(KEYS.mode, null); return mode === 'compare' || mode === 'single' ? mode : null; }
+
+function setBlind(on, persist) {
+  C.blind = !!on;
+  $('c-blind').checked = C.blind;
+  if (persist) store.set(KEYS.blind, C.blind);
+  layoutRows();
+  sortQueue();
+  paintCompareTitle();
+  paintModeHint();
+  paintBlindControls();
+  renderRatingsPanel();
+}
+
+/* A new blind round: a new order and letters, nothing rated or revealed in it, the rows'
+   outputs cleared - they may have been seen with names - and a new sample seed. */
+function newBlindRound() {
+  C.orderSeed = Math.floor(Math.random() * 0x100000000) >>> 0;
+  tabStore.set(SKEYS.seed, C.orderSeed);
+  C.rated = {};
+  tabStore.set(SKEYS.rated, C.rated);
+  C.revealed = false;
+  tabStore.set(SKEYS.revealed, false);
+  $('c-seed').value = String(Math.floor(Math.random() * 1000000));
+  buildCompare();
+  renderRatingsPanel();
+  if (C.rows.length) setStatus($('c-progress'), 'New blind round: rows reshuffled and relettered, outputs cleared, new seed. Pick an A and B you have not seen named, then Run.');
+}
+
+/* Every row that has something to rate has a blind rating in this round: '' when so,
+   else why the names stay hidden. */
+function rateable(row) { return VIEWS.some(view => ['queued', 'running', 'done'].includes(row.blocks[view].state)); }
+function revealBlocker() {
+  if (!C.rows.some(hasRated)) return 'Rate every row first.';
+  const togo = C.rows.filter(row => !hasRated(row) && rateable(row)).length;
+  return togo ? 'Rate every row first: ' + togo + ' to go.' : '';
+}
+function paintReveal() {
+  const button = $('c-reveal'), why = revealBlocker();
+  button.hidden = !C.blind || C.revealed;
+  button.disabled = !!why;
+  button.title = why || 'Show every row\'s name. Ratings after this are recorded as not blind; start a new blind round to rate blind again.';
+}
+function paintBlindControls() {
+  paintReveal();
+  $('c-round').hidden = !C.blind;
+  $('l-honest').hidden = C.mode === 'compare' && C.blind && !C.revealed; // it names the VAEs and their failings
+  renderFavs();
+}
+
+/* ------------------------------------------------ rows */
+
+function makeBlock(view, title) {
+  const block = { view, state: 'idle', shown: null, token: 0, ms: null, error: '', busyText: '' };
+  block.status = el('div', { class: 'status' });
+  block.body = el('div', { class: view === 'interpolation' ? 'cstrip' : view === 'reconstruction' ? 'cpair' : 'cgrid' });
+  block.el = el('div', { class: 'cblock' }, el('h4', { text: title }), block.status, block.body);
+  return block;
+}
+
+function buildRateBar(row) {
+  const bar = el('div', { class: 'crate' });
+  for (const view of RATED_VIEWS) {
+    const group = { buttons: [], mean: el('span', { class: 'rmean' }), busy: false, chosen: null };
+    const wrap = el('div', { class: 'rgroup', role: 'group', 'aria-label': 'Rate the ' + view });
+    wrap.append(el('span', { class: 'rlabel', text: view }));
+    for (let score = 1; score <= 5; score++) {
+      const button = el('button', { class: 'btn mini score', type: 'button', text: String(score), 'aria-pressed': 'false', title: score === 1 ? '1 · worst' : score === 5 ? '5 · best' : String(score) });
+      button.addEventListener('click', () => rate(row, view, score));
+      group.buttons.push(button);
+      wrap.append(button);
+    }
+    wrap.append(group.mean);
+    row.rate.groups[view] = group;
+    bar.append(wrap);
+  }
+  row.rate.note = el('input', { type: 'text', maxlength: 500, placeholder: 'note (optional; saved with your next rating of this row)', 'aria-label': 'Note, saved with the next rating of this row' });
+  row.rate.status = el('div', { class: 'status' });
+  bar.append(row.rate.note, row.rate.status);
+  return bar;
+}
+
+function buildRow(m) {
+  const row = { m, letter: '', blocks: {}, rate: { groups: {} } };
+  row.name = el('span');
+  row.params = el('small');
+  row.desc = el('p', { class: 'desc' });
+  row.stats = el('div', { class: 'meta' });
+  row.blocks.interpolation = makeBlock('interpolation', 'Interpolation A → B');
+  row.blocks.reconstruction = makeBlock('reconstruction', 'Reconstruction of A');
+  row.blocks.samples = makeBlock('samples', 'Prior samples');
+  row.el = el('article', { class: 'crow' },
+    el('div', { class: 'crow-head' }, el('h3', null, row.name, row.params), row.desc, row.stats),
+    row.blocks.interpolation.el,
+    el('div', { class: 'cduo' }, row.blocks.reconstruction.el, row.blocks.samples.el),
+    buildRateBar(row));
+  return row;
+}
+
+function buildCompare() {
+  for (const view of VIEWS) C.seq[view]++; // drop work queued for an earlier model list
+  C.queue = []; C.dirty.clear(); C.started = false;
+  C.rows = LATENTS.map(buildRow);
+  C.byId = new Map(C.rows.map(row => [row.m.id, row]));
+  C.order = blindOrder(C.rows, C.orderSeed);
+  C.order.forEach((row, i) => { row.letter = letterOf(i); });
+  const wrap = $('c-rows');
+  wrap.textContent = '';
+  if (!C.rows.length) wrap.append(el('p', { class: 'note', text: 'The server lists no latent models.' }));
+  layoutRows();
+  paintCompareTitle();
+  compareProgress();
+  updateLatentButtons();
+  paintBlindControls();
+}
+
+function layoutRows() {
+  const wrap = $('c-rows');
+  for (const row of displayRows()) wrap.append(row.el);
+  C.rows.forEach(paintRow);
+}
+function paintRow(row) {
+  paintRowHead(row);
+  for (const view of VIEWS) paintBlock(row, view);
+  for (const view of RATED_VIEWS) paintRateGroup(row, view);
+}
+
+function paintRowHead(row) {
+  const hide = masked(row), m = row.m;
+  row.el.classList.toggle('masked', hide);
+  row.name.textContent = rowName(row);
+  row.params.textContent = hide ? '' : params(m);
+  row.desc.textContent = hide ? 'Name, description and scores hidden. Rate every row, then reveal the names if you like.' : (m.description || '');
+  const stats = hide ? el('div', { class: 'meta', text: 'stats hidden' }) : latentStats(m);
+  row.stats.replaceWith(stats);
+  row.stats = stats;
+}
+
+function reveal() {
+  if (!C.blind || C.revealed || revealBlocker()) return;
+  C.revealed = true;
+  tabStore.set(SKEYS.revealed, true);
+  C.rows.forEach(paintRow);
+  paintCompareTitle();
+  paintBlindControls();
+  renderRatingsPanel();
+}
+
+function doneText(view, p) {
+  if (view === 'interpolation') return p.steps + ' frames between the posterior means of ' + p.a.hexcode + ' and ' + p.b.hexcode;
+  if (view === 'reconstruction') return 'decoded posterior mean of ' + p.a.hexcode;
+  return p.count + ' samples · seed ' + p.seed + ' · scale ' + p.scale.toFixed(1);
+}
+
+function paintBlock(row, view) {
+  const block = row.blocks[view];
+  block.el.classList.toggle('pending', block.state === 'queued' || block.state === 'running');
+  if (block.state === 'queued') setStatus(block.status, 'queued…', 'busy');
+  else if (block.state === 'running') setStatus(block.status, block.busyText, 'busy');
+  else if (block.state === 'error') setStatus(block.status, 'error: ' + rowError(row, block.error), 'err');
+  else if (block.state === 'done') {
+    const ms = !masked(row) && isNum(block.ms) ? block.ms.toFixed(0) + ' ms model time' : '';
+    setStatus(block.status, [doneText(view, block.shown), ms].filter(Boolean).join(' · '));
+  } else setStatus(block.status, viewReady(view) ? 'Press Run.' : needText(view));
+  paintReveal(); // whether every row has something rated depends on what each row shows
+}
+
+function clearBlock(row, view) {
+  const block = row.blocks[view];
+  block.body.textContent = '';
+  block.state = 'idle'; block.shown = null; block.ms = null; block.error = '';
+  paintBlock(row, view);
+  paintRateGroup(row, view);
+}
+
+function blockError(row, view, text) {
+  const block = row.blocks[view];
+  block.body.textContent = '';
+  block.state = 'error'; block.shown = null; block.ms = null; block.error = text;
+  paintBlock(row, view);
+  paintRateGroup(row, view);
+}
+
+/* An output tile. Names are read when clicked, so a blind row's overlay and download
+   name its letter; star and download sit in `.actions`, hidden while a row is masked. */
+function cTile(row, o) {
+  const box = el('button', { class: 'svgbox', type: 'button', 'aria-label': 'Open large' });
+  putSvg(box, o.svg);
+  box.addEventListener('click', () => openOverlay({
+    title: rowName(row) + ' · ' + o.what, svg: o.svg, name: fileName(fileLabel(row), o.file),
+    input: o.input, inputLabel: o.inputLabel, outputLabel: rowName(row) + ' · ' + o.caption,
+  }));
+  const dl = el('button', { class: 'btn mini', type: 'button', title: 'Download SVG', 'aria-label': 'Download SVG', text: '↓ svg' });
+  dl.addEventListener('click', () => downloadSvg(o.svg, fileName(fileLabel(row), o.file)));
+  const star = starButton(o.key, () => ({ kind: 'latent', svg: o.svg, file: fileName(row.m.label || row.m.id, o.file), model: row.m.id, label: row.m.label, caption: o.fav }), true);
+  return el('div', { class: 'tile' }, box, el('div', { class: 'cap', text: o.caption }), el('div', { class: 'actions' }, dl, star));
+}
+
+function showBlock(row, view, p, data) {
+  const block = row.blocks[view], id = row.m.id;
+  let nodes;
+  if (view === 'interpolation') {
+    const frames = svgList(data, 'frames');
+    if (!frames || !frames.length) { blockError(row, view, data && data.ok === true ? 'no frames in the answer' : errText(data)); return; }
+    const n = frames.length;
+    nodes = [refTile(p.a, 'A · ' + p.a.annotation)];
+    frames.forEach((svg, i) => {
+      const step = (i + 1) + '/' + n;
+      nodes.push(cTile(row, {
+        svg, caption: 'frame ' + step,
+        what: 'interpolation ' + p.a.annotation + ' → ' + p.b.annotation + ' · frame ' + step,
+        file: 'interp-' + p.a.hexcode + '-' + p.b.hexcode + '-' + (i + 1) + 'of' + n,
+        key: 'l|' + id + '|interp|' + p.a.hexcode + '|' + p.b.hexcode + '|' + n + '|' + i + '|' + fnv(svg),
+        fav: p.a.hexcode + '→' + p.b.hexcode + ' ' + step,
+      }));
+    });
+    nodes.push(refTile(p.b, 'B · ' + p.b.annotation));
+  } else if (view === 'reconstruction') {
+    const svg = data && data.ok === true && typeof data.svg === 'string' && data.svg ? data.svg : null;
+    if (!svg) { blockError(row, view, data && data.ok === true ? 'no SVG in the answer' : errText(data)); return; }
+    nodes = [refTile(p.a, 'A · ' + p.a.annotation), cTile(row, {
+      svg, caption: 'decoded posterior mean',
+      what: 'reconstruction of ' + p.a.annotation + ' (' + p.a.hexcode + ')',
+      file: 'recon-' + p.a.hexcode,
+      input: renderUrl(p.a.hexcode), inputLabel: 'A · ' + p.a.annotation + ' (' + p.a.hexcode + '), rendered',
+      key: 'l|' + id + '|recon|' + p.a.hexcode + '|' + fnv(svg),
+      fav: 'recon ' + p.a.hexcode,
+    })];
+  } else {
+    const samples = svgList(data, 'samples');
+    if (!samples || !samples.length) { blockError(row, view, data && data.ok === true ? 'no samples in the answer' : errText(data)); return; }
+    const scale = p.scale.toFixed(1);
+    nodes = samples.map((svg, i) => cTile(row, {
+      svg, caption: '#' + (i + 1),
+      what: 'prior sample #' + (i + 1) + ' · seed ' + p.seed + ' · scale ' + scale,
+      file: 'sample-seed' + p.seed + '-x' + scale + '-' + (i + 1),
+      key: 'l|' + id + '|sample|' + p.seed + '|' + scale + '|' + i + '|' + fnv(svg),
+      fav: 'seed ' + p.seed + ' ×' + scale + ' #' + (i + 1),
+    }));
+  }
+  block.body.textContent = '';
+  block.body.append(...nodes);
+  block.state = 'done'; block.shown = p; block.token = ++C.tokens; block.error = '';
+  block.ms = isNum(data.ms) ? data.ms : null;
+  paintBlock(row, view);
+  paintRateGroup(row, view);
+}
+
+/* ------------------------------------------------ requests, one at a time */
+
+function sortQueue() {
+  const rank = new Map(displayRows().map((row, i) => [row, i]));
+  C.queue.sort((x, y) => (rank.get(x.row) - rank.get(y.row)) || (VIEWS.indexOf(x.view) - VIEWS.indexOf(y.view)));
+}
+
+function liveTasks() {
+  const queued = C.queue.filter(task => task.seq === C.seq[task.view]).length;
+  return queued + (C.current && C.current.seq === C.seq[C.current.view] ? 1 : 0);
+}
+
+function compareProgress() {
+  const node = $('c-progress');
+  if (!C.rows.length) { setStatus(node, ''); return; }
+  const live = liveTasks();
+  if (live) { setStatus(node, live + ' request' + (live === 1 ? '' : 's') + ' to go, one at a time', 'busy'); return; }
+  if (!C.started) { setStatus(node, 'Press Run to fill every row.'); return; }
+  const failed = C.rows.reduce((n, row) => n + VIEWS.filter(view => row.blocks[view].state === 'error').length, 0);
+  setStatus(node, failed ? failed + ' request' + (failed === 1 ? '' : 's') + ' failed; see the rows' : 'All rows done.', failed ? 'err' : '');
+}
+
+/* Queue `views` for every row with the current settings, replacing whatever of those
+   views was still waiting. A view that cannot run (A or B unset) is cleared instead. */
+function compareRun(views) {
+  if (!C.rows.length) return;
+  C.started = true;
+  for (const view of new Set(views)) {
+    const seq = ++C.seq[view];
+    C.dirty.delete(view);
+    C.queue = C.queue.filter(task => task.view !== view);
+    if (!viewReady(view)) { for (const row of C.rows) clearBlock(row, view); continue; }
+    const p = viewParams(view);
+    for (const row of C.rows) {
+      row.blocks[view].state = 'queued';
+      paintBlock(row, view);
+      paintRateGroup(row, view);
+      C.queue.push({ row, view, seq, p });
+    }
+  }
+  sortQueue();
+  compareProgress();
+  pumpCompare();
+}
+
+/* A change of settings: re-run what it affects once Compare has run and is showing;
+   while Single is showing, remember it and re-run on the way back. */
+function compareChanged(views) {
+  if (!C.started) { for (const row of C.rows) for (const view of views) paintBlock(row, view); return; }
+  if (C.mode !== 'compare') { for (const view of views) C.dirty.add(view); return; }
+  compareRun(views);
+}
+
+async function runTask(task) {
+  const { row, view, seq, p } = task;
+  const block = row.blocks[view], m = row.m;
+  block.state = 'running';
+  block.busyText = view === 'interpolation' ? 'decoding ' + p.steps + ' frames…' : view === 'samples' ? 'decoding ' + p.count + ' samples…' : 'decoding…';
+  paintBlock(row, view);
+  paintRateGroup(row, view);
+  const data = view === 'interpolation' ? await api('/latent/interpolate', { model: m.id, a: p.a.hexcode, b: p.b.hexcode, steps: p.steps })
+    : view === 'reconstruction' ? await api('/latent/reconstruct', { model: m.id, hexcode: p.a.hexcode })
+      : await api('/latent/sample', { model: m.id, count: p.count, seed: p.seed, scale: p.scale });
+  if (seq !== C.seq[view] || C.byId.get(m.id) !== row) return;
+  showBlock(row, view, p, data);
+}
+
+async function pumpCompare() {
+  if (C.busy) return;
+  C.busy = true;
+  try {
+    while (C.queue.length) {
+      const task = C.queue.shift();
+      if (task.seq !== C.seq[task.view]) continue;
+      C.current = task;
+      compareProgress();
+      try { await runTask(task); } catch (error) {
+        console.error(error);
+        if (task.seq === C.seq[task.view]) blockError(task.row, task.view, 'page error: ' + (error && error.message ? error.message : String(error)));
+      } finally { C.current = null; }
+    }
+  } finally {
+    C.busy = false;
+    compareProgress();
+  }
+}
+
+/* ------------------------------------------------ ratings */
+
+function summaryOf(id, view) {
+  const views = own(C.summary, id) ? C.summary[id] : null;
+  const s = views && typeof views === 'object' && own(views, view) ? views[view] : null;
+  return s && typeof s === 'object' && isNum(s.mean) && isNum(s.n) && s.n > 0 ? s : null;
+}
+
+function paintRateGroup(row, view) {
+  const group = row.rate.groups[view], block = row.blocks[view];
+  const ready = block.state === 'done' && !!block.shown && !group.busy;
+  group.buttons.forEach((button, i) => {
+    button.disabled = !ready;
+    const chosen = group.chosen && group.chosen.token === block.token && group.chosen.score === i + 1;
+    button.setAttribute('aria-pressed', chosen ? 'true' : 'false');
+  });
+  const s = summaryOf(row.m.id, view);
+  group.mean.textContent = !canSeeScores(row.m.id, view) ? 'mean hidden until you rate'
+    : C.ratings === null ? ''
+      : s ? 'mean ' + s.mean.toFixed(2) + ' · n ' + s.n : 'no ratings yet';
+}
+
+/* JSON.stringify writes 1.0 as 1; the contract types scale as a float, so it is written
+   with its decimal point. The key precedes `note`, so the first match is the key. */
+function ratingJson(body) {
+  const text = JSON.stringify(Object.assign({}, body, { scale: null }));
+  return isNum(body.scale) ? text.replace('"scale":null', '"scale":' + body.scale.toFixed(1)) : text;
+}
+
+async function rate(row, view, score) {
+  const block = row.blocks[view], group = row.rate.groups[view];
+  if (group.busy || block.state !== 'done' || !block.shown) return;
+  const p = block.shown, token = block.token;
+  const note = Array.from(row.rate.note.value.trim()).slice(0, 500).join(''); // code points, as the server counts
+  const body = {
+    model: row.m.id, view, score,
+    blind: masked(row),
+    seed: view === 'samples' ? p.seed : null,
+    scale: view === 'samples' ? p.scale : null,
+    a: view === 'samples' ? null : p.a.hexcode,
+    b: view === 'interpolation' ? p.b.hexcode : null,
+    steps: view === 'interpolation' ? p.steps : null,
+    note,
+  };
+  group.busy = true;
+  paintRateGroup(row, view);
+  setStatus(row.rate.status, 'saving…', 'busy');
+  const data = await api('/rating', ratingJson(body));
+  group.busy = false;
+  if (!data || data.ok !== true) {
+    if (masked(row)) console.warn('rating not saved:', errText(data));
+    setStatus(row.rate.status, 'not saved: ' + rowError(row, errText(data)), 'err');
+    paintRateGroup(row, view);
+    return;
+  }
+  group.chosen = { score, token };
+  if (body.blind) { // only blind ratings show the round's hidden means and unlock the reveal
+    const views = own(C.rated, row.m.id) ? plainObject(C.rated[row.m.id]) : {};
+    views[view] = true;
+    C.rated[row.m.id] = views;
+    tabStore.set(SKEYS.rated, C.rated);
+  }
+  if (note && row.rate.note.value.trim() === note) row.rate.note.value = '';
+  setStatus(row.rate.status, 'saved: ' + view + ' ' + score + (note ? ', with the note' : '') + (isNum(data.count) ? ' · ' + data.count + ' ratings in all' : ''), 'ok');
+  paintRowHead(row);
+  paintRateGroup(row, view);
+  paintReveal();
+  loadRatings();
+}
+
+async function loadRatings() {
+  const id = ++C.ratingsSeq;
+  const data = await api('/ratings');
+  if (id !== C.ratingsSeq) return;
+  if (data.ok === false || !Array.isArray(data.ratings)) {
+    C.ratings = null; C.summary = {}; C.ratingsError = errText(data);
+  } else {
+    C.ratings = data.ratings.filter(r => r && typeof r === 'object');
+    C.summary = plainObject(data.summary);
+    C.ratingsError = '';
+  }
+  for (const row of C.rows) for (const view of RATED_VIEWS) paintRateGroup(row, view);
+  renderRatingsPanel();
+}
+
+function ratingWhen(at) {
+  const when = typeof at === 'string' ? new Date(at) : null;
+  if (!when || Number.isNaN(when.getTime())) return String(at || '');
+  return when.toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+function ratingSettings(r) {
+  if (r.view === 'samples') return 'seed ' + r.seed + (isNum(r.scale) ? ' · scale ' + r.scale.toFixed(1) : '');
+  if (r.view === 'interpolation') return (r.a || '?') + ' → ' + (r.b || '?') + (isNum(r.steps) ? ' · ' + r.steps + ' steps' : '');
+  if (r.view === 'reconstruction') return String(r.a || '');
+  return '';
+}
+/* The server's means count only the model's current run; a rating of an earlier run
+   under the same id is listed, and marked. */
+function ratingModel(r) {
+  const row = C.byId.get(r.model);
+  const m = row ? row.m : MODELS.find(x => x.id === r.model);
+  const name = row ? rowName(row) : m ? (m.label || m.id) : String(r.model);
+  const earlier = m && typeof r.run_id === 'string' && typeof m.run_id === 'string' && r.run_id !== m.run_id && !(row && masked(row));
+  return earlier ? name + ' (earlier run)' : name;
+}
+
+function renderRatingsPanel() {
+  const list = $('ratings-list');
+  list.textContent = '';
+  if (C.ratings === null) {
+    $('ratings-count').textContent = '';
+    list.append(el('p', { class: 'note', text: C.ratingsError ? 'Could not load ratings: ' + C.ratingsError : 'Not loaded yet.' }));
+    return;
+  }
+  const all = C.ratings;
+  $('ratings-count').textContent = '(' + all.length + ')';
+  if (!all.length) { list.append(el('p', { class: 'note', text: 'No ratings yet.' })); return; }
+  const shown = [];
+  let hidden = 0;
+  for (let i = all.length - 1; i >= 0; i--) {
+    const r = all[i];
+    if (typeof r.model === 'string' && !canSeeScores(r.model, r.view)) { hidden++; continue; }
+    if (shown.length < RATINGS_SHOWN) shown.push(r);
+  }
+  if (shown.length) {
+    const body = el('tbody');
+    for (const r of shown) {
+      body.append(el('tr', null,
+        el('td', { text: ratingWhen(r.at) }),
+        el('td', { text: ratingModel(r) }),
+        el('td', { text: String(r.view || '') }),
+        el('td', { text: isNum(r.score) ? r.score + '/5' : '' }),
+        el('td', { text: r.blind === true ? 'blind' : '' }),
+        el('td', { text: ratingSettings(r) }),
+        el('td', { class: 'rnote', text: typeof r.note === 'string' ? r.note : '' })));
+    }
+    const head = el('tr', null, ...['when', 'model', 'view', 'score', '', 'settings', 'note'].map(t => el('th', { text: t })));
+    list.append(el('div', { class: 'rtable-wrap' }, el('table', { class: 'rtable' }, el('thead', null, head), body)));
+  }
+  const visible = all.length - hidden;
+  if (visible > shown.length) list.append(el('p', { class: 'note', text: 'Showing the latest ' + shown.length + ' of ' + visible + '.' }));
+  if (hidden) list.append(el('p', { class: 'note', text: hidden + ' rating' + (hidden === 1 ? '' : 's') + ' hidden while blind: views you have not rated blind in this round.' }));
+}
+
+$('mode-compare').addEventListener('click', () => setMode('compare', true));
+$('mode-single').addEventListener('click', () => setMode('single', true));
+$('c-run').addEventListener('click', () => compareRun(VIEWS));
+$('c-steps').addEventListener('input', () => { $('c-steps-v').textContent = String(cSteps()); });
+$('c-steps').addEventListener('change', () => compareChanged(['interpolation']));
+$('c-seed').addEventListener('change', () => { cSeed(); compareChanged(['samples']); });
+$('c-new-seed').addEventListener('click', () => { $('c-seed').value = String(Math.floor(Math.random() * 1000000)); compareRun(['samples']); });
+$('c-scale').addEventListener('input', () => { $('c-scale-v').textContent = cScale().toFixed(1); });
+$('c-scale').addEventListener('change', () => compareChanged(['samples']));
+$('c-count').addEventListener('change', () => { store.set(KEYS.count, cCount()); compareChanged(['samples']); });
+$('c-tile').addEventListener('change', () => setCompareTile($('c-tile').value));
+$('c-blind').addEventListener('change', () => {
+  const on = $('c-blind').checked, starting = on && !C.blind;
+  setBlind(on, true);
+  if (starting) newBlindRound(); // what the rows show was seen with names
+});
+$('c-reveal').addEventListener('click', () => reveal());
+$('c-round').addEventListener('click', () => newBlindRound());
+$('ratings-refresh').addEventListener('click', () => loadRatings());
 
 /* ---------------------------------------------------------------- keyboard */
 
@@ -1045,6 +1777,7 @@ async function init() {
   buildCards();
   buildLatentModels();
   renderSlots();
+  if (LATENTS.length) loadRatings();
   setStatus($('progress'), TRANSCRIBERS.length + ' transcribers ready.');
   await searches;
   const saved = store.get(KEYS.icon, null);
@@ -1059,6 +1792,11 @@ $('auto').checked = store.get(KEYS.auto, true) !== false;
 selectTab(store.get(KEYS.tab, 'transcribers'));
 renderFavs();
 updateLatentButtons();
+setCompareTile(store.get(KEYS.ctile, 128));
+$('c-count').value = store.get(KEYS.count, 8) === 4 ? '4' : '8';
+setBlind(store.get(KEYS.blind, false) === true, false);
+setMode(savedMode() || 'compare', false);
+renderRatingsPanel();
 init();
 </script>
 </body>
