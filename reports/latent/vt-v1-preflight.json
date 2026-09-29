@@ -1,0 +1,66 @@
+{
+  "config": "configs/latent/vt-v1.yaml",
+  "git_commit": "6992c6433236b3a18021915d6c1449e18e9a84e0",
+  "uncommitted_sources": [],
+  "parent_checkpoint": "/home/dev/.cache/mojidiff/runs/r2s-full-v9-colour-621bc8e-b26ad95e-47646604/best.pt",
+  "parent_checkpoint_sha256": "8bfedc8a7085b1bf9950b35f52c275abce8112dc13e3ef5ff07490f66215d2f8",
+  "dataset_sha256": "476466042da98d72c2bf2774cecc18f08d50a362eefbecae97904bde7a04ef0e",
+  "icons": 64,
+  "precision": "IEEE float32 greedy decoding (TF32 off: matmul and cuDNN); pixel metrics at 72 px",
+  "pca": {
+    "icons": 2681,
+    "cells": 868644,
+    "explained_variance": {
+      "1": 0.20320924704616036,
+      "2": 0.2958116728262245,
+      "4": 0.3973277208136002,
+      "8": 0.5450375475430687,
+      "16": 0.7067984697688607,
+      "32": 0.8540104568007753,
+      "64": 0.9540924202949284
+    }
+  },
+  "v9_pixel_error": [
+    0.0730072035221383,
+    0.06515028312278445,
+    0.08187375873385463
+  ],
+  "rank_8": {
+    "explained_variance": 0.5450375475430687,
+    "pixel_error": [
+      0.11636608914704993,
+      0.10589148753060726,
+      0.12861287490086398
+    ],
+    "minus_v9": [
+      0.043358885624911636,
+      0.03306330873965635,
+      0.054704071691958234
+    ],
+    "initial_kl_nats_per_icon": 7696.248046875
+  },
+  "rank_16": {
+    "explained_variance": 0.7067984697688607,
+    "pixel_error": [
+      0.10885781893739477,
+      0.09617729145393242,
+      0.12365103704360081
+    ],
+    "minus_v9": [
+      0.03585061541525647,
+      0.02324682169346488,
+      0.050189791038428674
+    ],
+    "initial_kl_nats_per_icon": 15471.3994140625
+  },
+  "seconds": 31.44318337191362,
+  "float32_flags": {
+    "matmul_allow_tf32": false,
+    "cudnn_allow_tf32": false,
+    "float32_matmul_precision": "highest",
+    "tf32_cublas_override_variable": "1"
+  },
+  "rule": "rank-8 error <= 0.12: c = 8; else rank-16 error <= 0.12: c = 16; else no declared outcome (the operator decides)",
+  "chosen_channels": 8,
+  "rule_outcome": "rank-8 error 0.1164 <= 0.12: c = 8"
+}
