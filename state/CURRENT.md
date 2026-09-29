@@ -63,13 +63,16 @@ Verified by the tests in `tests/test_render2svg.py`, `test_fast_decode.py`,
 
 ## Active jobs
 
-No training. Serving only, in tmux on gpubox-4080:
+In tmux on gpubox-4080; logs under `/home/dev/.cache/mojidiff/`:
 
-1. `vectorise`: the demo on http://100.69.189.78:8790/ serving v9's best checkpoint
-   (better than v7 on validation by 0.0045 paired, colours fixed; greedy or best of 8).
-2. `gallery`: every trained model side by side on http://100.69.189.78:8791/
-   (`scripts/serve_gallery.py`; ten transcribers plus the two latent models).
-3. `weblog`: http://100.69.189.78:8787/.
+1. `latent-v3`: `configs/latent/latent-v3-blind.yaml` (coordinate-blind decoder, one change
+   from latent-v2), log `latent-v3-blind.log`, ends with `EXIT=`.
+2. A build workflow (not tmux): the latent metrics harness and the canvas latent
+   (variational v9, stage A) with its gallery backend; nothing is trained by it.
+3. `gallery`: http://100.69.189.78:8791/ - every model; latent Compare mode with blind
+   rating (ratings append to `reports/gallery/ratings.jsonl`); registry
+   `configs/gallery/models.yaml`.
+4. `vectorise`: http://100.69.189.78:8790/ (v9). 5. `weblog`: http://100.69.189.78:8787/.
 
 ## Artifact durability
 
