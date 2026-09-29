@@ -1,0 +1,83 @@
+# The canvas latent, stage A (latent plan, section 2, arm 2): v9 with a stochastic
+# per-cell bottleneck. One factor against v9: its stem output passes through an
+# 18 x 18 x c Gaussian latent held at a KL budget of C = 2,000 nats per icon by a beta
+# controller. Everything else is v9's: the model block, codec, splits, 144 px input,
+# batch 32, bf16, dropout 0.1, and the whole online stream (augment_colour 0.1,
+# compose 0.5, mirror 0.5, shift 48, 16 loader workers). Initialised from v9's best
+# checkpoint; the down/up projections from the top-c PCA directions of v9's stem
+# features over the training renders, log-variance bias -6.
+#
+# c = 8 is the proposal's value, pending the pre-flight (no training, ~1.2 GB peak):
+#   .venv/bin/python -m mojidiff.learning.pixel_latent --config configs/latent/vt-v1.yaml --preflight
+# which writes `preflight_report` below and never overwrites it.
+# Declared rule: if v9 decoding 64 validation icons with its stem projected to rank 8
+# (IEEE float32 greedy, TF32 off) has pixel error above 0.12, set channels: 16 here, and
+# c = 16 in the hypothesis, before the run. If rank 16 is also above 0.12 the rule has
+# no declared outcome (the report's chosen_channels is null): the operator decides.
+# A real run refuses to start unless that report exists, matches this parent and data,
+# and chose `canvas.channels`, which the hypothesis must name first ("c = N").
+# The pre-flight has NOT been run yet (GPU memory was short when this file was written).
+schema_version: 1
+slug: vt-v1
+parent_run: r2s-full-v9-colour-621bc8e-b26ad95e-47646604
+parent_checkpoint: /home/dev/.cache/mojidiff/runs/r2s-full-v9-colour-621bc8e-b26ad95e-47646604/best.pt
+hypothesis: >-
+  A variational transcriber - v9 whose 18 x 18 stem grid passes through a per-cell
+  Gaussian latent (c = 8 channels) held at a KL budget of C = 2,000 nats per icon -
+  keeps v9's persistent spatial record of what is still undrawn and so reconstructs
+  held-out icons from its posterior mean close to v9, while its latent is smooth at
+  the posterior scale. Pass, on the first 339 validation icons, IEEE float32 (TF32
+  off) greedy decoding, 72 px pixel error, bootstrap intervals, all comparisons
+  paired, requires A1 and A3; A2 is a collapse check. (A1) reconstruction from mu is
+  non-inferior to v9 re-decoded in float32 on the same icons - the upper 95% bound of
+  (VT - v9) is at most +0.015 - and beats the nearest training render or its mirror
+  (every model trains with mirrors), the 95% interval on the reduction excluding zero.
+  (A2) held-out KL within [0.8C, 1.2C] = [1,600, 2,400] nats per icon with beta above
+  its floor of 1e-4; the controller enforces this band, so it detects collapse and is
+  not evidence of anything else. (A3) decoding one posterior sample instead of mu
+  costs at most 0.010 pixel error, paired mean. Reported without a criterion: the z =
+  0 decode, N(0, I) samples as the prior-hole control (ink coverage, distinct,
+  rendered), 8 lerp strips of posterior means (a canvas dissolve), graph-decoder
+  latency. Decision: A1 and A3 pass - fit the flow prior (arm 3, lfp-v1). A1 fails -
+  run once more at c = 16 under a new run identity; a second failure stops the canvas
+  line.
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+# Must equal the parent checkpoint's config; the run refuses to start otherwise.
+model: {image_size: 144, d_model: 256, heads: 8, encoder_layers: 2, decoder_layers: 6, feedforward: 1024, dropout: 0.1, metric: true, fourier: 10, order: path}
+canvas:
+  channels: 8  # pending the pre-flight rule above
+  budget_nats: 2000
+  beta_initial: 0.0001
+  beta_min: 0.0001
+  beta_max: 1.0
+  beta_rate: 0.01
+  kl_ema_decay: 0.9
+  band_low: 0.8
+  band_high: 1.2
+  log_variance_bias: -6.0
+  pca_icons: null  # every training render
+training:
+  steps: 30000
+  batch_size: 32
+  learning_rate: 0.0003
+  warmup_steps: 500
+  seed: 7001
+  eval_every: 2000
+  eval_icons: 64
+  # v9's stream, field for field (tests/test_pixel_latent.py checks it).
+  augment_online: true
+  augment_original: 0.1
+  loader_workers: 16
+  compose_probability: 0.5
+  compose_parts: 4
+  augment_mirror: 0.5
+  augment_max_shift: 48
+  augment_colour: 0.1
+eval_icons: 339
+prior_samples: 64
+interpolation_pairs: 8
+interpolation_frames: 9
+non_inferiority_margin: 0.015
+sample_cost_margin: 0.010
+trace_every: 50
+preflight_report: reports/latent/vt-v1-preflight.json

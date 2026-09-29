@@ -3798,3 +3798,40 @@ the latent for geometry.
 blind to every earlier coordinate in training and decoding
 (`LatentSettings.blind_coordinates`; the graph decoder honours it, tested to agree with
 the reference exactly).
+
+## 2026-09-29 — Split issue: 24 held-out icons are near-exact twins of training icons
+
+The split is family-disjoint, but families do not capture every duplicate. Measured on
+the 339 validation icons against the 2,681 training renders and their mirror images
+(72 px, the smallest mean absolute error over shifts of up to 12 units in steps of 4):
+24 validation icons (7%) lie within 0.002 of a training render, 15 of them only as its
+mirror image. Without shifts, 24 lie within 0.002 with mirrors and 9 without.
+
+- Mirrors (15): 12 icons of the 1F6B6 family (person and woman walking, every tone)
+  against their `27A1` "facing right" twins in training; 1F12F (copyleft) against 00A9 (copyright);
+  1F313 against 1F317 (moon quarters); 1FBC7 against 1FBC8.
+- Identical renders (9): 1F469-*-1F9B2 (woman, bald, 6 tones) against 1F468-*-1F9B2
+  (man, bald); 1F7EB (brown square) against 1F3FF (dark skin-tone swatch); 1F608 against
+  1F47F; 2639 against 1F641.
+
+Every model trains with `augment_mirror: 0.5`, so for every model these 24 icons are
+effectively training data. Consequences:
+
+- The latent harness's copy threshold, as declared (the validation icons' 5th percentile
+  of aligned error), fell inside this cluster at 0.00057, so a "copy" meant a
+  pixel-identical render and the copy-based criteria (M3, B3, B4) could not fail in
+  practice. `latent_metrics` now lists the twins in every report's calibration and
+  requires `--copy-rule`: `declared` (as written) or `without-twins` (the same
+  percentiles over the 315 other icons: cosine 0.988, aligned error 0.0188). The
+  operator chooses and records the rule before any of those criteria are scored.
+- The nearest-training-icon baseline without mirrors overstated the error of retrieval:
+  mean 0.0897 without mirrors, 0.0849 with them. The harness and `pixel_latent` (vt-v1's
+  A1) now search mirrors too and keep the mirror-free value beside it.
+- Reconstruction numbers on the validation split include these 24 icons; earlier run
+  records are unchanged. A twin-free validation subset is a candidate for later
+  reporting, not applied retroactively.
+
+**Copy rule, chosen (2026-09-29).** `without-twins` is the primary rule for every
+copy-based criterion from here on: it is the stricter of the two (it flags more samples
+as copies), so a novelty claim made under it cannot be flattered by the threshold. The
+`declared` rule is reported beside it in every harness report.

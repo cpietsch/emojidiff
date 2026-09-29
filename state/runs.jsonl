@@ -303,3 +303,5 @@
 {"result_file":"runs/latent-v2-kl-efbd2e2-451268e6-47646604/result.md","run_id":"latent-v2-kl-efbd2e2-451268e6-47646604","state":"completed","timestamp":"2026-09-28T05:03:05Z"}
 {"config":"configs/render2svg/full-v9-colour.yaml","run_id":"r2s-full-v9-colour-621bc8e-b26ad95e-47646604","slug":"r2s-full-v9-colour","state":"running","timestamp":"2026-09-28T05:03:17Z"}
 {"result_file":"runs/r2s-full-v9-colour-621bc8e-b26ad95e-47646604/result.md","run_id":"r2s-full-v9-colour-621bc8e-b26ad95e-47646604","state":"completed","timestamp":"2026-09-28T06:31:00Z"}
+{"config":"configs/latent/latent-v3-blind.yaml","run_id":"latent-v3-blind-e254c16-9c7db490-47646604","slug":"latent-v3-blind","state":"running","timestamp":"2026-09-29T12:22:11Z"}
+{"result_file":"runs/latent-v3-blind-e254c16-9c7db490-47646604/result.md","run_id":"latent-v3-blind-e254c16-9c7db490-47646604","state":"completed","timestamp":"2026-09-29T13:20:52Z"}

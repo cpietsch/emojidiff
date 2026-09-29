@@ -1,0 +1,118 @@
+schema_version: 2
+run_id: latent-v3-blind-e254c16-9c7db490-47646604
+state: completed
+planned_at: '2026-09-29T12:22:11Z'
+hypothesis: 'Blind to earlier coordinates, the decoder must take geometry from the latent.
+  Pass, against latent-v2 on the 339 validation icons: (1) at most 15% of reconstructed paths
+  span under half a unit (latent-v2 57%); (2) reconstruction pixel error improves on latent-v2''s,
+  paired, interval excluding zero, to 0.140 or less; (3) prior samples all distinct. The earlier
+  criteria are kept below and still reported: A variational autoencoder over codec programs,
+  trained on the 2,681 training icons and their compositions, keeps information in its 64-dimensional
+  latent. Pass requires (1) reconstruction pixel error on the 339 validation icons below the
+  error of the single prior-mean decode, paired, with the 95% interval on the reduction excluding
+  zero; (2) at least 29 of 32 prior samples distinct. Reported without a criterion: reconstruction
+  against the nearest training icon, interpolation and prior-sample sheets, and decode latency.'
+parent_run: latent-v2-kl
+git_commit: e254c16811d51ba88ae6d38b2d82f7161bfb1477
+dirty_patch_sha256: ''
+config_sha256: 9c7db490a2fe6b32764154348b5046ae972230169791beb769da09d782d73837
+config: configs/latent/latent-v3-blind.yaml
+config_resolved:
+  model:
+    image_size: 144
+    d_model: 256
+    heads: 8
+    encoder_layers: 2
+    decoder_layers: 6
+    feedforward: 1024
+    dropout: 0.1
+    metric: true
+    fourier: 10
+    order: path
+  latent:
+    latent_dim: 64
+    memory_tokens: 16
+    encoder_layers: 3
+    beta: 0.1
+    beta_warmup_fraction: 0.3
+    free_bits: 0.5
+    input_dropout: 0.25
+    blind_coordinates: true
+  training:
+    steps: 30000
+    batch_size: 32
+    learning_rate: 0.0005
+    weight_decay: 0.01
+    warmup_steps: 1000
+    seed: 7001
+    eval_every: 2000
+    eval_icons: 64
+    train_icons: null
+    evaluate_on_train: false
+    augment_variants: 0
+    augment_seed: 9001
+    augment_mirror: 0.5
+    augment_max_shift: 48
+    augment_colour: 0.5
+    augment_online: true
+    compose_probability: 0.5
+    compose_parts: 4
+    augment_original: 0.1
+    loader_workers: 12
+    extra_training: []
+    bf16: true
+dataset:
+  pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+  cache_sha256: 476466042da98d72c2bf2774cecc18f08d50a362eefbecae97904bde7a04ef0e
+  train_icons: 2681
+  evaluated_on: primary/validation
+seed: 7001
+determinism: seeded; cuDNN and SDPA kernels not forced deterministic
+model_parameters: 10114082
+command: .venv/bin/python -m mojidiff.learning.latent --config configs/latent/latent-v3-blind.yaml
+outputs:
+  run_dir: runs/latent-v3-blind-e254c16-9c7db490-47646604
+  checkpoints: /home/dev/.cache/mojidiff/runs/latent-v3-blind-e254c16-9c7db490-47646604
+completed_at: '2026-09-29T13:20:52Z'
+resource:
+  device: NVIDIA GeForce RTX 4080
+  torch_version: 2.14.0a0+4fdf77b940.nv26.08
+  cuda_version: '13.4'
+  python_version: 3.12.3
+  peak_vram_gib: 5.32373571395874
+  train_seconds: 3422.7700097779743
+  inference_ms_per_icon: 579.3265455286019
+  inference_p95_ms_per_icon: 579.9213430145755
+  icons_per_second: 1.726142203767925
+  decoder: fast_decode.GraphDecoder, float32, batch 1, from a latent
+  decoder_calls: 459
+  excludes: rasterising the output SVG
+  note: measured while other GPU work may be running; see gpu load at the time
+baselines:
+  nearest_training_icon_pixel_error: 0.08973124639576185
+  note: retrieval stores every training icon; the latent stores 64 numbers
+result:
+  icons: 339
+  reconstruction_pixel_error:
+  - 0.17333034218280716
+  - 0.1666632787217345
+  - 0.18015682739439176
+  nearest_training_icon_pixel_error:
+  - 0.08973124639576185
+  - 0.0848205749792233
+  - 0.09466393787711656
+  prior_mean_decode_pixel_error:
+  - 0.19317802360451677
+  - 0.1890661415404978
+  - 0.19739498853639517
+  latent_minus_prior_mean_error_reduction:
+  - 0.019847681421709625
+  - 0.015591162248654703
+  - 0.024176434387389714
+  exact_reconstruction_rate: 0.0
+  prior_samples:
+    count: 32
+    distinct: 32
+    rendered: 32
+    median_pixel_distance_to_nearest_training_icon: 0.09575679898262024
+  selected_step: 10000

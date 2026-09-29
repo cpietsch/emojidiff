@@ -25,6 +25,13 @@ backend, all frames decoded in one batch. The gallery runs `encode`, `decode`,
 `decode_one` and `sample` under its global GPU lock, so a backend may use the device in
 any of them.
 
+Precision. Both backends encode and decode in IEEE float32 (`precision.strict_float32`,
+TF32 off) and capture their CUDA graphs that way: with TF32 on, a latent's greedy decode
+often depends on the batch it sits in, so the same latent would decode differently in a
+sample grid, an interpolation strip, a single reconstruction and the metrics harness.
+IEEE float32 rounding can still differ between batch shapes, far more rarely. A new
+backend should do the same.
+
 Adding a backend
 ----------------
 1. Write a class with the members above.
@@ -38,6 +45,14 @@ Adding a backend
    `backend: <name>`, and restart the gallery. Nothing in the server changes.
 
 An unknown backend name, or a missing checkpoint, stops the gallery at startup.
+
+Backends
+--------
+* `vae` - `LatentToProgram` (latent v1, v2): a program encoder's posterior mean, one
+  64-number vector, the N(0, I) prior.
+* `canvas` - `pixel_latent.VariationalTranscriber` (vt): the posterior mean of the
+  icon's render, a (c, 18, 18) grid, and N(0, I) - the prior-hole control until a
+  learned prior over the grid exists (a flow prior is a backend of its own).
 """
 
 from __future__ import annotations
@@ -50,6 +65,8 @@ from torch import Tensor
 
 from mojidiff.learning.autoregressive import SequenceLayout
 from mojidiff.learning.latent import LatentSettings, LatentToProgram
+from mojidiff.learning.pixel_latent import VariationalTranscriber, load_checkpoint
+from mojidiff.learning.precision import strict_float32
 from mojidiff.learning.render2svg import ModelConfig, RenderToProgram, greedy_decode
 
 
@@ -98,7 +115,8 @@ def vae_model(state: Mapping[str, Any], layout: SequenceLayout) -> LatentToProgr
 
 class VaeBackend:
     """`LatentToProgram` (latent v1, v2): a program encoder's posterior mean, a
-    vector latent, the N(0, I) prior, and a float32 CUDA graph for single decodes."""
+    vector latent, the N(0, I) prior, and an IEEE float32 CUDA graph for single
+    decodes; everything in IEEE float32 (TF32 off)."""
 
     def __init__(self, model: LatentToProgram, *, graphs: bool = True) -> None:
         self.model = model.eval()
@@ -107,20 +125,24 @@ class VaeBackend:
         if graphs and next(model.parameters()).device.type == "cuda":
             from mojidiff.learning.fast_decode import GraphDecoder
 
-            # Float32 graphs decode exactly what the evaluated batched decoder decodes.
-            self.graph = GraphDecoder(model, dtype=torch.float32)
+            # Captured with TF32 off, as the batched decoder runs (see Precision above).
+            with strict_float32():
+                self.graph = GraphDecoder(model, dtype=torch.float32)
 
     def encode(self, tokens: Tensor, images: Tensor) -> Tensor:
-        mean, _ = self.model.posterior(tokens)
+        with strict_float32():
+            mean, _ = self.model.posterior(tokens)
         return mean
 
     def decode(self, latents: Tensor) -> Tensor:
-        return greedy_decode(self.model, latents)
+        with strict_float32():
+            return greedy_decode(self.model, latents)
 
     def decode_one(self, latent: Tensor) -> Tensor:
-        if self.graph is None:
-            return greedy_decode(self.model, latent[None])[0]
-        return cast(Tensor, self.graph.decode(latent))[0]
+        with strict_float32():
+            if self.graph is None:
+                return greedy_decode(self.model, latent[None])[0]
+            return cast(Tensor, self.graph.decode(latent))[0]
 
     def sample(self, count: int, generator: torch.Generator, scale: float) -> Tensor:
         return scale * torch.randn(count, *self.latent_shape, generator=generator)
@@ -132,7 +154,53 @@ def _vae(state: Mapping[str, Any], layout: SequenceLayout, device: torch.device)
     return VaeBackend(vae_model(state, layout).to(device))
 
 
+# --------------------------------------------------------------------------- canvas
+
+
+class CanvasBackend:
+    """`VariationalTranscriber` (vt): an icon's render encodes to its posterior mean, a
+    (c, 18, 18) latent grid; the prior is N(0, I), the prior-hole control until a
+    learned prior exists; single decodes go through an IEEE float32 CUDA graph;
+    everything in IEEE float32 (TF32 off), as the run's own evaluation decodes."""
+
+    def __init__(self, model: VariationalTranscriber, *, graphs: bool = True) -> None:
+        self.model = model.eval()
+        self.latent_shape: tuple[int, ...] = model.latent_shape
+        self.graph: Any = None
+        if graphs and next(model.parameters()).device.type == "cuda":
+            from mojidiff.learning.fast_decode import GraphDecoder
+
+            # Captured with TF32 off, as the batched decoder runs (see Precision above).
+            with strict_float32():
+                self.graph = GraphDecoder(model, dtype=torch.float32)
+
+    def encode(self, tokens: Tensor, images: Tensor) -> Tensor:
+        with strict_float32():
+            mean, _ = self.model.posterior(images)
+        return mean
+
+    def decode(self, latents: Tensor) -> Tensor:
+        with strict_float32():
+            return greedy_decode(self.model, latents)
+
+    def decode_one(self, latent: Tensor) -> Tensor:
+        with strict_float32():
+            if self.graph is None:
+                return greedy_decode(self.model, latent[None])[0]
+            return cast(Tensor, self.graph.decode(latent))[0]
+
+    def sample(self, count: int, generator: torch.Generator, scale: float) -> Tensor:
+        return scale * torch.randn(count, *self.latent_shape, generator=generator)
+
+
+def _canvas(
+    state: Mapping[str, Any], layout: SequenceLayout, device: torch.device
+) -> CanvasBackend:
+    return CanvasBackend(load_checkpoint(state, layout).to(device))
+
+
 BACKENDS: dict[str, BackendFactory] = {
     "vae": _vae,
+    "canvas": _canvas,
 }
 """Backend name, as `backend:` in the registry file, to its factory."""

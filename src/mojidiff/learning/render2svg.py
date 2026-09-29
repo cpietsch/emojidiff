@@ -1820,6 +1820,21 @@ def _git(*args: str) -> str:
     ).stdout
 
 
+SOURCE_ROOTS = ("src", "configs", "tests")
+"""Where a run's code and configuration live; `uncommitted_sources` checks them."""
+
+
+def uncommitted_sources(roots: Sequence[str] = SOURCE_ROOTS) -> list[str]:
+    """`git status --porcelain` lines for every untracked or changed file under `roots`.
+
+    `run_identity` names a commit and hashes `git diff HEAD`, which leaves untracked
+    files out: a run started with any of these would not be identified by its record.
+    """
+
+    status = _git("status", "--porcelain", "--untracked-files=all", "--", *roots)
+    return [line for line in status.splitlines() if line.strip()]
+
+
 def run_identity(config_path: Path, dataset_hash: str, slug: str) -> dict[str, str]:
     commit = _git("rev-parse", "HEAD").strip()
     dirty = _git("diff", "HEAD")

@@ -23,7 +23,13 @@ from PIL import Image
 
 import mojidiff.gallery.server as gallery_server
 import mojidiff.learning.render2svg as render2svg
-from mojidiff.gallery.latent_backends import BACKENDS, LatentBackend, VaeBackend, vae_model
+from mojidiff.gallery.latent_backends import (
+    BACKENDS,
+    CanvasBackend,
+    LatentBackend,
+    VaeBackend,
+    vae_model,
+)
 from mojidiff.gallery.server import (
     BASELINE_PIXEL_ERROR,
     ICON_FIELDS,
@@ -52,6 +58,7 @@ from mojidiff.learning.openmoji_pilot import (
     load_openmoji_pilot_config,
     load_pilot_index,
 )
+from mojidiff.learning.pixel_latent import CanvasSettings, VariationalTranscriber, checkpoint_state
 from mojidiff.learning.render2svg import (
     ModelConfig,
     RenderToProgram,
@@ -518,6 +525,63 @@ def test_a_second_backend_plugs_in_by_a_registry_entry_alone(
     monkeypatch.setattr(backend, "sample", lambda count, generator, scale: torch.zeros(count, 8))
     with pytest.raises(RuntimeError, match=r"'grid' of 'g1': sample returned shape \(2, 8\)"):
         served.sample("g1", 2, seed=0, scale=1.0)
+
+
+def test_the_canvas_backend_serves_a_variational_transcriber(
+    gallery: Gallery, parts: Parts, tmp_path: Path
+) -> None:
+    """A VT checkpoint loads through the `canvas` backend by a registry entry: held-out
+    renders encode to posterior-mean grids, and reconstruction, interpolation and
+    N(0, I) sampling answer what the model's own greedy decoder answers."""
+
+    layout, template, programs = parts
+    torch.manual_seed(0)
+    # The gallery hands latent encoders 144 px renders, so the tiny model reads 144 px.
+    config = ModelConfig(**{**asdict(_tiny()), "image_size": 144})
+    model = VariationalTranscriber(layout, config, CanvasSettings(channels=2)).eval()
+    checkpoint = tmp_path / "best.pt"
+    torch.save(checkpoint_state(model, 5), checkpoint)
+    registry = _write_registry(tmp_path / "models.yaml", [_entry(id="c1", backend="canvas")])
+    (spec,) = load_registry(registry)
+    backend, extras = load_model(spec, layout, torch.device("cpu"), checkpoint=checkpoint)
+    assert isinstance(backend, CanvasBackend) and isinstance(backend, LatentBackend)
+    assert backend.latent_shape == (2, 18, 18) and backend.graph is None
+    assert extras["step"] == 5 and "model" not in extras
+    served = Gallery(
+        [(spec, backend)],
+        template,
+        programs,
+        torch.device("cpu"),
+        icons=gallery.icons,
+        runs_root=tmp_path,
+    )
+    first, second = sorted(programs)
+    images = torch.stack(
+        [
+            torch.from_numpy(
+                render_trusted_rgb(_svg_of(programs[code], template, layout).encode(), 144)
+            )
+            for code in (first, second)
+        ]
+    )
+    with torch.no_grad():
+        means, _ = model.posterior(images)
+        # Reconstruction reads the posterior mean: through the render or the grid alike.
+        reconstruction = greedy_decode(model, images[:1])
+        assert torch.equal(greedy_decode(model, means[:1]), reconstruction)
+        weights = torch.linspace(0.0, 1.0, 4).view(4, 1, 1, 1)
+        frames = greedy_decode(model, (1.0 - weights) * means[0] + weights * means[1])
+        draws = 0.5 * torch.randn(3, 2, 18, 18, generator=torch.Generator().manual_seed(5))
+        samples = greedy_decode(model, draws)
+    assert served.reconstruct("c1", first)["svg"] == _svg_of(reconstruction[0], template, layout)
+    assert served.interpolate("c1", first, second, 4)["frames"] == [
+        _svg_of(row, template, layout) for row in frames
+    ]
+    answered = served.sample("c1", 3, seed=5, scale=0.5)["samples"]
+    assert answered == [_svg_of(row, template, layout) for row in samples]
+    for svg in answered:
+        _valid(svg)
+    assert "canvas" in BACKENDS
 
 
 # --------------------------------------------------------------------------- ratings
