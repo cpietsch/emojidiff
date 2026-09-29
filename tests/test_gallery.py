@@ -173,13 +173,17 @@ def test_registry_lists_every_model_once_in_display_order() -> None:
         assert spec.checkpoint.name == "best.pt" and spec.checkpoint.parent.name == spec.run_id
 
 
-def test_registry_file_lists_exactly_the_twelve_models() -> None:
-    """The file the server loads is the twelve models, ids, order, labels, descriptions
-    and backends included; the default load reads it, and every checkpoint exists."""
+def test_registry_file_keeps_the_original_models_and_every_checkpoint_exists() -> None:
+    """The registry grows as latent models are trained: it keeps the original twelve
+    exactly (ids, labels, descriptions, backends, relative order), the default load reads
+    it, ids are unique, and every listed checkpoint exists."""
 
-    assert load_registry(REGISTRY) == MODELS
-    assert registry_models() == MODELS
-    assert all(spec.checkpoint.is_file() for spec in load_registry(REGISTRY))
+    specs = load_registry(REGISTRY)
+    assert registry_models() == specs
+    kept = [spec for spec in specs if spec.id in {model.id for model in MODELS}]
+    assert tuple(kept) == MODELS
+    assert len({spec.id for spec in specs}) == len(specs)
+    assert all(spec.checkpoint.is_file() for spec in specs)
 
 
 def _entry(**changes: Any) -> dict[str, Any]:

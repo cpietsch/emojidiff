@@ -80,6 +80,13 @@ models:
   label: overfit fixture
   description: trained on 4 icons only - draws one of them whatever you show it
 
+- id: l3
+  run_id: latent-v3-blind-e254c16-9c7db490-47646604
+  kind: latent
+  backend: vae
+  label: latent v3 blind
+  description: VAE, beta 0.1, decoder blind to earlier coordinates - geometry must come from the latent
+
 - id: l2
   run_id: latent-v2-kl-efbd2e2-451268e6-47646604
   kind: latent
