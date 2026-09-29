@@ -177,6 +177,13 @@ class CanvasConfig:
     """The `--preflight` report the declared channel rule was applied to; a real run
     refuses to start without it (`check_preflight`)."""
     notes: str = ""
+    channel_fallback_from: str | None = None
+    """The declared second chance (latent plan, arm 2): a run at c = 16 is allowed when
+    this names a completed VT run that used c = 8 from the same pre-flight report and
+    failed A1. A second failure stops the canvas line; `check_preflight` enforces it."""
+
+
+FALLBACK_CHANNELS = 16
 
 
 def load_config(path: Path) -> CanvasConfig:
@@ -188,6 +195,7 @@ def load_config(path: Path) -> CanvasConfig:
         "parent_checkpoint", "model", "canvas", "training", "eval_icons", "prior_samples",
         "interpolation_pairs", "interpolation_frames", "non_inferiority_margin",
         "sample_cost_margin", "trace_every", "preflight_report", "notes",
+        "channel_fallback_from",
     }  # fmt: skip
     unknown = sorted(set(root) - known)
     if unknown:
@@ -212,6 +220,9 @@ def load_config(path: Path) -> CanvasConfig:
             Path(str(root["preflight_report"])) if root.get("preflight_report") else None
         ),
         notes=str(root.get("notes", "")).strip(),
+        channel_fallback_from=(
+            str(root["channel_fallback_from"]) if root.get("channel_fallback_from") else None
+        ),
     )
     settings = config.canvas
     if not settings.beta_min <= settings.beta_initial <= settings.beta_max:
@@ -617,8 +628,20 @@ def check_preflight(config: CanvasConfig, dataset_hash: str, pca_icons: int) -> 
     if report.get("pca", {}).get("icons") != pca_icons:
         problems.append(f"a PCA over {report.get('pca', {}).get('icons')} renders, not {pca_icons}")
     chosen = report.get("chosen_channels")
+    rule_outcome = report.get("rule_outcome")
+    fallback: dict[str, Any] | None = None
+    if config.channel_fallback_from is not None:
+        fallback, failure = _check_fallback(config, path, chosen)
+        if failure:
+            problems.append(failure)
+        else:
+            chosen = FALLBACK_CHANNELS
+            rule_outcome = (
+                f"declared fallback: {config.channel_fallback_from} failed A1 at c = "
+                f"{report.get('chosen_channels')}; rerun once at c = {FALLBACK_CHANNELS}"
+            )
     if chosen is None:
-        problems.append(f"no declared outcome: {report.get('rule_outcome')}")
+        problems.append(f"no declared outcome: {rule_outcome}")
     elif chosen != channels:
         problems.append(f"the rule chose c = {chosen}; the config has channels: {channels}")
     if hypothesis_channels(config.hypothesis) != channels:
@@ -629,11 +652,38 @@ def check_preflight(config: CanvasConfig, dataset_hash: str, pca_icons: int) -> 
         "report": str(path),
         "report_sha256": _sha256(path),
         "chosen_channels": chosen,
-        "rule_outcome": report.get("rule_outcome"),
+        "rule_outcome": rule_outcome,
+        "fallback": fallback,
         "rank_errors": {
             key: report[key]["pixel_error"][0] for key in report if key.startswith("rank_")
         },
     }
+
+
+def _check_fallback(
+    config: CanvasConfig, report_path: Path, report_choice: object, runs_root: Path | None = None
+) -> tuple[dict[str, Any] | None, str | None]:
+    """The fallback's conditions, or the first one that fails."""
+
+    run_id = str(config.channel_fallback_from)
+    record_path = (runs_root or REPO_ROOT / "runs") / run_id / "run.yaml"
+    if not record_path.is_file():
+        return None, f"fallback run {run_id} has no run record"
+    record = yaml.safe_load(record_path.read_text())
+    preflight = (record.get("initialisation") or {}).get("preflight") or {}
+    channels = ((record.get("config_resolved") or {}).get("canvas") or {}).get("channels")
+    a1 = (((record.get("result") or {}).get("criteria") or {}).get("A1") or {}).get("pass")
+    if record.get("state") != "completed":
+        return None, f"fallback run {run_id} is {record.get('state')}, not completed"
+    if channels != report_choice or report_choice == FALLBACK_CHANNELS:
+        return None, f"fallback run {run_id} used c = {channels}, not the pre-flight's first choice"
+    if Path(str(preflight.get("report"))) != report_path:
+        return None, f"fallback run {run_id} used pre-flight {preflight.get('report')}"
+    if preflight.get("report_sha256") != _sha256(report_path):
+        return None, "the pre-flight report changed since the fallback run"
+    if a1 is not False:
+        return None, f"fallback run {run_id} did not fail A1 (pass = {a1})"
+    return {"run": run_id, "failed": "A1", "run_channels": channels}, None
 
 
 def _sha256(path: Path) -> str:

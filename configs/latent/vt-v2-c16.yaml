@@ -1,0 +1,72 @@
+# The declared second chance for the canvas latent (latent plan, arm 2): vt-v1 at
+# c = 8 failed A1 (+0.002 [-0.002, +0.006] against retrieval with mirrors, where the
+# interval had to exclude zero) and passed A2 and A3. One change from vt-v1: 16 latent
+# channels per cell instead of 8, same KL budget (2,000 nats), same everything else.
+# The pre-flight measured rank 16 at 0.109 pixel error against rank 8's 0.116.
+# `channel_fallback_from` makes the launch check that vt-v1 is completed, used c = 8
+# from the same pre-flight report and failed A1. If this run fails A1 too, the canvas
+# line stops, as declared.
+schema_version: 1
+channel_fallback_from: vt-v1-74dfbd2-46380052-47646604
+slug: vt-v2-c16
+parent_run: r2s-full-v9-colour-621bc8e-b26ad95e-47646604
+parent_checkpoint: /home/dev/.cache/mojidiff/runs/r2s-full-v9-colour-621bc8e-b26ad95e-47646604/best.pt
+hypothesis: >-
+  A variational transcriber - v9 whose 18 x 18 stem grid passes through a per-cell
+  Gaussian latent (c = 16 channels) held at a KL budget of C = 2,000 nats per icon -
+  keeps v9's persistent spatial record of what is still undrawn and so reconstructs
+  held-out icons from its posterior mean close to v9, while its latent is smooth at
+  the posterior scale. Pass, on the first 339 validation icons, IEEE float32 (TF32
+  off) greedy decoding, 72 px pixel error, bootstrap intervals, all comparisons
+  paired, requires A1 and A3; A2 is a collapse check. (A1) reconstruction from mu is
+  non-inferior to v9 re-decoded in float32 on the same icons - the upper 95% bound of
+  (VT - v9) is at most +0.015 - and beats the nearest training render or its mirror
+  (every model trains with mirrors), the 95% interval on the reduction excluding zero.
+  (A2) held-out KL within [0.8C, 1.2C] = [1,600, 2,400] nats per icon with beta above
+  its floor of 1e-4; the controller enforces this band, so it detects collapse and is
+  not evidence of anything else. (A3) decoding one posterior sample instead of mu
+  costs at most 0.010 pixel error, paired mean. Reported without a criterion: the z =
+  0 decode, N(0, I) samples as the prior-hole control (ink coverage, distinct,
+  rendered), 8 lerp strips of posterior means (a canvas dissolve), graph-decoder
+  latency. Decision: A1 and A3 pass - fit the flow prior (arm 3, lfp-v1). A1 fails -
+  run once more at c = 16 under a new run identity; a second failure stops the canvas
+  line.
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+model: {image_size: 144, d_model: 256, heads: 8, encoder_layers: 2, decoder_layers: 6, feedforward: 1024, dropout: 0.1, metric: true, fourier: 10, order: path}
+canvas:
+  channels: 16
+  budget_nats: 2000
+  beta_initial: 0.0001
+  beta_min: 0.0001
+  beta_max: 1.0
+  beta_rate: 0.01
+  kl_ema_decay: 0.9
+  band_low: 0.8
+  band_high: 1.2
+  log_variance_bias: -6.0
+  pca_icons: null  # every training render
+training:
+  steps: 30000
+  batch_size: 32
+  learning_rate: 0.0003
+  warmup_steps: 500
+  seed: 7001
+  eval_every: 2000
+  eval_icons: 64
+  # v9's stream, field for field (tests/test_pixel_latent.py checks it).
+  augment_online: true
+  augment_original: 0.1
+  loader_workers: 16
+  compose_probability: 0.5
+  compose_parts: 4
+  augment_mirror: 0.5
+  augment_max_shift: 48
+  augment_colour: 0.1
+eval_icons: 339
+prior_samples: 64
+interpolation_pairs: 8
+interpolation_frames: 9
+non_inferiority_margin: 0.015
+sample_cost_margin: 0.010
+trace_every: 50
+preflight_report: reports/latent/vt-v1-preflight.json

@@ -459,3 +459,51 @@ def test_the_canvas_backend_decodes_in_ieee_float32_and_restores_the_flags(
     finally:
         del backend, model
         torch.cuda.empty_cache()
+
+
+def test_the_c16_fallback_needs_a_completed_c8_run_that_failed_a1(tmp_path: Path) -> None:
+    import yaml
+
+    from mojidiff.learning.pixel_latent import _check_fallback
+
+    report_path = tmp_path / "preflight.json"
+    report_path.write_text(json.dumps({"chosen_channels": 8}))
+    runs = tmp_path / "runs"
+    config = replace(
+        load_config(Path("configs/latent/vt-v1.yaml")),
+        preflight_report=report_path,
+        channel_fallback_from="vt-x",
+    )
+
+    def record(**changes: object) -> None:
+        base: dict[str, object] = {
+            "state": "completed",
+            "config_resolved": {"canvas": {"channels": 8}},
+            "initialisation": {
+                "preflight": {"report": str(report_path), "report_sha256": _sha256(report_path)}
+            },
+            "result": {"criteria": {"A1": {"pass": False}}},
+        }
+        base.update(changes)
+        (runs / "vt-x").mkdir(parents=True, exist_ok=True)
+        (runs / "vt-x" / "run.yaml").write_text(yaml.safe_dump(base))
+
+    assert _check_fallback(config, report_path, 8, runs)[1] == "fallback run vt-x has no run record"
+    record()
+    kept, failure = _check_fallback(config, report_path, 8, runs)
+    assert failure is None and kept == {"run": "vt-x", "failed": "A1", "run_channels": 8}
+    record(result={"criteria": {"A1": {"pass": True}}})
+    assert "did not fail A1" in str(_check_fallback(config, report_path, 8, runs)[1])
+    record(state="failed")
+    assert "not completed" in str(_check_fallback(config, report_path, 8, runs)[1])
+    record(config_resolved={"canvas": {"channels": 16}})
+    assert "not the pre-flight's first choice" in str(
+        _check_fallback(config, report_path, 8, runs)[1]
+    )
+    record()
+    assert "not the pre-flight's first choice" in str(
+        _check_fallback(config, report_path, 16, runs)[1]
+    )
+    record()
+    report_path.write_text(json.dumps({"chosen_channels": 8, "edited": True}))
+    assert "changed" in str(_check_fallback(config, report_path, 8, runs)[1])
