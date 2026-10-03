@@ -3883,3 +3883,51 @@ meant to fix. As declared, the canvas line gets one rerun at c = 16
 prior is also trained on vt-v1 now (`configs/latent/lfp-v1x-exploratory.yaml`): lfp-v1
 with only its gate relaxed to A3. Its B1-B5 outcomes will be reported as conditional on
 a stage A that failed A1; the gated lfp run follows whichever VT passes.
+
+## 2026-10-03 — vt-v2-c16 fails A1 again: the canvas line stops; the exploratory flow prior fails B1, B2, B4, B5
+
+Both jobs finished on 2026-09-29 before a power failure; recorded on 2026-10-03 from the
+run directory and the harness reports, which survived intact (run-record audit consistent).
+
+**vt-v2-c16** (`vt-v2-c16-0f4d5de-1497d4b5-47646604`, the declared c = 16 rerun):
+
+| 339 validation icons, IEEE float32 | pixel error |
+| --- | --- |
+| vt-v2-c16 from mu | 0.081 [0.076, 0.086] |
+| vt-v1 (c = 8) from mu | 0.083 |
+| v9 (parent) | 0.074 |
+| nearest training render or mirror | 0.085 |
+
+A1 fails the same way as vt-v1: non-inferior to v9 (+0.007 [+0.003, +0.011], margin
+0.015) but the reduction against retrieval does not exclude zero (+0.004 [-0.000,
++0.008]). A2 (held-out KL 1,851 nats) and A3 (sample - mu +0.001) pass. N(0, I) samples
+still fragment (ink < 0.10 in 27% against vt-v1's 33%). Graph decode 1,144 ms per icon,
+batch 1, float32. **Decision, as declared: a second A1 failure stops the canvas line.** The
+gated lfp-v1 run does not launch.
+
+**lfp-v1x-exploratory** (flow prior on vt-v1; conditional on a stage A that failed A1).
+Harness, copy rule without-twins, 339 samples, 32 pairs; B2, B4 jump and B5 computed
+from the reports' per-item values (bootstrap 10,000, paired over the same 32 pairs where
+paired; B2 is unpaired since the sample sets differ):
+
+| criterion | measure | pass |
+| --- | --- | --- |
+| B1 fragments <= 0.10 | 0.177 [0.139, 0.218] | no |
+| B2 precision >= 2x best latent-v2 row (refit 0.584), recall above | precision 0.614 [0.560, 0.664]; recall 0.422 against 0.147 | no (precision) |
+| B3 copies <= 0.10, all distinct | 0.000, 339 of 339 | yes |
+| B4 slerp interior fragments <= 0.15, jump below latent-v2, detours <= 0.20 | 0.339; jump - latent-v2 -0.031 [-0.067, +0.008]; detours 0.009 | no |
+| B5 slerp interior precision above v9 crossfade | -0.054 [-0.156, +0.045] | no |
+
+For reference, its parent's N(0, I) samples (c1): fragments 0.59, precision 0.25, recall
+0.01. The flow prior cuts fragments by 3x and lifts recall 40x - on every distribution
+measure it is the best latent sampler so far - but misses the absolute thresholds.
+
+Two caveats. (a) B2 as declared was unreachable: twice the refit row is 1.17, above the
+maximum precision of 1; against latent-v2's plain N(0, I) row (2 x 0.366 = 0.73) it fails
+as well. (b) The harness shared the GPU with vt-v2's training (allocator OOM retries in
+its log, all exits 0), so its latency figures (1,736 ms end to end, batch 1) are not
+idle-GPU numbers; the run's own idle measurement is 1,048 ms per sample.
+
+**Decision.** By the declared rule (B1/B2 fail, B3 passes) the next arm would be a larger
+prior, but that rule is conditional on a passing stage A, which the canvas line no
+longer has. The direction after the canvas line is the operator's call (state/CURRENT.md).

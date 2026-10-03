@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-09-29
+Updated: 2026-10-03
 
 ## Current hypothesis and evidence
 
@@ -56,23 +56,20 @@ Other directions (findings, 2026-09-28):
 
 ## Last completed action and verification
 
-2026-09-28: v7 scored once on the untouched test split (predeclared rule); v8 Twemoji,
-latent-v1/v2, external probe v1/v2, distillation and edit probes recorded in findings.
-Verified by the tests in `tests/test_render2svg.py`, `test_fast_decode.py`,
-`test_latent.py`, `test_vectorise.py`, ruff, strict mypy, and the run-record audit.
+2026-10-03, recovery after a power failure. The container came back from its base image:
+volumes intact, apt packages lost. `libcairo2` (renderer; see `docs/data-curation.md`)
+and `iproute2` reinstalled; `cairosvg` imports. Both jobs of 2026-09-29 had finished
+before the outage (vt-v2-c16 `EXIT=0`, harness `HARNESS-CANVAS-DONE`, every step
+`EXIT=0`); checkpoints present; `scripts/audit_run_records.py` consistent. Their results
+are recorded in findings (2026-10-03): vt-v2-c16 fails A1 again, so the canvas line stops
+as declared; lfp-v1x-exploratory fails B1, B2, B4, B5 (B3 passes), though it is the best
+latent sampler so far (fragments 0.18, CLIP recall 0.42).
 
 ## Active jobs
 
-In tmux on gpubox-4080; logs under `/home/dev/.cache/mojidiff/`:
-
-1. `vt-v2`: `configs/latent/vt-v2-c16.yaml` (the declared c = 16 rerun of the canvas
-   latent), log `vt-v2-c16.log`, ends with `EXIT=`.
-2. `harness2` (`harness-canvas.sh`): `latent_metrics` on lf1 (default and slerp
-   interpolation) and c1, log `harness-canvas.log`, ends with `HARNESS-CANVAS-DONE`;
-   reports in `reports/latent/`. B1-B5 for lfp-v1x are read from these.
-3. `gallery`: http://100.69.189.78:8791/ - 15 models incl. the canvas flow prior (lf1)
-   and its plain-noise control (c1); blind ratings append to `reports/gallery/ratings.jsonl`.
-4. `vectorise`: :8790 (v9). 5. `weblog`: :8787.
+No training or scoring jobs. Services in tmux on gpubox-4080, restarted 2026-10-03:
+`weblog` :8787, `vectorise` :8790 (v9), `gallery` :8791 (15 models; logs under
+`/home/dev/.cache/mojidiff/`).
 
 ## Artifact durability
 
@@ -84,13 +81,16 @@ In tmux on gpubox-4080; logs under `/home/dev/.cache/mojidiff/`:
 
 ## Current blockers
 
-None.
+Direction after the canvas line: the operator's call (see next action).
 
 ## Next smallest evidence-producing action
 
-Direction set by the operator on 2026-09-29, after browsing every model in the gallery:
-focus on the latent-model approach. They like the interpolations and prior samples most
-("you can see that the model learned how to draw even if it is very bad"). Latent work
-is judged by prior-sample quality, novelty and interpolation smoothness, shown in the
-gallery's latent tab, not by reconstruction error alone. A design panel is choosing the
-first arms and a metrics harness; latent-v1 and latent-v2 are the baselines.
+Operator focus since 2026-09-29: latent models, judged by prior samples, novelty and
+interpolation in the gallery. The canvas line (vt-v1, vt-v2-c16) stopped by its declared
+rule; the program-latent line (latent-v1/v2/v3-blind) ended at "full-size but blobby".
+Candidate next arms, one to be chosen:
+
+1. A larger flow prior on vt-v2-c16, explicitly exploratory (the visually best sampler
+   so far; its gate is gone, so outcomes are gallery evidence, not a pass).
+2. Per-path latents (DeepSVG-style), the program line's queued next test.
+3. Return to the render-to-SVG deliverable (v7/v9) and the demo.
