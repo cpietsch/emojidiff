@@ -78,6 +78,10 @@ No training or scoring jobs. Services in tmux on gpubox-4080, restarted 2026-10-
   (Gate L arm 21), both git-ignored, on the persistent volume.
 - HF weights for OmniSVG 1.1 and Qwen3.5 under `/home/dev/.cache/huggingface` (~34 GB).
 - Run records under `runs/`, registry in `state/runs.jsonl`, all committed.
+- Off-machine copy (2026-10-04): every runs/*.pt and data/processed/*/checkpoint.zip
+  mirrored to https://huggingface.co/chrispie/mojidiff-checkpoints (public, CC BY-SA 4.0);
+  sha256 index `reports/checkpoints-hf.json`, verified against the remote. Code: GitHub
+  `cpietsch/emojidiff` (private).
 
 ## Current blockers
 

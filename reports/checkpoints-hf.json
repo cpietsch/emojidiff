@@ -1,0 +1,580 @@
+{
+ "files": {
+  "legacy/ar-corpus-i2/checkpoint.zip": {
+   "bytes": 6511220,
+   "local": "/home/dev/workspace/mojidiff/data/processed/ar-corpus-i2/checkpoint.zip",
+   "sha256": "09c031a0e427c22fe71d7c3ac3c3047b4dcb0bbb9f3dd82d26f59d2fa13da4f1"
+  },
+  "legacy/ar-corpus-i3-metric/checkpoint.zip": {
+   "bytes": 6538776,
+   "local": "/home/dev/workspace/mojidiff/data/processed/ar-corpus-i3-metric/checkpoint.zip",
+   "sha256": "f89357e009c04835bd5112ae3b1c426a5292095b091ffc50aff542e2d67885bc"
+  },
+  "legacy/ar-overfit-i1/checkpoint.zip": {
+   "bytes": 4625797,
+   "local": "/home/dev/workspace/mojidiff/data/processed/ar-overfit-i1/checkpoint.zip",
+   "sha256": "b282b73556bb027d6219002073ca7bd2da5c557de2123a6eced2bbc982d152eb"
+  },
+  "legacy/masked-continuity-l10-start/checkpoint.zip": {
+   "bytes": 6543307,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-continuity-l10-start/checkpoint.zip",
+   "sha256": "0ba23ad51a8e334dd9a0424640c1adb8899559ce9b3bf68b53e22c98e2c9af57"
+  },
+  "legacy/masked-continuity-l11-start-head/checkpoint.zip": {
+   "bytes": 6569915,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-continuity-l11-start-head/checkpoint.zip",
+   "sha256": "0d630880b7a803fc201430736d179feedeea07a3eeeda35517243b9cef901757"
+  },
+  "legacy/masked-continuity-l12-start-full/checkpoint.zip": {
+   "bytes": 6543307,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-continuity-l12-start-full/checkpoint.zip",
+   "sha256": "f48dd00addd4f612397931f09dbc305a8ac3be3f0d9c43a86a2df5a3b4bd5e97"
+  },
+  "legacy/masked-continuity-l13-start-head-full/checkpoint.zip": {
+   "bytes": 6569915,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-continuity-l13-start-head-full/checkpoint.zip",
+   "sha256": "3b9e15b39acbe4fea944afbf0ace2fdfb4ddf65b4df33ff74c0b05444719cb78"
+  },
+  "legacy/masked-continuity-l5/checkpoint.zip": {
+   "bytes": 6493873,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-continuity-l5/checkpoint.zip",
+   "sha256": "fb614557426bf5f093209abd82e0bb8767dbb44312724c986d46d37aaed1e54d"
+  },
+  "legacy/masked-continuity-l7-metric-head/checkpoint.zip": {
+   "bytes": 6520481,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-continuity-l7-metric-head/checkpoint.zip",
+   "sha256": "863e99743684c78b37e6509b48391fa156718b8dd8699616a052d6db13b6ab56"
+  },
+  "legacy/masked-continuity-l7b-metric-head/checkpoint.zip": {
+   "bytes": 6520481,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-continuity-l7b-metric-head/checkpoint.zip",
+   "sha256": "e148635f3f4628644c57dc4f023927ae5aa8b2ba3c5bfccba8af34e829b448f0"
+  },
+  "legacy/masked-inpaint-l14-start-head/checkpoint.zip": {
+   "bytes": 6569915,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-inpaint-l14-start-head/checkpoint.zip",
+   "sha256": "ec454fbde6509b8be4cee4b5185fe4863d66dbd488f8597aae0c92f7218f9444"
+  },
+  "legacy/masked-inpaint-l2/checkpoint.zip": {
+   "bytes": 6493873,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-inpaint-l2/checkpoint.zip",
+   "sha256": "45d32c26f2dba0af19791858fb274be1fa9e22454c2f87a6a3e4e8fc0f36ed3a"
+  },
+  "legacy/masked-inpaint-l4-binding/checkpoint.zip": {
+   "bytes": 6686154,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-inpaint-l4-binding/checkpoint.zip",
+   "sha256": "6a1f28fe5fe935017ff7f18fb8e8db35aefd9fdef2ae7486a662495924f4b913"
+  },
+  "legacy/masked-overfit-l1-attempt1/checkpoint.zip": {
+   "bytes": 6493873,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-overfit-l1-attempt1/checkpoint.zip",
+   "sha256": "3da5b0f8f824588d3afcfb175ba56bfe89299c11208d505e89e2d4f481f73d11"
+  },
+  "legacy/masked-overfit-l1/checkpoint.zip": {
+   "bytes": 6493873,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-overfit-l1/checkpoint.zip",
+   "sha256": "d67d6ae3d447d38ed34431b7c03f5b4c8142a0b587fe1ed650dffea963511d43"
+  },
+  "legacy/masked-overfit-l3-binding/checkpoint.zip": {
+   "bytes": 6686154,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-overfit-l3-binding/checkpoint.zip",
+   "sha256": "b5e756d8d74e2ca19a57510398372863716cb1927220fbb3f9360a4eb04045b0"
+  },
+  "legacy/masked-overfit-l6-metric-head/checkpoint.zip": {
+   "bytes": 6520481,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-overfit-l6-metric-head/checkpoint.zip",
+   "sha256": "4b122fbc5f025b8583c0b3397905f62452cb9622570039ac38ca779ee2bca431"
+  },
+  "legacy/masked-overfit-l6b-metric-head/checkpoint.zip": {
+   "bytes": 6520481,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-overfit-l6b-metric-head/checkpoint.zip",
+   "sha256": "3039461a4446c34e722a3781dbd6841b82a0d37e9f95d935f2987c30873bd679"
+  },
+  "legacy/masked-overfit-l9-start/checkpoint.zip": {
+   "bytes": 6543307,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-overfit-l9-start/checkpoint.zip",
+   "sha256": "5cac7c98bec62f91c7d51ebdddb29aa7f3049062522552dfdd8474a93d32c4c8"
+  },
+  "legacy/masked-overfit-l9b-start-chain/checkpoint.zip": {
+   "bytes": 6543307,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-overfit-l9b-start-chain/checkpoint.zip",
+   "sha256": "5cac7c98bec62f91c7d51ebdddb29aa7f3049062522552dfdd8474a93d32c4c8"
+  },
+  "legacy/masked-span-l15-mixture/checkpoint.zip": {
+   "bytes": 2180481,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-span-l15-mixture/checkpoint.zip",
+   "sha256": "baa5647f55cb6fc2733bb4a69f3996646564fbe52cf87ed1fe915563a9e7a47c"
+  },
+  "legacy/masked-span-l16-specialist/checkpoint.zip": {
+   "bytes": 2180481,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-span-l16-specialist/checkpoint.zip",
+   "sha256": "bc0d3ace435a1e55305cbbdad6f907044b5c76d046c6f6d89314c5b81feee0d9"
+  },
+  "legacy/masked-span-l17-specialist-3/checkpoint.zip": {
+   "bytes": 6569915,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-span-l17-specialist-3/checkpoint.zip",
+   "sha256": "baca10153f43debbc8b9658e74f99ba863ead82f72c3ff66d2b222f06af90efa"
+  },
+  "legacy/masked-span-l18-specialist-3-l16-spans/checkpoint.zip": {
+   "bytes": 2180481,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-span-l18-specialist-3-l16-spans/checkpoint.zip",
+   "sha256": "ffacae3e96bc85f31008ce6f8b995760bf53ef1cec6df2e51702aafaaa7f6214"
+  },
+  "legacy/masked-span-l19-specialist-3-span4/checkpoint.zip": {
+   "bytes": 2180481,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-span-l19-specialist-3-span4/checkpoint.zip",
+   "sha256": "ffacae3e96bc85f31008ce6f8b995760bf53ef1cec6df2e51702aafaaa7f6214"
+  },
+  "legacy/masked-span-l20-specialist-4-span4/checkpoint.zip": {
+   "bytes": 6569915,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-span-l20-specialist-4-span4/checkpoint.zip",
+   "sha256": "8e2413d580f59d78b07a940729fa8835d1b78d79e6b0a16175f52557918a90ee"
+  },
+  "legacy/masked-span-l21-specialist-4-long/checkpoint.zip": {
+   "bytes": 6569916,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-span-l21-specialist-4-long/checkpoint.zip",
+   "sha256": "6a847ce6179567b0625af297c03098d11208a92a4916b82867d2f04e9e6de00c"
+  },
+  "legacy/masked-span-l22-specialist-4-large/checkpoint.zip": {
+   "bytes": 64557559,
+   "local": "/home/dev/workspace/mojidiff/data/processed/masked-span-l22-specialist-4-large/checkpoint.zip",
+   "sha256": "d402223ff9f3c9433f4d79b80820b9d4d6d26d5ef6c83c3dce5acf9189447efb"
+  },
+  "legacy/openmoji-g1-balanced-objective-v12/checkpoint.zip": {
+   "bytes": 6463494,
+   "local": "/home/dev/workspace/mojidiff/data/processed/openmoji-g1-balanced-objective-v12/checkpoint.zip",
+   "sha256": "584565f5646ef1542530c59002f519c6f0685e46cba370acbb9738bd402367f6"
+  },
+  "legacy/openmoji-g1-capacity-v3/checkpoint.zip": {
+   "bytes": 24704555,
+   "local": "/home/dev/workspace/mojidiff/data/processed/openmoji-g1-capacity-v3/checkpoint.zip",
+   "sha256": "93344f19969eb06eb2d99a16967201bd4bb1e7e330cb690551118d81aca17e5c"
+  },
+  "legacy/openmoji-g1-derived-threshold-v13/checkpoint.zip": {
+   "bytes": 6463494,
+   "local": "/home/dev/workspace/mojidiff/data/processed/openmoji-g1-derived-threshold-v13/checkpoint.zip",
+   "sha256": "584565f5646ef1542530c59002f519c6f0685e46cba370acbb9738bd402367f6"
+  },
+  "legacy/openmoji-g1-detection-only-v7/checkpoint.zip": {
+   "bytes": 4715160,
+   "local": "/home/dev/workspace/mojidiff/data/processed/openmoji-g1-detection-only-v7/checkpoint.zip",
+   "sha256": "ddf5de529a84e690f7fe184edfbb5fdc1aa9f9a4b910a6ed497ed088d821e2f1"
+  },
+  "legacy/openmoji-g1-distance-kernel-v15/checkpoint.zip": {
+   "bytes": 6463494,
+   "local": "/home/dev/workspace/mojidiff/data/processed/openmoji-g1-distance-kernel-v15/checkpoint.zip",
+   "sha256": "31fa3e14e7f1b7e2dcae33d08bfcf8bd0134636d5e3f8683ac9505a14ad5be9c"
+  },
+  "legacy/openmoji-g1-dominant-bucket-smoke/checkpoint.zip": {
+   "bytes": 7075309,
+   "local": "/home/dev/workspace/mojidiff/data/processed/openmoji-g1-dominant-bucket-smoke/checkpoint.zip",
+   "sha256": "d11efa006657dafc2edf10bc5fe5725cad09e6beb40167032606f6c9f7c8407a"
+  },
+  "legacy/openmoji-g1-dominant-bucket-train-v2-data-scale/checkpoint.zip": {
+   "bytes": 7075311,
+   "local": "/home/dev/workspace/mojidiff/data/processed/openmoji-g1-dominant-bucket-train-v2-data-scale/checkpoint.zip",
+   "sha256": "e791493769907ac428db6a081310c0beacc4b88d2072b24fc07df0287e0295b4"
+  },
+  "legacy/openmoji-g1-dominant-bucket-train-v2-final-step/checkpoint.zip": {
+   "bytes": 7075312,
+   "local": "/home/dev/workspace/mojidiff/data/processed/openmoji-g1-dominant-bucket-train-v2-final-step/checkpoint.zip",
+   "sha256": "359b11a1020ea07b43bca82be254cac791793dc9166f7828c9038d5ca5b830af"
+  },
+  "legacy/openmoji-g1-edit-mask-v6/checkpoint.zip": {
+   "bytes": 7120113,
+   "local": "/home/dev/workspace/mojidiff/data/processed/openmoji-g1-edit-mask-v6/checkpoint.zip",
+   "sha256": "fc656537e4e749a67987d5f93d00256d303cd1c5975bcdd8ee80716b359188a5"
+  },
+  "legacy/openmoji-g1-full-denoiser-v11/checkpoint.zip": {
+   "bytes": 6463493,
+   "local": "/home/dev/workspace/mojidiff/data/processed/openmoji-g1-full-denoiser-v11/checkpoint.zip",
+   "sha256": "7d14aacdb7b9ef9172dc04ff2f334a0cbce431f0a70be53ee1baad719327353d"
+  },
+  "legacy/openmoji-g1-geometric-gate-v16/checkpoint.zip": {
+   "bytes": 6463494,
+   "local": "/home/dev/workspace/mojidiff/data/processed/openmoji-g1-geometric-gate-v16/checkpoint.zip",
+   "sha256": "31fa3e14e7f1b7e2dcae33d08bfcf8bd0134636d5e3f8683ac9505a14ad5be9c"
+  },
+  "legacy/openmoji-g1-marginal-corruption-v9/checkpoint.zip": {
+   "bytes": 4715161,
+   "local": "/home/dev/workspace/mojidiff/data/processed/openmoji-g1-marginal-corruption-v9/checkpoint.zip",
+   "sha256": "cff49ce8e8f2988d23c8e04f64fcac669e3f34186bdc095365b511f1aaf751bb"
+  },
+  "legacy/openmoji-g1-metric-coordinates-v10/checkpoint.zip": {
+   "bytes": 4058542,
+   "local": "/home/dev/workspace/mojidiff/data/processed/openmoji-g1-metric-coordinates-v10/checkpoint.zip",
+   "sha256": "bd511202fbe97a72e788acc1096aff8174d9fae171981b2c65017f4b245b1708"
+  },
+  "legacy/openmoji-g1-noise-conditioned-v4/checkpoint.zip": {
+   "bytes": 7118998,
+   "local": "/home/dev/workspace/mojidiff/data/processed/openmoji-g1-noise-conditioned-v4/checkpoint.zip",
+   "sha256": "e5d553187e00d4f2f2b80b4474e951571438225df880703455b058e7835df772"
+  },
+  "legacy/openmoji-g1-retest-capacity/checkpoint.zip": {
+   "bytes": 23463746,
+   "local": "/home/dev/workspace/mojidiff/data/processed/openmoji-g1-retest-capacity/checkpoint.zip",
+   "sha256": "172aa1bec6082dd99aa01ef0296e4dbcabbd39245113154101f69686b4161d2d"
+  },
+  "legacy/openmoji-g1-retest-data-volume/checkpoint.zip": {
+   "bytes": 6463493,
+   "local": "/home/dev/workspace/mojidiff/data/processed/openmoji-g1-retest-data-volume/checkpoint.zip",
+   "sha256": "4e25030d3f59a51a242d4bacb6120f639d79a9e900991dd306809b14a2ec54e9"
+  },
+  "legacy/openmoji-g1-retest-noise-conditioning/checkpoint.zip": {
+   "bytes": 6507180,
+   "local": "/home/dev/workspace/mojidiff/data/processed/openmoji-g1-retest-noise-conditioning/checkpoint.zip",
+   "sha256": "334f8304403f2cf88f1828516981086f572ba5aa0a5f8e55ba0e4c5f07078dc6"
+  },
+  "legacy/openmoji-g1-slot-bound-v5/checkpoint.zip": {
+   "bytes": 7090167,
+   "local": "/home/dev/workspace/mojidiff/data/processed/openmoji-g1-slot-bound-v5/checkpoint.zip",
+   "sha256": "a757475e60d6e4847a06967e6a83a8f26918ad71e1c309de23983a96faf95491"
+  },
+  "legacy/openmoji-g1-sound-optimisation-v8/checkpoint.zip": {
+   "bytes": 4715161,
+   "local": "/home/dev/workspace/mojidiff/data/processed/openmoji-g1-sound-optimisation-v8/checkpoint.zip",
+   "sha256": "ee156ff7e9cccbc43c1be11dc007ec65a0f5fd6ee7527bc841552f0ec4e7ad79"
+  },
+  "legacy/openmoji-g1-withheld-calibration-v14/checkpoint.zip": {
+   "bytes": 6463494,
+   "local": "/home/dev/workspace/mojidiff/data/processed/openmoji-g1-withheld-calibration-v14/checkpoint.zip",
+   "sha256": "90c15badb537045b5e7674b1fc434b347a012267c9db0d7c3f9872f7ed43e5bc"
+  },
+  "runs/latent-v1-8b0d3f9-6e874509-47646604/best.pt": {
+   "bytes": 40515978,
+   "local": "/home/dev/.cache/mojidiff/runs/latent-v1-8b0d3f9-6e874509-47646604/best.pt",
+   "sha256": "09b10cef872dffb4f684ef9a9564dee0142fed111d351bbe46208d013cddc155"
+  },
+  "runs/latent-v1-8b0d3f9-6e874509-47646604/result.md": {
+   "bytes": 1213,
+   "local": "/home/dev/workspace/mojidiff/runs/latent-v1-8b0d3f9-6e874509-47646604/result.md",
+   "sha256": "37f7526834a4cabf21d93513cba5f279f5b2f34fb9fa954f4d5072fe835eff49"
+  },
+  "runs/latent-v1-8b0d3f9-6e874509-47646604/run.yaml": {
+   "bytes": 3691,
+   "local": "/home/dev/workspace/mojidiff/runs/latent-v1-8b0d3f9-6e874509-47646604/run.yaml",
+   "sha256": "0975a97a9e63ba9aebe2b1370e732472e1e991d623bc6c1652091c0762f26a99"
+  },
+  "runs/latent-v2-kl-efbd2e2-451268e6-47646604/best.pt": {
+   "bytes": 40515978,
+   "local": "/home/dev/.cache/mojidiff/runs/latent-v2-kl-efbd2e2-451268e6-47646604/best.pt",
+   "sha256": "9fefcd0ad21efd7a4ad90b2054a5f2ece52838580eddc9bb8207420995dbf618"
+  },
+  "runs/latent-v2-kl-efbd2e2-451268e6-47646604/result.md": {
+   "bytes": 1213,
+   "local": "/home/dev/workspace/mojidiff/runs/latent-v2-kl-efbd2e2-451268e6-47646604/result.md",
+   "sha256": "c0ed776b1b4f5f481087afc637c2e81452ef0a1f55a8b95b6554ce95fe794eb9"
+  },
+  "runs/latent-v2-kl-efbd2e2-451268e6-47646604/run.yaml": {
+   "bytes": 3697,
+   "local": "/home/dev/workspace/mojidiff/runs/latent-v2-kl-efbd2e2-451268e6-47646604/run.yaml",
+   "sha256": "40b09c32db5dd88005d9c951b1d2b87fc5f4a26a7be493fdd40ffc87b747b73c"
+  },
+  "runs/latent-v3-blind-e254c16-9c7db490-47646604/best.pt": {
+   "bytes": 40516042,
+   "local": "/home/dev/.cache/mojidiff/runs/latent-v3-blind-e254c16-9c7db490-47646604/best.pt",
+   "sha256": "12ff20eedf08de6cdd575d0f74d4803e07cced334aefca5a1f456360c83de67c"
+  },
+  "runs/latent-v3-blind-e254c16-9c7db490-47646604/result.md": {
+   "bytes": 1621,
+   "local": "/home/dev/workspace/mojidiff/runs/latent-v3-blind-e254c16-9c7db490-47646604/result.md",
+   "sha256": "ac5c1deeb48047adefdc0b0f650f7a0e455aadfafd3108dd8c7b987dae84ed82"
+  },
+  "runs/latent-v3-blind-e254c16-9c7db490-47646604/run.yaml": {
+   "bytes": 4156,
+   "local": "/home/dev/workspace/mojidiff/runs/latent-v3-blind-e254c16-9c7db490-47646604/run.yaml",
+   "sha256": "80cf7ee095e112de7c0b8d97f71a45942b58325ea6506496c0e881e3e391627b"
+  },
+  "runs/lfp-v1x-exploratory-81eb2e2-5ae4d777-47646604/best.pt": {
+   "bytes": 39018677,
+   "local": "/home/dev/.cache/mojidiff/runs/lfp-v1x-exploratory-81eb2e2-5ae4d777-47646604/best.pt",
+   "sha256": "3c4bb2bb55c1cb7e38284c4020e73e3e99462c6086e9cccdff4cbae49c9822be"
+  },
+  "runs/lfp-v1x-exploratory-81eb2e2-5ae4d777-47646604/latest.pt": {
+   "bytes": 156099699,
+   "local": "/home/dev/.cache/mojidiff/runs/lfp-v1x-exploratory-81eb2e2-5ae4d777-47646604/latest.pt",
+   "sha256": "0b60a2087db180d2a14f1ede72fab0182b91aa6366b01b345141c4087cbeb6a7"
+  },
+  "runs/lfp-v1x-exploratory-81eb2e2-5ae4d777-47646604/result.md": {
+   "bytes": 4802,
+   "local": "/home/dev/workspace/mojidiff/runs/lfp-v1x-exploratory-81eb2e2-5ae4d777-47646604/result.md",
+   "sha256": "cc962736686e599af632e3d31be10ce9ea8238ff2f53f02877f7eb0940f59b46"
+  },
+  "runs/lfp-v1x-exploratory-81eb2e2-5ae4d777-47646604/run.yaml": {
+   "bytes": 11914,
+   "local": "/home/dev/workspace/mojidiff/runs/lfp-v1x-exploratory-81eb2e2-5ae4d777-47646604/run.yaml",
+   "sha256": "cdd95f51ac20b94b9cd2fef972b00f5ddc501ff4e2bfa3c3eeb9c7c486e894de"
+  },
+  "runs/r2s-full-v1-940f5d3-1974cf82-47646604/best.pt": {
+   "bytes": 35738498,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-full-v1-940f5d3-1974cf82-47646604/best.pt",
+   "sha256": "b2cf40e6d5218defea536f3025e6bb6bd1330d939ba70b6a4b661cee63b876c6"
+  },
+  "runs/r2s-full-v1-940f5d3-1974cf82-47646604/latest.pt": {
+   "bytes": 107263685,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-full-v1-940f5d3-1974cf82-47646604/latest.pt",
+   "sha256": "0753b1c5d8706fbe69558b180663893de5cf5d45175ad776c7c35409c902f9e5"
+  },
+  "runs/r2s-full-v1-940f5d3-1974cf82-47646604/result.md": {
+   "bytes": 1743,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-full-v1-940f5d3-1974cf82-47646604/result.md",
+   "sha256": "8e4308df9eddb9a53898da90d5fcdfda56363a58e418d5fadf96d35f59f017ec"
+  },
+  "runs/r2s-full-v1-940f5d3-1974cf82-47646604/run.yaml": {
+   "bytes": 3705,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-full-v1-940f5d3-1974cf82-47646604/run.yaml",
+   "sha256": "46972fc4ceb5a7a68fae86b3fd9c52607ece990a9af91ace8de979c4eb22c5ac"
+  },
+  "runs/r2s-full-v2-aug-4032fbd-1e601024-47646604/best.pt": {
+   "bytes": 35738562,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-full-v2-aug-4032fbd-1e601024-47646604/best.pt",
+   "sha256": "5eb6731aaf1f7045e877444a01bf826edda1acc10891db542229699893d41874"
+  },
+  "runs/r2s-full-v2-aug-4032fbd-1e601024-47646604/latest.pt": {
+   "bytes": 107263749,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-full-v2-aug-4032fbd-1e601024-47646604/latest.pt",
+   "sha256": "773e5d621e7f2a10b4f90cab0ff750f563c7b1d791d5bb4b6e08007a61ddd467"
+  },
+  "runs/r2s-full-v2-aug-4032fbd-1e601024-47646604/result.md": {
+   "bytes": 1747,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-full-v2-aug-4032fbd-1e601024-47646604/result.md",
+   "sha256": "44d46d3c80d8ae25abf14ad7df3ed025923f03c67848c8a245575c519acb0b89"
+  },
+  "runs/r2s-full-v2-aug-4032fbd-1e601024-47646604/run.yaml": {
+   "bytes": 3945,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-full-v2-aug-4032fbd-1e601024-47646604/run.yaml",
+   "sha256": "6acd7a5faf02a1b585e06f1d9e8348c0acf5c701fbf5f487700f050e45b4dee6"
+  },
+  "runs/r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604/best.pt": {
+   "bytes": 36101146,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604/best.pt",
+   "sha256": "afb410a0bda00a3d1a6dc7dbb0e9c88f002945aefaa07e2259deb1e055f78baf"
+  },
+  "runs/r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604/latest.pt": {
+   "bytes": 108354341,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604/latest.pt",
+   "sha256": "2cc0bc065d8991534fdf0ff6228634ea6d0dadd913ab583bbbfe2746ba2771b0"
+  },
+  "runs/r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604/result.md": {
+   "bytes": 1751,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604/result.md",
+   "sha256": "fb825a4b22a8503dbff77a10f5eba92b64bb751c58ad17bf7ec22a340558e414"
+  },
+  "runs/r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604/run.yaml": {
+   "bytes": 4060,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-full-v3-metric-5dba9d7-ffcc2ffb-47646604/run.yaml",
+   "sha256": "726cd0b3d2418f9bcb5dca08174a2fb120bcf5e9fb6e6296f2445c56edc01994"
+  },
+  "runs/r2s-full-v4-online-c0fe6d3-a854be2e-47646604/best.pt": {
+   "bytes": 35738562,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-full-v4-online-c0fe6d3-a854be2e-47646604/best.pt",
+   "sha256": "29bb33097129c7d114f3f15b1af4c9da532f9ecb1b394d25b39a70682867a88b"
+  },
+  "runs/r2s-full-v4-online-c0fe6d3-a854be2e-47646604/latest.pt": {
+   "bytes": 107263749,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-full-v4-online-c0fe6d3-a854be2e-47646604/latest.pt",
+   "sha256": "705c54371e1b2787e944070846c4cc21d24412c15f4e04c6cd7144cc8e3ebe8e"
+  },
+  "runs/r2s-full-v4-online-c0fe6d3-a854be2e-47646604/result.md": {
+   "bytes": 1750,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-full-v4-online-c0fe6d3-a854be2e-47646604/result.md",
+   "sha256": "3abcf663afbcb15a17f2f57364f324c972bd92ab04ef529978807e43118728be"
+  },
+  "runs/r2s-full-v4-online-c0fe6d3-a854be2e-47646604/run.yaml": {
+   "bytes": 4012,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-full-v4-online-c0fe6d3-a854be2e-47646604/run.yaml",
+   "sha256": "6923f879eea2353913138320ac365ef538b4b6b5954bca67a059fcb5cc75c444"
+  },
+  "runs/r2s-full-v5-path-7a72de9-12766043-47646604/best.pt": {
+   "bytes": 36158032,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-full-v5-path-7a72de9-12766043-47646604/best.pt",
+   "sha256": "4290c1b44ee5fcbc477eeb8177f036b1e2885719759e619097ca3deaf3fc9044"
+  },
+  "runs/r2s-full-v5-path-7a72de9-12766043-47646604/latest.pt": {
+   "bytes": 108525709,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-full-v5-path-7a72de9-12766043-47646604/latest.pt",
+   "sha256": "b9d7984c1743bf103485d3f5f8b6c86c30bd4dd1bc4b632a4379559f15b9170c"
+  },
+  "runs/r2s-full-v5-path-7a72de9-12766043-47646604/result.md": {
+   "bytes": 1751,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-full-v5-path-7a72de9-12766043-47646604/result.md",
+   "sha256": "a896f9ac09d3be91bd92f3b7f8eb0d0fb695fad323c3af9141e1bfbc909d382b"
+  },
+  "runs/r2s-full-v5-path-7a72de9-12766043-47646604/run.yaml": {
+   "bytes": 4119,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-full-v5-path-7a72de9-12766043-47646604/run.yaml",
+   "sha256": "10de8d4b655cd5f9651bdabb4ced7bd6a1d914025077a5c5a14ea086a77f1c21"
+  },
+  "runs/r2s-full-v6-compose-7505e5b-6472dcf0-47646604/best.pt": {
+   "bytes": 35738562,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-full-v6-compose-7505e5b-6472dcf0-47646604/best.pt",
+   "sha256": "6cd21086b64b7c89e94a30400ca443341cf1545820e2b2ee51d54fc1e58255bb"
+  },
+  "runs/r2s-full-v6-compose-7505e5b-6472dcf0-47646604/latest.pt": {
+   "bytes": 107263749,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-full-v6-compose-7505e5b-6472dcf0-47646604/latest.pt",
+   "sha256": "a302e91b555d0948e53dd1cd6f1b4fbe050a81ca1091505735f6332d92f8c6c1"
+  },
+  "runs/r2s-full-v6-compose-7505e5b-6472dcf0-47646604/result.md": {
+   "bytes": 1751,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-full-v6-compose-7505e5b-6472dcf0-47646604/result.md",
+   "sha256": "ae21bc8394596d044d2bf203d1b4021ed5652d98201c8078ac3a0dd25a52d6f7"
+  },
+  "runs/r2s-full-v6-compose-7505e5b-6472dcf0-47646604/run.yaml": {
+   "bytes": 4068,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-full-v6-compose-7505e5b-6472dcf0-47646604/run.yaml",
+   "sha256": "4b0b3799cc166f44fc54ad8ca39409c517f6b5986422a61f4fb08a4ed788a75e"
+  },
+  "runs/r2s-full-v7-systems-42762c2-e9842024-47646604/best.pt": {
+   "bytes": 36158032,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-full-v7-systems-42762c2-e9842024-47646604/best.pt",
+   "sha256": "ba542ab2968a1d5ba619904602689f18977f96e775f47ed9e4c945fd10b480a7"
+  },
+  "runs/r2s-full-v7-systems-42762c2-e9842024-47646604/latest.pt": {
+   "bytes": 108525709,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-full-v7-systems-42762c2-e9842024-47646604/latest.pt",
+   "sha256": "95e584249948d316c90a91c513b07a291a8b3df95689a3844a4d60568d0d8506"
+  },
+  "runs/r2s-full-v7-systems-42762c2-e9842024-47646604/result.md": {
+   "bytes": 1837,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-full-v7-systems-42762c2-e9842024-47646604/result.md",
+   "sha256": "5592d6b98c4683fbc73afa0241ac8f66f1343e6be882020edca8eeee72bcfb49"
+  },
+  "runs/r2s-full-v7-systems-42762c2-e9842024-47646604/run.yaml": {
+   "bytes": 4155,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-full-v7-systems-42762c2-e9842024-47646604/run.yaml",
+   "sha256": "8937e24c9d0b523f5d4af51605ab6caa4fec69d8ee5c54d03f4ace7e87005588"
+  },
+  "runs/r2s-full-v8-twemoji-f529d3f-5f240ad1-47646604/best.pt": {
+   "bytes": 36158032,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-full-v8-twemoji-f529d3f-5f240ad1-47646604/best.pt",
+   "sha256": "f65f70f3c5333f1e97378f072951e0cfc1b658f39ee8c37e099183608c0ab3cf"
+  },
+  "runs/r2s-full-v8-twemoji-f529d3f-5f240ad1-47646604/latest.pt": {
+   "bytes": 108525709,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-full-v8-twemoji-f529d3f-5f240ad1-47646604/latest.pt",
+   "sha256": "78dac6eb2f4bda9dbef16029cc7d6b12025e279ae49462726a9e0f7c4d518ed1"
+  },
+  "runs/r2s-full-v8-twemoji-f529d3f-5f240ad1-47646604/result.md": {
+   "bytes": 1888,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-full-v8-twemoji-f529d3f-5f240ad1-47646604/result.md",
+   "sha256": "3f2c6f83c075b87e30fd11b690fb4598e8c7f48bc551f1cffb22b58fce3c6812"
+  },
+  "runs/r2s-full-v8-twemoji-f529d3f-5f240ad1-47646604/run.yaml": {
+   "bytes": 5222,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-full-v8-twemoji-f529d3f-5f240ad1-47646604/run.yaml",
+   "sha256": "f9fba5e8eeaccb2ccb347533f4addadaa68c7a7adc217f93644a19c291554ba1"
+  },
+  "runs/r2s-full-v9-colour-621bc8e-b26ad95e-47646604/best.pt": {
+   "bytes": 36158032,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-full-v9-colour-621bc8e-b26ad95e-47646604/best.pt",
+   "sha256": "8bfedc8a7085b1bf9950b35f52c275abce8112dc13e3ef5ff07490f66215d2f8"
+  },
+  "runs/r2s-full-v9-colour-621bc8e-b26ad95e-47646604/latest.pt": {
+   "bytes": 108525709,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-full-v9-colour-621bc8e-b26ad95e-47646604/latest.pt",
+   "sha256": "edc626a1a65ed3cc7f2dac5d985cb40afaae8cd653460f381926e8b445315d34"
+  },
+  "runs/r2s-full-v9-colour-621bc8e-b26ad95e-47646604/result.md": {
+   "bytes": 1836,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-full-v9-colour-621bc8e-b26ad95e-47646604/result.md",
+   "sha256": "bd7ab9ea667dd38dad9e2f74dd34205f943bb8cb55516f98a03f335a05575a32"
+  },
+  "runs/r2s-full-v9-colour-621bc8e-b26ad95e-47646604/run.yaml": {
+   "bytes": 4197,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-full-v9-colour-621bc8e-b26ad95e-47646604/run.yaml",
+   "sha256": "3c0fe1c3ed3cbe2893efc37712f9519c065c3a722da9d8d1272404ada1b64fe6"
+  },
+  "runs/r2s-overfit4-70ac6df-2a313ad8-47646604/best.pt": {
+   "bytes": 35738498,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-overfit4-70ac6df-2a313ad8-47646604/best.pt",
+   "sha256": "3d008e805706aaa959fa83a6729fa5345252266ff25cc0f2cc7f073c418d8d44"
+  },
+  "runs/r2s-overfit4-70ac6df-2a313ad8-47646604/latest.pt": {
+   "bytes": 107263685,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-overfit4-70ac6df-2a313ad8-47646604/latest.pt",
+   "sha256": "9b0f7685983a80f499d79b71571857fc685c784fd960544fb99d407a92808f12"
+  },
+  "runs/r2s-overfit4-70ac6df-2a313ad8-47646604/result.md": {
+   "bytes": 399,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-overfit4-70ac6df-2a313ad8-47646604/result.md",
+   "sha256": "c64715642b9055de11a77049a8f9e86a7180d669f79f6e57c0d18dd27fd18531"
+  },
+  "runs/r2s-overfit4-70ac6df-2a313ad8-47646604/run.yaml": {
+   "bytes": 1953,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-overfit4-70ac6df-2a313ad8-47646604/run.yaml",
+   "sha256": "0e1444c26bf238dd8e9a964549b55071bc3613cd4ddf8d31026da78566eaad6d"
+  },
+  "runs/r2s-overfit4-940f5d3-f7306d2b-47646604/best.pt": {
+   "bytes": 35738498,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-overfit4-940f5d3-f7306d2b-47646604/best.pt",
+   "sha256": "b5f206a4df637b3630fc69f71b4c03b45e286666846cfa5793672f8422c6c130"
+  },
+  "runs/r2s-overfit4-940f5d3-f7306d2b-47646604/latest.pt": {
+   "bytes": 107263685,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-overfit4-940f5d3-f7306d2b-47646604/latest.pt",
+   "sha256": "c854b319fb827207c2f7571bd5b6af6ce9c1d4ad5eb5a4d0fe7829a4d091132e"
+  },
+  "runs/r2s-overfit4-940f5d3-f7306d2b-47646604/result.md": {
+   "bytes": 1162,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-overfit4-940f5d3-f7306d2b-47646604/result.md",
+   "sha256": "2212d4cbf960fa117b45b89438fe0bdf58d26de095c2c978dce2e5feda4b6cc0"
+  },
+  "runs/r2s-overfit4-940f5d3-f7306d2b-47646604/run.yaml": {
+   "bytes": 2403,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-overfit4-940f5d3-f7306d2b-47646604/run.yaml",
+   "sha256": "223b829e0128dd8263331e66469c2c8e0819401838d7aab15303ed059a13dd9d"
+  },
+  "runs/vt-v1-74dfbd2-46380052-47646604/best-any.pt": {
+   "bytes": 36198088,
+   "local": "/home/dev/.cache/mojidiff/runs/vt-v1-74dfbd2-46380052-47646604/best-any.pt",
+   "sha256": "87741b2a99775a1541c69c4c6d8dded2bc4014e285bea0fddfc0698c14f275f7"
+  },
+  "runs/vt-v1-74dfbd2-46380052-47646604/best.pt": {
+   "bytes": 36185276,
+   "local": "/home/dev/.cache/mojidiff/runs/vt-v1-74dfbd2-46380052-47646604/best.pt",
+   "sha256": "b43c20240ac47c3893561e6cafb0c43aefa16d2899d15da7094ceb964f10017f"
+  },
+  "runs/vt-v1-74dfbd2-46380052-47646604/latest.pt": {
+   "bytes": 108607837,
+   "local": "/home/dev/.cache/mojidiff/runs/vt-v1-74dfbd2-46380052-47646604/latest.pt",
+   "sha256": "51e545333c6932c0135e6630a8241680ccb5de6562dbf70ed1a6b3f2d4e72a6c"
+  },
+  "runs/vt-v1-74dfbd2-46380052-47646604/result.md": {
+   "bytes": 3197,
+   "local": "/home/dev/workspace/mojidiff/runs/vt-v1-74dfbd2-46380052-47646604/result.md",
+   "sha256": "a8644c86979b345338f60cd3deef6904483bb221723609836897d319829ba1b4"
+  },
+  "runs/vt-v1-74dfbd2-46380052-47646604/run.yaml": {
+   "bytes": 8809,
+   "local": "/home/dev/workspace/mojidiff/runs/vt-v1-74dfbd2-46380052-47646604/run.yaml",
+   "sha256": "4e7cc2da0544eae95910114b19d5d97177881e00984ab08fc4b171ac2da791e7"
+  },
+  "runs/vt-v2-c16-0f4d5de-1497d4b5-47646604/best-any.pt": {
+   "bytes": 36222728,
+   "local": "/home/dev/.cache/mojidiff/runs/vt-v2-c16-0f4d5de-1497d4b5-47646604/best-any.pt",
+   "sha256": "c7e94ea9792627fad3d90fd16b38b8c7ad05765701a304ddd8811e3ab5ef08b7"
+  },
+  "runs/vt-v2-c16-0f4d5de-1497d4b5-47646604/best.pt": {
+   "bytes": 36209916,
+   "local": "/home/dev/.cache/mojidiff/runs/vt-v2-c16-0f4d5de-1497d4b5-47646604/best.pt",
+   "sha256": "89f3adef52b7a059784f6a4ae62fd952a429d45f823451a534e5f276a0a61898"
+  },
+  "runs/vt-v2-c16-0f4d5de-1497d4b5-47646604/latest.pt": {
+   "bytes": 108681757,
+   "local": "/home/dev/.cache/mojidiff/runs/vt-v2-c16-0f4d5de-1497d4b5-47646604/latest.pt",
+   "sha256": "c5dee6105e06e19afad33c66e095e4839489cb6ed2a1ec47dd31246d766cf7bd"
+  },
+  "runs/vt-v2-c16-0f4d5de-1497d4b5-47646604/result.md": {
+   "bytes": 3202,
+   "local": "/home/dev/workspace/mojidiff/runs/vt-v2-c16-0f4d5de-1497d4b5-47646604/result.md",
+   "sha256": "0b7dde55fde00a7bd40296c69ac75d5560c46b511c73403a581f6321ff775dc5"
+  },
+  "runs/vt-v2-c16-0f4d5de-1497d4b5-47646604/run.yaml": {
+   "bytes": 9054,
+   "local": "/home/dev/workspace/mojidiff/runs/vt-v2-c16-0f4d5de-1497d4b5-47646604/run.yaml",
+   "sha256": "4025d5ae5a551d05faf47cbb2dd6a6cb24e2e289523e60e3b3ad9829ddd36e2f"
+  }
+ },
+ "repo": "https://huggingface.co/chrispie/mojidiff-checkpoints"
+}
