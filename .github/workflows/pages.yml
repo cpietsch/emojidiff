@@ -4,8 +4,8 @@
 # built by mojidiff.weblog.build. Its only third-party import is PyYAML, so the job
 # installs that and nothing else: no torch, no CairoSVG, no project sync. The build
 # uses relative links only, which is what lets it be served under the /emojidiff/
-# sub-path; `--publication pages` swaps the tailnet footer for links to the hosted
-# demos and checkpoints. Pins match uv.lock.
+# sub-path; `--publication pages` swaps the tailnet footer for links to the source and
+# checkpoints. Pins match uv.lock.
 
 name: Pages
 

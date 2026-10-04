@@ -55,7 +55,7 @@ LOCAL = Publication(
     "Tailscale address only."
 )
 
-# The public copy points at the hosted demos rather than at the tailnet services, which
+# The public copy points at the public source and checkpoints rather than at the tailnet services, which
 # a reader outside the tailnet cannot reach.
 PAGES = Publication(
     note="Generated from the committed research record and published from the main branch.",
@@ -71,8 +71,6 @@ PAGES = Publication(
     links=(
         ("Source", "https://github.com/cpietsch/emojidiff"),
         ("Checkpoints", "https://huggingface.co/chrispie/mojidiff-checkpoints"),
-        ("Gallery demo", "https://huggingface.co/spaces/chrispie/mojidiff-gallery"),
-        ("Vectorise demo", "https://huggingface.co/spaces/chrispie/mojidiff-vectorise"),
         ("OpenMoji", "https://openmoji.org/"),
         ("Twemoji", "https://github.com/jdecked/twemoji"),
         ("CC BY-SA 4.0", "https://creativecommons.org/licenses/by-sa/4.0/"),

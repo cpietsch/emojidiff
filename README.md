@@ -11,12 +11,13 @@ The GitHub repository is named `emojidiff`; the Python package is `mojidiff`.
 - Findings, the single dated narrative: [`reports/findings.md`](reports/findings.md)
 - Checkpoints, all of them: https://huggingface.co/chrispie/mojidiff-checkpoints
   (sha256 index in [`reports/checkpoints-hf.json`](reports/checkpoints-hf.json))
-- Live demos: the [model gallery](https://huggingface.co/spaces/chrispie/mojidiff-gallery)
-  and [edit pixels, re-vectorise](https://huggingface.co/spaces/chrispie/mojidiff-vectorise).
-  Both run on free CPU hardware. In a container limited to 2 CPUs, v9 greedy took a
-  median of about 730 ms per icon on the first 40 held-out icons the page lists,
-  against 381 ms for v7 on the RTX 4080 (below), and best of 8 takes seconds. Hugging
-  Face's own vCPUs may be slower.
+- Demos: in-browser versions of the model gallery and of edit pixels, re-vectorise are
+  being built (the models run in the visitor's browser, served from Pages). Until then
+  the demos run on the project's own machine only. `space/` and
+  `scripts/build_space.py` also package them as Hugging Face Docker Spaces, which need
+  a PRO account on the free CPU tier; in a container limited to 2 CPUs, v9 greedy took
+  a median of about 730 ms per icon on the first 40 held-out icons the page lists,
+  against 381 ms for v7 on the RTX 4080 (below).
 
 ## What it does
 

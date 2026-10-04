@@ -302,8 +302,6 @@ def test_the_pages_build_works_under_a_sub_path(tmp_path: Path) -> None:
     index = (site / "index.html").read_text()
     assert "Tailscale address only" not in index
     for url in (
-        "https://huggingface.co/spaces/chrispie/mojidiff-gallery",
-        "https://huggingface.co/spaces/chrispie/mojidiff-vectorise",
         "https://huggingface.co/chrispie/mojidiff-checkpoints",
         "https://openmoji.org/",
         "https://creativecommons.org/licenses/by-sa/4.0/",

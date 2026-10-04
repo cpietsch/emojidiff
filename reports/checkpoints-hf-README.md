@@ -15,9 +15,7 @@ artifacts with honest, mostly negative results, not a polished release. Loading 
 needs the MojiDiff code (`mojidiff.learning.*`) from
 [github.com/cpietsch/emojidiff](https://github.com/cpietsch/emojidiff), which also holds
 every run record and the research log
-([weblog](https://cpietsch.github.io/emojidiff/)). Live demos:
-[gallery](https://huggingface.co/spaces/chrispie/mojidiff-gallery) and
-[edit pixels, re-vectorise](https://huggingface.co/spaces/chrispie/mojidiff-vectorise).
+([weblog](https://cpietsch.github.io/emojidiff/)). In-browser demos are in progress.
 
 ## Layout
 
