@@ -2,18 +2,22 @@
 
 from __future__ import annotations
 
+import ipaddress
 import json
 from html import escape
 from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 import pytest
 
-from mojidiff.weblog.build import build_site
+from mojidiff.weblog.build import PAGES, build_site
 from mojidiff.weblog.charts import Series, metric_chart
 from mojidiff.weblog.markdown import render_markdown
 
 _ROOT = Path(__file__).resolve().parent.parent
+# 100.64.0.0/10 is the shared address space Tailscale hands out.
+_TAILNET = ipaddress.ip_network("100.64.0.0/10")
 _VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source"}
 
 
@@ -241,6 +245,81 @@ def test_a_superseded_attempt_keeps_its_own_evidence(tmp_path: Path) -> None:
     rerun = (tmp_path / "site" / "run" / "demo-rerun.html").read_text()
     assert "attempt-numbers" in attempt and "rerun-numbers" not in attempt
     assert "rerun-numbers" in rerun and "attempt-numbers" not in rerun
+
+
+class _References(HTMLParser):
+    """Collect every href and src a page asks the browser to follow or load."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.refs: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        self.refs.extend(value for key, value in attrs if key in {"href", "src"} and value)
+
+
+def _private_host(host: str) -> bool:
+    if host in {"localhost", "0.0.0.0"} or host.endswith(".ts.net"):
+        return True
+    try:
+        address = ipaddress.ip_address(host)
+    except ValueError:
+        return False
+    return address.is_private or address.is_loopback or address in _TAILNET
+
+
+def test_the_pages_build_works_under_a_sub_path(tmp_path: Path) -> None:
+    """GitHub Pages serves the site at /emojidiff/, to readers outside the tailnet.
+
+    A root-absolute link would resolve to cpietsch.github.io/ and miss the site, and a
+    link to a tailnet address or localhost is dead for every public reader.
+    """
+
+    site = tmp_path / "site"
+    build_site(_ROOT, site, PAGES)
+    pages = sorted(site.rglob("*.html"))
+    assert pages
+    for page in pages:
+        parser = _References()
+        parser.feed(page.read_text())
+        for ref in parser.refs:
+            parts = urlsplit(ref)
+            where = f"{page.relative_to(site)}: {ref}"
+            if parts.scheme or parts.netloc:
+                assert parts.scheme in {"http", "https", "mailto"}, where
+                assert not _private_host(parts.hostname or ""), where
+                continue
+            assert not ref.startswith("/"), f"root-absolute link breaks under a sub-path: {where}"
+            if not parts.path:
+                continue
+            target = (page.parent / unquote(parts.path)).resolve()
+            # Committed prose may cite a repository path the site does not mirror; any
+            # link that lands inside the site, which is every link the build generates,
+            # must name a file the build wrote.
+            if site.resolve() in target.parents:
+                assert target.is_file(), f"dangling link: {where}"
+
+    index = (site / "index.html").read_text()
+    assert "Tailscale address only" not in index
+    for url in (
+        "https://huggingface.co/spaces/chrispie/mojidiff-gallery",
+        "https://huggingface.co/spaces/chrispie/mojidiff-vectorise",
+        "https://huggingface.co/chrispie/mojidiff-checkpoints",
+        "https://openmoji.org/",
+        "https://creativecommons.org/licenses/by-sa/4.0/",
+        "https://creativecommons.org/licenses/by/4.0/",
+    ):
+        assert f"href='{url}'" in index, url
+    # The public copy names both artwork sources and says gtc was only where it began.
+    assert "All emojis designed by OpenMoji" in index and "Twemoji" in index
+    assert "only a starting point and an inspiration" in index
+
+
+def test_the_local_build_keeps_its_tailnet_footer(site: Path) -> None:
+    index = (site / "index.html").read_text()
+    assert "Tailscale address only" in index
+    assert "huggingface.co/spaces" not in index
+    assert "starting point" not in index
 
 
 def test_the_front_page_carries_the_newest_decisions(site: Path) -> None:

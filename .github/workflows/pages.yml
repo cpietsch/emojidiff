@@ -1,0 +1,68 @@
+# Publish the research weblog to GitHub Pages: https://cpietsch.github.io/emojidiff/
+#
+# The weblog is a static view over committed files (reports/, state/, runs/, configs/)
+# built by mojidiff.weblog.build. Its only third-party import is PyYAML, so the job
+# installs that and nothing else: no torch, no CairoSVG, no project sync. The build
+# uses relative links only, which is what lets it be served under the /emojidiff/
+# sub-path; `--publication pages` swaps the tailnet footer for links to the hosted
+# demos and checkpoints. Pins match uv.lock.
+
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; a newer push supersedes a queued one, but a deployment
+# already in progress is allowed to finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+
+      - uses: actions/configure-pages@v5
+
+      - name: Test the weblog build
+        run: >-
+          uv run --no-project --with "pyyaml==6.0.3" --with "pytest==9.1.1"
+          pytest -q tests/test_weblog.py
+
+      - name: Build the weblog
+        run: >-
+          uv run --no-project --with "pyyaml==6.0.3"
+          python -m mojidiff.weblog.build --root . --out _site --publication pages
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    # A manual run from another branch only builds and tests; main alone is published.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

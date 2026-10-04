@@ -314,6 +314,9 @@ def test_a_model_registered_under_the_wrong_kind_is_refused(
 def test_models_payload_shape_and_order(gallery: Gallery) -> None:
     payload = gallery.models_payload()
     assert payload["baseline_pixel_error"] == BASELINE_PIXEL_ERROR == 0.090
+    assert payload["ratings"] is True
+    # The page names CPU, not the RTX 4080, as where its times come from.
+    assert payload["device"] == "cpu"
     assert [m["id"] for m in payload["models"]] == ["v9", "l2"]
     for model in payload["models"]:
         assert set(model) == _ENTRY_KEYS
@@ -902,6 +905,9 @@ def test_http_rating_endpoints(
     assert status == 503 and body["ok"] is False
     status, _, raw = _call(address, "GET", "/ratings")
     assert status == 503 and not json.loads(raw)["ok"]
+    # The page reads this flag to hide its rating bars, panel and blind rounds.
+    status, _, raw = _call(address, "GET", "/models")
+    assert status == 200 and json.loads(raw)["ratings"] is False
 
 
 def test_http_refusals_are_400_413_and_decoding_failures_are_200_not_ok(
@@ -1052,3 +1058,42 @@ def test_cuda_concurrent_requests_equal_their_sequential_answers(
             futures = [pool.submit(call) for call in calls + calls[::-1]]
             answers = [future.result() for future in futures]
             assert answers == sequential + sequential[::-1]
+
+
+def test_serve_gallery_no_ratings_passes_none_and_the_page_hides_the_controls(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The public Space runs `serve_gallery.py --no-ratings`: nothing is written, and the
+    page hides every rating control when `/models` says ratings are off."""
+
+    import importlib.util
+    import sys
+
+    script = Path(__file__).resolve().parents[1] / "scripts" / "serve_gallery.py"
+    spec = importlib.util.spec_from_file_location("serve_gallery_script", script)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    calls: list[tuple[Any, ...]] = []
+    monkeypatch.setattr(module, "serve", lambda *args: calls.append(args))
+    monkeypatch.setattr(sys, "argv", ["serve_gallery.py", "--host", "0.0.0.0", "--port", "7860"])
+    module.main()
+    monkeypatch.setattr(sys, "argv", ["serve_gallery.py", "--no-ratings", "--port", "7860"])
+    module.main()
+    assert calls[0] == ("0.0.0.0", 7860, None, gallery_server.RATINGS)
+    assert calls[1][1:] == (7860, None, None)
+    page = gallery_server.PAGE.read_text()
+    assert "RATINGS_ON = data.ratings !== false;" in page
+    assert "body.no-ratings .crate, body.no-ratings #ratings-sec" in page
+    assert 'class="rated-only"' in page
+
+
+def test_the_page_names_cpu_times_when_the_server_has_no_gpu() -> None:
+    """On the GPU-less Space, `/models` says `device: cpu` and the page swaps its RTX 4080
+    sentence and its GPU timing tooltips for CPU ones; with a GPU they read as before."""
+
+    page = gallery_server.PAGE.read_text()
+    assert '<span id="where">Times are each model\'s own on the RTX 4080;' in page
+    assert "ON_CPU = data.device === 'cpu';" in page
+    assert page.count("(ON_CPU ? 'CPU' : 'GPU (synchronised)')") == 2
+    assert "on the server GPU" not in page

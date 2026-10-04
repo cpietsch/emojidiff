@@ -155,6 +155,7 @@
   .rmean { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; margin-left: 4px; }
   .crate input[type=text] { flex: 1 1 220px; min-width:0; padding: 4px 8px; border:1px solid var(--line); border-radius:6px; font: inherit; font-size: 14px; }
   .crate .status { flex-basis: 100%; min-height: 1.2em; }
+  body.no-ratings .crate, body.no-ratings #ratings-sec, body.no-ratings .rated-only { display:none; }
   .rsum { cursor:pointer; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
   .rsum span { text-transform:none; letter-spacing:0; font-weight:400; }
   .rtable-wrap { overflow-x:auto; margin-top: 8px; }
@@ -175,7 +176,7 @@
 <body>
 <header>
   <h1>Model gallery</h1>
-  <p>Every model trained in this phase, side by side on the same input. Pick a held-out icon (validation or test, never trained on) or paint, and each render-to-SVG transcriber turns the canvas into an editable SVG program in the project's codec. Times are each model's own on the RTX 4080; requests share one GPU and run one after another. Star the outputs you like.</p>
+  <p>Every model trained in this phase, side by side on the same input. Pick a held-out icon (validation or test, never trained on) or paint, and each render-to-SVG transcriber turns the canvas into an editable SVG program in the project's codec. <span id="where">Times are each model's own on the RTX 4080; requests share one GPU and run one after another.</span> Star the outputs you like.</p>
 </header>
 <div id="banner" class="banner" role="alert" hidden><span id="banner-text"></span><button type="button" class="btn mini" id="banner-retry">retry</button></div>
 <nav class="tabs" role="tablist" aria-label="Views">
@@ -270,7 +271,7 @@
     <div class="col" id="compare-ui" hidden>
       <section id="c-controls">
         <h2>Compare <span class="cwhich" id="c-which"></span></h2>
-        <p class="hint">Every latent model on the same A, B, steps, seed and scale, one row each. Rows load one model at a time, top row first. After the first Run, a change re-runs only what it affects and drops the requests still waiting. Rate each row 1 (worst) to 5 (best); every rating is saved on the server. Blind shuffles the rows and names them by letter until you reveal the names, which needs a blind rating of every row; ticking blind, or a new blind round, reshuffles the rows and clears what they showed.</p>
+        <p class="hint">Every latent model on the same A, B, steps, seed and scale, one row each. Rows load one model at a time, top row first. After the first Run, a change re-runs only what it affects and drops the requests still waiting.<span class="rated-only"> Rate each row 1 (worst) to 5 (best); every rating is saved on the server. Blind shuffles the rows and names them by letter until you reveal the names, which needs a blind rating of every row; ticking blind, or a new blind round, reshuffles the rows and clears what they showed.</span></p>
         <div class="ab">
           <div class="slot" id="c-slot-a"><span class="tag">A</span><div class="thumb" id="c-a-thumb"></div><div class="slot-text"><span class="name" id="c-a-name"></span><button type="button" class="btn mini" id="c-a-clear">clear</button></div></div>
           <div class="slot" id="c-slot-b"><span class="tag">B</span><div class="thumb" id="c-b-thumb"></div><div class="slot-text"><span class="name" id="c-b-name"></span><button type="button" class="btn mini" id="c-b-clear">clear</button></div></div>
@@ -284,7 +285,7 @@
         </div>
         <div class="row">
           <label>thumbnails <select id="c-tile"><option value="96">96 px</option><option value="128" selected>128 px</option><option value="160">160 px</option></select></label>
-          <label title="Shuffle the rows, name them by letter, and hide names, descriptions, stats, timings, error details and mean ratings until you reveal the names. Ratings made before the reveal record blind: true. Ticking it starts a new blind round."><input type="checkbox" id="c-blind"> blind</label>
+          <label class="rated-only" title="Shuffle the rows, name them by letter, and hide names, descriptions, stats, timings, error details and mean ratings until you reveal the names. Ratings made before the reveal record blind: true. Ticking it starts a new blind round."><input type="checkbox" id="c-blind"> blind</label>
           <button type="button" id="c-reveal" class="btn" hidden>reveal names</button>
           <button type="button" id="c-round" class="btn" hidden title="Reshuffle and reletter the rows, clear their outputs and draw a new seed, to rate blind again">new blind round</button>
           <button type="button" id="c-run" class="btn primary">Run</button>
@@ -429,7 +430,7 @@ function flash(button, text) {
 
 /* ---------------------------------------------------------------- models and stats */
 
-let MODELS = [], TRANSCRIBERS = [], LATENTS = [], BASELINE = null;
+let MODELS = [], TRANSCRIBERS = [], LATENTS = [], BASELINE = null, RATINGS_ON = true, ON_CPU = false;
 
 function params(m) { return isNum(m.parameters) ? (m.parameters / 1e6).toFixed(1) + 'M params' : ''; }
 function errClass(x) { return BASELINE === null ? '' : (x < BASELINE ? 'good' : 'bad'); }
@@ -797,8 +798,8 @@ function cardResult(card, run, data) {
     if (isNum(data.segments)) bits.push(data.segments + ' segments');
     setStatus(card.status, bits.join(' · '));
     card.status.title = isNum(data.candidates) && data.candidates > 1
-      ? 'Model time measured on the server GPU (synchronised): decoding all ' + data.candidates + ' candidates. Excludes PNG decoding and the CPU render-and-compare that picks one.'
-      : 'Model time measured on the server GPU (synchronised), excluding PNG decoding';
+      ? 'Model time measured on the server ' + (ON_CPU ? 'CPU' : 'GPU (synchronised)') + ': decoding all ' + data.candidates + ' candidates. Excludes PNG decoding and the CPU render-and-compare that picks one.'
+      : 'Model time measured on the server ' + (ON_CPU ? 'CPU' : 'GPU (synchronised)') + ', excluding PNG decoding';
   }
   card.dl.disabled = !card.svg; card.cp.disabled = !card.svg;
   if (card.key) card.star.dataset.key = card.key; else delete card.star.dataset.key;
@@ -1766,6 +1767,14 @@ async function init() {
   BASELINE = isNum(data.baseline_pixel_error) ? data.baseline_pixel_error : null;
   TRANSCRIBERS = MODELS.filter(m => m.kind === 'transcriber');
   LATENTS = MODELS.filter(m => m.kind === 'latent');
+  // A server that records no ratings (the public Space): no rating bars, no ratings panel,
+  // and no blind rounds, whose reveal needs a blind rating of every row.
+  RATINGS_ON = data.ratings !== false;
+  document.body.classList.toggle('no-ratings', !RATINGS_ON);
+  if (!RATINGS_ON && C.blind) setBlind(false, false);
+  // A server without a GPU (the public Space): its times are CPU times.
+  ON_CPU = data.device === 'cpu';
+  if (ON_CPU) $('where').textContent = "Times are each model's own on this server's CPU (no GPU); requests run one after another.";
   const legend = $('legend');
   legend.textContent = '';
   if (BASELINE !== null) {
@@ -1777,7 +1786,7 @@ async function init() {
   buildCards();
   buildLatentModels();
   renderSlots();
-  if (LATENTS.length) loadRatings();
+  if (LATENTS.length && RATINGS_ON) loadRatings();
   setStatus($('progress'), TRANSCRIBERS.length + ' transcribers ready.');
   await searches;
   const saved = store.get(KEYS.icon, null);

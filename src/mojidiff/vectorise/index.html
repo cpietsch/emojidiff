@@ -37,7 +37,7 @@
 <body>
 <header>
   <h1>Re-vectorise</h1>
-  <p>Pick an OpenMoji icon the model never trained on, paint on it, and a small render-to-SVG model transcribes the pixels back into an editable SVG program. The time shown is the model's own, on the RTX 4080, from pixels to a validated program.</p>
+  <p>Pick an OpenMoji icon the model never trained on, paint on it, and a small render-to-SVG model transcribes the pixels back into an editable SVG program. The time shown is the model's own, <span id="where">on the RTX 4080</span>, from pixels to a validated program.</p>
 </header>
 <main>
   <section>
@@ -80,6 +80,8 @@ function snapshot() { history.push(ctx.getImageData(0, 0, size, size)); if (hist
 async function init() {
   const config = await (await fetch('/config')).json();
   size = config.size; canvas.width = size; canvas.height = size; blank();
+  // A server without a GPU (the public Space): its times are CPU times.
+  if (config.device === 'cpu') document.getElementById('where').textContent = "on this server's CPU (no GPU)";
   const palette = document.getElementById('palette');
   for (const c of config.palette) {
     const b = document.createElement('button');

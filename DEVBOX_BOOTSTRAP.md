@@ -1,5 +1,11 @@
 # Fresh `gtc` control-plane bootstrap
 
+> **Historical.** This file is part of the handoff package for `gtc`, the Codex
+> control-plane machine MojiDiff started from. That plan was only a starting point and
+> an inspiration; the project has since evolved into something else and now runs on one
+> owned RTX 4080. Kept for history; these are not current instructions (see `README.md`
+> and `AGENTS.md`).
+
 This procedure assumes a fresh dedicated VM using the deployment from
 `https://github.com/cpietsch/code-server-cpu`. The dev container is the Codex control
 plane; GPU training runs elsewhere over SSH.

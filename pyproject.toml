@@ -5,7 +5,9 @@ build-backend = "hatchling.build"
 [project]
 name = "mojidiff"
 version = "0.1.0"
-description = "Evidence-driven categorical denoising research for typed SVG programs"
+description = "Small models that write OpenMoji-style emoji as editable SVG programs"
+license = "CC-BY-SA-4.0"
+license-files = ["LICENSE"]
 requires-python = ">=3.12"
 dependencies = [
   "CairoSVG>=2.8.2",

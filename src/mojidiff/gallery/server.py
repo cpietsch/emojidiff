@@ -690,6 +690,9 @@ class Gallery:
         return {
             "models": [dict(loaded.entry) for loaded in self._models.values()],
             "baseline_pixel_error": BASELINE_PIXEL_ERROR,
+            "ratings": self.ratings is not None,
+            # The page names where its times come from: the GPU, or a CPU-only Space.
+            "device": self.device.type,
         }
 
     def icons_matching(self, query: str, limit: int = ICON_LIMIT) -> dict[str, Any]:
@@ -1233,14 +1236,18 @@ def _log(message: str) -> None:
     print(message, file=sys.stderr, flush=True)
 
 
-def serve(host: str, port: int, registry: Path | None = None, ratings: Path = RATINGS) -> None:
+def serve(
+    host: str, port: int, registry: Path | None = None, ratings: Path | None = RATINGS
+) -> None:
     """Load the registry's models (`registry`, else the default file, else `MODELS`) and
-    serve them; ratings append to `ratings`."""
+    serve them; ratings append to `ratings`, or with None (a public copy) are refused and
+    the page hides its rating controls."""
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     started = time.perf_counter()
     specs = registry_models(registry, log=_log)
-    _log(f"registry {registry or REGISTRY}: {len(specs)} models; ratings to {ratings}")
+    where = "ratings off" if ratings is None else f"ratings to {ratings}"
+    _log(f"registry {registry or REGISTRY}: {len(specs)} models on {device.type}; {where}")
     gallery = Gallery.from_checkpoints(device, specs, ratings=ratings, log=_log)
     with make_server(gallery, host, port) as server:
         _log(

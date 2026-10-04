@@ -36,6 +36,53 @@ STATE_ORDER = ("planned", "staged", "running", "completed", "failed", "cancelled
 _IMAGE_SUFFIXES = (".png", ".svg", ".jpg", ".jpeg", ".webp")
 
 
+@dataclass(frozen=True)
+class Publication:
+    """Where a built site is served, which decides what its footer may say and link.
+
+    The pages themselves are identical for every target and use only relative links,
+    so the same build works at a host root (the tailnet server) and under a sub-path
+    (GitHub Pages serves the project site at `/emojidiff/`).
+    """
+
+    note: str
+    remarks: tuple[str, ...] = ()
+    links: tuple[tuple[str, str], ...] = ()
+
+
+LOCAL = Publication(
+    note="Generated from the committed research record. Served on the machine's "
+    "Tailscale address only."
+)
+
+# The public copy points at the hosted demos rather than at the tailnet services, which
+# a reader outside the tailnet cannot reach.
+PAGES = Publication(
+    note="Generated from the committed research record and published from the main branch.",
+    remarks=(
+        "Code, text and checkpoints are CC BY-SA 4.0. All emojis designed by OpenMoji, "
+        "the open-source emoji and icon project, CC BY-SA 4.0; the models learn from and "
+        "render adaptations of them. The v8 checkpoint was also trained on adapted Twemoji "
+        "graphics, CC BY 4.0.",
+        "The project began from a handoff package for gtc, a Codex control-plane machine. "
+        "That was only a starting point and an inspiration; MojiDiff has since evolved into "
+        "something else, and early entries that mention gtc are kept as history.",
+    ),
+    links=(
+        ("Source", "https://github.com/cpietsch/emojidiff"),
+        ("Checkpoints", "https://huggingface.co/chrispie/mojidiff-checkpoints"),
+        ("Gallery demo", "https://huggingface.co/spaces/chrispie/mojidiff-gallery"),
+        ("Vectorise demo", "https://huggingface.co/spaces/chrispie/mojidiff-vectorise"),
+        ("OpenMoji", "https://openmoji.org/"),
+        ("Twemoji", "https://github.com/jdecked/twemoji"),
+        ("CC BY-SA 4.0", "https://creativecommons.org/licenses/by-sa/4.0/"),
+        ("CC BY 4.0", "https://creativecommons.org/licenses/by/4.0/"),
+    ),
+)
+
+PUBLICATIONS = {"local": LOCAL, "pages": PAGES}
+
+
 class WeblogError(RuntimeError):
     """The weblog could not be generated from the committed evidence."""
 
@@ -72,7 +119,7 @@ class RunPage:
         return f"run/{self.run_id}.html"
 
 
-def build_site(root: Path, out: Path) -> dict[str, Any]:
+def build_site(root: Path, out: Path, publication: Publication = LOCAL) -> dict[str, Any]:
     """Write the complete site under `out` and return a build manifest."""
 
     runs = _collect_runs(root)
@@ -91,14 +138,20 @@ def build_site(root: Path, out: Path) -> dict[str, Any]:
     copied = _copy_assets(root, out, gallery, runs)
     _write(
         out / "index.html",
-        _index_page(runs, gates, headline or _headline(current), gallery, findings),
+        _index_page(runs, gates, headline or _headline(current), gallery, findings, publication),
     )
-    _write(out / "runs.html", _runs_page(runs))
-    _write(out / "findings.html", _document_page("Decision trail", findings, "findings"))
-    _write(out / "state.html", _document_page("Current research state", current, "state"))
-    _write(out / "gallery.html", _gallery_page(gallery))
+    _write(out / "runs.html", _runs_page(runs, publication))
+    _write(
+        out / "findings.html",
+        _document_page("Decision trail", findings, "findings", publication),
+    )
+    _write(
+        out / "state.html",
+        _document_page("Current research state", current, "state", publication),
+    )
+    _write(out / "gallery.html", _gallery_page(gallery, publication))
     for run in runs:
-        _write(out / "run" / f"{run.run_id}.html", _run_page(run, root))
+        _write(out / "run" / f"{run.run_id}.html", _run_page(run, root, publication))
     manifest = {
         "runs": len(runs),
         "pages": 5 + len(runs),
@@ -319,6 +372,7 @@ def _index_page(
     headline: str,
     gallery: dict[str, list[Path]],
     findings: str | None = None,
+    publication: Publication = LOCAL,
 ) -> str:
     counts: dict[str, int] = {}
     for run in runs:
@@ -363,6 +417,7 @@ def _index_page(
   <p><a class="more" href="gallery.html">Full gallery &rarr;</a></p>
 </section>
 """,
+        publication=publication,
     )
 
 
@@ -422,7 +477,7 @@ def _gate_board(gates: list[dict[str, Any]]) -> str:
     )
 
 
-def _runs_page(runs: list[RunPage]) -> str:
+def _runs_page(runs: list[RunPage], publication: Publication = LOCAL) -> str:
     return _shell(
         "Experiments",
         "runs",
@@ -435,6 +490,7 @@ def _runs_page(runs: list[RunPage]) -> str:
   {_run_table(runs[::-1])}
 </section>
 """,
+        publication=publication,
     )
 
 
@@ -470,7 +526,7 @@ def _outcome_badge(run: RunPage) -> str:
     return "<span class='muted'>&mdash;</span>"
 
 
-def _run_page(run: RunPage, root: Path) -> str:
+def _run_page(run: RunPage, root: Path, publication: Publication = LOCAL) -> str:
     sections = [
         f"<section class='run-head'><p class='eyebrow'><a href='../runs.html'>"
         f"&larr; experiments</a></p><h1 class='mono'>{escape(run.run_id)}</h1>"
@@ -529,7 +585,7 @@ def _run_page(run: RunPage, root: Path) -> str:
     sections.append(
         f"<section><h2>Run record</h2><p class='note'>{provenance}</p>{_tree(run.record)}</section>"
     )
-    return _shell(run.run_id, "runs", "".join(sections), depth=1)
+    return _shell(run.run_id, "runs", "".join(sections), depth=1, publication=publication)
 
 
 def _strip_leading_heading(markdown: str) -> str:
@@ -726,15 +782,22 @@ def _tree(value: Any, level: int = 0) -> str:
     return escape(text)
 
 
-def _document_page(title: str, markdown: str | None, active: str) -> str:
+def _document_page(
+    title: str, markdown: str | None, active: str, publication: Publication = LOCAL
+) -> str:
     if markdown is None:
         body = "<p class='note'>Not committed yet.</p>"
     else:
         body = render_markdown(_strip_leading_heading(markdown))
-    return _shell(title, active, f"<section class='prose'><h1>{escape(title)}</h1>{body}</section>")
+    return _shell(
+        title,
+        active,
+        f"<section class='prose'><h1>{escape(title)}</h1>{body}</section>",
+        publication=publication,
+    )
 
 
-def _gallery_page(gallery: dict[str, list[Path]]) -> str:
+def _gallery_page(gallery: dict[str, list[Path]], publication: Publication = LOCAL) -> str:
     groups = "".join(
         f"<section><h2 class='mono'>{escape(name)}</h2>{_image_grid(items)}</section>"
         for name, items in sorted(gallery.items())
@@ -744,6 +807,7 @@ def _gallery_page(gallery: dict[str, list[Path]]) -> str:
         "gallery",
         "<section><h1>Visual evidence</h1><p class='lede'>Every render committed under "
         "<code>reports/</code>, grouped by the study that produced it.</p></section>" + groups,
+        publication=publication,
     )
 
 
@@ -765,8 +829,15 @@ def _image_strip(gallery: dict[str, list[Path]]) -> str:
     return _image_grid(picked[:8])
 
 
-def _shell(title: str, active: str, body: str, depth: int = 0) -> str:
+def _shell(
+    title: str, active: str, body: str, depth: int = 0, publication: Publication = LOCAL
+) -> str:
     up = "../" * depth
+    notes = "".join(f"<p>{escape(text)}</p>" for text in (publication.note, *publication.remarks))
+    links = " &middot; ".join(
+        f"<a href='{escape(href, quote=True)}'>{escape(label)}</a>"
+        for label, href in publication.links
+    )
     nav = "".join(
         f"<a class='{'on' if key == active else ''}' href='{up}{href}'>{label}</a>"
         for key, href, label in (
@@ -789,8 +860,7 @@ def _shell(title: str, active: str, body: str, depth: int = 0) -> str:
 <header class="topbar"><a class="brand" href="{up}index.html">MojiDiff</a>
 <nav>{nav}</nav></header>
 <main>{body}</main>
-<footer><p>Generated from the committed research record. Served on the machine's
-Tailscale address only.</p></footer>
+<footer>{notes}{f"<p>{links}</p>" if links else ""}</footer>
 <script src="{up}chart.js"></script>
 </body>
 </html>
@@ -812,8 +882,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path("."), help="repository root")
     parser.add_argument("--out", type=Path, default=Path("site"), help="output directory")
+    parser.add_argument(
+        "--publication",
+        choices=sorted(PUBLICATIONS),
+        default="local",
+        help="where the site is served: the tailnet machine, or the public GitHub Pages copy",
+    )
     args = parser.parse_args()
-    manifest = build_site(args.root.resolve(), args.out.resolve())
+    manifest = build_site(args.root.resolve(), args.out.resolve(), PUBLICATIONS[args.publication])
     print(json.dumps(manifest, sort_keys=True))
 
 

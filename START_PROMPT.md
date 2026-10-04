@@ -1,5 +1,11 @@
 # Initial prompt for Codex on gtc
 
+> **Historical.** This file is part of the handoff package for `gtc`, the Codex
+> control-plane machine MojiDiff started from. That plan was only a starting point and
+> an inspiration; the project has since evolved into something else and now runs on one
+> owned RTX 4080. Kept for history; these are not current instructions (see `README.md`
+> and `AGENTS.md`).
+
 Read `AGENTS.md`, `PROJECT_PLAN.md`, and `DATA_CURATION.md` completely and treat
 `AGENTS.md` as the binding operating contract. This is an exploratory research program
 with no calendar schedule. Optimize for information gain, reproducibility, artifact

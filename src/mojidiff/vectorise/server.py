@@ -20,11 +20,14 @@ import socketserver
 import sys
 import time
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from urllib.parse import parse_qs, urlparse
 
 import numpy as np
 import torch
+
+if TYPE_CHECKING:
+    from mojidiff.learning.render2svg import DecodeStats
 
 _REPO_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_HOST = "100.69.189.78"
@@ -104,7 +107,8 @@ class Vectoriser:
         from mojidiff.learning.render2svg import DecodeStats, greedy_decode
         from mojidiff.representation.packed import serialize_packed_svg
 
-        images = torch.from_numpy(rgb)[None].to(self.device)
+        # A canvas array is read-only; torch wants a writable one.
+        images = torch.from_numpy(np.array(rgb, copy=True))[None].to(self.device)
         stats = DecodeStats()
         with self.lock:
             if self.device.type == "cuda":
@@ -115,11 +119,7 @@ class Vectoriser:
 
                 tokens, _ = rerank(self.graph_many, images[0], self.template, stats=stats)
             elif candidates > 1:
-                from mojidiff.learning.render2svg import rerank_decode
-
-                tokens, _ = rerank_decode(
-                    self.model, images[0], self.template, candidates=CANDIDATES, temperature=0.7
-                )
+                tokens = self._rerank(images[0], stats)
             elif self.graph is not None:
                 tokens = self.graph.decode(images[0], stats=stats)
             else:
@@ -139,6 +139,40 @@ class Vectoriser:
             "paths": len(lengths),
             "segments": sum(lengths),
         }
+
+    def _rerank(self, image: torch.Tensor, stats: DecodeStats) -> torch.Tensor:
+        """Best of `CANDIDATES` without CUDA graphs (the CPU Space): exactly
+        `render2svg.rerank_decode` (greedy plus seven samples at 0.7 from seed 0, the one
+        whose render is nearest the canvas), but counting decoder calls in `stats`."""
+
+        from mojidiff.learning.autoregressive import unflatten_program
+        from mojidiff.learning.render2svg import greedy_decode, pixel_error, render_trusted_rgb
+        from mojidiff.representation.packed import serialize_packed_svg
+        from mojidiff.representation.renderer import IsolatedRenderError
+
+        images = image[None]
+        greedy = greedy_decode(self.model, images, stats=stats)
+        generator = torch.Generator(device=image.device).manual_seed(0)
+        sampled = greedy_decode(
+            self.model,
+            images.expand(CANDIDATES - 1, -1, -1, -1).contiguous(),
+            temperature=0.7,
+            generator=generator,
+            stats=stats,
+        )
+        tokens = torch.cat((greedy, sampled))
+        target = image.cpu().numpy()
+        errors: list[float] = []
+        for row in tokens:
+            program = unflatten_program(row, self.template, self.layout)
+            try:
+                codec, slots = self.layout.codec, self.layout.total_segment_slots
+                svg = serialize_packed_svg(program, codec, slots)
+                errors.append(pixel_error(render_trusted_rgb(svg, int(target.shape[0])), target))
+            except (ValueError, IsolatedRenderError):
+                errors.append(1.0)
+        best = int(np.argmin(errors))
+        return tokens[best : best + 1]
 
     def icon_png(self, hexcode: str) -> bytes:
         """A held-out icon rendered exactly as the model saw icons in training."""
@@ -199,7 +233,15 @@ class _Handler(http.server.BaseHTTPRequestHandler):
                 return
             self._send(200, self.vectoriser.icon_png(hexcode), "image/png", "max-age=86400")
         elif url.path == "/config":
-            self._json(200, {"size": self.vectoriser.image_size, "palette": self.palette})
+            self._json(
+                200,
+                {
+                    "size": self.vectoriser.image_size,
+                    "palette": self.palette,
+                    # The page names where its time comes from: the GPU, or a CPU Space.
+                    "device": self.vectoriser.device.type,
+                },
+            )
         elif url.path == "/health":
             self._json(200, {"ok": True, "icons": len(self.icons)})
         else:
