@@ -3931,3 +3931,63 @@ idle-GPU numbers; the run's own idle measurement is 1,048 ms per sample.
 **Decision.** By the declared rule (B1/B2 fail, B3 passes) the next arm would be a larger
 prior, but that rule is conditional on a passing stage A, which the canvas line no
 longer has. The direction after the canvas line is the operator's call (state/CURRENT.md).
+
+## 2026-10-04 — Public release; in-browser inference is feasible: v9 greedy at about 1.2 s per icon on WASM
+
+**Release.** The GitHub repo `cpietsch/emojidiff` is public under CC BY-SA 4.0 (OpenMoji
+and Twemoji attributed). The weblog deploys to https://cpietsch.github.io/emojidiff/ from
+GitHub Actions on every push to main (it needs only PyYAML). All checkpoints are mirrored
+at https://huggingface.co/chrispie/mojidiff-checkpoints (sha256 index
+`reports/checkpoints-hf.json`, verified against the remote). The demos were packaged as
+Hugging Face Docker Spaces (`space/`, `scripts/build_space.py`; built and smoke-tested
+on 2 CPUs: v9 greedy about 730 ms median per icon), but Hugging Face now requires a paid
+PRO account for CPU Docker Spaces, so none was created. The operator chose in-browser
+inference instead.
+
+**Hypothesis (milestone 0).** A real v9 decoder step, exported to ONNX and run by ONNX
+Runtime Web 1.30.0 in a browser, keeps greedy decoding interactive despite about 440
+dependent calls per icon (go at a 3 s median, 3-6 s click-to-vectorise, above 6 s stop;
+thresholds proposed, awaiting the operator).
+
+**Observation.** Teacher-forced replay of recorded greedy traces (first 32 validation
+icons, 11,432 calls) in headless Chrome 153 on the RTX 4080 (adapter asserted NVIDIA,
+not a fallback). Variant B = plain MatMul/Softmax attention, float32 ids, the head and
+metric head folded into one constant table. ms per icon, median / p90:
+
+| backend | B, greedy | ms per call |
+| --- | --- | --- |
+| WASM, 4 threads (needs COOP/COEP) | 881 / 1,368 | 2.65 |
+| WASM, 1 thread | 1,132 / 1,832 | 3.15 |
+| WebGPU (JSEP) | 1,731 / 2,406 | 4.71 |
+| WebGPU (JSEP) with graph capture, static cache | 1,472 / 2,164 | 3.75 |
+| Python server, GraphDecoder, CUDA float32 (baseline) | 512 / 711 | 1.47 |
+
+Masked argmax agreed with torch on every call for B on every backend. An independent
+re-run reproduced the WASM and WebGPU cells within 2% on 12 icons. These 32 icons are
+lighter than the validation set (350 calls median against 437; 11 are swimmer
+variants): projected to 437 calls, about 1.2 s on WASM 4 threads and about 2.15 s on
+WebGPU. WebGPU loses because each call launches about 370 small kernels (2.2 ms of
+kernel time in 5.6 ms of wall time), so batch 8 is nearly free there (4.92 ms per call)
+and 5.4x dearer on WASM: projected best of 8 is about 3.6 s on WebGPU and about 10.6 s
+on WASM, against 1,354 ms on the server. Excluded from the timings: the JS grammar and
+SVG writing (about 23 ms per icon in Python) and the 38 MB model download.
+
+The one correctness trap: the current int64-id export (variant A) agreed with torch on
+only 75.9% of calls on WebGPU JSEP, which moves small integer ops to the CPU and back;
+float32 ids with all integer work on the GPU fix it (100%).
+
+Also shown by the investigation: ONNX greedy decodes identical to torch (v9 10 of 10,
+vt-v1 4 of 4); a 67-line JS codec writes byte-identical SVG on 3,615 of 3,615 programs;
+the flow prior runs on WebGPU (218 ms for 50 steps at batch 1); browser-canvas scoring
+picks the same best-of-8 candidate as Cairo on 32 of 32 icons. Browser outputs will not
+be token-identical to the server's: a 0.0017 raster difference in the input changed 112
+of 128 greedy programs with no quality change.
+
+Artefacts: `reports/browser/m0/` (scripts, raw timings, README); full scratch, exports
+and the Chrome harness in `/home/dev/.cache/mojidiff/browser-probe-2026-10-04/`.
+
+**Decision.** Under the proposed thresholds this is a go: v9 greedy runs on WASM (a
+cross-origin-isolation service worker for 4 threads on Pages), best of 8 and the flow
+prior on WebGPU. Next: milestone 1, the in-repo ONNX export pipeline with parity tests.
+Reducing WebGPU kernels per call (fused attention) is the lever if WebGPU must carry
+greedy.

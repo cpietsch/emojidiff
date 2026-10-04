@@ -1,0 +1,98 @@
+<!doctype html><meta charset="utf-8"><title>m0 graph capture</title>
+<script type="module">
+// Teacher-forced replay of m0/traces with the fixed-shape static-cache step (decoder_step_Cg{b}.onnx)
+// under ORT Web JSEP graph capture: every input and output is a preallocated GPU buffer bound to the
+// same buffers on every run, so each step is one replay of the captured command sequence.
+// A recorded call of chunk length L is fed as L single steps; only the last step's logits are read
+// back (copy to a MAP_READ buffer + mapAsync). Two sessions ping-pong the cache (session P reads
+// cache 0 and writes cache 1, session Q the reverse), so no cache copies are needed.
+// Query: b=1|8  icons=N  capture=1|0  bundle=ort.all.min.mjs
+const q = new URLSearchParams(location.search);
+const B = +(q.get('b') || 1), limit = +(q.get('icons') || 1e9), capture = q.get('capture') !== '0';
+const bundle = q.get('bundle') || 'ort.all.min.mjs';
+const out = {variant: 'Cg' + B, ep: 'webgpu', batch: B, capture, bundle, crossOriginIsolated: self.crossOriginIsolated};
+const now = () => performance.now();
+const pct = (a, p) => { const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.floor(p * (s.length - 1) + 0.5))]; };
+try {
+  const a = await navigator.gpu.requestAdapter({powerPreference: 'high-performance'});
+  out.adapter = {vendor: a.info.vendor, architecture: a.info.architecture, isFallbackAdapter: a.info.isFallbackAdapter};
+  if (!(a.info.vendor === 'nvidia' && !a.info.isFallbackAdapter)) throw new Error('not an NVIDIA adapter: ' + JSON.stringify(out.adapter));
+  const T = '/m0/traces/';
+  const manifest = await (await fetch(T + 'manifest.json')).json();
+  const bin = async (n) => (await fetch(T + n)).arrayBuffer();
+  const calls = new Int32Array(await bin('calls.i32')), rows = new Int32Array(await bin('rows.i32'));
+  const masks = new Uint8Array(await bin('masks.u8')), images = new Uint8Array(await bin('images.u8'));
+  const R = manifest.total_rows, MB = manifest.mask_bytes, VOC = manifest.vocabulary, S = manifest.length + 1;
+  const ort = await import('/node_modules/onnxruntime-web/dist/' + bundle);
+  ort.env.wasm.wasmPaths = '/node_modules/onnxruntime-web/dist/';
+  const t0 = now();
+  const enc = await ort.InferenceSession.create(`/m0/onnx/encoder_g${B}.onnx`, {executionProviders: ['webgpu'],
+    preferredOutputLocation: {memory_keys: 'gpu-buffer', memory_values: 'gpu-buffer'}});
+  const opts = {executionProviders: ['webgpu'], enableGraphCapture: capture, preferredOutputLocation: 'gpu-buffer'};
+  const P = await ort.InferenceSession.create(`/m0/onnx/decoder_step_Cg${B}.onnx`, opts);
+  const Q = await ort.InferenceSession.create(`/m0/onnx/decoder_step_Cg${B}.onnx`, opts);
+  out.session_ms = now() - t0;
+  const dev = ort.env.webgpu.device;
+  const U = GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC | GPUBufferUsage.COPY_DST;
+  const mk = (bytes) => dev.createBuffer({size: Math.ceil(bytes / 16) * 16, usage: U});
+  const gt = (buf, dims) => ort.Tensor.fromGpuBuffer(buf, {dataType: 'float32', dims});
+  const kv = 6 * B * 8 * S * 32 * 4, mem = 6 * B * 8 * 324 * 32 * 4;
+  const buf = {ids: mk(6 * B * 4), target: mk(B * 4), logits: mk(B * VOC * 4), mk: mk(mem), mv: mk(mem),
+               k0: mk(kv), v0: mk(kv), k1: mk(kv), v1: mk(kv)};
+  const read = dev.createBuffer({size: Math.ceil(B * VOC * 4 / 16) * 16, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST});
+  const common = {ids: gt(buf.ids, [6, B, 1]), target: gt(buf.target, [B]), memory_keys: gt(buf.mk, [6, B, 8, 324, 32]),
+                  memory_values: gt(buf.mv, [6, B, 8, 324, 32])};
+  const feedsP = {...common, cache_keys: gt(buf.k0, [6, B, 8, S, 32]), cache_values: gt(buf.v0, [6, B, 8, S, 32])};
+  const feedsQ = {...common, cache_keys: gt(buf.k1, [6, B, 8, S, 32]), cache_values: gt(buf.v1, [6, B, 8, S, 32])};
+  const lg = gt(buf.logits, [B, VOC]);
+  const fetchP = {logits: lg, cache_keys_out: gt(buf.k1, [6, B, 8, S, 32]), cache_values_out: gt(buf.v1, [6, B, 8, S, 32])};
+  const fetchQ = {logits: lg, cache_keys_out: gt(buf.k0, [6, B, 8, S, 32]), cache_values_out: gt(buf.v0, [6, B, 8, S, 32])};
+  const idsHost = new Float32Array(6 * B), tgtHost = new Float32Array(B);
+
+  async function runIcon(k) {
+    const icon = manifest.icons[k];
+    const ti = now();
+    const px = new Float32Array(144 * 144 * 3); const img = images.subarray(k * px.length, (k + 1) * px.length);
+    for (let i = 0; i < px.length; i++) px[i] = img[i];
+    const m = await enc.run({pixels: new ort.Tensor('float32', px, [1, 144, 144, 3]), rows: new ort.Tensor('int64', new BigInt64Array(B), [B])});
+    { const e = dev.createCommandEncoder(); e.copyBufferToBuffer(m.memory_keys.gpuBuffer, 0, buf.mk, 0, mem);
+      e.copyBufferToBuffer(m.memory_values.gpuBuffer, 0, buf.mv, 0, mem);
+      for (const n of ['k0', 'v0', 'k1', 'v1']) e.clearBuffer(buf[n]); dev.queue.submit([e.finish()]); }
+    m.memory_keys.dispose(); m.memory_values.dispose();
+    const tEnc = now() - ti;
+    let parity = 0, agree = 0; const callMs = []; const disagreements = [];
+    for (let c = icon.call_offset; c < icon.call_offset + icon.calls; c++) {
+      const ts = now();
+      const L = calls[c * 4], target = calls[c * 4 + 1], token = calls[c * 4 + 2], off = calls[c * 4 + 3];
+      for (let r = 0; r < L; r++) {
+        for (let f = 0; f < 6; f++) idsHost.fill(rows[f * R + off + r], f * B, (f + 1) * B);
+        tgtHost.fill(r === L - 1 ? target : -1);
+        dev.queue.writeBuffer(buf.ids, 0, idsHost); dev.queue.writeBuffer(buf.target, 0, tgtHost);
+        await (parity ? Q.run(feedsQ, fetchQ) : P.run(feedsP, fetchP));
+        parity ^= 1;
+      }
+      const e = dev.createCommandEncoder(); e.copyBufferToBuffer(buf.logits, 0, read, 0, B * VOC * 4); dev.queue.submit([e.finish()]);
+      await read.mapAsync(GPUMapMode.READ); const x = new Float32Array(read.getMappedRange().slice(0)); read.unmap();
+      const mm = masks.subarray(c * MB, (c + 1) * MB);
+      let bi = -1, bv = -Infinity;
+      for (let v = 0; v < VOC; v++) if ((mm[v >> 3] >> (v & 7)) & 1) { if (x[v] > bv) { bv = x[v]; bi = v; } }
+      if (bi === token) agree++; else if (disagreements.length < 10) disagreements.push({call: c - icon.call_offset, got: bi, want: token});
+      callMs.push(now() - ts);
+    }
+    return {hexcode: icon.hexcode, calls: icon.calls, steps: icon.rows, icon_ms: now() - ti, encoder_ms: tEnc,
+            call_ms_median: pct(callMs, 0.5), call_ms_p90: pct(callMs, 0.9), agree, disagreements, _callMs: callMs};
+  }
+  const cold = await runIcon(0);
+  out.cold = {icon_ms: cold.icon_ms, encoder_ms: cold.encoder_ms, first_call_ms: cold._callMs[0], agree: cold.agree};
+  const n = Math.min(limit, manifest.icons.length); const icons = []; const all = [];
+  for (let k = 0; k < n; k++) { const r = await runIcon(k); all.push(...r._callMs); delete r._callMs; icons.push(r); document.title = `icon ${k + 1}/${n}`; }
+  out.icons = icons;
+  const sum = (key) => icons.reduce((a, r) => a + r[key], 0);
+  out.summary = {icons: n, calls: sum('calls'), steps: sum('steps'),
+    icon_ms_median: pct(icons.map(r => r.icon_ms), 0.5), icon_ms_p90: pct(icons.map(r => r.icon_ms), 0.9),
+    encoder_ms_median: pct(icons.map(r => r.encoder_ms), 0.5), call_ms_median: pct(all, 0.5), call_ms_p90: pct(all, 0.9),
+    call_ms_mean: all.reduce((a, x) => a + x, 0) / all.length, agreement: sum('agree') / sum('calls'),
+    session_ms: out.session_ms, cold_icon_ms: cold.icon_ms, cold_encoder_ms: cold.encoder_ms, cold_first_call_ms: cold._callMs[0]};
+} catch (e) { out.error = String(e && e.stack || e); }
+window.__out = out; document.title = 'done';
+</script>

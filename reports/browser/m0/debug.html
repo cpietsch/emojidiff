@@ -1,0 +1,38 @@
+<!doctype html><meta charset="utf-8"><title>m0 debug</title>
+<script type="module">
+// Run calls 0..n of icon 0 through decoder_step_<v>_dbg.onnx and dump all outputs of call n.
+const q = new URLSearchParams(location.search);
+const OPT = q.get('opt') || 'all';  // graphOptimizationLevel: disabled|basic|extended|all
+const V = q.get('v') || 'B', EP = q.get('ep') || 'webgpu', n = +(q.get('n') || 1), bundle = q.get('bundle') || 'ort.all.min.mjs';
+const out = {};
+try {
+  const T = '/m0/traces/';
+  const manifest = await (await fetch(T + 'manifest.json')).json();
+  const bin = async (x) => (await fetch(T + x)).arrayBuffer();
+  const calls = new Int32Array(await bin('calls.i32')), rows = new Int32Array(await bin('rows.i32'));
+  const images = new Uint8Array(await bin('images.u8')); const R = manifest.total_rows;
+  const ort = await import('/node_modules/onnxruntime-web/dist/' + bundle); ort.env.wasm.wasmPaths = '/node_modules/onnxruntime-web/dist/'; ort.env.wasm.numThreads = 1;
+  const enc = await ort.InferenceSession.create('/m0/onnx/encoder.onnx', {graphOptimizationLevel: OPT, executionProviders: [EP]});
+  const dec = await ort.InferenceSession.create(`/m0/onnx/decoder_step_${V}_dbg.onnx`, {graphOptimizationLevel: OPT, executionProviders: [EP]});
+  const px = Float32Array.from(images.subarray(0, 144 * 144 * 3));
+  const mem = await enc.run({pixels: new ort.Tensor('float32', px, [1, 144, 144, 3]), rows: new ort.Tensor('int64', new BigInt64Array(1), [1])});
+  let pk = new ort.Tensor('float32', new Float32Array(0), [6, 1, 8, 0, 32]), pv = pk;
+  const NAMES = ['tokens', 'steps', 'field', 'path', 'axis', 'role'];
+  for (let c = 0; c <= n; c++) {
+    const L = calls[c * 4], target = calls[c * 4 + 1], off = calls[c * 4 + 3];
+    const feeds = {};
+    if (['B0', 'B', 'Bs', 'C'].includes(V)) {
+      const a = new Float32Array(6 * L); for (let f = 0; f < 6; f++) a.set(rows.subarray(f * R + off, f * R + off + L), f * L);
+      feeds.ids = new ort.Tensor('float32', a, [6, 1, L]); feeds.target = new ort.Tensor('float32', Float32Array.from([target]), [1]);
+    } else {
+      for (let f = 0; f < 6; f++) feeds[NAMES[f]] = new ort.Tensor('int64', BigInt64Array.from(rows.subarray(f * R + off, f * R + off + L), BigInt), [1, L]);
+      feeds.target = new ort.Tensor('int64', BigInt64Array.from([BigInt(target)]), [1]);
+    }
+    feeds.past_keys = pk; feeds.past_values = pv; feeds.memory_keys = mem.memory_keys; feeds.memory_values = mem.memory_values;
+    const r = await dec.run(feeds);
+    pk = r.present_keys; pv = r.present_values;
+    if (c === n) out.outputs = Object.fromEntries(Object.entries(r).map(([k, t]) => [k, {dims: t.dims, data: Array.from(t.data, Number)}]));
+  }
+} catch (e) { out.error = String(e && e.stack || e); }
+window.__out = out; document.title = 'done';
+</script>

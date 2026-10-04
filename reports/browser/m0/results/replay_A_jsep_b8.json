@@ -1,0 +1,3648 @@
+{
+ "variant": "A",
+ "ep": "webgpu",
+ "batch": 8,
+ "threads_requested": 1,
+ "bundle": "ort.all.min.mjs",
+ "crossOriginIsolated": true,
+ "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+ "adapter": {
+  "vendor": "nvidia",
+  "architecture": "lovelace",
+  "description": "",
+  "isFallbackAdapter": false
+ },
+ "import_ms": 37.75499999523163,
+ "encoder_session_ms": 469.08500000834465,
+ "decoder_session_ms": 116.50499999523163,
+ "session_ms": 585.5999999940395,
+ "numThreads_effective": 1,
+ "ort_adapter": {
+  "vendor": "nvidia",
+  "architecture": "lovelace",
+  "isFallbackAdapter": false
+ },
+ "cold": {
+  "hexcode": "1F0CF",
+  "calls": 885,
+  "icon_ms": 4833.689999997616,
+  "encoder_ms": 18.58500000834465,
+  "calls_ms": 4814.905000001192,
+  "call_ms_median": 5.060000002384186,
+  "call_ms_p90": 5.655000001192093,
+  "call1_ms_median": 5.060000002384186,
+  "agree": 689,
+  "agree_all_rows": 689,
+  "disagreements": [
+   {
+    "call": 17,
+    "got": 20,
+    "want": 267
+   },
+   {
+    "call": 22,
+    "got": 9,
+    "want": 4
+   },
+   {
+    "call": 29,
+    "got": 181,
+    "want": 104
+   },
+   {
+    "call": 30,
+    "got": 118,
+    "want": 107
+   },
+   {
+    "call": 32,
+    "got": 136,
+    "want": 137
+   },
+   {
+    "call": 34,
+    "got": 141,
+    "want": 140
+   },
+   {
+    "call": 35,
+    "got": 151,
+    "want": 150
+   },
+   {
+    "call": 37,
+    "got": 118,
+    "want": 122
+   },
+   {
+    "call": 39,
+    "got": 148,
+    "want": 149
+   },
+   {
+    "call": 41,
+    "got": 153,
+    "want": 156
+   },
+   {
+    "call": 42,
+    "got": 154,
+    "want": 157
+   },
+   {
+    "call": 46,
+    "got": 165,
+    "want": 167
+   },
+   {
+    "call": 53,
+    "got": 4,
+    "want": 5
+   },
+   {
+    "call": 56,
+    "got": 10,
+    "want": 12
+   },
+   {
+    "call": 60,
+    "got": 212,
+    "want": 104
+   },
+   {
+    "call": 61,
+    "got": 106,
+    "want": 98
+   },
+   {
+    "call": 65,
+    "got": 132,
+    "want": 142
+   },
+   {
+    "call": 67,
+    "got": 116,
+    "want": 115
+   },
+   {
+    "call": 91,
+    "got": 5,
+    "want": 4
+   },
+   {
+    "call": 98,
+    "got": 211,
+    "want": 184
+   }
+  ],
+  "first_call_ms": 130.05500000715256
+ },
+ "icons": [
+  {
+   "hexcode": "1F0CF",
+   "calls": 885,
+   "icon_ms": 4463.539999991655,
+   "encoder_ms": 2.060000002384186,
+   "calls_ms": 4461.3149999678135,
+   "call_ms_median": 4.905000001192093,
+   "call_ms_p90": 5.08500000834465,
+   "call1_ms_median": 4.905000001192093,
+   "agree": 689,
+   "agree_all_rows": 689,
+   "disagreements": [
+    {
+     "call": 17,
+     "got": 20,
+     "want": 267
+    },
+    {
+     "call": 22,
+     "got": 9,
+     "want": 4
+    },
+    {
+     "call": 29,
+     "got": 181,
+     "want": 104
+    },
+    {
+     "call": 30,
+     "got": 118,
+     "want": 107
+    },
+    {
+     "call": 32,
+     "got": 136,
+     "want": 137
+    },
+    {
+     "call": 34,
+     "got": 141,
+     "want": 140
+    },
+    {
+     "call": 35,
+     "got": 151,
+     "want": 150
+    },
+    {
+     "call": 37,
+     "got": 118,
+     "want": 122
+    },
+    {
+     "call": 39,
+     "got": 148,
+     "want": 149
+    },
+    {
+     "call": 41,
+     "got": 153,
+     "want": 156
+    },
+    {
+     "call": 42,
+     "got": 154,
+     "want": 157
+    },
+    {
+     "call": 46,
+     "got": 165,
+     "want": 167
+    },
+    {
+     "call": 53,
+     "got": 4,
+     "want": 5
+    },
+    {
+     "call": 56,
+     "got": 10,
+     "want": 12
+    },
+    {
+     "call": 60,
+     "got": 212,
+     "want": 104
+    },
+    {
+     "call": 61,
+     "got": 106,
+     "want": 98
+    },
+    {
+     "call": 65,
+     "got": 132,
+     "want": 142
+    },
+    {
+     "call": 67,
+     "got": 116,
+     "want": 115
+    },
+    {
+     "call": 91,
+     "got": 5,
+     "want": 4
+    },
+    {
+     "call": 98,
+     "got": 211,
+     "want": 184
+    }
+   ]
+  },
+  {
+   "hexcode": "1F12F",
+   "calls": 253,
+   "icon_ms": 1239.1850000023842,
+   "encoder_ms": 1.9950000047683716,
+   "calls_ms": 1237.124999910593,
+   "call_ms_median": 4.655000001192093,
+   "call_ms_p90": 4.78999999165535,
+   "call1_ms_median": 4.655000001192093,
+   "agree": 179,
+   "agree_all_rows": 179,
+   "disagreements": [
+    {
+     "call": 7,
+     "got": 36,
+     "want": 39
+    },
+    {
+     "call": 11,
+     "got": 234,
+     "want": 236
+    },
+    {
+     "call": 12,
+     "got": 111,
+     "want": 119
+    },
+    {
+     "call": 17,
+     "got": 236,
+     "want": 237
+    },
+    {
+     "call": 38,
+     "got": 5,
+     "want": 24
+    },
+    {
+     "call": 45,
+     "got": 98,
+     "want": 106
+    },
+    {
+     "call": 46,
+     "got": 202,
+     "want": 208
+    },
+    {
+     "call": 48,
+     "got": 149,
+     "want": 156
+    },
+    {
+     "call": 50,
+     "got": 146,
+     "want": 147
+    },
+    {
+     "call": 58,
+     "got": 239,
+     "want": 240
+    },
+    {
+     "call": 59,
+     "got": 221,
+     "want": 220
+    },
+    {
+     "call": 61,
+     "got": 170,
+     "want": 162
+    },
+    {
+     "call": 65,
+     "got": 2,
+     "want": 1
+    },
+    {
+     "call": 74,
+     "got": 205,
+     "want": 204
+    },
+    {
+     "call": 82,
+     "got": 83,
+     "want": 82
+    },
+    {
+     "call": 84,
+     "got": 130,
+     "want": 132
+    },
+    {
+     "call": 85,
+     "got": 122,
+     "want": 119
+    },
+    {
+     "call": 87,
+     "got": 97,
+     "want": 94
+    },
+    {
+     "call": 92,
+     "got": 208,
+     "want": 107
+    },
+    {
+     "call": 94,
+     "got": 142,
+     "want": 143
+    }
+   ]
+  },
+  {
+   "hexcode": "1F194",
+   "calls": 125,
+   "icon_ms": 601.8499999940395,
+   "encoder_ms": 1.25,
+   "calls_ms": 600.5900000035763,
+   "call_ms_median": 4.689999997615814,
+   "call_ms_p90": 4.805000007152557,
+   "call1_ms_median": 4.689999997615814,
+   "agree": 116,
+   "agree_all_rows": 116,
+   "disagreements": [
+    {
+     "call": 8,
+     "got": 3,
+     "want": 2
+    },
+    {
+     "call": 37,
+     "got": 89,
+     "want": 90
+    },
+    {
+     "call": 45,
+     "got": 65,
+     "want": 69
+    },
+    {
+     "call": 48,
+     "got": 81,
+     "want": 90
+    },
+    {
+     "call": 54,
+     "got": 9,
+     "want": 1
+    },
+    {
+     "call": 65,
+     "got": 143,
+     "want": 145
+    },
+    {
+     "call": 66,
+     "got": 111,
+     "want": 109
+    },
+    {
+     "call": 69,
+     "got": 176,
+     "want": 175
+    },
+    {
+     "call": 70,
+     "got": 0,
+     "want": 9
+    }
+   ]
+  },
+  {
+   "hexcode": "1F199",
+   "calls": 320,
+   "icon_ms": 1549.5550000071526,
+   "encoder_ms": 1.1599999964237213,
+   "calls_ms": 1548.3299999833107,
+   "call_ms_median": 4.655000001192093,
+   "call_ms_p90": 4.784999996423721,
+   "call1_ms_median": 4.655000001192093,
+   "agree": 285,
+   "agree_all_rows": 285,
+   "disagreements": [
+    {
+     "call": 11,
+     "got": 100,
+     "want": 101
+    },
+    {
+     "call": 12,
+     "got": 159,
+     "want": 163
+    },
+    {
+     "call": 14,
+     "got": 126,
+     "want": 123
+    },
+    {
+     "call": 16,
+     "got": 117,
+     "want": 115
+    },
+    {
+     "call": 19,
+     "got": 147,
+     "want": 146
+    },
+    {
+     "call": 33,
+     "got": 149,
+     "want": 151
+    },
+    {
+     "call": 41,
+     "got": 164,
+     "want": 151
+    },
+    {
+     "call": 43,
+     "got": 144,
+     "want": 142
+    },
+    {
+     "call": 60,
+     "got": 171,
+     "want": 174
+    },
+    {
+     "call": 63,
+     "got": 206,
+     "want": 210
+    },
+    {
+     "call": 64,
+     "got": 235,
+     "want": 234
+    },
+    {
+     "call": 65,
+     "got": 204,
+     "want": 212
+    },
+    {
+     "call": 66,
+     "got": 199,
+     "want": 198
+    },
+    {
+     "call": 69,
+     "got": 226,
+     "want": 225
+    },
+    {
+     "call": 71,
+     "got": 222,
+     "want": 221
+    },
+    {
+     "call": 80,
+     "got": 155,
+     "want": 152
+    },
+    {
+     "call": 86,
+     "got": 234,
+     "want": 236
+    },
+    {
+     "call": 88,
+     "got": 240,
+     "want": 241
+    },
+    {
+     "call": 95,
+     "got": 4,
+     "want": 3
+    },
+    {
+     "call": 97,
+     "got": 209,
+     "want": 212
+    }
+   ]
+  },
+  {
+   "hexcode": "1F1EF",
+   "calls": 171,
+   "icon_ms": 833.0450000166893,
+   "encoder_ms": 1.145000010728836,
+   "calls_ms": 831.8799999654293,
+   "call_ms_median": 4.665000021457672,
+   "call_ms_p90": 4.855000019073486,
+   "call1_ms_median": 4.66499999165535,
+   "agree": 137,
+   "agree_all_rows": 137,
+   "disagreements": [
+    {
+     "call": 80,
+     "got": 0,
+     "want": 15
+    },
+    {
+     "call": 93,
+     "got": 178,
+     "want": 141
+    },
+    {
+     "call": 99,
+     "got": 213,
+     "want": 214
+    },
+    {
+     "call": 109,
+     "got": 88,
+     "want": 89
+    },
+    {
+     "call": 113,
+     "got": 141,
+     "want": 133
+    },
+    {
+     "call": 116,
+     "got": 162,
+     "want": 165
+    },
+    {
+     "call": 117,
+     "got": 121,
+     "want": 113
+    },
+    {
+     "call": 119,
+     "got": 104,
+     "want": 101
+    },
+    {
+     "call": 120,
+     "got": 117,
+     "want": 113
+    },
+    {
+     "call": 124,
+     "got": 93,
+     "want": 113
+    },
+    {
+     "call": 127,
+     "got": 169,
+     "want": 173
+    },
+    {
+     "call": 128,
+     "got": 149,
+     "want": 125
+    },
+    {
+     "call": 131,
+     "got": 177,
+     "want": 165
+    },
+    {
+     "call": 132,
+     "got": 1,
+     "want": 3
+    },
+    {
+     "call": 133,
+     "got": 145,
+     "want": 153
+    },
+    {
+     "call": 135,
+     "got": 160,
+     "want": 164
+    },
+    {
+     "call": 138,
+     "got": 161,
+     "want": 153
+    },
+    {
+     "call": 139,
+     "got": 3,
+     "want": 1
+    },
+    {
+     "call": 140,
+     "got": 109,
+     "want": 149
+    },
+    {
+     "call": 141,
+     "got": 129,
+     "want": 92
+    }
+   ]
+  },
+  {
+   "hexcode": "1F1FA",
+   "calls": 173,
+   "icon_ms": 827.0900000035763,
+   "encoder_ms": 1.125,
+   "calls_ms": 825.9450000226498,
+   "call_ms_median": 4.675000011920929,
+   "call_ms_p90": 4.780000001192093,
+   "call1_ms_median": 4.675000011920929,
+   "agree": 157,
+   "agree_all_rows": 157,
+   "disagreements": [
+    {
+     "call": 38,
+     "got": 5,
+     "want": 7
+    },
+    {
+     "call": 39,
+     "got": 1,
+     "want": 2
+    },
+    {
+     "call": 41,
+     "got": 1,
+     "want": 2
+    },
+    {
+     "call": 45,
+     "got": 113,
+     "want": 145
+    },
+    {
+     "call": 46,
+     "got": 205,
+     "want": 209
+    },
+    {
+     "call": 48,
+     "got": 155,
+     "want": 153
+    },
+    {
+     "call": 56,
+     "got": 89,
+     "want": 90
+    },
+    {
+     "call": 61,
+     "got": 81,
+     "want": 88
+    },
+    {
+     "call": 93,
+     "got": 145,
+     "want": 257
+    },
+    {
+     "call": 124,
+     "got": 0,
+     "want": 7
+    },
+    {
+     "call": 125,
+     "got": 3,
+     "want": 4
+    },
+    {
+     "call": 139,
+     "got": 220,
+     "want": 212
+    },
+    {
+     "call": 140,
+     "got": 196,
+     "want": 197
+    },
+    {
+     "call": 151,
+     "got": 3,
+     "want": 1
+    },
+    {
+     "call": 153,
+     "got": 88,
+     "want": 90
+    },
+    {
+     "call": 164,
+     "got": 221,
+     "want": 213
+    }
+   ]
+  },
+  {
+   "hexcode": "1F1FC",
+   "calls": 195,
+   "icon_ms": 943.6800000071526,
+   "encoder_ms": 1.1349999904632568,
+   "calls_ms": 942.5149999856949,
+   "call_ms_median": 4.6700000166893005,
+   "call_ms_p90": 4.7750000059604645,
+   "call1_ms_median": 4.669999986886978,
+   "agree": 162,
+   "agree_all_rows": 162,
+   "disagreements": [
+    {
+     "call": 80,
+     "got": 0,
+     "want": 19
+    },
+    {
+     "call": 94,
+     "got": 85,
+     "want": 87
+    },
+    {
+     "call": 99,
+     "got": 117,
+     "want": 118
+    },
+    {
+     "call": 100,
+     "got": 208,
+     "want": 209
+    },
+    {
+     "call": 101,
+     "got": 88,
+     "want": 87
+    },
+    {
+     "call": 102,
+     "got": 3,
+     "want": 1
+    },
+    {
+     "call": 110,
+     "got": 117,
+     "want": 118
+    },
+    {
+     "call": 117,
+     "got": 118,
+     "want": 117
+    },
+    {
+     "call": 123,
+     "got": 112,
+     "want": 113
+    },
+    {
+     "call": 124,
+     "got": 203,
+     "want": 195
+    },
+    {
+     "call": 131,
+     "got": 201,
+     "want": 199
+    },
+    {
+     "call": 140,
+     "got": 91,
+     "want": 87
+    },
+    {
+     "call": 148,
+     "got": 144,
+     "want": 143
+    },
+    {
+     "call": 153,
+     "got": 146,
+     "want": 144
+    },
+    {
+     "call": 155,
+     "got": 144,
+     "want": 145
+    },
+    {
+     "call": 161,
+     "got": 231,
+     "want": 230
+    },
+    {
+     "call": 162,
+     "got": 153,
+     "want": 149
+    },
+    {
+     "call": 163,
+     "got": 227,
+     "want": 229
+    },
+    {
+     "call": 164,
+     "got": 125,
+     "want": 117
+    },
+    {
+     "call": 167,
+     "got": 149,
+     "want": 135
+    }
+   ]
+  },
+  {
+   "hexcode": "1F261",
+   "calls": 243,
+   "icon_ms": 1180.8149999976158,
+   "encoder_ms": 1.1349999904632568,
+   "calls_ms": 1179.6250000298023,
+   "call_ms_median": 4.66499999165535,
+   "call_ms_p90": 4.790000021457672,
+   "call1_ms_median": 4.660000026226044,
+   "agree": 184,
+   "agree_all_rows": 184,
+   "disagreements": [
+    {
+     "call": 7,
+     "got": 34,
+     "want": 257
+    },
+    {
+     "call": 17,
+     "got": 113,
+     "want": 115
+    },
+    {
+     "call": 80,
+     "got": 2,
+     "want": 1
+    },
+    {
+     "call": 87,
+     "got": 2,
+     "want": 3
+    },
+    {
+     "call": 89,
+     "got": 6,
+     "want": 4
+    },
+    {
+     "call": 91,
+     "got": 109,
+     "want": 157
+    },
+    {
+     "call": 92,
+     "got": 73,
+     "want": 74
+    },
+    {
+     "call": 97,
+     "got": 4,
+     "want": 3
+    },
+    {
+     "call": 98,
+     "got": 109,
+     "want": 213
+    },
+    {
+     "call": 99,
+     "got": 133,
+     "want": 113
+    },
+    {
+     "call": 104,
+     "got": 4,
+     "want": 3
+    },
+    {
+     "call": 105,
+     "got": 109,
+     "want": 129
+    },
+    {
+     "call": 106,
+     "got": 77,
+     "want": 153
+    },
+    {
+     "call": 108,
+     "got": 73,
+     "want": 57
+    },
+    {
+     "call": 109,
+     "got": 153,
+     "want": 157
+    },
+    {
+     "call": 110,
+     "got": 2,
+     "want": 4
+    },
+    {
+     "call": 121,
+     "got": 208,
+     "want": 207
+    },
+    {
+     "call": 122,
+     "got": 145,
+     "want": 211
+    },
+    {
+     "call": 124,
+     "got": 234,
+     "want": 233
+    },
+    {
+     "call": 127,
+     "got": 222,
+     "want": 221
+    }
+   ]
+  },
+  {
+   "hexcode": "1F30A",
+   "calls": 315,
+   "icon_ms": 1516.4299999773502,
+   "encoder_ms": 1.1850000023841858,
+   "calls_ms": 1515.1449999213219,
+   "call_ms_median": 4.655000001192093,
+   "call_ms_p90": 4.719999998807907,
+   "call1_ms_median": 4.6500000059604645,
+   "agree": 259,
+   "agree_all_rows": 259,
+   "disagreements": [
+    {
+     "call": 7,
+     "got": 273,
+     "want": 17
+    },
+    {
+     "call": 9,
+     "got": 3,
+     "want": 1
+    },
+    {
+     "call": 10,
+     "got": 17,
+     "want": 273
+    },
+    {
+     "call": 44,
+     "got": 4,
+     "want": 5
+    },
+    {
+     "call": 47,
+     "got": 1,
+     "want": 3
+    },
+    {
+     "call": 54,
+     "got": 273,
+     "want": 21
+    },
+    {
+     "call": 66,
+     "got": 12,
+     "want": 2
+    },
+    {
+     "call": 75,
+     "got": 6,
+     "want": 4
+    },
+    {
+     "call": 78,
+     "got": 145,
+     "want": 113
+    },
+    {
+     "call": 79,
+     "got": 3,
+     "want": 1
+    },
+    {
+     "call": 81,
+     "got": 273,
+     "want": 113
+    },
+    {
+     "call": 85,
+     "got": 5,
+     "want": 2
+    },
+    {
+     "call": 93,
+     "got": 2,
+     "want": 3
+    },
+    {
+     "call": 96,
+     "got": 269,
+     "want": 125
+    },
+    {
+     "call": 97,
+     "got": 247,
+     "want": 149
+    },
+    {
+     "call": 100,
+     "got": 149,
+     "want": 151
+    },
+    {
+     "call": 104,
+     "got": 5,
+     "want": 2
+    },
+    {
+     "call": 115,
+     "got": 119,
+     "want": 125
+    },
+    {
+     "call": 116,
+     "got": 247,
+     "want": 245
+    },
+    {
+     "call": 118,
+     "got": 133,
+     "want": 125
+    }
+   ]
+  },
+  {
+   "hexcode": "1F313",
+   "calls": 205,
+   "icon_ms": 981.7100000083447,
+   "encoder_ms": 1.1200000047683716,
+   "calls_ms": 980.5150000452995,
+   "call_ms_median": 4.655000001192093,
+   "call_ms_p90": 4.754999995231628,
+   "call1_ms_median": 4.655000001192093,
+   "agree": 192,
+   "agree_all_rows": 192,
+   "disagreements": [
+    {
+     "call": 34,
+     "got": 85,
+     "want": 79
+    },
+    {
+     "call": 35,
+     "got": 145,
+     "want": 121
+    },
+    {
+     "call": 37,
+     "got": 111,
+     "want": 114
+    },
+    {
+     "call": 40,
+     "got": 150,
+     "want": 151
+    },
+    {
+     "call": 42,
+     "got": 117,
+     "want": 115
+    },
+    {
+     "call": 65,
+     "got": 5,
+     "want": 4
+    },
+    {
+     "call": 68,
+     "got": 1,
+     "want": 10
+    },
+    {
+     "call": 78,
+     "got": 144,
+     "want": 33
+    },
+    {
+     "call": 98,
+     "got": 5,
+     "want": 4
+    },
+    {
+     "call": 101,
+     "got": 3,
+     "want": 14
+    },
+    {
+     "call": 142,
+     "got": 79,
+     "want": 257
+    },
+    {
+     "call": 165,
+     "got": 1,
+     "want": 3
+    },
+    {
+     "call": 173,
+     "got": 0,
+     "want": 4
+    }
+   ]
+  },
+  {
+   "hexcode": "1F329",
+   "calls": 311,
+   "icon_ms": 1498.3799999952316,
+   "encoder_ms": 1.125,
+   "calls_ms": 1497.1750000417233,
+   "call_ms_median": 4.6500000059604645,
+   "call_ms_p90": 4.824999988079071,
+   "call1_ms_median": 4.6500000059604645,
+   "agree": 271,
+   "agree_all_rows": 271,
+   "disagreements": [
+    {
+     "call": 7,
+     "got": 78,
+     "want": 77
+    },
+    {
+     "call": 8,
+     "got": 92,
+     "want": 91
+    },
+    {
+     "call": 13,
+     "got": 125,
+     "want": 126
+    },
+    {
+     "call": 14,
+     "got": 75,
+     "want": 74
+    },
+    {
+     "call": 17,
+     "got": 92,
+     "want": 84
+    },
+    {
+     "call": 22,
+     "got": 135,
+     "want": 137
+    },
+    {
+     "call": 26,
+     "got": 92,
+     "want": 91
+    },
+    {
+     "call": 28,
+     "got": 78,
+     "want": 79
+    },
+    {
+     "call": 42,
+     "got": 141,
+     "want": 140
+    },
+    {
+     "call": 43,
+     "got": 263,
+     "want": 262
+    },
+    {
+     "call": 44,
+     "got": 123,
+     "want": 122
+    },
+    {
+     "call": 45,
+     "got": 211,
+     "want": 208
+    },
+    {
+     "call": 50,
+     "got": 239,
+     "want": 238
+    },
+    {
+     "call": 52,
+     "got": 205,
+     "want": 206
+    },
+    {
+     "call": 53,
+     "got": 85,
+     "want": 86
+    },
+    {
+     "call": 56,
+     "got": 95,
+     "want": 96
+    },
+    {
+     "call": 57,
+     "got": 213,
+     "want": 215
+    },
+    {
+     "call": 62,
+     "got": 175,
+     "want": 176
+    },
+    {
+     "call": 66,
+     "got": 122,
+     "want": 121
+    },
+    {
+     "call": 71,
+     "got": 148,
+     "want": 150
+    }
+   ]
+  },
+  {
+   "hexcode": "1F331",
+   "calls": 215,
+   "icon_ms": 1044.1200000047684,
+   "encoder_ms": 1.1399999856948853,
+   "calls_ms": 1042.9400000572205,
+   "call_ms_median": 4.679999977350235,
+   "call_ms_p90": 4.780000001192093,
+   "call1_ms_median": 4.675000011920929,
+   "agree": 136,
+   "agree_all_rows": 136,
+   "disagreements": [
+    {
+     "call": 3,
+     "got": 1,
+     "want": 9
+    },
+    {
+     "call": 10,
+     "got": 216,
+     "want": 223
+    },
+    {
+     "call": 12,
+     "got": 245,
+     "want": 246
+    },
+    {
+     "call": 13,
+     "got": 171,
+     "want": 167
+    },
+    {
+     "call": 14,
+     "got": 229,
+     "want": 227
+    },
+    {
+     "call": 15,
+     "got": 153,
+     "want": 152
+    },
+    {
+     "call": 18,
+     "got": 186,
+     "want": 187
+    },
+    {
+     "call": 24,
+     "got": 266,
+     "want": 264
+    },
+    {
+     "call": 27,
+     "got": 201,
+     "want": 200
+    },
+    {
+     "call": 31,
+     "got": 250,
+     "want": 244
+    },
+    {
+     "call": 33,
+     "got": 226,
+     "want": 229
+    },
+    {
+     "call": 34,
+     "got": 206,
+     "want": 208
+    },
+    {
+     "call": 38,
+     "got": 218,
+     "want": 216
+    },
+    {
+     "call": 45,
+     "got": 205,
+     "want": 206
+    },
+    {
+     "call": 46,
+     "got": 191,
+     "want": 190
+    },
+    {
+     "call": 47,
+     "got": 205,
+     "want": 204
+    },
+    {
+     "call": 48,
+     "got": 185,
+     "want": 184
+    },
+    {
+     "call": 50,
+     "got": 150,
+     "want": 152
+    },
+    {
+     "call": 51,
+     "got": 3,
+     "want": 1
+    },
+    {
+     "call": 53,
+     "got": 161,
+     "want": 152
+    }
+   ]
+  },
+  {
+   "hexcode": "1F33F",
+   "calls": 311,
+   "icon_ms": 1513.3549999892712,
+   "encoder_ms": 1.0999999940395355,
+   "calls_ms": 1512.1800000071526,
+   "call_ms_median": 4.705000013113022,
+   "call_ms_p90": 4.824999988079071,
+   "call1_ms_median": 4.705000013113022,
+   "agree": 228,
+   "agree_all_rows": 228,
+   "disagreements": [
+    {
+     "call": 7,
+     "got": 131,
+     "want": 122
+    },
+    {
+     "call": 10,
+     "got": 140,
+     "want": 159
+    },
+    {
+     "call": 11,
+     "got": 190,
+     "want": 201
+    },
+    {
+     "call": 12,
+     "got": 172,
+     "want": 173
+    },
+    {
+     "call": 13,
+     "got": 210,
+     "want": 211
+    },
+    {
+     "call": 19,
+     "got": 223,
+     "want": 224
+    },
+    {
+     "call": 20,
+     "got": 219,
+     "want": 221
+    },
+    {
+     "call": 27,
+     "got": 238,
+     "want": 239
+    },
+    {
+     "call": 28,
+     "got": 175,
+     "want": 176
+    },
+    {
+     "call": 31,
+     "got": 192,
+     "want": 193
+    },
+    {
+     "call": 32,
+     "got": 257,
+     "want": 259
+    },
+    {
+     "call": 33,
+     "got": 173,
+     "want": 169
+    },
+    {
+     "call": 35,
+     "got": 122,
+     "want": 130
+    },
+    {
+     "call": 38,
+     "got": 153,
+     "want": 161
+    },
+    {
+     "call": 40,
+     "got": 161,
+     "want": 179
+    },
+    {
+     "call": 41,
+     "got": 227,
+     "want": 226
+    },
+    {
+     "call": 42,
+     "got": 122,
+     "want": 158
+    },
+    {
+     "call": 43,
+     "got": 194,
+     "want": 185
+    },
+    {
+     "call": 44,
+     "got": 9,
+     "want": 3
+    },
+    {
+     "call": 47,
+     "got": 8,
+     "want": 9
+    }
+   ]
+  },
+  {
+   "hexcode": "1F342",
+   "calls": 263,
+   "icon_ms": 1301.9000000059605,
+   "encoder_ms": 1.1300000250339508,
+   "calls_ms": 1300.6849999427795,
+   "call_ms_median": 4.75,
+   "call_ms_p90": 5.28999999165535,
+   "call1_ms_median": 4.75,
+   "agree": 141,
+   "agree_all_rows": 141,
+   "disagreements": [
+    {
+     "call": 8,
+     "got": 213,
+     "want": 181
+    },
+    {
+     "call": 11,
+     "got": 174,
+     "want": 210
+    },
+    {
+     "call": 12,
+     "got": 272,
+     "want": 273
+    },
+    {
+     "call": 13,
+     "got": 207,
+     "want": 206
+    },
+    {
+     "call": 14,
+     "got": 241,
+     "want": 240
+    },
+    {
+     "call": 17,
+     "got": 258,
+     "want": 270
+    },
+    {
+     "call": 18,
+     "got": 199,
+     "want": 196
+    },
+    {
+     "call": 20,
+     "got": 190,
+     "want": 188
+    },
+    {
+     "call": 21,
+     "got": 232,
+     "want": 231
+    },
+    {
+     "call": 25,
+     "got": 172,
+     "want": 175
+    },
+    {
+     "call": 27,
+     "got": 170,
+     "want": 169
+    },
+    {
+     "call": 28,
+     "got": 213,
+     "want": 211
+    },
+    {
+     "call": 29,
+     "got": 134,
+     "want": 132
+    },
+    {
+     "call": 31,
+     "got": 225,
+     "want": 232
+    },
+    {
+     "call": 34,
+     "got": 157,
+     "want": 156
+    },
+    {
+     "call": 35,
+     "got": 179,
+     "want": 181
+    },
+    {
+     "call": 38,
+     "got": 194,
+     "want": 204
+    },
+    {
+     "call": 40,
+     "got": 195,
+     "want": 197
+    },
+    {
+     "call": 41,
+     "got": 155,
+     "want": 154
+    },
+    {
+     "call": 46,
+     "got": 156,
+     "want": 154
+    }
+   ]
+  },
+  {
+   "hexcode": "1F344",
+   "calls": 574,
+   "icon_ms": 2822.780000001192,
+   "encoder_ms": 1.1399999856948853,
+   "calls_ms": 2821.520000010729,
+   "call_ms_median": 4.685000002384186,
+   "call_ms_p90": 5,
+   "call1_ms_median": 4.685000002384186,
+   "agree": 371,
+   "agree_all_rows": 371,
+   "disagreements": [
+    {
+     "call": 7,
+     "got": 108,
+     "want": 176
+    },
+    {
+     "call": 8,
+     "got": 189,
+     "want": 190
+    },
+    {
+     "call": 11,
+     "got": 220,
+     "want": 221
+    },
+    {
+     "call": 12,
+     "got": 1,
+     "want": 3
+    },
+    {
+     "call": 15,
+     "got": 205,
+     "want": 207
+    },
+    {
+     "call": 17,
+     "got": 173,
+     "want": 172
+    },
+    {
+     "call": 25,
+     "got": 142,
+     "want": 141
+    },
+    {
+     "call": 31,
+     "got": 188,
+     "want": 189
+    },
+    {
+     "call": 32,
+     "got": 3,
+     "want": 1
+    },
+    {
+     "call": 35,
+     "got": 3,
+     "want": 1
+    },
+    {
+     "call": 37,
+     "got": 189,
+     "want": 185
+    },
+    {
+     "call": 38,
+     "got": 3,
+     "want": 1
+    },
+    {
+     "call": 39,
+     "got": 109,
+     "want": 172
+    },
+    {
+     "call": 40,
+     "got": 189,
+     "want": 190
+    },
+    {
+     "call": 42,
+     "got": 240,
+     "want": 207
+    },
+    {
+     "call": 43,
+     "got": 220,
+     "want": 221
+    },
+    {
+     "call": 44,
+     "got": 242,
+     "want": 208
+    },
+    {
+     "call": 47,
+     "got": 188,
+     "want": 190
+    },
+    {
+     "call": 48,
+     "got": 8,
+     "want": 5
+    },
+    {
+     "call": 51,
+     "got": 7,
+     "want": 6
+    }
+   ]
+  },
+  {
+   "hexcode": "1F34E",
+   "calls": 491,
+   "icon_ms": 2364.189999997616,
+   "encoder_ms": 1.1850000023841858,
+   "calls_ms": 2362.894999951124,
+   "call_ms_median": 4.625,
+   "call_ms_p90": 4.83500000834465,
+   "call1_ms_median": 4.625,
+   "agree": 318,
+   "agree_all_rows": 318,
+   "disagreements": [
+    {
+     "call": 3,
+     "got": 8,
+     "want": 6
+    },
+    {
+     "call": 13,
+     "got": 157,
+     "want": 228
+    },
+    {
+     "call": 16,
+     "got": 258,
+     "want": 259
+    },
+    {
+     "call": 17,
+     "got": 136,
+     "want": 137
+    },
+    {
+     "call": 19,
+     "got": 137,
+     "want": 138
+    },
+    {
+     "call": 21,
+     "got": 108,
+     "want": 107
+    },
+    {
+     "call": 23,
+     "got": 251,
+     "want": 271
+    },
+    {
+     "call": 27,
+     "got": 240,
+     "want": 238
+    },
+    {
+     "call": 28,
+     "got": 167,
+     "want": 175
+    },
+    {
+     "call": 30,
+     "got": 261,
+     "want": 263
+    },
+    {
+     "call": 31,
+     "got": 245,
+     "want": 246
+    },
+    {
+     "call": 32,
+     "got": 251,
+     "want": 237
+    },
+    {
+     "call": 33,
+     "got": 269,
+     "want": 277
+    },
+    {
+     "call": 43,
+     "got": 1,
+     "want": 3
+    },
+    {
+     "call": 44,
+     "got": 195,
+     "want": 203
+    },
+    {
+     "call": 50,
+     "got": 1,
+     "want": 3
+    },
+    {
+     "call": 52,
+     "got": 267,
+     "want": 268
+    },
+    {
+     "call": 53,
+     "got": 182,
+     "want": 181
+    },
+    {
+     "call": 58,
+     "got": 168,
+     "want": 170
+    },
+    {
+     "call": 59,
+     "got": 263,
+     "want": 264
+    }
+   ]
+  },
+  {
+   "hexcode": "1F355",
+   "calls": 459,
+   "icon_ms": 2216.7300000190735,
+   "encoder_ms": 1.1800000071525574,
+   "calls_ms": 2215.485000014305,
+   "call_ms_median": 4.620000004768372,
+   "call_ms_p90": 5.084999978542328,
+   "call1_ms_median": 4.620000004768372,
+   "agree": 345,
+   "agree_all_rows": 345,
+   "disagreements": [
+    {
+     "call": 3,
+     "got": 10,
+     "want": 6
+    },
+    {
+     "call": 7,
+     "got": 67,
+     "want": 145
+    },
+    {
+     "call": 8,
+     "got": 96,
+     "want": 97
+    },
+    {
+     "call": 11,
+     "got": 140,
+     "want": 138
+    },
+    {
+     "call": 14,
+     "got": 127,
+     "want": 125
+    },
+    {
+     "call": 25,
+     "got": 118,
+     "want": 120
+    },
+    {
+     "call": 38,
+     "got": 5,
+     "want": 8
+    },
+    {
+     "call": 45,
+     "got": 213,
+     "want": 85
+    },
+    {
+     "call": 46,
+     "got": 47,
+     "want": 43
+    },
+    {
+     "call": 48,
+     "got": 67,
+     "want": 63
+    },
+    {
+     "call": 51,
+     "got": 79,
+     "want": 71
+    },
+    {
+     "call": 53,
+     "got": 3,
+     "want": 1
+    },
+    {
+     "call": 54,
+     "got": 79,
+     "want": 145
+    },
+    {
+     "call": 57,
+     "got": 195,
+     "want": 149
+    },
+    {
+     "call": 59,
+     "got": 3,
+     "want": 1
+    },
+    {
+     "call": 60,
+     "got": 227,
+     "want": 197
+    },
+    {
+     "call": 61,
+     "got": 112,
+     "want": 121
+    },
+    {
+     "call": 62,
+     "got": 3,
+     "want": 1
+    },
+    {
+     "call": 63,
+     "got": 229,
+     "want": 227
+    },
+    {
+     "call": 65,
+     "got": 3,
+     "want": 1
+    }
+   ]
+  },
+  {
+   "hexcode": "1F36F",
+   "calls": 360,
+   "icon_ms": 1728.1149999797344,
+   "encoder_ms": 1.0799999833106995,
+   "calls_ms": 1726.9550000727177,
+   "call_ms_median": 4.560000002384186,
+   "call_ms_p90": 5.240000009536743,
+   "call1_ms_median": 4.555000007152557,
+   "agree": 295,
+   "agree_all_rows": 295,
+   "disagreements": [
+    {
+     "call": 7,
+     "got": 73,
+     "want": 221
+    },
+    {
+     "call": 8,
+     "got": 37,
+     "want": 41
+    },
+    {
+     "call": 21,
+     "got": 213,
+     "want": 69
+    },
+    {
+     "call": 33,
+     "got": 255,
+     "want": 256
+    },
+    {
+     "call": 41,
+     "got": 45,
+     "want": 47
+    },
+    {
+     "call": 44,
+     "got": 77,
+     "want": 76
+    },
+    {
+     "call": 45,
+     "got": 249,
+     "want": 256
+    },
+    {
+     "call": 50,
+     "got": 9,
+     "want": 8
+    },
+    {
+     "call": 53,
+     "got": 1,
+     "want": 10
+    },
+    {
+     "call": 57,
+     "got": 205,
+     "want": 193
+    },
+    {
+     "call": 60,
+     "got": 221,
+     "want": 216
+    },
+    {
+     "call": 68,
+     "got": 125,
+     "want": 105
+    },
+    {
+     "call": 70,
+     "got": 210,
+     "want": 209
+    },
+    {
+     "call": 72,
+     "got": 216,
+     "want": 213
+    },
+    {
+     "call": 78,
+     "got": 122,
+     "want": 121
+    },
+    {
+     "call": 80,
+     "got": 129,
+     "want": 125
+    },
+    {
+     "call": 85,
+     "got": 135,
+     "want": 134
+    },
+    {
+     "call": 101,
+     "got": 8,
+     "want": 5
+    },
+    {
+     "call": 108,
+     "got": 133,
+     "want": 141
+    },
+    {
+     "call": 115,
+     "got": 69,
+     "want": 117
+    }
+   ]
+  },
+  {
+   "hexcode": "1F37D",
+   "calls": 443,
+   "icon_ms": 2166.2100000083447,
+   "encoder_ms": 1.0900000035762787,
+   "calls_ms": 2165.015000104904,
+   "call_ms_median": 4.634999990463257,
+   "call_ms_p90": 5.0799999833106995,
+   "call1_ms_median": 4.640000015497208,
+   "agree": 349,
+   "agree_all_rows": 349,
+   "disagreements": [
+    {
+     "call": 7,
+     "got": 29,
+     "want": 33
+    },
+    {
+     "call": 8,
+     "got": 124,
+     "want": 104
+    },
+    {
+     "call": 13,
+     "got": 148,
+     "want": 145
+    },
+    {
+     "call": 17,
+     "got": 58,
+     "want": 59
+    },
+    {
+     "call": 27,
+     "got": 130,
+     "want": 131
+    },
+    {
+     "call": 45,
+     "got": 17,
+     "want": 29
+    },
+    {
+     "call": 46,
+     "got": 140,
+     "want": 120
+    },
+    {
+     "call": 49,
+     "got": 213,
+     "want": 154
+    },
+    {
+     "call": 50,
+     "got": 61,
+     "want": 59
+    },
+    {
+     "call": 55,
+     "got": 55,
+     "want": 50
+    },
+    {
+     "call": 57,
+     "got": 45,
+     "want": 47
+    },
+    {
+     "call": 72,
+     "got": 150,
+     "want": 146
+    },
+    {
+     "call": 76,
+     "got": 5,
+     "want": 9
+    },
+    {
+     "call": 79,
+     "got": 12,
+     "want": 13
+    },
+    {
+     "call": 83,
+     "got": 246,
+     "want": 39
+    },
+    {
+     "call": 88,
+     "got": 1,
+     "want": 3
+    },
+    {
+     "call": 91,
+     "got": 69,
+     "want": 71
+    },
+    {
+     "call": 92,
+     "got": 136,
+     "want": 137
+    },
+    {
+     "call": 94,
+     "got": 104,
+     "want": 105
+    },
+    {
+     "call": 97,
+     "got": 94,
+     "want": 95
+    }
+   ]
+  },
+  {
+   "hexcode": "1F390",
+   "calls": 348,
+   "icon_ms": 1678.4500000178814,
+   "encoder_ms": 1.1700000166893005,
+   "calls_ms": 1677.1899999976158,
+   "call_ms_median": 4.659999996423721,
+   "call_ms_p90": 4.83500000834465,
+   "call1_ms_median": 4.659999996423721,
+   "agree": 234,
+   "agree_all_rows": 234,
+   "disagreements": [
+    {
+     "call": 7,
+     "got": 65,
+     "want": 133
+    },
+    {
+     "call": 8,
+     "got": 225,
+     "want": 209
+    },
+    {
+     "call": 10,
+     "got": 171,
+     "want": 169
+    },
+    {
+     "call": 11,
+     "got": 249,
+     "want": 245
+    },
+    {
+     "call": 12,
+     "got": 171,
+     "want": 173
+    },
+    {
+     "call": 15,
+     "got": 222,
+     "want": 221
+    },
+    {
+     "call": 24,
+     "got": 150,
+     "want": 130
+    },
+    {
+     "call": 25,
+     "got": 253,
+     "want": 257
+    },
+    {
+     "call": 33,
+     "got": 101,
+     "want": 100
+    },
+    {
+     "call": 34,
+     "got": 249,
+     "want": 253
+    },
+    {
+     "call": 35,
+     "got": 70,
+     "want": 64
+    },
+    {
+     "call": 38,
+     "got": 104,
+     "want": 97
+    },
+    {
+     "call": 40,
+     "got": 117,
+     "want": 118
+    },
+    {
+     "call": 42,
+     "got": 105,
+     "want": 125
+    },
+    {
+     "call": 47,
+     "got": 1,
+     "want": 13
+    },
+    {
+     "call": 51,
+     "got": 134,
+     "want": 65
+    },
+    {
+     "call": 56,
+     "got": 126,
+     "want": 116
+    },
+    {
+     "call": 57,
+     "got": 256,
+     "want": 261
+    },
+    {
+     "call": 58,
+     "got": 116,
+     "want": 82
+    },
+    {
+     "call": 59,
+     "got": 226,
+     "want": 242
+    }
+   ]
+  },
+  {
+   "hexcode": "1F3B4",
+   "calls": 87,
+   "icon_ms": 422.4249999821186,
+   "encoder_ms": 1.155000001192093,
+   "calls_ms": 421.24499997496605,
+   "call_ms_median": 4.6500000059604645,
+   "call_ms_p90": 4.78999999165535,
+   "call1_ms_median": 4.6500000059604645,
+   "agree": 82,
+   "agree_all_rows": 82,
+   "disagreements": [
+    {
+     "call": 3,
+     "got": 2,
+     "want": 7
+    },
+    {
+     "call": 17,
+     "got": 273,
+     "want": 268
+    },
+    {
+     "call": 25,
+     "got": 1,
+     "want": 3
+    },
+    {
+     "call": 29,
+     "got": 217,
+     "want": 85
+    },
+    {
+     "call": 67,
+     "got": 2,
+     "want": 3
+    }
+   ]
+  },
+  {
+   "hexcode": "1F3BB",
+   "calls": 677,
+   "icon_ms": 3349.1500000059605,
+   "encoder_ms": 1.1599999964237213,
+   "calls_ms": 3347.870000064373,
+   "call_ms_median": 4.705000013113022,
+   "call_ms_p90": 5.245000004768372,
+   "call1_ms_median": 4.7049999833106995,
+   "agree": 368,
+   "agree_all_rows": 368,
+   "disagreements": [
+    {
+     "call": 7,
+     "got": 52,
+     "want": 105
+    },
+    {
+     "call": 10,
+     "got": 138,
+     "want": 139
+    },
+    {
+     "call": 12,
+     "got": 148,
+     "want": 158
+    },
+    {
+     "call": 14,
+     "got": 135,
+     "want": 136
+    },
+    {
+     "call": 15,
+     "got": 111,
+     "want": 117
+    },
+    {
+     "call": 17,
+     "got": 177,
+     "want": 174
+    },
+    {
+     "call": 18,
+     "got": 144,
+     "want": 146
+    },
+    {
+     "call": 19,
+     "got": 182,
+     "want": 181
+    },
+    {
+     "call": 20,
+     "got": 146,
+     "want": 148
+    },
+    {
+     "call": 22,
+     "got": 120,
+     "want": 121
+    },
+    {
+     "call": 24,
+     "got": 191,
+     "want": 188
+    },
+    {
+     "call": 25,
+     "got": 153,
+     "want": 157
+    },
+    {
+     "call": 26,
+     "got": 190,
+     "want": 188
+    },
+    {
+     "call": 28,
+     "got": 158,
+     "want": 157
+    },
+    {
+     "call": 29,
+     "got": 131,
+     "want": 133
+    },
+    {
+     "call": 30,
+     "got": 1,
+     "want": 3
+    },
+    {
+     "call": 31,
+     "got": 191,
+     "want": 189
+    },
+    {
+     "call": 38,
+     "got": 194,
+     "want": 192
+    },
+    {
+     "call": 40,
+     "got": 193,
+     "want": 201
+    },
+    {
+     "call": 41,
+     "got": 171,
+     "want": 175
+    }
+   ]
+  },
+  {
+   "hexcode": "1F3CA-1F3FB-200D-2640-FE0F",
+   "calls": 443,
+   "icon_ms": 2119.0399999916553,
+   "encoder_ms": 1.0900000035762787,
+   "calls_ms": 2117.849999964237,
+   "call_ms_median": 4.590000003576279,
+   "call_ms_p90": 4.805000007152557,
+   "call1_ms_median": 4.590000003576279,
+   "agree": 349,
+   "agree_all_rows": 349,
+   "disagreements": [
+    {
+     "call": 3,
+     "got": 26,
+     "want": 27
+    },
+    {
+     "call": 7,
+     "got": 99,
+     "want": 91
+    },
+    {
+     "call": 25,
+     "got": 140,
+     "want": 141
+    },
+    {
+     "call": 45,
+     "got": 101,
+     "want": 88
+    },
+    {
+     "call": 79,
+     "got": 1,
+     "want": 27
+    },
+    {
+     "call": 83,
+     "got": 178,
+     "want": 174
+    },
+    {
+     "call": 86,
+     "got": 199,
+     "want": 206
+    },
+    {
+     "call": 101,
+     "got": 116,
+     "want": 115
+    },
+    {
+     "call": 117,
+     "got": 1,
+     "want": 27
+    },
+    {
+     "call": 121,
+     "got": 228,
+     "want": 166
+    },
+    {
+     "call": 122,
+     "got": 133,
+     "want": 89
+    },
+    {
+     "call": 124,
+     "got": 179,
+     "want": 197
+    },
+    {
+     "call": 133,
+     "got": 174,
+     "want": 176
+    },
+    {
+     "call": 147,
+     "got": 198,
+     "want": 197
+    },
+    {
+     "call": 149,
+     "got": 165,
+     "want": 166
+    },
+    {
+     "call": 155,
+     "got": 1,
+     "want": 27
+    },
+    {
+     "call": 160,
+     "got": 127,
+     "want": 134
+    },
+    {
+     "call": 162,
+     "got": 260,
+     "want": 253
+    },
+    {
+     "call": 171,
+     "got": 169,
+     "want": 173
+    },
+    {
+     "call": 173,
+     "got": 127,
+     "want": 125
+    }
+   ]
+  },
+  {
+   "hexcode": "1F3CA-1F3FB-200D-2642-FE0F",
+   "calls": 352,
+   "icon_ms": 1716.9350000023842,
+   "encoder_ms": 1.1449999809265137,
+   "calls_ms": 1715.7349999845028,
+   "call_ms_median": 4.7049999833106995,
+   "call_ms_p90": 4.870000004768372,
+   "call1_ms_median": 4.7049999833106995,
+   "agree": 262,
+   "agree_all_rows": 262,
+   "disagreements": [
+    {
+     "call": 7,
+     "got": 50,
+     "want": 33
+    },
+    {
+     "call": 8,
+     "got": 199,
+     "want": 203
+    },
+    {
+     "call": 9,
+     "got": 3,
+     "want": 1
+    },
+    {
+     "call": 10,
+     "got": 45,
+     "want": 37
+    },
+    {
+     "call": 15,
+     "got": 3,
+     "want": 1
+    },
+    {
+     "call": 17,
+     "got": 199,
+     "want": 203
+    },
+    {
+     "call": 20,
+     "got": 127,
+     "want": 123
+    },
+    {
+     "call": 21,
+     "got": 1,
+     "want": 3
+    },
+    {
+     "call": 22,
+     "got": 275,
+     "want": 293
+    },
+    {
+     "call": 23,
+     "got": 155,
+     "want": 153
+    },
+    {
+     "call": 24,
+     "got": 287,
+     "want": 291
+    },
+    {
+     "call": 29,
+     "got": 37,
+     "want": 209
+    },
+    {
+     "call": 30,
+     "got": 139,
+     "want": 135
+    },
+    {
+     "call": 31,
+     "got": 1,
+     "want": 3
+    },
+    {
+     "call": 33,
+     "got": 171,
+     "want": 167
+    },
+    {
+     "call": 34,
+     "got": 209,
+     "want": 225
+    },
+    {
+     "call": 35,
+     "got": 191,
+     "want": 172
+    },
+    {
+     "call": 37,
+     "got": 135,
+     "want": 136
+    },
+    {
+     "call": 39,
+     "got": 197,
+     "want": 195
+    },
+    {
+     "call": 41,
+     "got": 178,
+     "want": 182
+    }
+   ]
+  },
+  {
+   "hexcode": "1F3CA-1F3FB",
+   "calls": 464,
+   "icon_ms": 2281.4099999964237,
+   "encoder_ms": 1.1349999904632568,
+   "calls_ms": 2280.1500000953674,
+   "call_ms_median": 4.719999998807907,
+   "call_ms_p90": 5.245000004768372,
+   "call1_ms_median": 4.719999998807907,
+   "agree": 359,
+   "agree_all_rows": 359,
+   "disagreements": [
+    {
+     "call": 3,
+     "got": 12,
+     "want": 26
+    },
+    {
+     "call": 10,
+     "got": 265,
+     "want": 269
+    },
+    {
+     "call": 13,
+     "got": 213,
+     "want": 217
+    },
+    {
+     "call": 14,
+     "got": 209,
+     "want": 213
+    },
+    {
+     "call": 22,
+     "got": 181,
+     "want": 173
+    },
+    {
+     "call": 24,
+     "got": 173,
+     "want": 137
+    },
+    {
+     "call": 25,
+     "got": 122,
+     "want": 121
+    },
+    {
+     "call": 27,
+     "got": 125,
+     "want": 126
+    },
+    {
+     "call": 28,
+     "got": 110,
+     "want": 117
+    },
+    {
+     "call": 30,
+     "got": 158,
+     "want": 153
+    },
+    {
+     "call": 33,
+     "got": 146,
+     "want": 145
+    },
+    {
+     "call": 35,
+     "got": 115,
+     "want": 117
+    },
+    {
+     "call": 40,
+     "got": 162,
+     "want": 161
+    },
+    {
+     "call": 41,
+     "got": 107,
+     "want": 106
+    },
+    {
+     "call": 45,
+     "got": 173,
+     "want": 180
+    },
+    {
+     "call": 47,
+     "got": 197,
+     "want": 140
+    },
+    {
+     "call": 48,
+     "got": 184,
+     "want": 171
+    },
+    {
+     "call": 50,
+     "got": 198,
+     "want": 170
+    },
+    {
+     "call": 52,
+     "got": 3,
+     "want": 1
+    },
+    {
+     "call": 53,
+     "got": 194,
+     "want": 238
+    }
+   ]
+  },
+  {
+   "hexcode": "1F3CA-1F3FC-200D-2640-FE0F",
+   "calls": 367,
+   "icon_ms": 1754.2549999952316,
+   "encoder_ms": 1.1349999904632568,
+   "calls_ms": 1753.0450000464916,
+   "call_ms_median": 4.640000015497208,
+   "call_ms_p90": 4.745000004768372,
+   "call1_ms_median": 4.640000015497208,
+   "agree": 308,
+   "agree_all_rows": 308,
+   "disagreements": [
+    {
+     "call": 7,
+     "got": 99,
+     "want": 91
+    },
+    {
+     "call": 25,
+     "got": 140,
+     "want": 141
+    },
+    {
+     "call": 45,
+     "got": 189,
+     "want": 88
+    },
+    {
+     "call": 79,
+     "got": 1,
+     "want": 27
+    },
+    {
+     "call": 83,
+     "got": 178,
+     "want": 174
+    },
+    {
+     "call": 86,
+     "got": 199,
+     "want": 197
+    },
+    {
+     "call": 89,
+     "got": 118,
+     "want": 136
+    },
+    {
+     "call": 91,
+     "got": 102,
+     "want": 108
+    },
+    {
+     "call": 93,
+     "got": 134,
+     "want": 135
+    },
+    {
+     "call": 95,
+     "got": 132,
+     "want": 117
+    },
+    {
+     "call": 97,
+     "got": 69,
+     "want": 85
+    },
+    {
+     "call": 98,
+     "got": 104,
+     "want": 96
+    },
+    {
+     "call": 105,
+     "got": 80,
+     "want": 78
+    },
+    {
+     "call": 112,
+     "got": 91,
+     "want": 90
+    },
+    {
+     "call": 125,
+     "got": 52,
+     "want": 50
+    },
+    {
+     "call": 130,
+     "got": 114,
+     "want": 110
+    },
+    {
+     "call": 137,
+     "got": 163,
+     "want": 164
+    },
+    {
+     "call": 140,
+     "got": 126,
+     "want": 125
+    },
+    {
+     "call": 142,
+     "got": 205,
+     "want": 204
+    },
+    {
+     "call": 143,
+     "got": 153,
+     "want": 172
+    }
+   ]
+  },
+  {
+   "hexcode": "1F3CA-1F3FC-200D-2642-FE0F",
+   "calls": 331,
+   "icon_ms": 1598.2699999809265,
+   "encoder_ms": 1.1349999904632568,
+   "calls_ms": 1597.0599999427795,
+   "call_ms_median": 4.6500000059604645,
+   "call_ms_p90": 4.814999997615814,
+   "call1_ms_median": 4.6500000059604645,
+   "agree": 252,
+   "agree_all_rows": 252,
+   "disagreements": [
+    {
+     "call": 7,
+     "got": 99,
+     "want": 91
+    },
+    {
+     "call": 25,
+     "got": 140,
+     "want": 141
+    },
+    {
+     "call": 45,
+     "got": 173,
+     "want": 168
+    },
+    {
+     "call": 48,
+     "got": 200,
+     "want": 193
+    },
+    {
+     "call": 49,
+     "got": 117,
+     "want": 118
+    },
+    {
+     "call": 50,
+     "got": 186,
+     "want": 168
+    },
+    {
+     "call": 51,
+     "got": 109,
+     "want": 110
+    },
+    {
+     "call": 53,
+     "got": 76,
+     "want": 75
+    },
+    {
+     "call": 56,
+     "got": 104,
+     "want": 103
+    },
+    {
+     "call": 58,
+     "got": 120,
+     "want": 111
+    },
+    {
+     "call": 60,
+     "got": 88,
+     "want": 87
+    },
+    {
+     "call": 62,
+     "got": 199,
+     "want": 201
+    },
+    {
+     "call": 63,
+     "got": 120,
+     "want": 122
+    },
+    {
+     "call": 64,
+     "got": 198,
+     "want": 202
+    },
+    {
+     "call": 66,
+     "got": 172,
+     "want": 168
+    },
+    {
+     "call": 67,
+     "got": 90,
+     "want": 92
+    },
+    {
+     "call": 69,
+     "got": 198,
+     "want": 196
+    },
+    {
+     "call": 71,
+     "got": 196,
+     "want": 176
+    },
+    {
+     "call": 72,
+     "got": 111,
+     "want": 115
+    },
+    {
+     "call": 73,
+     "got": 136,
+     "want": 132
+    }
+   ]
+  },
+  {
+   "hexcode": "1F3CA-1F3FC",
+   "calls": 394,
+   "icon_ms": 1896.2699999809265,
+   "encoder_ms": 1.1349999904632568,
+   "calls_ms": 1895.0150000452995,
+   "call_ms_median": 4.659999996423721,
+   "call_ms_p90": 4.75,
+   "call1_ms_median": 4.655000001192093,
+   "agree": 296,
+   "agree_all_rows": 296,
+   "disagreements": [
+    {
+     "call": 9,
+     "got": 3,
+     "want": 1
+    },
+    {
+     "call": 10,
+     "got": 240,
+     "want": 268
+    },
+    {
+     "call": 11,
+     "got": 177,
+     "want": 142
+    },
+    {
+     "call": 13,
+     "got": 184,
+     "want": 240
+    },
+    {
+     "call": 14,
+     "got": 147,
+     "want": 146
+    },
+    {
+     "call": 16,
+     "got": 216,
+     "want": 212
+    },
+    {
+     "call": 17,
+     "got": 155,
+     "want": 146
+    },
+    {
+     "call": 19,
+     "got": 184,
+     "want": 176
+    },
+    {
+     "call": 20,
+     "got": 139,
+     "want": 147
+    },
+    {
+     "call": 22,
+     "got": 147,
+     "want": 148
+    },
+    {
+     "call": 23,
+     "got": 140,
+     "want": 143
+    },
+    {
+     "call": 25,
+     "got": 110,
+     "want": 48
+    },
+    {
+     "call": 26,
+     "got": 174,
+     "want": 151
+    },
+    {
+     "call": 28,
+     "got": 52,
+     "want": 28
+    },
+    {
+     "call": 29,
+     "got": 174,
+     "want": 147
+    },
+    {
+     "call": 30,
+     "got": 3,
+     "want": 1
+    },
+    {
+     "call": 31,
+     "got": 68,
+     "want": 16
+    },
+    {
+     "call": 32,
+     "got": 174,
+     "want": 192
+    },
+    {
+     "call": 33,
+     "got": 3,
+     "want": 1
+    },
+    {
+     "call": 34,
+     "got": 44,
+     "want": 48
+    }
+   ]
+  },
+  {
+   "hexcode": "1F3CA-1F3FD-200D-2640-FE0F",
+   "calls": 394,
+   "icon_ms": 1888.2650000154972,
+   "encoder_ms": 1.1150000095367432,
+   "calls_ms": 1887.0250000059605,
+   "call_ms_median": 4.614999979734421,
+   "call_ms_p90": 4.754999995231628,
+   "call1_ms_median": 4.610000014305115,
+   "agree": 325,
+   "agree_all_rows": 325,
+   "disagreements": [
+    {
+     "call": 7,
+     "got": 171,
+     "want": 91
+    },
+    {
+     "call": 25,
+     "got": 140,
+     "want": 141
+    },
+    {
+     "call": 45,
+     "got": 173,
+     "want": 88
+    },
+    {
+     "call": 79,
+     "got": 1,
+     "want": 28
+    },
+    {
+     "call": 83,
+     "got": 170,
+     "want": 174
+    },
+    {
+     "call": 84,
+     "got": 88,
+     "want": 90
+    },
+    {
+     "call": 86,
+     "got": 199,
+     "want": 197
+    },
+    {
+     "call": 90,
+     "got": 141,
+     "want": 142
+    },
+    {
+     "call": 95,
+     "got": 176,
+     "want": 174
+    },
+    {
+     "call": 96,
+     "got": 110,
+     "want": 111
+    },
+    {
+     "call": 97,
+     "got": 143,
+     "want": 142
+    },
+    {
+     "call": 102,
+     "got": 176,
+     "want": 181
+    },
+    {
+     "call": 104,
+     "got": 166,
+     "want": 150
+    },
+    {
+     "call": 110,
+     "got": 123,
+     "want": 122
+    },
+    {
+     "call": 111,
+     "got": 170,
+     "want": 174
+    },
+    {
+     "call": 125,
+     "got": 52,
+     "want": 50
+    },
+    {
+     "call": 129,
+     "got": 194,
+     "want": 193
+    },
+    {
+     "call": 130,
+     "got": 114,
+     "want": 112
+    },
+    {
+     "call": 133,
+     "got": 159,
+     "want": 156
+    },
+    {
+     "call": 135,
+     "got": 142,
+     "want": 141
+    }
+   ]
+  },
+  {
+   "hexcode": "1F3CA-1F3FD-200D-2642-FE0F",
+   "calls": 388,
+   "icon_ms": 1868.530000001192,
+   "encoder_ms": 1.104999989271164,
+   "calls_ms": 1867.3400000035763,
+   "call_ms_median": 4.655000001192093,
+   "call_ms_p90": 4.78999999165535,
+   "call1_ms_median": 4.6500000059604645,
+   "agree": 312,
+   "agree_all_rows": 312,
+   "disagreements": [
+    {
+     "call": 7,
+     "got": 171,
+     "want": 91
+    },
+    {
+     "call": 25,
+     "got": 140,
+     "want": 141
+    },
+    {
+     "call": 45,
+     "got": 173,
+     "want": 168
+    },
+    {
+     "call": 49,
+     "got": 117,
+     "want": 118
+    },
+    {
+     "call": 50,
+     "got": 184,
+     "want": 168
+    },
+    {
+     "call": 51,
+     "got": 109,
+     "want": 110
+    },
+    {
+     "call": 53,
+     "got": 76,
+     "want": 75
+    },
+    {
+     "call": 56,
+     "got": 104,
+     "want": 103
+    },
+    {
+     "call": 58,
+     "got": 120,
+     "want": 111
+    },
+    {
+     "call": 60,
+     "got": 88,
+     "want": 87
+    },
+    {
+     "call": 62,
+     "got": 199,
+     "want": 201
+    },
+    {
+     "call": 63,
+     "got": 120,
+     "want": 122
+    },
+    {
+     "call": 64,
+     "got": 197,
+     "want": 202
+    },
+    {
+     "call": 65,
+     "got": 123,
+     "want": 124
+    },
+    {
+     "call": 66,
+     "got": 172,
+     "want": 168
+    },
+    {
+     "call": 69,
+     "got": 198,
+     "want": 195
+    },
+    {
+     "call": 71,
+     "got": 176,
+     "want": 173
+    },
+    {
+     "call": 72,
+     "got": 115,
+     "want": 113
+    },
+    {
+     "call": 73,
+     "got": 141,
+     "want": 132
+    },
+    {
+     "call": 79,
+     "got": 1,
+     "want": 28
+    }
+   ]
+  },
+  {
+   "hexcode": "1F3CA-1F3FD",
+   "calls": 453,
+   "icon_ms": 2177.594999998808,
+   "encoder_ms": 1.104999989271164,
+   "calls_ms": 2176.38500007987,
+   "call_ms_median": 4.629999995231628,
+   "call_ms_p90": 4.860000014305115,
+   "call1_ms_median": 4.629999995231628,
+   "agree": 359,
+   "agree_all_rows": 359,
+   "disagreements": [
+    {
+     "call": 7,
+     "got": 237,
+     "want": 273
+    },
+    {
+     "call": 33,
+     "got": 65,
+     "want": 61
+    },
+    {
+     "call": 48,
+     "got": 257,
+     "want": 261
+    },
+    {
+     "call": 50,
+     "got": 229,
+     "want": 225
+    },
+    {
+     "call": 67,
+     "got": 254,
+     "want": 257
+    },
+    {
+     "call": 69,
+     "got": 233,
+     "want": 234
+    },
+    {
+     "call": 71,
+     "got": 185,
+     "want": 187
+    },
+    {
+     "call": 80,
+     "got": 11,
+     "want": 10
+    },
+    {
+     "call": 87,
+     "got": 181,
+     "want": 109
+    },
+    {
+     "call": 88,
+     "got": 152,
+     "want": 153
+    },
+    {
+     "call": 103,
+     "got": 3,
+     "want": 1
+    },
+    {
+     "call": 105,
+     "got": 92,
+     "want": 120
+    },
+    {
+     "call": 108,
+     "got": 114,
+     "want": 117
+    },
+    {
+     "call": 109,
+     "got": 1,
+     "want": 3
+    },
+    {
+     "call": 112,
+     "got": 204,
+     "want": 232
+    },
+    {
+     "call": 117,
+     "got": 228,
+     "want": 229
+    },
+    {
+     "call": 120,
+     "got": 178,
+     "want": 177
+    },
+    {
+     "call": 121,
+     "got": 173,
+     "want": 175
+    },
+    {
+     "call": 124,
+     "got": 145,
+     "want": 151
+    },
+    {
+     "call": 125,
+     "got": 134,
+     "want": 131
+    }
+   ]
+  },
+  {
+   "hexcode": "1F3CA-1F3FE-200D-2640-FE0F",
+   "calls": 422,
+   "icon_ms": 2050.0699999928474,
+   "encoder_ms": 1.1149999797344208,
+   "calls_ms": 2048.825000077486,
+   "call_ms_median": 4.665000021457672,
+   "call_ms_p90": 4.930000007152557,
+   "call1_ms_median": 4.66499999165535,
+   "agree": 354,
+   "agree_all_rows": 354,
+   "disagreements": [
+    {
+     "call": 7,
+     "got": 171,
+     "want": 91
+    },
+    {
+     "call": 25,
+     "got": 140,
+     "want": 141
+    },
+    {
+     "call": 45,
+     "got": 173,
+     "want": 88
+    },
+    {
+     "call": 79,
+     "got": 1,
+     "want": 21
+    },
+    {
+     "call": 83,
+     "got": 169,
+     "want": 173
+    },
+    {
+     "call": 87,
+     "got": 127,
+     "want": 125
+    },
+    {
+     "call": 88,
+     "got": 173,
+     "want": 191
+    },
+    {
+     "call": 90,
+     "got": 143,
+     "want": 152
+    },
+    {
+     "call": 91,
+     "got": 89,
+     "want": 88
+    },
+    {
+     "call": 96,
+     "got": 112,
+     "want": 113
+    },
+    {
+     "call": 97,
+     "got": 134,
+     "want": 132
+    },
+    {
+     "call": 98,
+     "got": 86,
+     "want": 85
+    },
+    {
+     "call": 102,
+     "got": 138,
+     "want": 137
+    },
+    {
+     "call": 103,
+     "got": 142,
+     "want": 124
+    },
+    {
+     "call": 109,
+     "got": 137,
+     "want": 146
+    },
+    {
+     "call": 111,
+     "got": 114,
+     "want": 124
+    },
+    {
+     "call": 117,
+     "got": 1,
+     "want": 6
+    },
+    {
+     "call": 121,
+     "got": 227,
+     "want": 169
+    },
+    {
+     "call": 133,
+     "got": 173,
+     "want": 174
+    },
+    {
+     "call": 141,
+     "got": 111,
+     "want": 112
+    }
+   ]
+  }
+ ],
+ "summary": {
+  "icons": 32,
+  "calls": 11432,
+  "icon_ms_median": 1716.9350000023842,
+  "icon_ms_p90": 2364.189999997616,
+  "encoder_ms_median": 1.1349999904632568,
+  "call_ms_median": 4.669999986886978,
+  "call_ms_p90": 5.034999996423721,
+  "call_ms_mean": 4.859392057410836,
+  "agreement": 0.7587473757872638,
+  "agreement_all_rows": 0.7587473757872638,
+  "session_ms": 585.5999999940395,
+  "cold_icon_ms": 4833.689999997616,
+  "cold_encoder_ms": 18.58500000834465,
+  "cold_first_call_ms": 130.05500000715256
+ },
+ "tag": "A_jsep_b8",
+ "query": "v=A&ep=webgpu&b=8",
+ "wall_s": 62.242,
+ "nvidia_smi": {
+  "before": {
+   "gpu": "1, 7410, 16376",
+   "apps": "5699, .venv/bin/python, 6440 MiB\n5693, .venv/bin/python, 926 MiB",
+   "at": "2026-10-04T15:50:50.643Z"
+  },
+  "after": {
+   "gpu": "0, 7410, 16376",
+   "apps": "5699, .venv/bin/python, 6440 MiB\n5693, .venv/bin/python, 926 MiB",
+   "at": "2026-10-04T15:51:52.977Z"
+  },
+  "during": {
+   "samples": 249,
+   "util_max": 68,
+   "util_mean": 37.04819277108434,
+   "mem_max_mib": 8854
+  }
+ },
+ "console": [
+  "error: \u001b[0;93m2026-10-04 17:50:51.326375 [W:onnxruntime:, session_state.cc:1397 VerifyEachNodeIsAssignedToAnEp] Some nodes were not assigned to the preferred execution providers which may or may not have an negative impact on performance. e.g. ORT explicitly assigns shape related ops to CPU to improve perf.\u001b[m",
+  "error: \u001b[0;93m2026-10-04 17:50:51.327970 [W:onnxruntime:, session_state.cc:1399 VerifyEachNodeIsAssignedToAnEp] Rerunning with verbose output on a non-minimal build will show node assignments.\u001b[m",
+  "error: \u001b[0;93m2026-10-04 17:50:51.457100 [W:onnxruntime:, session_state.cc:1397 VerifyEachNodeIsAssignedToAnEp] Some nodes were not assigned to the preferred execution providers which may or may not have an negative impact on performance. e.g. ORT explicitly assigns shape related ops to CPU to improve perf.\u001b[m",
+  "error: \u001b[0;93m2026-10-04 17:50:51.457430 [W:onnxruntime:, session_state.cc:1399 VerifyEachNodeIsAssignedToAnEp] Rerunning with verbose output on a non-minimal build will show node assignments.\u001b[m"
+ ]
+}

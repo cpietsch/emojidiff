@@ -1,0 +1,178 @@
+{
+ "variant": "B0",
+ "ep": "wasm",
+ "batch": 8,
+ "threads_requested": 1,
+ "bundle": "ort.wasm.min.mjs",
+ "crossOriginIsolated": true,
+ "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+ "adapter": {
+  "vendor": "nvidia",
+  "architecture": "lovelace",
+  "description": "",
+  "isFallbackAdapter": false
+ },
+ "import_ms": 5.530000001192093,
+ "encoder_session_ms": 183.6550000011921,
+ "decoder_session_ms": 85.94999998807907,
+ "session_ms": 269.61500000953674,
+ "numThreads_effective": 1,
+ "cold": {
+  "hexcode": "1F0CF",
+  "calls": 885,
+  "icon_ms": 44132.40500000119,
+  "encoder_ms": 74.80500000715256,
+  "calls_ms": 44057.11999985576,
+  "call_ms_median": 50.16500002145767,
+  "call_ms_p90": 79.08500000834465,
+  "call1_ms_median": 49.66499999165535,
+  "agree": 885,
+  "agree_all_rows": 885,
+  "disagreements": [],
+  "first_call_ms": 34.01500001549721
+ },
+ "icons": [
+  {
+   "hexcode": "1F0CF",
+   "calls": 885,
+   "icon_ms": 43551.860000014305,
+   "encoder_ms": 67.34999999403954,
+   "calls_ms": 43483.9699999392,
+   "call_ms_median": 49.62000000476837,
+   "call_ms_p90": 78.30000001192093,
+   "call1_ms_median": 48.07500001788139,
+   "agree": 885,
+   "agree_all_rows": 885,
+   "disagreements": []
+  },
+  {
+   "hexcode": "1F12F",
+   "calls": 253,
+   "icon_ms": 5699.260000020266,
+   "encoder_ms": 66.42500001192093,
+   "calls_ms": 5631.744999974966,
+   "call_ms_median": 21.594999998807907,
+   "call_ms_p90": 30.944999992847443,
+   "call1_ms_median": 19.604999989271164,
+   "agree": 253,
+   "agree_all_rows": 253,
+   "disagreements": []
+  },
+  {
+   "hexcode": "1F194",
+   "calls": 125,
+   "icon_ms": 2072.3199999928474,
+   "encoder_ms": 59.65999999642372,
+   "calls_ms": 2012.6250000298023,
+   "call_ms_median": 15.819999992847443,
+   "call_ms_p90": 20.419999986886978,
+   "call1_ms_median": 15.61499997973442,
+   "agree": 125,
+   "agree_all_rows": 125,
+   "disagreements": []
+  },
+  {
+   "hexcode": "1F199",
+   "calls": 320,
+   "icon_ms": 7631.914999991655,
+   "encoder_ms": 66.125,
+   "calls_ms": 7565.594999969006,
+   "call_ms_median": 23.96000000834465,
+   "call_ms_p90": 32.46500000357628,
+   "call1_ms_median": 23.125,
+   "agree": 320,
+   "agree_all_rows": 320,
+   "disagreements": []
+  },
+  {
+   "hexcode": "1F1EF",
+   "calls": 171,
+   "icon_ms": 2860.339999973774,
+   "encoder_ms": 60.90500000119209,
+   "calls_ms": 2799.3750000298023,
+   "call_ms_median": 15.645000010728836,
+   "call_ms_p90": 21.155000001192093,
+   "call1_ms_median": 15.300000011920929,
+   "agree": 171,
+   "agree_all_rows": 171,
+   "disagreements": []
+  },
+  {
+   "hexcode": "1F1FA",
+   "calls": 173,
+   "icon_ms": 2995.0900000035763,
+   "encoder_ms": 59.31999999284744,
+   "calls_ms": 2935.6899999678135,
+   "call_ms_median": 16.694999992847443,
+   "call_ms_p90": 21.62000000476837,
+   "call1_ms_median": 16.259999990463257,
+   "agree": 173,
+   "agree_all_rows": 173,
+   "disagreements": []
+  },
+  {
+   "hexcode": "1F1FC",
+   "calls": 195,
+   "icon_ms": 3450.0349999964237,
+   "encoder_ms": 60.060000002384186,
+   "calls_ms": 3389.900000065565,
+   "call_ms_median": 16.44999998807907,
+   "call_ms_p90": 24.375,
+   "call1_ms_median": 16.145000010728836,
+   "agree": 195,
+   "agree_all_rows": 195,
+   "disagreements": []
+  },
+  {
+   "hexcode": "1F261",
+   "calls": 243,
+   "icon_ms": 4969.2750000059605,
+   "encoder_ms": 63.979999989271164,
+   "calls_ms": 4905.104999989271,
+   "call_ms_median": 20.315000027418137,
+   "call_ms_p90": 27.390000015497208,
+   "call1_ms_median": 19.680000007152557,
+   "agree": 243,
+   "agree_all_rows": 243,
+   "disagreements": []
+  }
+ ],
+ "summary": {
+  "icons": 8,
+  "calls": 2365,
+  "icon_ms_median": 4969.2750000059605,
+  "icon_ms_p90": 7631.914999991655,
+  "encoder_ms_median": 63.979999989271164,
+  "call_ms_median": 22.709999978542328,
+  "call_ms_p90": 66.33000001311302,
+  "call_ms_mean": 30.75010782239553,
+  "agreement": 1,
+  "agreement_all_rows": 1,
+  "session_ms": 269.61500000953674,
+  "cold_icon_ms": 44132.40500000119,
+  "cold_encoder_ms": 74.80500000715256,
+  "cold_first_call_ms": 34.01500001549721
+ },
+ "tag": "B0_wasm1_b8",
+ "query": "v=B0&ep=wasm&threads=1&b=8&icons=8",
+ "wall_s": 117.896,
+ "nvidia_smi": {
+  "before": {
+   "gpu": "0, 7410, 16376",
+   "apps": "5699, .venv/bin/python, 6440 MiB\n5693, .venv/bin/python, 926 MiB",
+   "at": "2026-10-04T16:24:05.664Z"
+  },
+  "after": {
+   "gpu": "0, 7410, 16376",
+   "apps": "5699, .venv/bin/python, 6440 MiB\n5693, .venv/bin/python, 926 MiB",
+   "at": "2026-10-04T16:26:03.624Z"
+  },
+  "during": {
+   "samples": 472,
+   "util_max": 1,
+   "util_mean": 0.00423728813559322,
+   "mem_max_mib": 7469
+  }
+ },
+ "console": []
+}

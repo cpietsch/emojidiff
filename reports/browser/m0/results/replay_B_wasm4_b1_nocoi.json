@@ -1,0 +1,178 @@
+{
+ "variant": "B",
+ "ep": "wasm",
+ "batch": 1,
+ "threads_requested": 4,
+ "bundle": "ort.wasm.min.mjs",
+ "crossOriginIsolated": false,
+ "userAgent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/153.0.8010.12 Safari/537.36",
+ "adapter": {
+  "vendor": "nvidia",
+  "architecture": "lovelace",
+  "description": "",
+  "isFallbackAdapter": false
+ },
+ "import_ms": 30.200000017881393,
+ "encoder_session_ms": 234.19999998807907,
+ "decoder_session_ms": 92.30000001192093,
+ "session_ms": 326.5,
+ "numThreads_effective": 1,
+ "cold": {
+  "hexcode": "1F0CF",
+  "calls": 885,
+  "icon_ms": 5748.700000017881,
+  "encoder_ms": 62.30000001192093,
+  "calls_ms": 5685.9000000059605,
+  "call_ms_median": 6.4000000059604645,
+  "call_ms_p90": 9.900000005960464,
+  "call1_ms_median": 6.300000011920929,
+  "agree": 885,
+  "agree_all_rows": 885,
+  "disagreements": [],
+  "first_call_ms": 17.400000005960464
+ },
+ "icons": [
+  {
+   "hexcode": "1F0CF",
+   "calls": 885,
+   "icon_ms": 5743.399999976158,
+   "encoder_ms": 52.5,
+   "calls_ms": 5690.199999988079,
+   "call_ms_median": 6.699999988079071,
+   "call_ms_p90": 9.900000005960464,
+   "call1_ms_median": 6.5999999940395355,
+   "agree": 885,
+   "agree_all_rows": 885,
+   "disagreements": []
+  },
+  {
+   "hexcode": "1F12F",
+   "calls": 253,
+   "icon_ms": 827.0999999940395,
+   "encoder_ms": 53.400000005960464,
+   "calls_ms": 773.5999999940395,
+   "call_ms_median": 3.0999999940395355,
+   "call_ms_p90": 4.200000017881393,
+   "call1_ms_median": 2.9000000059604645,
+   "agree": 253,
+   "agree_all_rows": 253,
+   "disagreements": []
+  },
+  {
+   "hexcode": "1F194",
+   "calls": 125,
+   "icon_ms": 343,
+   "encoder_ms": 52.10000002384186,
+   "calls_ms": 290.89999997615814,
+   "call_ms_median": 2.100000023841858,
+   "call_ms_p90": 3,
+   "call1_ms_median": 2,
+   "agree": 125,
+   "agree_all_rows": 125,
+   "disagreements": []
+  },
+  {
+   "hexcode": "1F199",
+   "calls": 320,
+   "icon_ms": 1117.5,
+   "encoder_ms": 56.69999998807907,
+   "calls_ms": 1060.7000000178814,
+   "call_ms_median": 3.2999999821186066,
+   "call_ms_p90": 4.5,
+   "call1_ms_median": 3.199999988079071,
+   "agree": 320,
+   "agree_all_rows": 320,
+   "disagreements": []
+  },
+  {
+   "hexcode": "1F1EF",
+   "calls": 171,
+   "icon_ms": 500.69999998807907,
+   "encoder_ms": 57.099999994039536,
+   "calls_ms": 443.59999999403954,
+   "call_ms_median": 2.5,
+   "call_ms_p90": 3.0999999940395355,
+   "call1_ms_median": 2.4000000059604645,
+   "agree": 171,
+   "agree_all_rows": 171,
+   "disagreements": []
+  },
+  {
+   "hexcode": "1F1FA",
+   "calls": 173,
+   "icon_ms": 515.5,
+   "encoder_ms": 56.69999998807907,
+   "calls_ms": 458.60000002384186,
+   "call_ms_median": 2.5,
+   "call_ms_p90": 3.2000000178813934,
+   "call1_ms_median": 2.5,
+   "agree": 173,
+   "agree_all_rows": 173,
+   "disagreements": []
+  },
+  {
+   "hexcode": "1F1FC",
+   "calls": 195,
+   "icon_ms": 581.0999999940395,
+   "encoder_ms": 56.70000001788139,
+   "calls_ms": 524.2999999523163,
+   "call_ms_median": 2.5,
+   "call_ms_p90": 3.300000011920929,
+   "call1_ms_median": 2.5,
+   "agree": 195,
+   "agree_all_rows": 195,
+   "disagreements": []
+  },
+  {
+   "hexcode": "1F261",
+   "calls": 243,
+   "icon_ms": 729.5,
+   "encoder_ms": 56.599999994039536,
+   "calls_ms": 672.9000000059605,
+   "call_ms_median": 2.699999988079071,
+   "call_ms_p90": 3.600000023841858,
+   "call1_ms_median": 2.5999999940395355,
+   "agree": 243,
+   "agree_all_rows": 243,
+   "disagreements": []
+  }
+ ],
+ "summary": {
+  "icons": 8,
+  "calls": 2365,
+  "icon_ms_median": 729.5,
+  "icon_ms_p90": 1117.5,
+  "encoder_ms_median": 56.69999998807907,
+  "call_ms_median": 3.100000023841858,
+  "call_ms_p90": 8.700000017881393,
+  "call_ms_mean": 4.192304439726138,
+  "agreement": 1,
+  "agreement_all_rows": 1,
+  "session_ms": 326.5,
+  "cold_icon_ms": 5748.700000017881,
+  "cold_encoder_ms": 62.30000001192093,
+  "cold_first_call_ms": 17.400000005960464
+ },
+ "tag": "B_wasm4_b1_nocoi",
+ "query": "v=B&ep=wasm&threads=4&b=1&icons=8",
+ "wall_s": 16.788,
+ "nvidia_smi": {
+  "before": {
+   "gpu": "2, 7410, 16376",
+   "apps": "5699, .venv/bin/python, 6440 MiB\n5693, .venv/bin/python, 926 MiB",
+   "at": "2026-10-04T16:40:36.754Z"
+  },
+  "after": {
+   "gpu": "0, 7410, 16376",
+   "apps": "5699, .venv/bin/python, 6440 MiB\n5693, .venv/bin/python, 926 MiB",
+   "at": "2026-10-04T16:40:53.615Z"
+  },
+  "during": {
+   "samples": 67,
+   "util_max": 4,
+   "util_mean": 0.14925373134328357,
+   "mem_max_mib": 7469
+  }
+ },
+ "console": []
+}

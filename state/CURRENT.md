@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-10-03
+Updated: 2026-10-04
 
 ## Current hypothesis and evidence
 
@@ -42,28 +42,23 @@ N's 32 icons clears OmniSVG zero-shot (0.609) in float32 (greedy 0.63, best of 8
 but not in the run's own bfloat16 evaluation (0.47), so v7 is recorded as falsified on
 that criterion.
 
-Other directions (findings, 2026-09-28):
-
-- 2, wider data: adapter v2 fits Twemoji 67%, Noto 27%, Blobmoji 33% as the codec
-  stands. v8 (v7 + 2,211 Twemoji icons) is worse by 0.015 paired: Twemoji writes
-  outlines as filled shapes, OpenMoji as strokes; mixing conventions blind hurts.
-- 3, distillation: OmniSVG draws more faithfully, but 62-86% of its output misses the
-  codec, at 40-250x the student's time. Set aside for render-to-SVG.
-- 4, latent model: latent-v2 (beta 0.1) passes its criteria - own latent beats the
-  prior-mean decode by 0.013, 32 of 32 samples distinct - but reconstructs near blank
-  (0.164). Interpolations decode valid programs that jump between emoji modes. Next test
-  for this direction: per-path latents (DeepSVG-style), not a bigger single latent.
+Other directions (findings, 2026-09-28 to 2026-10-03): wider data (v8 + Twemoji, worse
+by 0.015: fills against strokes); distillation from OmniSVG (62-86% misses the codec);
+program latents (latent-v1/v2/v3: distinct but blobby); canvas latent vt-v1/vt-v2-c16
+(stopped after two A1 failures); flow prior lfp-v1x (best sampler so far, exploratory).
 
 ## Last completed action and verification
 
-2026-10-03, recovery after a power failure. The container came back from its base image:
-volumes intact, apt packages lost. `libcairo2` (renderer; see `docs/data-curation.md`)
-and `iproute2` reinstalled; `cairosvg` imports. Both jobs of 2026-09-29 had finished
-before the outage (vt-v2-c16 `EXIT=0`, harness `HARNESS-CANVAS-DONE`, every step
-`EXIT=0`); checkpoints present; `scripts/audit_run_records.py` consistent. Their results
-are recorded in findings (2026-10-03): vt-v2-c16 fails A1 again, so the canvas line stops
-as declared; lfp-v1x-exploratory fails B1, B2, B4, B5 (B3 passes), though it is the best
-latent sampler so far (fragments 0.18, CLIP recall 0.42).
+2026-10-04: public release and browser milestone 0 (findings, 2026-10-04). The repo
+`cpietsch/emojidiff` is public (CC BY-SA 4.0); the weblog deploys to
+https://cpietsch.github.io/emojidiff/ from GitHub Actions (first deploy checked: pages
+return 200). Hugging Face Docker Spaces need a paid PRO account, so none was created;
+the operator chose in-browser inference. Milestone 0, replaying 32 recorded v9 greedy
+traces in headless Chrome on the 4080: WASM 4 threads 881 ms per icon median (about
+1.2 s projected over the validation set), WebGPU 1,731 ms, server 512 ms; argmax 100%
+for the float32-id export (the int64 export is wrong on WebGPU JSEP: 75.9%). An
+independent re-run matched within 2%. Full suite 321 passed, ruff and strict mypy clean
+at the release commit.
 
 ## Active jobs
 
@@ -81,20 +76,23 @@ No training or scoring jobs. Services in tmux on gpubox-4080, restarted 2026-10-
 - Off-machine copy (2026-10-04): every runs/*.pt and data/processed/*/checkpoint.zip
   mirrored to https://huggingface.co/chrispie/mojidiff-checkpoints (public, CC BY-SA 4.0);
   sha256 index `reports/checkpoints-hf.json`, verified against the remote. Code: GitHub
-  `cpietsch/emojidiff` (private).
+  `cpietsch/emojidiff` (public).
+- Browser probe (exports, Chrome harness, traces): `/home/dev/.cache/mojidiff/
+  browser-probe-2026-10-04/`; compact results in `reports/browser/m0/`.
 
 ## Current blockers
 
-Direction after the canvas line: the operator's call (see next action).
+Operator to confirm: the go/no-go thresholds (greedy median 3 s go, 3-6 s
+click-to-vectorise, above 6 s stop), best of 8 on WebGPU only, ONNX files uploaded to
+the public checkpoints repo under `onnx/`, and test-split icons labelled on the page.
 
 ## Next smallest evidence-producing action
 
-Operator focus since 2026-09-29: latent models, judged by prior samples, novelty and
-interpolation in the gallery. The canvas line (vt-v1, vt-v2-c16) stopped by its declared
-rule; the program-latent line (latent-v1/v2/v3-blind) ended at "full-size but blobby".
-Candidate next arms, one to be chosen:
-
-1. A larger flow prior on vt-v2-c16, explicitly exploratory (the visually best sampler
-   so far; its gate is gone, so outcomes are gallery evidence, not a pass).
-2. Per-path latents (DeepSVG-style), the program line's queued next test.
-3. Return to the render-to-SVG deliverable (v7/v9) and the demo.
+Operator direction 2026-10-04: public demos run in the visitor's browser (ONNX Runtime
+Web), hosted on Pages; latent models stay the research focus (2026-09-29). Plan
+(milestones 1-8, in findings 2026-10-04 and `reports/browser/m0/README.md`): next is
+milestone 1, `scripts/export_onnx.py` with wrappers (plain attention, float32 ids,
+folded head table, float Fourier scales, LayerNorm bias patch for the flow DiT) and
+pytest parity (v9 greedy 10 of 10 identical, vt 4 of 4, flow 50 steps within 1e-4).
+Then the JS core with Node tests, v9 greedy end to end, best of 8, the vectorise page,
+the gallery (flow prior samples and interpolation), Pages integration.

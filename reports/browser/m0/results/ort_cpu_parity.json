@@ -1,0 +1,42 @@
+{
+ "A": {
+  "icons_identical": 32,
+  "icons": 32,
+  "calls_same_token": 11432,
+  "calls_compared": 11432,
+  "differing_icons": [],
+  "ort_cpu_8threads_s": 17.93354264702066
+ },
+ "B0": {
+  "icons_identical": 32,
+  "icons": 32,
+  "calls_same_token": 11432,
+  "calls_compared": 11432,
+  "differing_icons": [],
+  "ort_cpu_8threads_s": 18.363680476992158
+ },
+ "B": {
+  "icons_identical": 32,
+  "icons": 32,
+  "calls_same_token": 11432,
+  "calls_compared": 11432,
+  "differing_icons": [],
+  "ort_cpu_8threads_s": 14.636700223985827
+ },
+ "Bs": {
+  "icons_identical": 32,
+  "icons": 32,
+  "calls_same_token": 11432,
+  "calls_compared": 11432,
+  "differing_icons": [],
+  "ort_cpu_8threads_s": 14.654409876995487
+ },
+ "C": {
+  "icons_identical": 32,
+  "icons": 32,
+  "calls_same_token": 11432,
+  "calls_compared": 11432,
+  "differing_icons": [],
+  "ort_cpu_8threads_s": 29.252903925982537
+ }
+}

@@ -1,0 +1,41 @@
+copy: Add MemcpyFromHost after tokens for JsExecutionProvider
+copy: Add MemcpyFromHost after steps for JsExecutionProvider
+copy: Add MemcpyFromHost after _to_copy for JsExecutionProvider
+copy: Add MemcpyFromHost after _to_copy_2 for JsExecutionProvider
+copy: Add MemcpyFromHost after _to_copy_4 for JsExecutionProvider
+copy: Add MemcpyFromHost after eq_57 for JsExecutionProvider
+copy: Add MemcpyFromHost after expand for JsExecutionProvider
+copy: Add MemcpyFromHost after unsqueeze_11 for JsExecutionProvider
+copy: Add MemcpyFromHost after unsqueeze_4 for JsExecutionProvider
+copy: Add MemcpyFromHost after unsqueeze_8 for JsExecutionProvider
+CPU node: Shape node_Shape_11
+CPU node: Squeeze node_sym_size_int_43
+CPU node: Squeeze node_sym_size_int_48
+CPU node: Add node_add_1601
+CPU node: Cast node__to_copy
+CPU node: Equal node_eq_57
+CPU node: Clip node_clamp
+CPU node: Unsqueeze node_unsqueeze_2
+CPU node: Equal node_eq_84
+CPU node: Cast node__to_copy_2
+CPU node: Sub node_sub_56
+CPU node: Clip node_clamp_1
+CPU node: Unsqueeze node_unsqueeze_3
+CPU node: Equal node_eq_101
+CPU node: Cast node__to_copy_4
+CPU node: Greater node_gt
+CPU node: Greater node_gt_1
+CPU node: And node_bitwise_and
+CPU node: Unsqueeze node_unsqueeze_4
+CPU node: Range node_arange_2
+CPU node: Unsqueeze node_Unsqueeze_481
+CPU node: Unsqueeze node_unsqueeze_7
+CPU node: LessOrEqual node_le_4
+CPU node: Unsqueeze node_unsqueeze_8
+CPU node: Concat node_Concat_66
+CPU node: Concat node_Concat_88
+CPU node: Clip node_clamp_min_1
+CPU node: Unsqueeze node_Unsqueeze_555
+CPU node: Expand node_expand
+CPU node: GreaterOrEqual node_ge_28
+CPU node: Unsqueeze node_unsqueeze_11

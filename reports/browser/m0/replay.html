@@ -1,0 +1,151 @@
+<!doctype html><meta charset="utf-8"><title>m0 replay</title>
+<script type="module">
+// Teacher-forced replay of recorded v9 greedy traces (m0/traces) with ONNX Runtime Web.
+// Query: v=A|B0|B|C  ep=wasm|webgpu  threads=N  b=1|8  bundle=<dist file>  icons=N (limit)
+// For every icon: encoder once (rows = b), then every recorded decoder call with the recorded
+// inputs; logits are read back, the recorded 418-bit legal mask applied, masked argmax compared
+// with the recorded torch token; the RECORDED token is what the next call sees (teacher forcing,
+// because the recorded rows already contain it). KV stays on the GPU for webgpu.
+const q = new URLSearchParams(location.search);
+const OPT = q.get('opt') || 'all';  // graphOptimizationLevel: disabled|basic|extended|all
+const V = q.get('v') || 'B', EP = q.get('ep') || 'webgpu', B = +(q.get('b') || 1);
+const threads = +(q.get('threads') || 1), bundle = q.get('bundle') || (EP === 'webgpu' ? 'ort.all.min.mjs' : 'ort.wasm.min.mjs');
+const profile = +(q.get('profile') || 0);  // JSEP: GPU kernel time for the first N calls of icon 0
+const limit = +(q.get('icons') || 1e9), dump = +(q.get('dump') || 0), kvcpu = q.get('kvcpu') === '1';
+const base = '/node_modules/onnxruntime-web/dist/';
+const out = {variant: V, ep: EP, batch: B, threads_requested: threads, bundle, crossOriginIsolated: self.crossOriginIsolated,
+             userAgent: navigator.userAgent};
+const now = () => performance.now();
+const pct = (a, p) => { const s = [...a].sort((x, y) => x - y); return s[Math.min(s.length - 1, Math.floor(p * (s.length - 1) + 0.5))]; };
+try {
+  // ---- adapter check (the same browser instance ORT uses)
+  if (navigator.gpu) {
+    const a = await navigator.gpu.requestAdapter({powerPreference: 'high-performance'});
+    out.adapter = a ? {vendor: a.info.vendor, architecture: a.info.architecture, description: a.info.description,
+                       isFallbackAdapter: a.info.isFallbackAdapter} : null;
+  }
+  if (EP === 'webgpu' && !(out.adapter && out.adapter.vendor === 'nvidia' && !out.adapter.isFallbackAdapter))
+    throw new Error('WebGPU adapter is not a non-fallback NVIDIA adapter: ' + JSON.stringify(out.adapter));
+
+  // ---- traces
+  const T = '/m0/traces/';
+  const manifest = await (await fetch(T + 'manifest.json')).json();
+  const bin = async (n) => (await fetch(T + n)).arrayBuffer();
+  const calls = new Int32Array(await bin('calls.i32')), rows = new Int32Array(await bin('rows.i32'));
+  const masks = new Uint8Array(await bin('masks.u8')), images = new Uint8Array(await bin('images.u8'));
+  const R = manifest.total_rows, MB = manifest.mask_bytes, VOC = manifest.vocabulary, S = manifest.length + 1;
+  const field = (f) => rows.subarray(f * R, (f + 1) * R);
+  const F = [0, 1, 2, 3, 4, 5].map(field);
+  const NAMES = ['tokens', 'steps', 'field', 'path', 'axis', 'role'];
+
+  // ---- ORT
+  const tImport = now();
+  const ort = await import(base + bundle);
+  ort.env.wasm.wasmPaths = base;
+  ort.env.wasm.numThreads = threads;
+  out.import_ms = now() - tImport;
+  const prof = {on: false, current: -1, perCall: {}, kernels: {}};
+  if (profile) ort.env.webgpu.profiling = {mode: 'default', ondata: (d) => {
+    if (prof.current < 0) return; const ns = Number(d.endTime - d.startTime);
+    const pc = prof.perCall[prof.current] ||= {ns: 0, kernels: 0}; pc.ns += ns; pc.kernels++;
+    const k = prof.kernels[d.kernelType] ||= {ns: 0, n: 0}; k.ns += ns; k.n++; }};
+  const gpu = EP === 'webgpu';
+  const kvLoc = gpu && !kvcpu ? 'gpu-buffer' : 'cpu';
+  const tSess = now();
+  const enc = await ort.InferenceSession.create('/m0/onnx/encoder.onnx', {graphOptimizationLevel: OPT, executionProviders: [EP],
+    ...(gpu ? {preferredOutputLocation: {memory_keys: 'gpu-buffer', memory_values: 'gpu-buffer'}} : {})});
+  out.encoder_session_ms = now() - tSess;
+  const static_ = V === 'C';
+  const outNames = static_ ? ['cache_keys_out', 'cache_values_out'] : ['present_keys', 'present_values'];
+  const tDec = now();
+  const dec = await ort.InferenceSession.create(`/m0/onnx/decoder_step_${V}.onnx`, {graphOptimizationLevel: OPT, executionProviders: [EP],
+    ...(gpu ? {preferredOutputLocation: {logits: 'cpu', [outNames[0]]: kvLoc, [outNames[1]]: kvLoc}} : {})});
+  out.decoder_session_ms = now() - tDec;
+  out.session_ms = now() - tSess;
+  out.numThreads_effective = ort.env.wasm.numThreads;
+  try { if (ort.env.webgpu && ort.env.webgpu.adapter) { const i = ort.env.webgpu.adapter.info; out.ort_adapter = {vendor: i.vendor, architecture: i.architecture, isFallbackAdapter: i.isFallbackAdapter}; } } catch (e) { out.ort_adapter_err = String(e); }
+
+  // A: six int64 (B, L) inputs + int64 target. B0, B, C: ids (6, B, L) float32 + float32 target.
+  const packed = ['B0', 'B', 'Bs', 'C'].includes(V);
+  const ids = (off, L) => { const a = new Float32Array(6 * B * L);
+    for (let f = 0; f < 6; f++) { const src = F[f].subarray(off, off + L); for (let b = 0; b < B; b++) a.set(src, (f * B + b) * L); } return a; };
+  const i64 = (src, L) => { const a = new BigInt64Array(L * B); for (let b = 0; b < B; b++) for (let i = 0; i < L; i++) a[b * L + i] = BigInt(src[i]); return a; };
+  async function runIcon(k) {
+    const icon = manifest.icons[k];
+    const t0 = now();
+    const pixels = new Float32Array(144 * 144 * 3);
+    const img = images.subarray(k * 144 * 144 * 3, (k + 1) * 144 * 144 * 3);
+    for (let i = 0; i < pixels.length; i++) pixels[i] = img[i];
+    const mem = await enc.run({pixels: new ort.Tensor('float32', pixels, [1, 144, 144, 3]),
+                               rows: new ort.Tensor('int64', new BigInt64Array(B), [B])});
+    const tEnc = now() - t0;
+    let pk, pv;
+    if (static_) { const z = 6 * B * 8 * S * 32; pk = new ort.Tensor('float32', new Float32Array(z), [6, B, 8, S, 32]); pv = new ort.Tensor('float32', new Float32Array(z), [6, B, 8, S, 32]); }
+    else { pk = new ort.Tensor('float32', new Float32Array(0), [6, B, 8, 0, 32]); pv = new ort.Tensor('float32', new Float32Array(0), [6, B, 8, 0, 32]); }
+    let agree = 0, agreeAll = 0; const callMs = []; const lens = []; const disagreements = [];
+    for (let c = icon.call_offset; c < icon.call_offset + icon.calls; c++) {
+      const ts = now();
+      const L = calls[c * 4], target = calls[c * 4 + 1], token = calls[c * 4 + 2], off = calls[c * 4 + 3];
+      const feeds = {};
+      if (packed) {
+        feeds.ids = new ort.Tensor('float32', ids(off, L), [6, B, L]);
+        feeds.target = new ort.Tensor('float32', new Float32Array(B).fill(target), [B]);
+      } else {
+        for (let f = 0; f < 6; f++) feeds[NAMES[f]] = new ort.Tensor('int64', i64(F[f].subarray(off, off + L), L), [B, L]);
+        feeds.target = new ort.Tensor('int64', new BigInt64Array(B).fill(BigInt(target)), [B]);
+      }
+      if (static_) { feeds.cache_keys = pk; feeds.cache_values = pv; }
+      else { feeds.past_keys = pk; feeds.past_values = pv; }
+      feeds.memory_keys = mem.memory_keys; feeds.memory_values = mem.memory_values;
+      if (prof.on && k === 0 && c - icon.call_offset < profile) prof.current = c - icon.call_offset; else prof.current = -1;
+      const r = await dec.run(feeds);
+      const lg = r.logits.data;  // (B, 418) on CPU
+      if (dump && k === 0 && c - icon.call_offset < dump) (out.dumped ||= []).push(Array.from(lg.subarray(0, VOC)));
+      const m = masks.subarray(c * MB, (c + 1) * MB);
+      let rowsAgree = 0;
+      for (let b = 0; b < B; b++) {
+        let bi = -1, bv = -Infinity;
+        for (let v = 0; v < VOC; v++) if ((m[v >> 3] >> (v & 7)) & 1) { const x = lg[b * VOC + v]; if (x > bv) { bv = x; bi = v; } }
+        if (bi === token) rowsAgree++;
+        else if (b === 0 && disagreements.length < 20) disagreements.push({call: c - icon.call_offset, got: bi, want: token});
+        if (b === 0 && bi === token) agree++;
+      }
+      if (rowsAgree === B) agreeAll++;
+      if (gpu) { if (pk.location === 'gpu-buffer') pk.dispose(); if (pv.location === 'gpu-buffer') pv.dispose(); }
+      pk = r[outNames[0]]; pv = r[outNames[1]];
+      callMs.push(now() - ts); lens.push(L);
+    }
+    if (gpu) { pk.dispose(); pv.dispose(); mem.memory_keys.dispose(); mem.memory_values.dispose(); }
+    const total = now() - t0;
+    return {hexcode: icon.hexcode, calls: icon.calls, icon_ms: total, encoder_ms: tEnc,
+            calls_ms: callMs.reduce((a, x) => a + x, 0), call_ms_median: pct(callMs, 0.5), call_ms_p90: pct(callMs, 0.9),
+            call1_ms_median: pct(callMs.filter((_, i) => lens[i] === 1), 0.5),
+            agree, agree_all_rows: agreeAll, disagreements, _callMs: callMs};
+  }
+
+  if (dump) { await runIcon(0); throw new Error('dump only'); }
+  if (profile) { await runIcon(0); prof.on = true; const r = await runIcon(0); out.profile_wall_call_ms = r._callMs.slice(0, profile); out.profile = prof; throw new Error('profile only'); }
+  // cold: first icon right after session creation (shader compilation, allocations)
+  const cold = await runIcon(0);
+  out.cold = Object.fromEntries(Object.entries(cold).filter(([k]) => k !== '_callMs'));
+  out.cold.first_call_ms = cold._callMs[0];
+  // warm: every icon
+  const n = Math.min(limit, manifest.icons.length);
+  const icons = []; const allCalls = [];
+  for (let k = 0; k < n; k++) {
+    const r = await runIcon(k); allCalls.push(...r._callMs); delete r._callMs; icons.push(r);
+    document.title = `icon ${k + 1}/${n}`;
+  }
+  out.icons = icons;
+  const sum = (key) => icons.reduce((a, r) => a + r[key], 0);
+  out.summary = {
+    icons: n, calls: sum('calls'),
+    icon_ms_median: pct(icons.map(r => r.icon_ms), 0.5), icon_ms_p90: pct(icons.map(r => r.icon_ms), 0.9),
+    encoder_ms_median: pct(icons.map(r => r.encoder_ms), 0.5),
+    call_ms_median: pct(allCalls, 0.5), call_ms_p90: pct(allCalls, 0.9), call_ms_mean: allCalls.reduce((a, x) => a + x, 0) / allCalls.length,
+    agreement: sum('agree') / sum('calls'), agreement_all_rows: sum('agree_all_rows') / sum('calls'),
+    session_ms: out.session_ms, cold_icon_ms: cold.icon_ms, cold_encoder_ms: cold.encoder_ms, cold_first_call_ms: cold._callMs[0],
+  };
+} catch (e) { out.error = String(e && e.stack || e); }
+window.__out = out; document.title = 'done';
+</script>
