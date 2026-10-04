@@ -55,8 +55,8 @@ LOCAL = Publication(
     "Tailscale address only."
 )
 
-# The public copy points at the public source and checkpoints rather than at the tailnet services, which
-# a reader outside the tailnet cannot reach.
+# The public copy points at the public source and checkpoints rather than at the tailnet
+# services, which a reader outside the tailnet cannot reach.
 PAGES = Publication(
     note="Generated from the committed research record and published from the main branch.",
     remarks=(
