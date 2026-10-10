@@ -62,9 +62,10 @@ at the release commit.
 
 ## Active jobs
 
-No training or scoring jobs. Services in tmux on gpubox-4080, restarted 2026-10-03:
-`weblog` :8787, `vectorise` :8790 (v9), `gallery` :8791 (15 models; logs under
-`/home/dev/.cache/mojidiff/`).
+None. 2026-10-10: the operator paused MojiDiff and reassigned gpubox-4080's compute to
+other work; the gallery (:8791), vectorise (:8790) and weblog (:8787) servers were
+stopped. Do not restart them or launch GPU jobs until the operator resumes the project.
+The public weblog on Pages is unaffected.
 
 ## Artifact durability
 
