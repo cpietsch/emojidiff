@@ -72,8 +72,7 @@ Smoke runs passed on the RTX 4080 and on one H100 node (about 14.5 steps/s per H
 
 - Slurm 1822825 (queued): v9 rerun (`full-v9-colour.yaml`, the sweep's paired parent),
   `v10-w384`, `v10-w512`, `v10-dec12`, one per H100 on one node, 4 h limit.
-
-The local servers stay stopped; this machine's GPU serves other work, short smoke tests allowed.
+Local servers stay stopped; this GPU serves other work (short smoke tests allowed).
 
 ## Artifact durability
 
@@ -91,9 +90,8 @@ The local servers stay stopped; this machine's GPU serves other work, short smok
 
 ## Current blockers
 
-Operator to confirm: the go/no-go thresholds (greedy median 3 s go, 3-6 s
-click-to-vectorise, above 6 s stop), best of 8 on WebGPU only, ONNX files uploaded to
-the public checkpoints repo under `onnx/`, and test-split icons labelled on the page.
+None for training. Browser demo, open with the operator: the go/no-go thresholds, best of 8 on
+WebGPU only, ONNX files under `onnx/` in the checkpoints repo, test-split icons labelled.
 
 ## Next smallest evidence-producing action
 
