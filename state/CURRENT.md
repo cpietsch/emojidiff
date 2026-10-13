@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-10-04
+Updated: 2026-10-13
 
 ## Current hypothesis and evidence
 
@@ -62,10 +62,18 @@ at the release commit.
 
 ## Active jobs
 
-None. 2026-10-10: the operator paused MojiDiff and reassigned gpubox-4080's compute to
-other work; the gallery (:8791), vectorise (:8790) and weblog (:8787) servers were
-stopped. Do not restart them or launch GPU jobs until the operator resumes the project.
-The public weblog on Pages is unaffected.
+2026-10-13: the operator resumed MojiDiff for training on the MUSICA cluster (ASC; H100 nodes,
+about 80 credits approved), where it runs under the codename "predictable": checkout
+`$DATA/predictable/repo`, checkpoints in `$DATA/predictable/cache/runs`, job scripts and the
+record fetch helper in the operator's private cluster repo (`jobs/predictable_*.slurm`,
+`scripts/predictable_fetch.sh`). Records come back here and are committed from this machine.
+Smoke runs passed on the RTX 4080 and on one H100 node (about 14.5 steps/s per H100 against
+10.7 here; not loader-bound; same corpus file, dataset hash 47646604; Cairo 1.18.2 there).
+
+- Slurm 1822825 (queued): v9 rerun (`full-v9-colour.yaml`, the sweep's paired parent),
+  `v10-w384`, `v10-w512`, `v10-dec12`, one per H100 on one node, 4 h limit.
+
+The local servers stay stopped; this machine's GPU serves other work, short smoke tests allowed.
 
 ## Artifact durability
 
@@ -89,11 +97,9 @@ the public checkpoints repo under `onnx/`, and test-split icons labelled on the 
 
 ## Next smallest evidence-producing action
 
-Operator direction 2026-10-04: public demos run in the visitor's browser (ONNX Runtime
-Web), hosted on Pages; latent models stay the research focus (2026-09-29). Plan
-(milestones 1-8, in findings 2026-10-04 and `reports/browser/m0/README.md`): next is
-milestone 1, `scripts/export_onnx.py` with wrappers (plain attention, float32 ids,
-folded head table, float Fourier scales, LayerNorm bias patch for the flow DiT) and
-pytest parity (v9 greedy 10 of 10 identical, vt 4 of 4, flow 50 steps within 1e-4).
-Then the JS core with Node tests, v9 greedy end to end, best of 8, the vectorise page,
-the gallery (flow prior samples and interpolation), Pages integration.
+Operator plan of 2026-10-13 (training on MUSICA): (1) the scaling sweep, one change from v9 at a
+time (width, depth, steps 120k/240k, batch 128, image size 192), each scored paired against the
+v9 rerun on the same machine; (2) seeds for the top two and one test-split score for the final
+choice, with RTX 4080 and browser latency, distilling into a small student if the winner is too
+slow; (3) the canvas latent and a larger flow prior reopened on the winning backbone (the
+operator lifted the stop rule for that). The browser milestones (findings 2026-10-04) wait.
