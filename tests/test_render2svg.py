@@ -7,6 +7,7 @@ token-space mirror is a true pixel mirror; and one training step runs and lowers
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 import numpy as np
@@ -435,3 +436,15 @@ def test_extra_data_excludes_held_out_concepts() -> None:
     by_split, _, _ = load_pilot_index(pilot)
     for row in by_split["primary/validation"][:20] + by_split["primary/test"][:20]:
         assert base_key(row.hexcode) in keys
+
+
+def test_cache_root_follows_the_environment(tmp_path: Path) -> None:
+    import subprocess
+    import sys
+
+    code = "from mojidiff.learning.render2svg import CACHE_ROOT; print(CACHE_ROOT)"
+    env = {**os.environ, "MOJIDIFF_CACHE_ROOT": str(tmp_path)}
+    out = subprocess.run(
+        [sys.executable, "-c", code], env=env, capture_output=True, text=True, check=True
+    )
+    assert out.stdout.strip() == str(tmp_path)

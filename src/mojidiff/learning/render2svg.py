@@ -71,7 +71,8 @@ from mojidiff.representation.renderer import (
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-CACHE_ROOT = Path("/home/dev/.cache/mojidiff")
+CACHE_ROOT = Path(os.environ.get("MOJIDIFF_CACHE_ROOT", "/home/dev/.cache/mojidiff"))
+"""Checkpoints and derived caches; `MOJIDIFF_CACHE_ROOT` moves them off this machine."""
 EVAL_SIZE = 72
 """Pixel metrics are read at the native 72-unit box, as in every earlier gate."""
 
