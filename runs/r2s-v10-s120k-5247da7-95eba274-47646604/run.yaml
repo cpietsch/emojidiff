@@ -1,0 +1,148 @@
+schema_version: 2
+run_id: r2s-v10-s120k-5247da7-95eba274-47646604
+state: completed
+planned_at: '2026-10-13T18:02:56Z'
+hypothesis: With training steps 60k -> 120k, and everything else as in v9, the render-to-program
+  model transcribes the 339 validation renders with lower mean 72 px pixel error than v9 trained
+  on the same machine and seed. Pass requires the paired 95% bootstrap interval on the per-icon
+  reduction against that v9 rerun to exclude zero. Its greedy latency on the RTX 4080 is recorded;
+  a pass that is too slow for the browser demo is a teacher for distillation, not the demo
+  model.
+parent_run: r2s-full-v9-colour
+git_commit: 5247da7ce9cb85d7952d2cf5833ef2daa3a416a1
+dirty_patch_sha256: 23cc26565a136aaab029bbcdddc5df150e4a10c3ace0d1e267ce87de8982c4fa
+config: configs/render2svg/v10-s120k.yaml
+config_sha256: 95eba27426e6e19a325744930301ac36c703372c83690ae303d9a978fa744e68
+config_resolved:
+  model:
+    image_size: 144
+    d_model: 256
+    heads: 8
+    encoder_layers: 2
+    decoder_layers: 6
+    feedforward: 1024
+    dropout: 0.1
+    metric: true
+    fourier: 10
+    order: path
+  training:
+    steps: 120000
+    batch_size: 32
+    learning_rate: 0.0005
+    weight_decay: 0.01
+    warmup_steps: 1000
+    seed: 7001
+    eval_every: 2000
+    eval_icons: 64
+    train_icons: null
+    evaluate_on_train: false
+    augment_variants: 0
+    augment_seed: 9001
+    augment_mirror: 0.5
+    augment_max_shift: 48
+    augment_colour: 0.1
+    augment_online: true
+    compose_probability: 0.5
+    compose_parts: 4
+    augment_original: 0.1
+    loader_workers: 16
+    extra_training: []
+    bf16: true
+  final_eval_icons: 339
+  clip_icons: 32
+dataset:
+  pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+  cache_sha256: 476466042da98d72c2bf2774cecc18f08d50a362eefbecae97904bde7a04ef0e
+  train_icons: 2681
+  augmented_variants: 0
+  extra_training: null
+  augmented_sha256: null
+  evaluated_on: primary/validation
+seed: 7001
+determinism: seeded; cuDNN and SDPA kernels not forced deterministic
+model_parameters: 9025826
+command: .venv/bin/python -m mojidiff.learning.render2svg --config configs/render2svg/v10-s120k.yaml
+outputs:
+  run_dir: runs/r2s-v10-s120k-5247da7-95eba274-47646604
+  checkpoints: /data/fs201459/cp98556/predictable/cache/runs/r2s-v10-s120k-5247da7-95eba274-47646604
+notes: ''
+completed_at: '2026-10-13T19:52:30Z'
+resource:
+  device: NVIDIA H100
+  torch_version: 2.14.1+cu130
+  cuda_version: '13.0'
+  python_version: 3.12.14
+  peak_vram_gib: 4.38838529586792
+  train_seconds: 6359.954050446046
+  inference_ms_per_icon: 2993.2274209568277
+  inference_p95_ms_per_icon: 8018.81466305349
+  icons_per_second: 0.33408754476809377
+  batched_ms_per_icon: 79.27600676521251
+  batched_icons_per_call: 64
+  excludes: rendering the output SVG to pixels
+baselines:
+  blank_canvas_pixel_error: 0.1720480552069557
+  nearest_training_icon_pixel_error: 0.08973124639576185
+  gate_n_omnisvg_zero_shot_top1: 0.609375
+  nearest_training_icon_clip_top1: 0.34375
+result:
+  icons: 339
+  model_pixel_error:
+  - 0.0727150620154145
+  - 0.06768874085412906
+  - 0.07802898193619236
+  model_pixel_error_median: 0.067843496799469
+  exact_program_rate: 0.032448377581120944
+  rendered_rate: 1.0
+  blank_pixel_error: 0.1720480552069557
+  selected_step: 82000
+  nearest_training_icon_pixel_error:
+  - 0.08973124639576185
+  - 0.0848205749792233
+  - 0.09466393787711656
+  model_minus_baseline_error_reduction:
+  - 0.01701618438034736
+  - 0.013114884193628393
+  - 0.020865874362767867
+  icons_model_beats_baseline: 237
+  clip_retrieval:
+    model_greedy:
+      top1_rate: 0.75
+      top5_rate: 0.9375
+      mean_rank: 2.5625
+      clip_to_reference_mean: 0.9251997601240873
+      chance_top1: 0.03125
+      icons: 32
+    nearest_training_icon:
+      top1_rate: 0.34375
+      top5_rate: 0.59375
+      mean_rank: 7.4375
+      clip_to_reference_mean: 0.8629764690995216
+      chance_top1: 0.03125
+      icons: 32
+    gate_n_omnisvg_zero_shot_top1: 0.609375
+    gate_n_omnisvg_best_of_12_top1: 0.828125
+  model_calls_per_icon: 763
+predeclared_outcome:
+  criterion: paired 95% bootstrap interval on the per-icon reduction against the v9 rerun
+    excludes zero in favour
+  against: r2s-full-v9-colour-989aea8-b26ad95e-47646604
+  paired:
+    icons: 339
+    candidate_pixel_error:
+    - 0.0727150620154145
+    - 0.06770579691992493
+    - 0.0781039449007262
+    parent_pixel_error:
+    - 0.07241242935923602
+    - 0.06769235660214266
+    - 0.07717277473913198
+    parent_minus_candidate:
+    - -0.0003026326561784839
+    - -0.003953152179811511
+    - 0.0033242569278753445
+    candidate_better_icons: 154
+    parent_better_icons: 170
+    interval_excludes_zero_in_favour: false
+  passed: false
+  rtx4080_latency: not measured (no arm passed)

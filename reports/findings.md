@@ -3991,3 +3991,50 @@ cross-origin-isolation service worker for 4 threads on Pages), best of 8 and the
 prior on WebGPU. Next: milestone 1, the in-repo ONNX export pipeline with parity tests.
 Reducing WebGPU kernels per call (fused attention) is the lever if WebGPU must carry
 greedy.
+
+## 2026-10-14 — The scaling sweep on MUSICA: nothing beats v9; size, depth, steps, batch and resolution are not what limits it
+
+**Setting.** v9 had only ever been trained at one size (9.0M parameters, 60k steps, batch
+32, 144 px). With H100 time on the ASC MUSICA cluster (codename "predictable" there; setup
+in state/CURRENT.md) the sweep changed one factor at a time and scored every arm paired
+against a rerun of the unchanged v9 config on the same machine and seed, on all 339
+validation icons. Declared criterion for every arm: the paired 95% interval on the per-icon
+reduction (v9 rerun minus arm) excludes zero in favour of the arm.
+
+**Machine parity first.** Smoke runs on the RTX 4080 and on one H100 node matched (0.163 on
+32 icons at 1,200 steps). The corpus cache is the RTX 4080 file (dataset hash 47646604);
+MUSICA has Cairo 1.18.2 against 1.18.0 here, which changes about 1 pixel in 100,000 of the
+corpus renders and is used there only for online augmentation and evaluation renders. The
+v9 rerun (`r2s-full-v9-colour-989aea8-b26ad95e-47646604`) scores 0.0724 against the
+original 0.0719: paired -0.0005 [-0.0040, +0.0031]. An H100 runs this model at about 14.5
+steps/s against 10.7 here; the loader worker count made no difference.
+
+| arm | change | params | best step | pixel error | v9 rerun minus arm | arm better on | CLIP top-1 (bf16) |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| v9 rerun | none | 9.0M | 46k | 0.0724 | | | 0.56 |
+| w384 | width 384 | 19.8M | 58k | 0.0736 | -0.0012 [-0.0050, +0.0026] | 163 / 339 | 0.63 |
+| w512 | width 512 | 34.6M | 58k | 0.0789 | -0.0064 [-0.0102, -0.0028] | 133 | 0.53 |
+| dec8 | 8 decoder layers | 11.1M | 58k | 0.0708 | +0.0017 [-0.0016, +0.0050] | 170 | 0.66 |
+| dec12 | 12 decoder layers | 15.3M | 52k | 0.0755 | -0.0031 [-0.0063, -0.0000] | 151 | 0.59 |
+| img192 | 192 px input | 9.1M | 50k | 0.0778 | -0.0054 [-0.0092, -0.0017] | 142 | 0.66 |
+| b128 | batch 128, lr 1e-3 | 9.0M | 24k | 0.0751 | -0.0027 [-0.0066, +0.0011] | 156 | 0.63 |
+| s120k | 120k steps | 9.0M | 82k | 0.0727 | -0.0003 [-0.0040, +0.0033] | 154 | 0.75 |
+| s240k | 240k steps | 9.0M | 166k | 0.0712 | +0.0012 [-0.0021, +0.0046] | 174 | 0.72 |
+
+Every arm fails. Three are reliably worse (w512, dec12 at the edge, img192). Two lean better
+without clearing zero (dec8 +0.0017, s240k +0.0012). The best-checkpoint steps say why: b128
+(four times the samples per step) peaks at 24k of 60k and s120k at 82k of 120k, so the
+extra capacity or compute goes into fitting the 2,681 training icons, not into
+generalising. The first b128 run was stopped at step 14,000 because its job limit was too
+short (no resume) and is recorded as cancelled; the rerun is the row above. CLIP top-1 is
+on Gate N's 32 icons, as before; the longer runs clear OmniSVG zero-shot (0.609) there,
+but on 32 icons that is not separable from v9 and was not a declared criterion.
+
+Cost: about 20.5 MUSICA credits (two nodes for 1.4 h and 1.9 h, two single-GPU jobs for
+3.6 h and 3.3 h, plus smoke runs).
+
+**Decision.** v9 stays the model. At this data size the transcriber is limited by its
+2,681 training icons, not by capacity, input resolution or training length, so the
+planned seeds-and-test-split step has no winner to confirm, and the canvas-latent rerun
+it was to unlock has no stronger backbone. The next direction is the operator's call;
+candidates are in state/CURRENT.md.

@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-10-13
+Updated: 2026-10-14
 
 ## Current hypothesis and evidence
 
@@ -70,8 +70,8 @@ record fetch helper in the operator's private cluster repo (`jobs/predictable_*.
 Smoke runs passed on the RTX 4080 and on one H100 node (about 14.5 steps/s per H100 against
 10.7 here; not loader-bound; same corpus file, dataset hash 47646604; Cairo 1.18.2 there).
 
-- Slurm 1822825 (queued): v9 rerun (`full-v9-colour.yaml`, the sweep's paired parent),
-  `v10-w384`, `v10-w512`, `v10-dec12`, one per H100 on one node, 4 h limit.
+No jobs running. The MUSICA scaling sweep finished (findings 2026-10-14): no arm beats the
+v9 rerun; v9 stays the model. About 20.5 of the 80 approved credits spent.
 Local servers stay stopped; this GPU serves other work (short smoke tests allowed).
 
 ## Artifact durability
@@ -92,9 +92,9 @@ WebGPU only, ONNX files under `onnx/` in the checkpoints repo, test-split icons 
 
 ## Next smallest evidence-producing action
 
-Operator plan of 2026-10-13 (training on MUSICA): (1) the scaling sweep, one change from v9 at a
-time (width, depth, steps 120k/240k, batch 128, image size 192), each scored paired against the
-v9 rerun on the same machine; (2) seeds for the top two and one test-split score for the final
-choice, with RTX 4080 and browser latency, distilling into a small student if the winner is too
-slow; (3) the canvas latent and a larger flow prior reopened on the winning backbone (the
-operator lifted the stop rule for that). The browser milestones (findings 2026-10-04) wait.
+Operator to choose (findings 2026-10-14: at 2,681 training icons the transcriber overfits
+extra capacity or compute; dec8 +0.0017 and s240k +0.0012 lean better without clearing zero):
+(a) seeds for v9, dec8 and s240k, to see whether those leanings are real (about 10 credits);
+(b) regularisation arms for the data-limited regime (more compositions, dropout, weight
+decay, stronger augmentation); (c) the canvas latent and flow prior on v9 as it is;
+(d) back to the browser milestones (findings 2026-10-04).

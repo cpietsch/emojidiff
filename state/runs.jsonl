@@ -333,3 +333,9 @@
 {"result_file":"runs/r2s-v10-dec8-5247da7-c2003bf9-47646604/result.md","run_id":"r2s-v10-dec8-5247da7-c2003bf9-47646604","state":"completed","timestamp":"2026-10-13T19:09:16Z"}
 {"result_file":"runs/r2s-v10-dec12-989aea8-12986515-47646604/result.md","run_id":"r2s-v10-dec12-989aea8-12986515-47646604","state":"completed","timestamp":"2026-10-13T19:17:23Z"}
 {"run_id": "r2s-v10-b128-5247da7-f66c07e7-47646604", "state": "cancelled", "timestamp": "2026-10-13T18:54:30Z", "reason": "job time limit too short for batch 128 (no resume); rerun in slurm 1825792", "worker": "musica"}
+{"config":"configs/render2svg/v10-s120k.yaml","run_id":"r2s-v10-s120k-5247da7-95eba274-47646604","slug":"r2s-v10-s120k","state":"running","timestamp":"2026-10-13T18:02:56Z"}
+{"config":"configs/render2svg/v10-s240k.yaml","run_id":"r2s-v10-s240k-5247da7-4db5ead0-47646604","slug":"r2s-v10-s240k","state":"running","timestamp":"2026-10-13T18:05:09Z"}
+{"config":"configs/render2svg/v10-b128.yaml","run_id":"r2s-v10-b128-e526a4e-f66c07e7-47646604","slug":"r2s-v10-b128","state":"running","timestamp":"2026-10-13T18:55:33Z"}
+{"result_file":"runs/r2s-v10-s120k-5247da7-95eba274-47646604/result.md","run_id":"r2s-v10-s120k-5247da7-95eba274-47646604","state":"completed","timestamp":"2026-10-13T19:52:30Z"}
+{"result_file":"runs/r2s-v10-s240k-5247da7-4db5ead0-47646604/result.md","run_id":"r2s-v10-s240k-5247da7-4db5ead0-47646604","state":"completed","timestamp":"2026-10-13T21:39:17Z"}
+{"result_file":"runs/r2s-v10-b128-e526a4e-f66c07e7-47646604/result.md","run_id":"r2s-v10-b128-e526a4e-f66c07e7-47646604","state":"completed","timestamp":"2026-10-13T22:10:11Z"}

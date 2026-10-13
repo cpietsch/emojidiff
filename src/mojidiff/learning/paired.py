@@ -3,7 +3,7 @@
 Each run writes `per_icon.jsonl` (hexcode and 72 px pixel error per validation icon).
 A candidate is compared with its parent icon by icon: the reduction is parent error
 minus candidate error, so positive means the candidate is better, with the same
-bootstrap interval as the runs\x27 own summaries.
+bootstrap interval as the runs' own summaries.
 
     python -m mojidiff.learning.paired runs/<candidate> runs/<parent>
 """
