@@ -76,15 +76,12 @@ Local servers stay stopped; this GPU serves other work (short smoke tests allowe
 
 ## Artifact durability
 
-- Checkpoints: `data/processed/openmoji-g1-geometric-gate-v16/checkpoint.zip` (v16
-  repairer, 6.2 MB) and `data/processed/masked-span-l21-specialist-4-long/checkpoint.zip`
-  (Gate L arm 21), both git-ignored, on the persistent volume.
+- Checkpoints: v16 repairer and Gate L arm 21 `checkpoint.zip` under `data/processed/`.
 - HF weights for OmniSVG 1.1 and Qwen3.5 under `/home/dev/.cache/huggingface` (~34 GB).
 - Run records under `runs/`, registry in `state/runs.jsonl`, all committed.
-- Off-machine copy (2026-10-04): every runs/*.pt and data/processed/*/checkpoint.zip
-  mirrored to https://huggingface.co/chrispie/mojidiff-checkpoints (public, CC BY-SA 4.0);
-  sha256 index `reports/checkpoints-hf.json`, verified against the remote. Code: GitHub
-  `cpietsch/emojidiff` (public).
+- Off-machine (2026-10-04): every checkpoint on https://huggingface.co/chrispie/mojidiff-checkpoints
+  (index `reports/checkpoints-hf.json`); code on GitHub `cpietsch/emojidiff`. Cluster runs
+  stay in `$DATA/predictable/cache` (no backup there) until copied here.
 - Browser probe (exports, Chrome harness, traces): `/home/dev/.cache/mojidiff/
   browser-probe-2026-10-04/`; compact results in `reports/browser/m0/`.
 
