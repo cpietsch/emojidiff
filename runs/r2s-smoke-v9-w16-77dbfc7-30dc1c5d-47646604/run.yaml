@@ -1,0 +1,126 @@
+schema_version: 2
+run_id: r2s-smoke-v9-w16-77dbfc7-30dc1c5d-47646604
+state: completed
+planned_at: '2026-10-13T17:41:52Z'
+hypothesis: 'Trained on the 2,681 family-disjoint training icons with metric coordinates,
+  path-major order, online exact augmentation and compositions, the 9.0M-parameter render-to-program
+  model transcribes held-out validation renders better than retrieving the closest training
+  icon. Pass requires all three: (1) mean 72 px pixel error below the nearest-training-icon
+  baseline with the paired 95% interval on the reduction excluding zero; (2) CLIP top-1 on
+  Gate N''s 32 validation icons at or above OmniSVG 4B zero-shot, 0.609; (3) median single-icon
+  latency on the RTX 4080 under 500 ms.'
+parent_run: r2s-full-v9-colour
+git_commit: 77dbfc75cac8662c541b1d75887e02114702b7b8
+dirty_patch_sha256: ''
+config: configs/render2svg/smoke-v9-w16.yaml
+config_sha256: 30dc1c5d3f5153741eecd7e6bb5058b52bcf8baf6e14c1f4d29b4d18c626118e
+config_resolved:
+  model:
+    image_size: 144
+    d_model: 256
+    heads: 8
+    encoder_layers: 2
+    decoder_layers: 6
+    feedforward: 1024
+    dropout: 0.1
+    metric: true
+    fourier: 10
+    order: path
+  training:
+    steps: 1200
+    batch_size: 32
+    learning_rate: 0.0005
+    weight_decay: 0.01
+    warmup_steps: 100
+    seed: 7001
+    eval_every: 400
+    eval_icons: 32
+    train_icons: null
+    evaluate_on_train: false
+    augment_variants: 0
+    augment_seed: 9001
+    augment_mirror: 0.5
+    augment_max_shift: 48
+    augment_colour: 0.1
+    augment_online: true
+    compose_probability: 0.5
+    compose_parts: 4
+    augment_original: 0.1
+    loader_workers: 16
+    extra_training: []
+    bf16: true
+  final_eval_icons: 32
+  clip_icons: 8
+dataset:
+  pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+  cache_sha256: 476466042da98d72c2bf2774cecc18f08d50a362eefbecae97904bde7a04ef0e
+  train_icons: 2681
+  augmented_variants: 0
+  extra_training: null
+  augmented_sha256: null
+  evaluated_on: primary/validation
+seed: 7001
+determinism: seeded; cuDNN and SDPA kernels not forced deterministic
+model_parameters: 9025826
+command: .venv/bin/python -m mojidiff.learning.render2svg --config configs/render2svg/smoke-v9-w16.yaml
+outputs:
+  run_dir: runs/r2s-smoke-v9-w16-77dbfc7-30dc1c5d-47646604
+  checkpoints: /data/fs201459/cp98556/predictable/cache/runs/r2s-smoke-v9-w16-77dbfc7-30dc1c5d-47646604
+notes: ''
+completed_at: '2026-10-13T17:46:20Z'
+resource:
+  device: NVIDIA H100
+  torch_version: 2.14.1+cu130
+  cuda_version: '13.0'
+  python_version: 3.12.14
+  peak_vram_gib: 4.38838529586792
+  train_seconds: 121.19013075297698
+  inference_ms_per_icon: 3182.9965619836003
+  inference_p95_ms_per_icon: 3185.9754879260436
+  icons_per_second: 0.31416936227440145
+  batched_ms_per_icon: 168.5207129085029
+  batched_icons_per_call: 32
+  excludes: rendering the output SVG to pixels
+baselines:
+  blank_canvas_pixel_error: 0.16265273559838533
+  nearest_training_icon_pixel_error: 0.09432368678972125
+  gate_n_omnisvg_zero_shot_top1: 0.609375
+  nearest_training_icon_clip_top1: 0.375
+result:
+  icons: 32
+  model_pixel_error:
+  - 0.16320836928207427
+  - 0.13980680825479794
+  - 0.1896097112330608
+  model_pixel_error_median: 0.13258177787065506
+  exact_program_rate: 0.0
+  rendered_rate: 1.0
+  blank_pixel_error: 0.16265273559838533
+  selected_step: 1200
+  nearest_training_icon_pixel_error:
+  - 0.09432368678972125
+  - 0.08160671039076987
+  - 0.10738429491466377
+  model_minus_baseline_error_reduction:
+  - -0.06888468249235302
+  - -0.0964836315222783
+  - -0.043297941182390776
+  icons_model_beats_baseline: 1
+  clip_retrieval:
+    model_greedy:
+      top1_rate: 0.0
+      top5_rate: 0.625
+      mean_rank: 4.75
+      clip_to_reference_mean: 0.7855054810643196
+      chance_top1: 0.125
+      icons: 8
+    nearest_training_icon:
+      top1_rate: 0.375
+      top5_rate: 1.0
+      mean_rank: 2.125
+      clip_to_reference_mean: 0.8378832936286926
+      chance_top1: 0.125
+      icons: 8
+    gate_n_omnisvg_zero_shot_top1: 0.609375
+    gate_n_omnisvg_best_of_12_top1: 0.828125
+  model_calls_per_icon: 820
