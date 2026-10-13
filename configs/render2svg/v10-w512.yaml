@@ -1,0 +1,31 @@
+# Scaling sweep (MUSICA), one change from r2s-full-v9-colour: width 256 -> 512 (feedforward 1024 -> 2048). Every earlier
+# render-to-SVG run used the same 9.0M-parameter size; this asks whether capacity is what
+# limits v9. The parent is scored on the same machine (full-v9-colour.yaml rerun on an H100).
+schema_version: 1
+slug: r2s-v10-w512
+parent_run: r2s-full-v9-colour
+hypothesis: >-
+  With width 256 -> 512 (feedforward 1024 -> 2048) and everything else as in v9, the render-to-program model transcribes
+  the 339 validation renders with lower mean 72 px pixel error than v9 trained on the same
+  machine and seed. Pass requires the paired 95% bootstrap interval on the per-icon reduction
+  against that v9 rerun to exclude zero. Its greedy latency on the RTX 4080 is recorded; a
+  pass that is too slow for the browser demo is a teacher for distillation, not the demo model.
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+model: {image_size: 144, d_model: 512, heads: 8, encoder_layers: 2, decoder_layers: 6, feedforward: 2048, dropout: 0.1, metric: true, fourier: 10, order: path}
+training:
+  steps: 60000
+  batch_size: 32
+  learning_rate: 0.0005
+  warmup_steps: 1000
+  eval_every: 2000
+  eval_icons: 64
+  augment_online: true
+  augment_original: 0.1
+  loader_workers: 16
+  compose_probability: 0.5
+  compose_parts: 4
+  augment_mirror: 0.5
+  augment_max_shift: 48
+  augment_colour: 0.1
+final_eval_icons: 339
+clip_icons: 32
