@@ -311,3 +311,5 @@
 {"result_file":"runs/lfp-v1x-exploratory-81eb2e2-5ae4d777-47646604/result.md","run_id":"lfp-v1x-exploratory-81eb2e2-5ae4d777-47646604","state":"completed","timestamp":"2026-09-29T15:48:01Z"}
 {"config":"configs/latent/vt-v2-c16.yaml","run_id":"vt-v2-c16-0f4d5de-1497d4b5-47646604","slug":"vt-v2-c16","state":"running","timestamp":"2026-09-29T15:48:24Z"}
 {"result_file":"runs/vt-v2-c16-0f4d5de-1497d4b5-47646604/result.md","run_id":"vt-v2-c16-0f4d5de-1497d4b5-47646604","state":"completed","timestamp":"2026-09-29T16:44:12Z"}
+{"config":"configs/render2svg/smoke-v9-w16.yaml","run_id":"r2s-smoke-v9-w16-99a5643-30dc1c5d-47646604","slug":"r2s-smoke-v9-w16","state":"running","timestamp":"2026-10-13T17:30:55Z"}
+{"result_file":"runs/r2s-smoke-v9-w16-99a5643-30dc1c5d-47646604/result.md","run_id":"r2s-smoke-v9-w16-99a5643-30dc1c5d-47646604","state":"completed","timestamp":"2026-10-13T17:33:39Z"}
