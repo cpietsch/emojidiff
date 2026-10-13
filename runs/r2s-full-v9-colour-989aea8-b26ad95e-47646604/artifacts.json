@@ -1,0 +1,6 @@
+{
+  "checkpoint_best": "/data/fs201459/cp98556/predictable/cache/runs/r2s-full-v9-colour-989aea8-b26ad95e-47646604/best.pt",
+  "checkpoint_latest": "/data/fs201459/cp98556/predictable/cache/runs/r2s-full-v9-colour-989aea8-b26ad95e-47646604/latest.pt",
+  "samples": "samples.png (rows: reference, model, nearest training icon)",
+  "per_icon": "per_icon.jsonl"
+}

@@ -1,0 +1,76 @@
+schema_version: 2
+run_id: r2s-v10-b128-5247da7-f66c07e7-47646604
+state: cancelled
+planned_at: '2026-10-13T18:02:53Z'
+hypothesis: With batch 32 -> 128 with learning rate 5e-4 -> 1e-3 (square-root rule), 60k steps,
+  so four times the samples, and everything else as in v9, the render-to-program model transcribes
+  the 339 validation renders with lower mean 72 px pixel error than v9 trained on the same
+  machine and seed. Pass requires the paired 95% bootstrap interval on the per-icon reduction
+  against that v9 rerun to exclude zero. Its greedy latency on the RTX 4080 is recorded; a
+  pass that is too slow for the browser demo is a teacher for distillation, not the demo model.
+parent_run: r2s-full-v9-colour
+git_commit: 5247da7ce9cb85d7952d2cf5833ef2daa3a416a1
+dirty_patch_sha256: 79f30c7a2834c8d89bbf2fb5a15af5701b2e203eb60e534a7c88e5e074d0b855
+config: configs/render2svg/v10-b128.yaml
+config_sha256: f66c07e76a348eaf2591ea9ea24ce4b54adde24f63711f0ce093e6ad51dfcb22
+config_resolved:
+  model:
+    image_size: 144
+    d_model: 256
+    heads: 8
+    encoder_layers: 2
+    decoder_layers: 6
+    feedforward: 1024
+    dropout: 0.1
+    metric: true
+    fourier: 10
+    order: path
+  training:
+    steps: 60000
+    batch_size: 128
+    learning_rate: 0.001
+    weight_decay: 0.01
+    warmup_steps: 1000
+    seed: 7001
+    eval_every: 2000
+    eval_icons: 64
+    train_icons: null
+    evaluate_on_train: false
+    augment_variants: 0
+    augment_seed: 9001
+    augment_mirror: 0.5
+    augment_max_shift: 48
+    augment_colour: 0.1
+    augment_online: true
+    compose_probability: 0.5
+    compose_parts: 4
+    augment_original: 0.1
+    loader_workers: 16
+    extra_training: []
+    bf16: true
+  final_eval_icons: 339
+  clip_icons: 32
+dataset:
+  pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+  cache_sha256: 476466042da98d72c2bf2774cecc18f08d50a362eefbecae97904bde7a04ef0e
+  train_icons: 2681
+  augmented_variants: 0
+  extra_training: null
+  augmented_sha256: null
+  evaluated_on: primary/validation
+seed: 7001
+determinism: seeded; cuDNN and SDPA kernels not forced deterministic
+model_parameters: 9025826
+command: .venv/bin/python -m mojidiff.learning.render2svg --config configs/render2svg/v10-b128.yaml
+outputs:
+  run_dir: runs/r2s-v10-b128-5247da7-f66c07e7-47646604
+  checkpoints: /data/fs201459/cp98556/predictable/cache/runs/r2s-v10-b128-5247da7-f66c07e7-47646604
+notes: ''
+cancelled_at: '2026-10-13T18:54:30Z'
+cancellation:
+  reason: 'Stopped by the operator agent at step 14,000 of 60,000 (eval pixel error 0.078
+    on 64 icons): batch 128 runs at about 4.4 steps/s on an H100, so the run needed about
+    3.8 h against its job limit of 3.5 h (Slurm 1824774), which cannot be raised while running,
+    and there is no resume. Rerun unchanged in its own single-GPU job (Slurm 1825792) under
+    a new run id.'
+  rerun_job: slurm 1825792

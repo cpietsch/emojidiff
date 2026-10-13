@@ -319,3 +319,17 @@
 {"result_file":"runs/r2s-smoke-v9-w32-77dbfc7-65de9901-47646604/result.md","run_id":"r2s-smoke-v9-w32-77dbfc7-65de9901-47646604","state":"completed","timestamp":"2026-10-13T17:45:51Z"}
 {"result_file":"runs/r2s-smoke-v9-w40-77dbfc7-03224ba8-47646604/result.md","run_id":"r2s-smoke-v9-w40-77dbfc7-03224ba8-47646604","state":"completed","timestamp":"2026-10-13T17:45:59Z"}
 {"result_file":"runs/r2s-smoke-v9-w16-77dbfc7-30dc1c5d-47646604/result.md","run_id":"r2s-smoke-v9-w16-77dbfc7-30dc1c5d-47646604","state":"completed","timestamp":"2026-10-13T17:46:20Z"}
+{"config":"configs/render2svg/v10-w384.yaml","run_id":"r2s-v10-w384-989aea8-b35cd58f-47646604","slug":"r2s-v10-w384","state":"running","timestamp":"2026-10-13T17:51:23Z"}
+{"config":"configs/render2svg/full-v9-colour.yaml","run_id":"r2s-full-v9-colour-989aea8-b26ad95e-47646604","slug":"r2s-full-v9-colour","state":"running","timestamp":"2026-10-13T17:51:23Z"}
+{"config":"configs/render2svg/v10-w512.yaml","run_id":"r2s-v10-w512-989aea8-12a3f41b-47646604","slug":"r2s-v10-w512","state":"running","timestamp":"2026-10-13T17:51:25Z"}
+{"config":"configs/render2svg/v10-dec12.yaml","run_id":"r2s-v10-dec12-989aea8-12986515-47646604","slug":"r2s-v10-dec12","state":"running","timestamp":"2026-10-13T17:51:27Z"}
+{"config":"configs/render2svg/v10-img192.yaml","run_id":"r2s-v10-img192-5247da7-bcf071a7-360aa736","slug":"r2s-v10-img192","state":"running","timestamp":"2026-10-13T18:02:53Z"}
+{"config":"configs/render2svg/v10-dec8.yaml","run_id":"r2s-v10-dec8-5247da7-c2003bf9-47646604","slug":"r2s-v10-dec8","state":"running","timestamp":"2026-10-13T18:02:53Z"}
+{"config":"configs/render2svg/v10-b128.yaml","run_id":"r2s-v10-b128-5247da7-f66c07e7-47646604","slug":"r2s-v10-b128","state":"running","timestamp":"2026-10-13T18:02:53Z"}
+{"result_file":"runs/r2s-full-v9-colour-989aea8-b26ad95e-47646604/result.md","run_id":"r2s-full-v9-colour-989aea8-b26ad95e-47646604","state":"completed","timestamp":"2026-10-13T18:51:09Z"}
+{"result_file":"runs/r2s-v10-w384-989aea8-b35cd58f-47646604/result.md","run_id":"r2s-v10-w384-989aea8-b35cd58f-47646604","state":"completed","timestamp":"2026-10-13T18:56:19Z"}
+{"result_file":"runs/r2s-v10-img192-5247da7-bcf071a7-360aa736/result.md","run_id":"r2s-v10-img192-5247da7-bcf071a7-360aa736","state":"completed","timestamp":"2026-10-13T19:04:19Z"}
+{"result_file":"runs/r2s-v10-w512-989aea8-12a3f41b-47646604/result.md","run_id":"r2s-v10-w512-989aea8-12a3f41b-47646604","state":"completed","timestamp":"2026-10-13T19:04:26Z"}
+{"result_file":"runs/r2s-v10-dec8-5247da7-c2003bf9-47646604/result.md","run_id":"r2s-v10-dec8-5247da7-c2003bf9-47646604","state":"completed","timestamp":"2026-10-13T19:09:16Z"}
+{"result_file":"runs/r2s-v10-dec12-989aea8-12986515-47646604/result.md","run_id":"r2s-v10-dec12-989aea8-12986515-47646604","state":"completed","timestamp":"2026-10-13T19:17:23Z"}
+{"run_id": "r2s-v10-b128-5247da7-f66c07e7-47646604", "state": "cancelled", "timestamp": "2026-10-13T18:54:30Z", "reason": "job time limit too short for batch 128 (no resume); rerun in slurm 1825792", "worker": "musica"}

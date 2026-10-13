@@ -1,0 +1,148 @@
+schema_version: 2
+run_id: r2s-v10-w512-989aea8-12a3f41b-47646604
+state: completed
+planned_at: '2026-10-13T17:51:25Z'
+hypothesis: With width 256 -> 512 (feedforward 1024 -> 2048) and everything else as in v9,
+  the render-to-program model transcribes the 339 validation renders with lower mean 72 px
+  pixel error than v9 trained on the same machine and seed. Pass requires the paired 95% bootstrap
+  interval on the per-icon reduction against that v9 rerun to exclude zero. Its greedy latency
+  on the RTX 4080 is recorded; a pass that is too slow for the browser demo is a teacher for
+  distillation, not the demo model.
+parent_run: r2s-full-v9-colour
+git_commit: 989aea8e4831d71e0462e79effc8b514161cc550
+dirty_patch_sha256: ''
+config: configs/render2svg/v10-w512.yaml
+config_sha256: 12a3f41bc13edca37d4fd011aba18879a853829474102f457431d3be2c095d9c
+config_resolved:
+  model:
+    image_size: 144
+    d_model: 512
+    heads: 8
+    encoder_layers: 2
+    decoder_layers: 6
+    feedforward: 2048
+    dropout: 0.1
+    metric: true
+    fourier: 10
+    order: path
+  training:
+    steps: 60000
+    batch_size: 32
+    learning_rate: 0.0005
+    weight_decay: 0.01
+    warmup_steps: 1000
+    seed: 7001
+    eval_every: 2000
+    eval_icons: 64
+    train_icons: null
+    evaluate_on_train: false
+    augment_variants: 0
+    augment_seed: 9001
+    augment_mirror: 0.5
+    augment_max_shift: 48
+    augment_colour: 0.1
+    augment_online: true
+    compose_probability: 0.5
+    compose_parts: 4
+    augment_original: 0.1
+    loader_workers: 16
+    extra_training: []
+    bf16: true
+  final_eval_icons: 339
+  clip_icons: 32
+dataset:
+  pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+  cache_sha256: 476466042da98d72c2bf2774cecc18f08d50a362eefbecae97904bde7a04ef0e
+  train_icons: 2681
+  augmented_variants: 0
+  extra_training: null
+  augmented_sha256: null
+  evaluated_on: primary/validation
+seed: 7001
+determinism: seeded; cuDNN and SDPA kernels not forced deterministic
+model_parameters: 34648226
+command: .venv/bin/python -m mojidiff.learning.render2svg --config configs/render2svg/v10-w512.yaml
+outputs:
+  run_dir: runs/r2s-v10-w512-989aea8-12a3f41b-47646604
+  checkpoints: /data/fs201459/cp98556/predictable/cache/runs/r2s-v10-w512-989aea8-12a3f41b-47646604
+notes: ''
+completed_at: '2026-10-13T19:04:26Z'
+resource:
+  device: NVIDIA H100
+  torch_version: 2.14.1+cu130
+  cuda_version: '13.0'
+  python_version: 3.12.14
+  peak_vram_gib: 8.525425434112549
+  train_seconds: 4168.815373308025
+  inference_ms_per_icon: 1905.8042814722285
+  inference_p95_ms_per_icon: 1913.563217036426
+  icons_per_second: 0.5247128520602875
+  batched_ms_per_icon: 89.87129942215688
+  batched_icons_per_call: 64
+  excludes: rendering the output SVG to pixels
+baselines:
+  blank_canvas_pixel_error: 0.1720480552069557
+  nearest_training_icon_pixel_error: 0.08973124639576185
+  gate_n_omnisvg_zero_shot_top1: 0.609375
+  nearest_training_icon_clip_top1: 0.34375
+result:
+  icons: 339
+  model_pixel_error:
+  - 0.07885706017012148
+  - 0.07351016964918973
+  - 0.08422171424433714
+  model_pixel_error_median: 0.07529629021883011
+  exact_program_rate: 0.05014749262536873
+  rendered_rate: 1.0
+  blank_pixel_error: 0.1720480552069557
+  selected_step: 58000
+  nearest_training_icon_pixel_error:
+  - 0.08973124639576185
+  - 0.0848205749792233
+  - 0.09466393787711656
+  model_minus_baseline_error_reduction:
+  - 0.010874186225640382
+  - 0.006645818964824977
+  - 0.014998617494627947
+  icons_model_beats_baseline: 216
+  clip_retrieval:
+    model_greedy:
+      top1_rate: 0.53125
+      top5_rate: 1.0
+      mean_rank: 1.90625
+      clip_to_reference_mean: 0.9088432509452105
+      chance_top1: 0.03125
+      icons: 32
+    nearest_training_icon:
+      top1_rate: 0.34375
+      top5_rate: 0.59375
+      mean_rank: 7.4375
+      clip_to_reference_mean: 0.8629764690995216
+      chance_top1: 0.03125
+      icons: 32
+    gate_n_omnisvg_zero_shot_top1: 0.609375
+    gate_n_omnisvg_best_of_12_top1: 0.828125
+  model_calls_per_icon: 489
+predeclared_outcome:
+  criterion: paired 95% bootstrap interval on the per-icon reduction against the v9 rerun
+    excludes zero in favour
+  against: r2s-full-v9-colour-989aea8-b26ad95e-47646604
+  paired:
+    icons: 339
+    candidate_pixel_error:
+    - 0.07885706017012148
+    - 0.0735440785886182
+    - 0.08425739262634056
+    parent_pixel_error:
+    - 0.07241242935923602
+    - 0.06769235660214266
+    - 0.07717277473913198
+    parent_minus_candidate:
+    - -0.00644463081088546
+    - -0.010191271489180604
+    - -0.0028021011284789107
+    candidate_better_icons: 133
+    parent_better_icons: 190
+    interval_excludes_zero_in_favour: false
+  passed: false
+  rtx4080_latency: not measured yet
