@@ -60,13 +60,13 @@ run by the token smoke on the cluster.
 ## Active jobs
 
 - Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz; the Axis user
-  id changed at 17:45, `~/.ssh/config` updated). Wave 3, one-GPU jobs on dgx01/dgx03 started
-  ~19:20 CET (job script ~/eai-team11/mojidiff/jobs/arms-8099e35.slurm): 60k arms on 9a606d4
-  13973 cur-d02-dec8-seed2, 13976 cur-d015, 13977 cur-d025, 13978 cur-d02-dec10; on 53b3108
-  13981 cur-d02-s120k-seed2, 13982 cur-d02-s120k-seed3, 13983 cur-d02-dec8-s120k, 13984
-  cur-d02-s240k (limit 8 h). 13974/13975/13979/13980 were cancelled after 2 minutes (their
-  runs registered as running; record them as cancelled). Jobs sharing a checkout upload each
-  other's partial run dirs: take each run's record from the job that ran it. Project folder
+  id changed at 17:45, `~/.ssh/config` updated). One-GPU jobs on dgx01/dgx03, job script
+  ~/eai-team11/mojidiff/jobs/arms-8099e35.slurm. Wave 3b (53b3108, started 19:20): 13981
+  cur-d02-s120k-seed2, 13982 cur-d02-s120k-seed3, 13983 cur-d02-dec8-s120k, 13984 cur-d02-s240k.
+  Wave 4a (3681e08, started 20:17): 13986 cur-d02-s120k-seed4, 13987 cur-d02-s180k, 13988
+  cur-d025-s120k, 13989 cur-d03-s120k. Wave 3 60k arms recorded (13974/13975/13979/13980
+  recorded as cancelled). Jobs sharing a checkout upload each other's partial run dirs: take
+  each run's record from the job that ran it (the copy with stdout.log). Project folder
   `~/eai-team11/mojidiff` (checkouts `repo-<commit>`, caches, `results/<job>`). No backup
   there; storage is purged after the hackathon, so results come home after every job.
 - Token for Hugging Face: `~/.cache/huggingface/token` here, `~/.config/mojidiff/hf_token`
