@@ -60,13 +60,12 @@ run by the token smoke on the cluster.
 ## Active jobs
 
 - Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz; the Axis user
-  id changed at 17:45, `~/.ssh/config` updated). One-GPU jobs on dgx01/dgx03, job script
-  ~/eai-team11/mojidiff/jobs/arms-8099e35.slurm. Running: 13984 cur-d02-s240k (53b3108),
-  13987 cur-d02-s180k (3681e08), 13993/13994 cur-d025-s120k-seed2/3, 13995 cur-d02-seed4,
-  13996 cur-seed4 (87fc607), 13997 cur-d025-s120k-seed4, 13998 cur-d02-s120k-seed5 (8775698).
-  Recorded: waves 1-3, 3b's 120k arms, 4a's 120k arms. Jobs sharing a checkout upload each
-  other's partial run dirs: take each run's record from the job that ran it (the copy with
-  stdout.log). Project folder
+  id changed at 17:45, `~/.ssh/config` updated). One-GPU jobs, job script
+  ~/eai-team11/mojidiff/jobs/arms-8099e35.slurm. Running (end 23:00-00:00): 13993/13994/13997
+  cur-d025-s120k-seed2/3/4, 13995 cur-d02-seed4, 13996 cur-seed4, 13998 cur-d02-s120k-seed5.
+  Two GPUs idle since 22:35 pending the operator's choice for the remaining hours. Jobs sharing
+  a checkout upload each other's partial run dirs: take each run's record from the job that ran
+  it (the copy with stdout.log). Project folder
   `~/eai-team11/mojidiff` (checkouts `repo-<commit>`, caches, `results/<job>`). No backup
   there; storage is purged after the hackathon, so results come home after every job.
 - Token for Hugging Face: `~/.cache/huggingface/token` here, `~/.config/mojidiff/hf_token`
