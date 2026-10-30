@@ -4151,3 +4151,79 @@ loader of d54e21d) replicates dropout 0.2 at 120k on seeds 2 and 3, tries 8 deco
 seeds 3 and 4, compositions 0.3, dropout 0.25 with 8 layers). Wave 2's cost of the fixed-list
 launcher: seven GPUs idled about 30 minutes waiting for the 120k arm; wave 3 runs one job per
 GPU instead.
+
+## 2026-10-30 — Curiosity waves 3-4: length was seed luck, dropout is the gain; a new final model, 0.0617 on test
+
+**Correction first.** Wave 2's headline (dropout 0.2 at 120k steps, 0.0654, "length finally pays") did not
+survive replication. Over four seeds dropout 0.2 at 120k scores 0.0654, 0.0641, 0.0724 and 0.0746 (mean
+0.0691, range 0.0105), against 0.0695 for three seeds at 60k. Two lucky seeds and a noisy checkpoint selection
+made the first result.
+
+**Setting.** Waves 3, 3b, 4a and 4b ran as one-GPU Slurm jobs (commits 9a606d4 to 8775698) on the loader of
+d54e21d, which is byte-identical to the one waves 1-2 used (`reports/curiosity/speedup.md`) and about twice as
+fast per run. All scores are on the 339 validation icons, paired against the normal v9 runs (RTX 4080 original
+0.0719, H100 rerun 0.0724, B300 seeds 2 and 3, 0.0728 and 0.0722).
+
+| configuration | seeds | pixel error per run (selected checkpoint) |
+| --- | --- | --- |
+| dropout 0.2, 60k | 3 | 0.0696, 0.0690, 0.0698 |
+| dropout 0.2, 120k | 4 | 0.0654, 0.0641, 0.0724, 0.0746 |
+| dropout 0.2, 180k / 240k | 1 / 1 | 0.0679 / 0.0700 |
+| dropout 0.15 / 0.25, 60k | 1 / 1 | 0.0705 / 0.0697 |
+| dropout 0.25 / 0.3, 120k | 1 / 1 | 0.0660 / 0.0704 |
+| dropout 0.2, 8 decoder layers, 60k | 2 | 0.0684, 0.0720 |
+| dropout 0.2, 10 decoder layers, 60k | 1 | 0.0705 |
+| dropout 0.2, 8 decoder layers, 120k | 1 | 0.0706 |
+
+**Checkpoint selection is noise, not signal.** Each run keeps the checkpoint with the lowest error on 64
+validation icons, the minimum over 30-120 evaluations. Re-scoring every run's last checkpoint instead
+(float32, all 339 icons, RTX 4080, `render2svg_eval --checkpoint latest`, new in 6877800):
+
+| group | last checkpoint per run | mean |
+| --- | --- | --- |
+| v9, 60k | 0.0727, 0.0783, 0.0716, 0.0697 | 0.0731 |
+| dropout 0.2, 60k | 0.0712, 0.0667, 0.0701 | 0.0693 |
+| dropout 0.2, 120k | 0.0661, 0.0653, 0.0701, 0.0734 | 0.0687 |
+| dropout 0.15 / 0.25, 60k | 0.0676 / 0.0699 | |
+| dropout 0.25 / 0.3, 120k | 0.0680 / 0.0688 | |
+
+For the three 120k seeds scored both ways, selected and last average 0.0678 and 0.0672: selection neither
+helps nor hurts on average, it adds noise. The B300 seed-7001 v9 run stays bad at its last checkpoint (0.0783),
+so that trajectory was genuinely worse.
+
+**Reading.** At 2,681 training icons the one lever that holds is dropout: 0.15-0.3 all land near 0.068-0.070
+against 0.071-0.073 for v9, about 5%. Length (120k, 180k, 240k), depth (8, 10 layers) and width do not add
+to it. Seeds scatter by 0.005-0.010 within a configuration, more than any effect left to find; picking among
+seeds on validation is worth as much as any single change.
+
+**Final model (rule declared in state/CURRENT.md at 20:30, before the results it judged).** The configuration
+with the lowest seed mean among those listed in the rule is dropout 0.2 at 120k (0.0691); no one-seed
+configuration beat it by more than its range. Its best validation seed, `r2s-cur-d02-s120k-seed2` (best.pt,
+step 64k), was scored once on the 339 test icons:
+
+| 339 test icons | v7 (previous final model) | new final model |
+| --- | --- | --- |
+| greedy pixel error, float32 | 0.0710 | **0.0617** [0.0567, 0.0667] |
+| paired, v7 minus new | | **+0.0093** [+0.0056, +0.0131]; new better on 229, v7 on 101 |
+| reduction vs nearest training icon | +0.016 | +0.025 [+0.021, +0.030] |
+| icons beating the nearest training icon | 244 | 272 |
+| best of 8 | 0.0506 | **0.0397** [0.0367, 0.0428]; 319 icons beat the nearest |
+| RTX 4080, greedy, 16-icon median | 381 ms | 388 ms |
+| RTX 4080, best of 8, 16-icon median | 1,154 ms | 1,022 ms |
+
+The test score is unbiased for this checkpoint; its validation score (0.0645 in float32) is the best of four
+seeds and so optimistic. On the sheet (`eval-test.png`) the globe, the circled V, the sleeping cloud, grapes,
+the balloon and the running figures read; the keypad sign, the noodle bowl, the night bridge, the crescent
+moon (a full disc) and the bread (a plain block) do not.
+
+**Choosing among models beats sampling one** (exploratory, validation only;
+`/home/dev/.cache/mojidiff/ensemble-2026-10-30/`). Per icon, keep the candidate whose render best matches the
+input: best of 4 seeds' greedy decodes 0.0482 [0.0446, 0.0520] against best of 4 samples of one model 0.0507;
+best of 8 models 0.0432 against best of 8 samples 0.0458; all 11 models 0.0414. The seed scatter that blurs
+single-run comparisons becomes useful candidates.
+
+**Decision.** The new final model replaces v7. The operator extended the cluster by 24 hours: next are seeds
+6-9 of the final configuration (a pool for multi-model decoding and for the demo model), a proper
+best-of-models decoder with one declared test look, the browser demo on the new model, and the canvas-latent
+line rebuilt on the dropout recipe. Protocol change for new runs: report the last checkpoint alongside the
+selected one, and compare configurations by seed means, not single runs.
