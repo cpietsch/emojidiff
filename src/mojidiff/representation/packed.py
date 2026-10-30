@@ -13,7 +13,7 @@ from mojidiff.representation.program import (
     IntArray,
     ProgramValidationError,
     TensorProgram,
-    serialize_svg,
+    serialize_validated_svg,
     validate_tensor_program,
 )
 
@@ -143,7 +143,8 @@ def serialize_packed_svg(
 ) -> bytes:
     """Serialize only after expanding through the canonical grammar validator."""
 
-    return serialize_svg(unpack_tensor_program(program, config, total_segment_slots), config)
+    dense = unpack_tensor_program(program, config, total_segment_slots)
+    return serialize_validated_svg(dense, config)
 
 
 def _validate_packed_shapes(

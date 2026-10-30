@@ -408,7 +408,7 @@ class SplitData:
 
     def mask_batch(self, indices: np.ndarray) -> Tensor:
         bits = np.unpackbits(self.masks[indices], axis=1)
-        return torch.from_numpy(bits.reshape(len(indices), *self.shape)).bool()
+        return torch.from_numpy(bits.reshape(len(indices), *self.shape)).view(torch.bool)
 
     def source_batch(self, indices: np.ndarray) -> Tensor:
         if self.sources is None:
@@ -549,18 +549,61 @@ def render_trusted_rgb(svg: bytes, size: int) -> np.ndarray:
     spawn per image. The typed-surface validation still runs.
     """
 
-    import io
-
-    import cairosvg
-    from PIL import Image
-
     from mojidiff.representation.renderer import validate_typed_svg
 
     validate_typed_svg(svg, RenderLimits(max_paths=80))
-    png = cairosvg.svg2png(bytestring=svg, output_width=size, output_height=size, unsafe=False)
-    with Image.open(io.BytesIO(png)) as image:
-        rgba = np.asarray(image.convert("RGBA"), dtype=np.uint8)
-    return _composite_on_white(rgba)
+    return _composite_on_white(_cairo_rgba(svg, size))
+
+
+def _cairo_rgba(svg: bytes, size: int) -> np.ndarray:
+    """The RGBA pixels `cairosvg.svg2png` would write, read from the surface directly.
+
+    Same tree, surface and arguments as `svg2png`, but the ARGB32 buffer is
+    un-premultiplied here exactly as cairo's PNG writer does it, instead of being
+    encoded to PNG and decoded again (tested equal to the PNG path).
+    """
+
+    import sys
+
+    import cairosvg.parser
+    import cairosvg.surface
+
+    if sys.byteorder != "little":
+        raise RuntimeError("ARGB32 byte order assumed little-endian")
+    tree = cairosvg.parser.Tree(bytestring=svg, unsafe=False)
+    surface = cairosvg.surface.PNGSurface(
+        tree,
+        None,
+        96,
+        parent_surface=None,
+        parent_width=None,
+        parent_height=None,
+        scale=1,
+        output_width=size,
+        output_height=size,
+        background_color=None,
+        map_rgba=None,
+        map_image=None,
+    )
+    image = surface.cairo
+    image.flush()
+    width, height, stride = image.get_width(), image.get_height(), image.get_stride()
+    raw = np.frombuffer(image.get_data(), dtype=np.uint8).reshape(height, stride)
+    pixels = raw[:, : width * 4].reshape(height, width, 4).astype(np.uint32)
+    surface.finish()
+    blue, green, red, alpha = (pixels[..., i] for i in range(4))
+    safe, half = np.maximum(alpha, 1), alpha // 2
+    rgba = np.stack(
+        (
+            (red * 255 + half) // safe,
+            (green * 255 + half) // safe,
+            (blue * 255 + half) // safe,
+            alpha,
+        ),
+        axis=-1,
+    )
+    rgba[alpha == 0] = 0
+    return rgba.astype(np.uint8)
 
 
 AUGMENT_FORMAT = 1
@@ -969,7 +1012,7 @@ class OnlineAugmentation(
             validate_packed_tensor_program(program, layout.codec, layout.total_segment_slots)
             return np.zeros((1, 1, 3), dtype=np.uint8)
         try:
-            validate_packed_tensor_program(program, layout.codec, layout.total_segment_slots)
+            # serialize_packed_svg validates (unpack_tensor_program), so no separate pass.
             svg = serialize_packed_svg(program, layout.codec, layout.total_segment_slots)
             return render_trusted_rgb(svg, self.size)
         except (ValueError, IsolatedRenderError):
@@ -1055,11 +1098,14 @@ def _online_batches(
     config: TrainConfig,
     render_images: bool = True,
     labelled: bool = False,
+    packed_masks: bool = False,
 ) -> Iterator[Batch]:
     """Batches from the online stream; source icon indices are -1 (no fixed source).
 
     `labelled` streams `train.sources` (single-set compositions); otherwise every item
-    is set 0 and compositions mix sets, as before labels existed.
+    is set 0 and compositions mix sets, as before labels existed. `packed_masks` yields
+    the legal masks as packed bits (uint8, `np.packbits` order) for `unpack_masks` on
+    the GPU: a quarter of the bytes to copy, and no 18 MB expansion on the host.
     """
 
     dataset = OnlineAugmentation(
@@ -1082,9 +1128,22 @@ def _online_batches(
     )
     shape = (layout.length, layout.vocabulary)
     for images, tokens, packed, orders, sets in loader:
-        bits = np.unpackbits(packed.numpy(), axis=1)
-        masks = torch.from_numpy(bits.reshape(len(tokens), *shape)).bool()
+        if packed_masks:
+            masks = packed
+        else:
+            bits = np.unpackbits(packed.numpy(), axis=1)
+            masks = torch.from_numpy(bits.reshape(len(tokens), *shape)).view(torch.bool)
         yield images, tokens, masks, orders, torch.full((len(tokens),), -1), sets.long()
+
+
+def unpack_masks(packed: Tensor, shape: tuple[int, int]) -> Tensor:
+    """`np.unpackbits` (most significant bit first) of (B, n) uint8, on its own device,
+    reshaped to (B, *shape) bool."""
+
+    shifts = torch.arange(7, -1, -1, dtype=torch.uint8, device=packed.device)
+    bits = (packed[..., None] >> shifts) & 1
+    count = shape[0] * shape[1]
+    return bits.reshape(packed.shape[0], -1)[:, :count].reshape(-1, *shape).view(torch.bool)
 
 
 # --------------------------------------------------------------------------- model
@@ -2054,6 +2113,7 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
             config.model.image_size,
             config.training,
             labelled=config.model.sources > 0,
+            packed_masks=True,
         )
         if config.training.augment_online
         else _batches(train, augmented, config.training, rng)
@@ -2068,6 +2128,8 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
             model.train()
             images, tokens, masks, orders, base, sets = next(batches)
             images, tokens, masks = images.to(device), tokens.to(device), masks.to(device)
+            if masks.dtype == torch.uint8:
+                masks = unpack_masks(masks, (layout.length, layout.vocabulary))
             order = None
             if path_order:
                 order = (orders if orders is not None else cast(Tensor, train_orders)[base]).to(

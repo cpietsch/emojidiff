@@ -844,3 +844,31 @@ def test_validator_rejects_noncanonical_opacity_none_token() -> None:
 
     with pytest.raises(ProgramValidationError, match="fill_opacity"):
         validate_tensor_program(tensor, config)
+
+
+def test_packed_serializer_validates_once_and_still_rejects(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import mojidiff.representation.packed as packed_module
+    import mojidiff.representation.program as program_module
+
+    config = _config(max_paths=4, max_segments=8)
+    dense, _ = encode_program(FloatProgram((_contour(),)), config)
+    packed = pack_tensor_program(dense, config, total_segment_slots=4)
+    calls = []
+    real = program_module.validate_tensor_program
+
+    def counting(program: object, config: object) -> None:
+        calls.append(1)
+        real(program, config)  # type: ignore[arg-type]
+
+    monkeypatch.setattr(packed_module, "validate_tensor_program", counting)
+    monkeypatch.setattr(program_module, "validate_tensor_program", counting)
+    assert serialize_packed_svg(packed, config, 4) == serialize_svg(dense, config)
+    calls.clear()
+    serialize_packed_svg(packed, config, 4)
+    assert len(calls) == 1
+    bad = copy.deepcopy(packed)
+    bad.fill[0] = 10_000
+    with pytest.raises(ProgramValidationError):
+        serialize_packed_svg(bad, config, 4)

@@ -71,5 +71,5 @@ url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [[tool.mypy.overrides]]
-module = ["cairosvg", "pyarrow", "pyarrow.*"]
+module = ["cairosvg", "cairosvg.*", "pyarrow", "pyarrow.*"]
 ignore_missing_imports = true

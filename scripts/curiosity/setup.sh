@@ -19,7 +19,7 @@ mkdir -p "$T"/{tmp,transfer,cache,logs,hf,raw}
 HF="$UV tool run --from huggingface_hub>=1.28 hf"
 $HF download "$REPO" SHA256SUMS "code/mojidiff-$COMMIT.bundle" data/openmoji-17.0.0.tar.gz \
     data/twemoji.tar.gz cache/render2svg-corpus-5590a1948f5f.npz \
-    cache/render2svg-extra-twemoji-23878da09a9c.npz \
+    cache/render2svg-corpus-35a6ce034e7e.npz cache/render2svg-extra-twemoji-23878da09a9c.npz \
     --repo-type dataset --local-dir "$T/transfer" --quiet
 (cd "$T/transfer" && grep -E "code/mojidiff-$COMMIT.bundle|data/|cache/" SHA256SUMS \
     | sha256sum -c --quiet)

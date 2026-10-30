@@ -538,3 +538,97 @@ def test_concatenate_labels_sets_and_static_batches_carry_them(pieces: Pieces) -
     _, tokens, _, _, base, sets = next(batches)
     assert torch.equal(sets, torch.from_numpy(labels[base.numpy()]))
     assert torch.equal(tokens, joined.tokens[base])
+
+
+def _flatten_reference(program: PackedTensorProgram, layout: SequenceLayout) -> torch.Tensor:
+    """The element-by-element flatten that ran before the index tables."""
+
+    from mojidiff.learning.autoregressive import PATH_FIELDS, PATH_STRIDE
+
+    tokens = torch.zeros(layout.length, dtype=torch.long)
+    for path in range(layout.codec.max_paths):
+        base = path * PATH_STRIDE
+        for offset, name in enumerate(PATH_FIELDS):
+            tokens[base + offset] = int(getattr(program, name)[path])
+        tokens[base + len(PATH_FIELDS)] = int(program.start[path, 0])
+        tokens[base + len(PATH_FIELDS) + 1] = int(program.start[path, 1])
+    for segment in range(layout.total_segment_slots):
+        base = layout.segment_type_position(segment)
+        tokens[base] = int(program.segment_type[segment])
+        for slot in range(6):
+            tokens[base + 1 + slot] = int(program.coordinates[segment, slot])
+    return tokens
+
+
+def test_vectorised_flatten_and_unflatten_match_the_element_loops(pieces: Pieces) -> None:
+    from mojidiff.learning.render2svg import compose_program
+
+    layout, programs = pieces
+    rng = np.random.default_rng(8)
+    composed = [compose_program(programs, layout, rng) for _ in range(4)]
+    candidates = list(programs) + [c for c in composed if c is not None]
+    for program in candidates:
+        tokens = flatten_program(program, layout)
+        assert tokens.dtype == torch.long
+        assert torch.equal(tokens, _flatten_reference(program, layout))
+        back = unflatten_program(tokens, programs[0], layout)
+        for name in program.__dataclass_fields__:
+            assert np.array_equal(getattr(back, name), getattr(program, name))
+            assert getattr(back, name).dtype == getattr(programs[0], name).dtype
+    noise = torch.from_numpy(rng.integers(0, 400, size=layout.length))
+    assert torch.equal(
+        _flatten_reference(unflatten_program(noise, programs[0], layout), layout), noise
+    )
+
+
+def test_direct_surface_render_matches_the_png_path(pieces: Pieces) -> None:
+    import io
+
+    import cairosvg
+    from PIL import Image
+
+    from mojidiff.learning.render2svg import _composite_on_white, compose_program
+
+    layout, programs = pieces
+    rng = np.random.default_rng(5)
+    config = TrainConfig(augment_colour=1.0)
+    candidates = list(programs)
+    for program in programs:
+        variant = augment_program_tokens(flatten_program(program, layout), layout, rng, config)
+        candidates.append(unflatten_program(variant, programs[0], layout))
+    composed = [compose_program(programs, layout, rng) for _ in range(3)]
+    candidates += [c for c in composed if c is not None]
+    for program in candidates:
+        svg = serialize_packed_svg(program, layout.codec, layout.total_segment_slots)
+        for size in (32, 144):
+            png = cairosvg.svg2png(bytestring=svg, output_width=size, output_height=size)
+            with Image.open(io.BytesIO(png)) as image:
+                expected = _composite_on_white(np.asarray(image.convert("RGBA"), dtype=np.uint8))
+            assert np.array_equal(render_trusted_rgb(svg, size), expected)
+
+
+def test_unpack_masks_matches_numpy_and_the_packed_stream(pieces: Pieces) -> None:
+    from mojidiff.learning.render2svg import SplitData, _online_batches, unpack_masks
+
+    layout, programs = pieces
+    shape = (layout.length, layout.vocabulary)
+    rng = np.random.default_rng(2)
+    packed = rng.integers(0, 256, size=(3, shape[0] * shape[1] // 8), dtype=np.uint8)
+    expected = np.unpackbits(packed, axis=1).reshape(3, *shape).astype(bool)
+    assert torch.equal(unpack_masks(torch.from_numpy(packed), shape), torch.from_numpy(expected))
+
+    rows = [flatten_program(p, layout) for p in programs]
+    train = SplitData(
+        hexcodes=["a", "b", "c"],
+        tokens=torch.stack(rows),
+        masks=np.stack([_masks(r, layout) for r in rows]),
+        images=torch.from_numpy(_renders(programs, layout)),
+        targets=torch.zeros((3, 72, 72, 3), dtype=torch.uint8),
+        shape=shape,
+    )
+    config = TrainConfig(batch_size=4, loader_workers=0, compose_probability=0.5, augment_seed=3)
+    plain = next(_online_batches(train, layout, programs[0], 32, config))
+    bits = next(_online_batches(train, layout, programs[0], 32, config, packed_masks=True))
+    assert plain[2].dtype == torch.bool and bits[2].dtype == torch.uint8
+    assert torch.equal(unpack_masks(bits[2], shape), plain[2])
+    assert all(torch.equal(a, b) for a, b in zip(plain[:2], bits[:2], strict=True))

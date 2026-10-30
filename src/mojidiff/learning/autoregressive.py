@@ -190,22 +190,46 @@ def teacher_forcing_inputs(tokens: Tensor, layout: SequenceLayout) -> tuple[Tens
     )
 
 
+@dataclass(frozen=True)
+class _TokenPositions:
+    fields: dict[str, np.ndarray]  # (max_paths,) per path field
+    start: np.ndarray  # (max_paths, 2)
+    segment_type: np.ndarray  # (slots,)
+    coordinates: np.ndarray  # (slots, 6)
+
+
+_POSITIONS: dict[tuple[int, int], _TokenPositions] = {}
+
+
+def _token_positions(layout: SequenceLayout) -> _TokenPositions:
+    """Where each program field lives in the token sequence, as index arrays."""
+
+    key = (layout.codec.max_paths, layout.total_segment_slots)
+    if key not in _POSITIONS:
+        bases = np.arange(layout.codec.max_paths) * PATH_STRIDE
+        segments = np.array(
+            [layout.segment_type_position(s) for s in range(layout.total_segment_slots)]
+        )
+        _POSITIONS[key] = _TokenPositions(
+            fields={name: bases + offset for offset, name in enumerate(PATH_FIELDS)},
+            start=bases[:, None] + len(PATH_FIELDS) + np.arange(2)[None],
+            segment_type=segments,
+            coordinates=segments[:, None] + 1 + np.arange(6)[None],
+        )
+    return _POSITIONS[key]
+
+
 def flatten_program(program: PackedTensorProgram, layout: SequenceLayout) -> Tensor:
     """Pack a program into its token sequence, padding included."""
 
-    tokens = torch.zeros(layout.length, dtype=torch.long)
-    for path in range(layout.codec.max_paths):
-        base = path * PATH_STRIDE
-        for offset, name in enumerate(PATH_FIELDS):
-            tokens[base + offset] = int(getattr(program, name)[path])
-        tokens[base + len(PATH_FIELDS)] = int(program.start[path, 0])
-        tokens[base + len(PATH_FIELDS) + 1] = int(program.start[path, 1])
-    for segment in range(layout.total_segment_slots):
-        base = layout.segment_type_position(segment)
-        tokens[base] = int(program.segment_type[segment])
-        for slot in range(6):
-            tokens[base + 1 + slot] = int(program.coordinates[segment, slot])
-    return tokens
+    positions = _token_positions(layout)
+    tokens = np.zeros(layout.length, dtype=np.int64)
+    for name, where in positions.fields.items():
+        tokens[where] = getattr(program, name)
+    tokens[positions.start] = program.start
+    tokens[positions.segment_type] = program.segment_type
+    tokens[positions.coordinates] = program.coordinates
+    return torch.from_numpy(tokens)
 
 
 def unflatten_program(
@@ -215,18 +239,14 @@ def unflatten_program(
 
     import copy
 
+    values = tokens.detach().cpu().numpy()
+    positions = _token_positions(layout)
     result = copy.deepcopy(template)
-    for path in range(layout.codec.max_paths):
-        base = path * PATH_STRIDE
-        for offset, name in enumerate(PATH_FIELDS):
-            getattr(result, name)[path] = int(tokens[base + offset])
-        result.start[path, 0] = int(tokens[base + len(PATH_FIELDS)])
-        result.start[path, 1] = int(tokens[base + len(PATH_FIELDS) + 1])
-    for segment in range(layout.total_segment_slots):
-        base = layout.segment_type_position(segment)
-        result.segment_type[segment] = int(tokens[base])
-        for slot in range(6):
-            result.coordinates[segment, slot] = int(tokens[base + 1 + slot])
+    for name, where in positions.fields.items():
+        getattr(result, name)[:] = values[where]
+    result.start[:] = values[positions.start]
+    result.segment_type[:] = values[positions.segment_type]
+    result.coordinates[:] = values[positions.coordinates]
     return result
 
 

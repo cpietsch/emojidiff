@@ -764,6 +764,10 @@ def decode_program(program: TensorProgram, config: CodecConfig) -> FloatProgram:
     """Decode validated categorical arrays to quantized float contours."""
 
     validate_tensor_program(program, config)
+    return _decode_validated(program, config)
+
+
+def _decode_validated(program: TensorProgram, config: CodecConfig) -> FloatProgram:
     contours: list[FloatContour] = []
     for path_index in range(config.max_paths):
         length = int(program.path_length[path_index])
@@ -853,6 +857,14 @@ def serialize_svg(program: TensorProgram, config: CodecConfig) -> bytes:
     """Serialize only fixed safe SVG syntax from a validated tensor program."""
 
     decoded = decode_program(program, config)
+    return serialize_float_svg(decoded, max_serialized_bytes=config.max_serialized_bytes)
+
+
+def serialize_validated_svg(program: TensorProgram, config: CodecConfig) -> bytes:
+    """`serialize_svg` for a program the caller has just validated (as
+    `packed.unpack_tensor_program` does), without validating it a second time."""
+
+    decoded = _decode_validated(program, config)
     return serialize_float_svg(decoded, max_serialized_bytes=config.max_serialized_bytes)
 
 
