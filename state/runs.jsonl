@@ -414,3 +414,11 @@
 {"config":"configs/render2svg/cur-d025-s120k-seed4.yaml","run_id":"r2s-cur-d025-s120k-seed4-8775698-9fdb5d80-47646604","slug":"r2s-cur-d025-s120k-seed4","state":"running","timestamp":"2026-10-30T20:58:03Z"}
 {"result_file":"runs/r2s-cur-d02-s120k-seed5-8775698-56d253da-47646604/result.md","run_id":"r2s-cur-d02-s120k-seed5-8775698-56d253da-47646604","state":"completed","timestamp":"2026-10-30T22:27:14Z"}
 {"result_file":"runs/r2s-cur-d025-s120k-seed4-8775698-9fdb5d80-47646604/result.md","run_id":"r2s-cur-d025-s120k-seed4-8775698-9fdb5d80-47646604","state":"completed","timestamp":"2026-10-30T22:27:16Z"}
+{"config":"configs/render2svg/cur-d02-seed4.yaml","run_id":"r2s-cur-d02-seed4-87fc607-b4c3c2ac-47646604","slug":"r2s-cur-d02-seed4","state":"running","timestamp":"2026-10-30T20:55:46Z"}
+{"config":"configs/render2svg/cur-d025-s120k-seed2.yaml","run_id":"r2s-cur-d025-s120k-seed2-87fc607-549e77ec-47646604","slug":"r2s-cur-d025-s120k-seed2","state":"running","timestamp":"2026-10-30T20:55:46Z"}
+{"config":"configs/render2svg/cur-seed4.yaml","run_id":"r2s-cur-seed4-87fc607-1cb7996b-47646604","slug":"r2s-cur-seed4","state":"running","timestamp":"2026-10-30T20:55:46Z"}
+{"config":"configs/render2svg/cur-d025-s120k-seed3.yaml","run_id":"r2s-cur-d025-s120k-seed3-87fc607-021db357-47646604","slug":"r2s-cur-d025-s120k-seed3","state":"running","timestamp":"2026-10-30T20:55:46Z"}
+{"result_file":"runs/r2s-cur-d02-seed4-87fc607-b4c3c2ac-47646604/result.md","run_id":"r2s-cur-d02-seed4-87fc607-b4c3c2ac-47646604","state":"completed","timestamp":"2026-10-30T21:43:06Z"}
+{"result_file":"runs/r2s-cur-seed4-87fc607-1cb7996b-47646604/result.md","run_id":"r2s-cur-seed4-87fc607-1cb7996b-47646604","state":"completed","timestamp":"2026-10-30T21:47:12Z"}
+{"result_file":"runs/r2s-cur-d025-s120k-seed3-87fc607-021db357-47646604/result.md","run_id":"r2s-cur-d025-s120k-seed3-87fc607-021db357-47646604","state":"completed","timestamp":"2026-10-30T22:32:19Z"}
+{"result_file":"runs/r2s-cur-d025-s120k-seed2-87fc607-549e77ec-47646604/result.md","run_id":"r2s-cur-d025-s120k-seed2-87fc607-549e77ec-47646604","state":"completed","timestamp":"2026-10-30T22:33:14Z"}

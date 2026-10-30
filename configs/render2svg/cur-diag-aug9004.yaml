@@ -1,0 +1,29 @@
+# Curiosity wave 5b (B300, loader of d54e21d), one change from r2s-full-v9-colour: augmentation seed 9001 -> 9004 (seed 4's data stream), training seed unchanged (7001).
+# Seed 4 (seed 7004 / augment_seed 9004) is bad in all four configurations it ran in: v9 0.0861,
+# dropout 0.2 at 60k 0.0816, at 120k 0.0746, dropout 0.25 at 120k 0.0740 (seeds 1-3 near
+# 0.065-0.073). The two diagnostic arms separate the initialisation from the augmentation stream.
+schema_version: 1
+slug: r2s-cur-diag-aug9004
+parent_run: r2s-full-v9-colour
+hypothesis: >-
+  Diagnostic, not a candidate: if seed 4's augmentation stream is what makes its runs bad, this v9 run scores near seed 4's 0.0861 rather than v9's 0.072; it is reported, not passed.
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+model: {image_size: 144, d_model: 256, heads: 8, encoder_layers: 2, decoder_layers: 6, feedforward: 1024, dropout: 0.1, metric: true, fourier: 10, order: path}
+training:
+  steps: 60000
+  batch_size: 32
+  augment_seed: 9004
+  learning_rate: 0.0005
+  warmup_steps: 1000
+  eval_every: 2000
+  eval_icons: 64
+  augment_online: true
+  augment_original: 0.1
+  loader_workers: 16
+  compose_probability: 0.5
+  compose_parts: 4
+  augment_mirror: 0.5
+  augment_max_shift: 48
+  augment_colour: 0.1
+final_eval_icons: 339
+clip_icons: 32
