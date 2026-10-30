@@ -1,0 +1,70 @@
+{
+  "run_id": "r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604",
+  "split": "primary/validation",
+  "icons": 339,
+  "precision": "float32",
+  "selected_step": 120000,
+  "model_parameters": 9025826,
+  "model_pixel_error": [
+    0.06530125831530315,
+    0.060499217624750544,
+    0.0702152509611046
+  ],
+  "model_pixel_error_median": 0.05956260487437248,
+  "nearest_training_icon_pixel_error": [
+    0.08973124639576185,
+    0.0848205749792233,
+    0.09466393787711656
+  ],
+  "model_minus_baseline_error_reduction": [
+    0.024429988080458712,
+    0.020303297093312845,
+    0.028374162543644416
+  ],
+  "icons_model_beats_baseline": 259,
+  "exact_program_rate": 0.05014749262536873,
+  "rendered_rate": 1.0,
+  "batched_decode_seconds": 44.19715339993127,
+  "rerank": null,
+  "clip_retrieval": {
+    "model_greedy": {
+      "top1_rate": 0.71875,
+      "top5_rate": 0.96875,
+      "mean_rank": 2.21875,
+      "clip_to_reference_mean": 0.9295105747878551,
+      "chance_top1": 0.03125,
+      "icons": 32
+    },
+    "nearest_training_icon": {
+      "top1_rate": 0.34375,
+      "top5_rate": 0.59375,
+      "mean_rank": 7.40625,
+      "clip_to_reference_mean": 0.8630629815161228,
+      "chance_top1": 0.03125,
+      "icons": 32
+    },
+    "gate_n_omnisvg_zero_shot_top1": 0.609375
+  },
+  "checkpoint": {
+    "file": "latest.pt",
+    "step": 120000
+  },
+  "resource": {
+    "device": "NVIDIA GeForce RTX 4080",
+    "torch_version": "2.14.0a0+4fdf77b940.nv26.08",
+    "cuda_version": "13.4",
+    "python_version": "3.12.3",
+    "peak_vram_gib": 2.3705434799194336,
+    "train_seconds": null,
+    "inference_ms_per_icon": 1085.9091774909757,
+    "inference_p95_ms_per_icon": 1089.6383110666648,
+    "icons_per_second": 0.9208873271616772,
+    "train_seconds_null_reason": "evaluation of a trained checkpoint",
+    "decoder": "fast_decode.GraphDecoder, float32, batch 1",
+    "graph_matches_batched_programs": "7 of 8",
+    "decoder_calls_first_icon": 755,
+    "batched_ms_per_icon": 100.94686143747822,
+    "batched_icons_per_call": 64,
+    "excludes": "rasterising the output SVG"
+  }
+}
