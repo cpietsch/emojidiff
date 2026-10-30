@@ -1,0 +1,51 @@
+{
+  "run_id": "r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604",
+  "split": "primary/test",
+  "icons": 339,
+  "precision": "float32",
+  "selected_step": 64000,
+  "model_parameters": 9025826,
+  "model_pixel_error": [
+    0.0616705987372625,
+    0.056693323005802196,
+    0.06668998413320008
+  ],
+  "model_pixel_error_median": 0.05311087891459465,
+  "nearest_training_icon_pixel_error": [
+    0.08685627185250563,
+    0.081932680372873,
+    0.09165201794647489
+  ],
+  "model_minus_baseline_error_reduction": [
+    0.025185673115243137,
+    0.020759165665266473,
+    0.02960158930045777
+  ],
+  "icons_model_beats_baseline": 272,
+  "exact_program_rate": 0.04424778761061947,
+  "rendered_rate": 1.0,
+  "batched_decode_seconds": 45.451697379001416,
+  "rerank": null,
+  "checkpoint": {
+    "file": "best.pt",
+    "step": 64000
+  },
+  "resource": {
+    "device": "NVIDIA GeForce RTX 4080",
+    "torch_version": "2.14.0a0+4fdf77b940.nv26.08",
+    "cuda_version": "13.4",
+    "python_version": "3.12.3",
+    "peak_vram_gib": 2.2098145484924316,
+    "train_seconds": null,
+    "inference_ms_per_icon": 158.286050951574,
+    "inference_p95_ms_per_icon": 158.6599360452965,
+    "icons_per_second": 6.317676093302371,
+    "train_seconds_null_reason": "evaluation of a trained checkpoint",
+    "decoder": "fast_decode.GraphDecoder, float32, batch 1",
+    "graph_matches_batched_programs": "7 of 8",
+    "decoder_calls_first_icon": 97,
+    "batched_ms_per_icon": 112.85664159549924,
+    "batched_icons_per_call": 64,
+    "excludes": "rasterising the output SVG"
+  }
+}

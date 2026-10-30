@@ -1,0 +1,12 @@
+{
+  "run_id": "r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604",
+  "decoder": "fast_decode.rerank, float32, 8 candidates, rendering included",
+  "icons": 16,
+  "median_ms_per_icon": 1022.3967895144597,
+  "p90_ms_per_icon": 1708.1608420121484,
+  "median_decoder_calls": 432.0,
+  "ms_per_decoder_call": 2.2975617874297,
+  "gpu_processes_during_measurement": 1,
+  "device": "NVIDIA GeForce RTX 4080",
+  "excludes": "rasterising the output SVG"
+}
