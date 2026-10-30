@@ -30,12 +30,16 @@ cd "$R" || exit 1
 registry_lines=$(wc -l < state/runs.jsonl)
 nvidia-smi --query-gpu=index,name,memory.total --format=csv,noheader
 
+# The i-th run gets the i-th GPU Slurm allocated (its own numbering, which is not 0..N-1
+# for a partial node unless devices are constrained).
+IFS=, read -ra GPUS <<< "${CUDA_VISIBLE_DEVICES:-0,1,2,3,4,5,6,7}"
+echo "allocated GPUs: ${GPUS[*]}"
 i=0
 pids=()
 names=()
 for config in $ARMS; do
     name=$(basename "$config" .yaml)
-    CUDA_VISIBLE_DEVICES=$i TRITON_CACHE_DIR=/tmp/tri-$SLURM_JOB_ID-$i \
+    CUDA_VISIBLE_DEVICES=${GPUS[$i]} TRITON_CACHE_DIR=/tmp/tri-$SLURM_JOB_ID-$i \
         TORCHINDUCTOR_CACHE_DIR=/tmp/ind-$SLURM_JOB_ID-$i XDG_CACHE_HOME=/tmp/xdg-$SLURM_JOB_ID-$i \
         "$R/.venv/bin/python" -m mojidiff.learning.render2svg --config "$config" \
         > "$OUT/$name.log" 2>&1 &
