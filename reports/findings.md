@@ -4253,4 +4253,4 @@ from here on are measured over a representative sample. Each decoder call also r
 and value cache whatever the prefix length (`fast_decode.py`), a speed lever for the server and the browser.
 
 Source: a read-only investigation with an independent check of each claim
-(summarised here; the investigation scripts were session scratch and are not kept).
+(report in `/home/dev/.cache/mojidiff/next24-2026-10-30/understand.json`).
