@@ -1,0 +1,256 @@
+schema_version: 2
+run_id: vt-v3-d02-s5-d05a169-0112d238-47646604
+state: completed
+planned_at: '2026-10-30T23:25:38Z'
+hypothesis: 'A variational transcriber - the new final transcriber whose 18 x 18 stem grid
+  passes through a per-cell Gaussian latent (c = 16 channels, chosen by the pre-flight) held
+  at a KL budget of C = 2,000 nats per icon - reconstructs held-out icons from its posterior
+  mean close to its parent while its latent is smooth at the posterior scale. Pass, on the
+  first 339 validation icons, IEEE float32 (TF32 off) greedy decoding, 72 px pixel error,
+  bootstrap intervals, all comparisons paired, requires A1 and A3; A2 is a collapse check.
+  (A1) reconstruction from mu is non-inferior to the parent re-decoded in float32 on the same
+  icons - the upper 95% bound of (VT - parent) is at most +0.015 - and beats the nearest training
+  render or its mirror, the 95% interval on the reduction excluding zero. (A2) held-out KL
+  within [0.8C, 1.2C] with beta above its floor. (A3) decoding one posterior sample instead
+  of mu costs at most 0.010 pixel error, paired mean. Note: the parent was chosen as the best
+  of four seeds on these validation icons, so its score is optimistic and non-inferiority
+  is the harder half. Decision for the line (three seeds): at least two runs pass A1 and A3
+  - fit the flow prior; otherwise stop.'
+parent_run: r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604
+git_commit: d05a169267a244348bec4e22d200735adb0092b5
+dirty_patch_sha256: ''
+config_sha256: 0112d2383b85469f98006b917f0f4346a6e3fac989af0b647ec730385cd9d9cd
+uncommitted_sources: []
+config: configs/latent/vt-v3-d02-s5.yaml
+config_resolved:
+  model:
+    image_size: 144
+    d_model: 256
+    heads: 8
+    encoder_layers: 2
+    decoder_layers: 6
+    feedforward: 1024
+    dropout: 0.2
+    metric: true
+    fourier: 10
+    order: path
+    sources: 0
+  canvas:
+    channels: 16
+    budget_nats: 2000
+    beta_initial: 0.0001
+    beta_min: 0.0001
+    beta_max: 1.0
+    beta_rate: 0.01
+    kl_ema_decay: 0.9
+    band_low: 0.8
+    band_high: 1.2
+    log_variance_bias: -6.0
+    pca_icons: null
+  training:
+    steps: 30000
+    batch_size: 32
+    learning_rate: 0.0003
+    weight_decay: 0.01
+    warmup_steps: 500
+    seed: 7005
+    eval_every: 2000
+    eval_icons: 64
+    train_icons: null
+    evaluate_on_train: false
+    augment_variants: 0
+    augment_seed: 9005
+    augment_mirror: 0.5
+    augment_max_shift: 48
+    augment_colour: 0.1
+    augment_online: true
+    compose_probability: 0.5
+    compose_parts: 4
+    augment_original: 0.1
+    loader_workers: 16
+    extra_training: []
+    bf16: true
+  eval_icons: 339
+  prior_samples: 64
+  interpolation_pairs: 8
+  interpolation_frames: 9
+  non_inferiority_margin: 0.015
+  sample_cost_margin: 0.01
+initialisation:
+  parent_checkpoint: /home/eai-jdkxz/eai-team11/mojidiff/cache/runs/r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604/best.pt
+  parent_checkpoint_sha256: 38daeca4dd27fb4c6ad337891cc976b26f7e60e2dc1285fb2a9ad78940159c50
+  parent_step: 64000
+  pca_icons: 2681
+  pca_cells: 868644
+  pca_explained_variance:
+    '4': 0.3929850127433201
+    '8': 0.519129026163516
+    '16': 0.6671638008956701
+    '32': 0.8159108283748467
+  log_variance_bias: -6.0
+  pca_precision: IEEE float32 features (TF32 off), float64 moments
+  preflight:
+    report: reports/latent/vt-v3-d02-preflight.json
+    report_sha256: 92ca25fe9135087a67fce02bde725b4acdb27eaa942cbc13e12abe59973ff39b
+    chosen_channels: 16
+    rule_outcome: 'rank-8 error 0.1230 > 0.12, rank-16 0.0951 <= it: c = 16'
+    fallback: null
+    rank_errors:
+      rank_8: 0.12304223270621151
+      rank_16: 0.09505583022837527
+dataset:
+  pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+  cache_sha256: 476466042da98d72c2bf2774cecc18f08d50a362eefbecae97904bde7a04ef0e
+  train_icons: 2681
+  evaluated_on: primary/validation
+seed: 7005
+determinism: seeded; cuDNN and SDPA kernels not forced deterministic
+model_parameters: 9038402
+command: .venv/bin/python -m mojidiff.learning.pixel_latent --config configs/latent/vt-v3-d02-s5.yaml
+outputs:
+  run_dir: runs/vt-v3-d02-s5-d05a169-0112d238-47646604
+  checkpoints: /home/eai-jdkxz/eai-team11/mojidiff/cache/runs/vt-v3-d02-s5-d05a169-0112d238-47646604
+notes: ''
+completed_at: '2026-10-30T23:54:33Z'
+resource:
+  device: NVIDIA B300 SXM6 AC
+  torch_version: 2.14.1+cu130
+  cuda_version: '13.0'
+  python_version: 3.12.3
+  peak_vram_gib: 4.3444905281066895
+  train_seconds: 1480.8436384900124
+  inference_ms_per_icon: 800.0676369993016
+  inference_p95_ms_per_icon: 800.3873690031469
+  icons_per_second: 1.2498943261229212
+  decoder: fast_decode.GraphDecoder, IEEE float32 (TF32 off), batch 1, from a uint8 render
+    (mu path)
+  decoder_calls: 572
+  excludes: rasterising the output SVG
+  note: measured while other GPU work may be running
+baselines:
+  parent_v9_float32_pixel_error: 0.06424614373597162
+  nearest_training_icon_pixel_error: 0.0848698990662597
+  nearest_training_icon_pixel_error_without_mirrors: 0.08973124639576185
+  prior_mean_decode_pixel_error: 0.2354452319684985
+  blank_canvas_pixel_error: 0.1720480552069557
+  note: v9 re-decoded here in IEEE float32 on the same icons; the nearest training icon searches
+    training renders and their mirrors; all comparisons paired
+result:
+  icons: 339
+  precision: 'IEEE float32 greedy decoding (TF32 off: matmul and cuDNN); pixel metrics at
+    72 px'
+  reconstruction_pixel_error:
+  - 0.07575973276678022
+  - 0.07077082756125366
+  - 0.08105388054416052
+  reconstruction_pixel_error_median: 0.07329893857240677
+  posterior_sample_pixel_error:
+  - 0.07789566288421454
+  - 0.07256331480029261
+  - 0.08348355747000925
+  parent_pixel_error:
+  - 0.06424614373597162
+  - 0.05945421143144472
+  - 0.06923222867580506
+  nearest_training_icon_pixel_error:
+  - 0.0848698990662597
+  - 0.079514402055019
+  - 0.09023761259991783
+  nearest_training_icon_pixel_error_without_mirrors:
+  - 0.08973124639576185
+  - 0.0848205749792233
+  - 0.09466393787711656
+  prior_mean_decode_pixel_error:
+  - 0.2354452319684985
+  - 0.2293349209865198
+  - 0.24178596105932046
+  latent_minus_prior_mean_error_reduction:
+  - 0.1596854992017183
+  - 0.15297451310575888
+  - 0.1667266118922185
+  blank_pixel_error: 0.1720480552069557
+  icons_vt_beats_nearest: 217
+  icons_vt_beats_v9: 112
+  exact_reconstruction_rate: 0.02654867256637168
+  rendered_rate: 1.0
+  held_out_kl_nats:
+  - 1804.7137267526273
+  - 1756.1988997557874
+  - 1854.1863909471
+  held_out_kl_nats_per_dimension: 0.34813150593221975
+  prior_samples:
+    count: 64
+    distinct: 64
+    rendered: 64
+    ink_coverage_median: 0.17158564814814814
+    fragment_rate_ink_below_0.10: 0.140625
+    near_blank_rate_ink_below_0.02: 0.015625
+    validation_fragment_rate_ink_below_0.10: 0.02064896755162242
+    role: N(0, I) prior-hole control, not a generator claim
+  interpolation:
+    pairs:
+    - - 286
+      - 250
+    - - 54
+      - 155
+    - - 124
+      - 257
+    - - 154
+      - 72
+    - - 309
+      - 145
+    - - 206
+      - 30
+    - - 16
+      - 5
+    - - 85
+      - 124
+    frames: 9
+  graph_decoder_agrees_with_greedy:
+    render: true
+    prior_latent: true
+  criteria:
+    A1:
+      claim: reconstruction from mu is non-inferior to v9 (upper 95% bound of VT - v9 <= +0.015)
+        and beats the nearest training render or its mirror (paired interval on the reduction
+        above zero)
+      vt_minus_v9:
+      - 0.011513589030808598
+      - 0.007833306357924999
+      - 0.015182670555956674
+      reduction_vs_nearest_training_icon:
+      - 0.009110166299479477
+      - 0.004587034461254109
+      - 0.013410807521551042
+      pass: false
+    A2:
+      claim: held-out KL within [1600, 2400] nats with beta above its floor (detects collapse
+        only; the controller enforces the band)
+      held_out_kl_nats:
+      - 1804.7137267526273
+      - 1756.1988997557874
+      - 1854.1863909471
+      beta_at_floor: false
+      pass: true
+    A3:
+      claim: decoding one posterior sample instead of mu costs at most 0.01 pixel error (paired
+        mean)
+      sample_minus_mu:
+      - 0.0021359301174343165
+      - -0.0011457482251622574
+      - 0.005404774795618519
+      pass: true
+  float32_flags:
+    matmul_allow_tf32: false
+    cudnn_allow_tf32: false
+    float32_matmul_precision: highest
+    tf32_cublas_override_variable: null
+  selection:
+    rule: lowest 64-icon bf16 greedy pixel error among evaluations with held-out KL in [1600,
+      2400] nats; else lowest overall
+    fallback_no_eval_in_band: false
+    step: 30000
+    eval_pixel_error_mean: 0.08137723771505989
+    held_out_kl_nats: 1786.158447265625
+    beta: 0.00650529830378629
+  selected_step: 30000

@@ -434,3 +434,9 @@
 {"config":"configs/render2svg/cur-diag-aug9004.yaml","run_id":"r2s-cur-diag-aug9004-3d24194-afac26b4-47646604","slug":"r2s-cur-diag-aug9004","state":"running","timestamp":"2026-10-30T22:36:58Z"}
 {"result_file":"runs/r2s-cur-diag-init7004-3d24194-505ccea1-47646604/result.md","run_id":"r2s-cur-diag-init7004-3d24194-505ccea1-47646604","state":"completed","timestamp":"2026-10-30T23:28:00Z"}
 {"result_file":"runs/r2s-cur-diag-aug9004-3d24194-afac26b4-47646604/result.md","run_id":"r2s-cur-diag-aug9004-3d24194-afac26b4-47646604","state":"completed","timestamp":"2026-10-30T23:28:01Z"}
+{"config":"configs/latent/vt-v3-d02.yaml","run_id":"vt-v3-d02-d05a169-ec3c4d8e-47646604","slug":"vt-v3-d02","state":"running","timestamp":"2026-10-30T23:25:38Z"}
+{"config":"configs/latent/vt-v3-d02-s3.yaml","run_id":"vt-v3-d02-s3-d05a169-0f827702-47646604","slug":"vt-v3-d02-s3","state":"running","timestamp":"2026-10-30T23:25:38Z"}
+{"config":"configs/latent/vt-v3-d02-s5.yaml","run_id":"vt-v3-d02-s5-d05a169-0112d238-47646604","slug":"vt-v3-d02-s5","state":"running","timestamp":"2026-10-30T23:25:38Z"}
+{"result_file":"runs/vt-v3-d02-s5-d05a169-0112d238-47646604/result.md","run_id":"vt-v3-d02-s5-d05a169-0112d238-47646604","state":"completed","timestamp":"2026-10-30T23:54:33Z"}
+{"result_file":"runs/vt-v3-d02-s3-d05a169-0f827702-47646604/result.md","run_id":"vt-v3-d02-s3-d05a169-0f827702-47646604","state":"completed","timestamp":"2026-10-30T23:55:05Z"}
+{"result_file":"runs/vt-v3-d02-d05a169-ec3c4d8e-47646604/result.md","run_id":"vt-v3-d02-d05a169-ec3c4d8e-47646604","state":"completed","timestamp":"2026-10-30T23:55:13Z"}
