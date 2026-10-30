@@ -4134,7 +4134,7 @@ in wave 1.
 (4%), smaller than one pair resolves on 339 icons, larger than the seed spread. The dose is
 narrow: 0.3 costs 0.009, and weight decay on top of dropout costs 0.005.
 
-**With dropout, length pays.** At 120k steps dropout 0.2 reaches 0.0654: the first arm since v7
+**With dropout, length pays.** At 120k steps dropout 0.2 reaches 0.0654: the first arm of the MUSICA and Curiosity sweeps
 whose interval against every reference excludes zero, and ahead of its own 60k version. Its
 64-icon evaluation was still falling at 60k (0.073) and peaked at 72k (0.062). Without dropout,
 120k and 240k steps gave nothing on MUSICA (0.0727, 0.0712): the extra steps went into fitting
