@@ -140,15 +140,43 @@ Two code facts matter for that later stage:
 | # | lever | gain | effort | changes results? | status |
 | --- | --- | --- | --- | --- | --- |
 | 1 | `OMP_NUM_THREADS=8` per run | +25% steps/s (measured) | minutes | no | in wave 2 |
-| 2 | `.view(torch.bool)` instead of `.bool()` | about 2.7 ms less main CPU per step | minutes | no (identical tensor) | proposed |
-| 3 | packed masks unpacked on the GPU | 16 MB less copied per step | hours | no (bit-exact) | proposed |
-| 4 | fast loader: one validation, numpy index tables, no PNG round trip | 2.5x per worker; runs up to about 18 steps/s (about 1.4-1.8x) | about a day with tests | no (byte-identical on 12,000 items) | prototype |
+| 2 | `.view(torch.bool)` instead of `.bool()` | about 2.7 ms less main CPU per step | minutes | no (identical tensor) | done, d54e21d |
+| 3 | packed masks unpacked on the GPU | 16 MB less copied per step | hours | no (bit-exact) | done, d54e21d |
+| 4 | fast loader: one validation, numpy index tables, no PNG round trip | 2.3x per worker (measured); runs up to about 18 steps/s | about a day with tests | no (byte-identical, below) | done, d54e21d (token augmentation still in torch) |
 | 5 | one loader feeding several models with the same stream | CPU cut by streams/runs (wave 2: 3/8) | about a day | no per model | proposed |
 | 6 | evaluation in a separate process; GraphDecoder; one persistent render worker instead of a subprocess per icon | 10-16% of wall on H100-class hosts | one day | yes: new baseline (RNG, selection) | proposed |
 | 7 | skip the latency measurement on the cluster (null with reason; measure on the 4080) | 1-2% of wall | minutes | no | proposed |
 | 8 | `torch.compile` of model and loss | 1.37x on a GPU-bound 4080; on B300 only after 4-5 | hours | numerics within run-to-run spread | after 4-5 |
 | 9 | whole-step CUDA graph (needs a masked-mean loss) | up to 1.3x per run once not CPU-bound | one day | not bit-identical (sum order) | after 4-5 |
 | 10 | several runs per GPU (time slicing or user-started CUDA MPS) | only with spare CPU; literature: MPS up to 1.8x over naive sharing on A100 | hours | no | after 4-5 |
+
+### Implemented: levers 2-4 (commit d54e21d)
+
+- `serialize_packed_svg` validates once: `unpack_tensor_program` already validates the dense
+  program it serializes, so `decode_program`'s second pass is skipped, and the stream no
+  longer validates separately before serializing.
+- `flatten_program` and `unflatten_program` use index arrays instead of element loops.
+- `render_trusted_rgb` reads cairo's ARGB32 surface and un-premultiplies it exactly as cairo's
+  PNG writer does, instead of encoding and decoding a PNG.
+- Training batches carry packed masks, unpacked on the GPU; host expansion uses
+  `.view(torch.bool)`.
+
+Verification. The streams of d54e21d and of 508979a (the code waves 1 and 2 ran), side by
+side on the real corpus, agree on every item: render, tokens, packed masks, path order and
+set label.
+
+| stream | items | identical | old items/s | new items/s | speed-up |
+| --- | --- | --- | --- | --- | --- |
+| v9 mix, worker 0 | 3,000 | 3,000 | 62.7 | 142.1 | 2.27x |
+| v9 mix, worker 7 | 1,500 | 1,500 | 61.7 | 141.0 | 2.29x |
+| compositions only | 1,500 | 1,500 | 50.5 | 122.2 | 2.42x |
+| labelled Twemoji (shared hyperthread) | 1,500 | 1,500 | 45.6 | 79.7 | 1.75x |
+
+The corpus cache rebuilt with the new code (its key hashes `autoregressive.py`, so it moved to
+35a6ce034e7e) has the same sha256 as before (dataset 47646604): every icon of every split,
+plain and mirrored, renders, flattens and masks to the same bytes. Unit tests pin
+flatten/unflatten against the element loops, the surface render against the PNG path,
+`unpack_masks` against `np.unpackbits`, and one validation per serialization.
 
 How 4 stays exact: the stream depends only on the augmentation seed, the worker count (one
 generator per worker, batches dealt round-robin), batch size, compose settings and training
