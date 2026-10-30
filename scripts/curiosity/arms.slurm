@@ -9,12 +9,16 @@
 #SBATCH --mem=800G
 #SBATCH --time=06:00:00
 #SBATCH --output=/home/eai-jdkxz/eai-team11/mojidiff/logs/%x-%j.out
-# One render-to-SVG run per GPU from one checkout made by setup.sh; when all have ended,
-# the run records, logs and checkpoints go back through the private transfer repo under
-# results/<job id>/, finished by a DONE file the workstation waits for.
+# One run per GPU from one checkout made by setup.sh; when all have ended, the run records,
+# logs, checkpoints and any new files under reports/ go back through the private transfer
+# repo under results/<job id>/, finished by a DONE file the workstation waits for.
 #
 #   sbatch --gres=gpu:N --export=ALL,COMMIT=<short>,ARMS="configs/a.yaml configs/b.yaml" \
 #       scripts/curiosity/arms.slurm
+#
+# MODULE picks the entry point (default mojidiff.learning.render2svg; also
+# mojidiff.learning.pixel_latent, mojidiff.learning.latent_flow) and EXTRA adds arguments to
+# every run, e.g. EXTRA=--preflight.
 set -uo pipefail
 T=$HOME/eai-team11/mojidiff
 R=$T/repo-$COMMIT
@@ -41,8 +45,8 @@ for config in $ARMS; do
     name=$(basename "$config" .yaml)
     CUDA_VISIBLE_DEVICES=${GPUS[$i]} TRITON_CACHE_DIR=/tmp/tri-$SLURM_JOB_ID-$i \
         TORCHINDUCTOR_CACHE_DIR=/tmp/ind-$SLURM_JOB_ID-$i XDG_CACHE_HOME=/tmp/xdg-$SLURM_JOB_ID-$i \
-        "$R/.venv/bin/python" -m mojidiff.learning.render2svg --config "$config" \
-        > "$OUT/$name.log" 2>&1 &
+        "$R/.venv/bin/python" -m "${MODULE:-mojidiff.learning.render2svg}" --config "$config" \
+        ${EXTRA:-} > "$OUT/$name.log" 2>&1 &
     pids+=($!)
     names+=("$name")
     i=$((i + 1))
@@ -73,6 +77,11 @@ print(' '.join(seen))" "$OUT/runs.jsonl"); do
         [ -f "$T/cache/runs/$run_id/$ckpt" ] && ln -f "$T/cache/runs/$run_id/$ckpt" "$OUT/checkpoints/$run_id/"
     done
     echo "$slug $run_id" >> "$OUT/index.txt"
+done
+# Reports a run writes (pre-flight reports, metrics) are untracked files in the checkout.
+git status --porcelain --untracked-files=all -- reports | sed -n 's/^?? //p' | while read -r f; do
+    mkdir -p "$OUT/$(dirname "$f")"
+    cp "$f" "$OUT/$f"
 done
 date -u +%FT%TZ > "$OUT/DONE"
 for attempt in 1 2 3; do
