@@ -46,12 +46,19 @@ the recorded run.
 ## Active jobs
 
 - Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz). One-GPU
-  jobs, job script ~/eai-team11/mojidiff/jobs/arms-8099e35.slurm. Running (end ~00:30):
-  13993/13994/13997 cur-d025-s120k-seed2/3/4, 13998 cur-d02-s120k-seed5 (8775698), 14010-14013
-  cur-d02-s120k-seed6..9 (6b756fb). 13995 cur-d02-seed4 and 13996 cur-seed4 finished; records
-  not yet fetched. Jobs sharing a checkout upload each other's partial run dirs: take each
-  run's record from the job that ran it (the copy with stdout.log). Project folder
-  `~/eai-team11/mojidiff`; no backup there, results come home after every job.
+  jobs; job scripts ~/eai-team11/mojidiff/jobs/arms-<commit>.slurm (MODULE/EXTRA since the
+  vt-v3 commit). Running: 14010-14013 cur-d02-s120k-seed6..9 (seed pool), 14014
+  cur-diag-init7004, 14015 cur-diag-aug9004 (is seed 4's badness its initialisation or its
+  stream?), 14016/14017 cur-d025-s120k-seed5/6. Queued: vt-v3-d02 pre-flight
+  (MODULE=pixel_latent, EXTRA=--preflight); its report comes home under results/<job>/reports/,
+  then the channel rule sets `channels` and three VT seeds run (configs/latent/vt-v3-d02.yaml
+  declares the order and the stage-A rule). Jobs sharing a checkout upload each other's
+  partial run dirs: take each run's record from the job that ran it (the copy with
+  stdout.log); `scratchpad/collect.py` does this.
+- Browser milestone 1: workflow `browser-milestone-1` (agents in their own git worktrees,
+  branches browser-m1-python, browser-m1-js, then browser-m1) builds the in-repo ONNX export
+  with parity tests, the JS grammar and decoder with Node parity tests, and measures the new
+  model in headless Chrome over representative icons. Merge into main after its final review.
 - Hugging Face token: `~/.cache/huggingface/token` here, `~/.config/mojidiff/hf_token` there
   (mode 600). It was pasted into the session; rotate it after the hackathon.
 - Local servers stay stopped; the RTX 4080 runs short evaluations only.
@@ -75,6 +82,6 @@ on WebGPU only, ONNX files under `onnx/` in the checkpoints repo, test-split ico
 
 ## Next smallest evidence-producing action
 
-Read the investigation of the browser, latent and decoding code paths, then fix the 24-hour
-plan: which latent runs go on the cluster after the seed pool (~00:30), and the first browser
-milestone on the new model.
+Pre-flight result -> set vt-v3 channels and hypothesis -> three VT seeds on the cluster. Merge
+the browser milestone when its workflow's final review passes. Score wave 5/5b when they land
+(seed pool, the seed-4 diagnosis, dropout 0.25 at 120k seeds 5-6).
