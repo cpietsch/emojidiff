@@ -55,6 +55,23 @@ Wave 1 itself is a natural experiment: per-run rates rose as arms finished, from
 with 8 runs training to 11.7-11.9 with 6, 14.25 with 2 (dec8) and 12.2-12.3 for compose08
 alone. On MUSICA, 4 runs per H100 node cost about 10% per run against one run alone.
 
+### Full-run rates per wave
+
+Steps per second over whole 60k-120k runs, evaluation included (from `metrics.jsonl`):
+
+| wave | setting | runs | steps/s per run, range | median |
+| --- | --- | --- | --- | --- |
+| 1 | 8 runs on one node, no thread cap | 7 | 9.3-10.4 | 10.2 |
+| 2 | 8 runs on one node, `OMP_NUM_THREADS=8` | 8 | 12.4-14.1 | 12.5 |
+| 3 | one-GPU jobs, 4 per node on two nodes, fast loader (d54e21d) | 4 | 17.8-22.8 | 20.7 |
+| 3b | as wave 3, 120k-step arms | 3 | 20.6-21.9 | 21.1 |
+
+From wave 1 to wave 3 each run trains about twice as fast with the same model and the same
+batches. Wave 3 changed two things at once (the loader, and 4 runs per node instead of 8), so
+this does not split the gain between them; the thread cap alone was worth about 25%. One-GPU
+jobs also free their GPU when a run ends, where wave 2's fixed-list job left seven GPUs idle
+for about 30 minutes waiting for its longest arm.
+
 ## Where the time goes
 
 ### The loader (per sample, CPU)
