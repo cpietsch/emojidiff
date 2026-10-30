@@ -1,0 +1,71 @@
+schema_version: 2
+run_id: r2s-cur-d02-dec8-seed4-9a606d4-26b732e3-47646604
+state: cancelled
+planned_at: '2026-10-30T18:15:02Z'
+hypothesis: Dropout 0.2 with 8 decoder layers (seed 4) transcribes validation renders better
+  than v9. Pass requires the paired 95% bootstrap interval on the per-icon reduction in mean
+  72 px pixel error on the 339 validation renders to exclude zero against each normal v9 run
+  (RTX 4080 original, H100 rerun, B300 seeds 2 and 3) and, for depth arms, a direction consistent
+  across seeds against dropout 0.2 at 6 layers. Its greedy latency on the RTX 4080 is recorded.
+parent_run: r2s-cur-d02-dec8
+git_commit: 9a606d47e8a674cddbe38159cae29eb99fd081b0
+dirty_patch_sha256: ''
+config: configs/render2svg/cur-d02-dec8-seed4.yaml
+config_sha256: 26b732e37301f2b589017526581ffaec549f303b2a9bface44f97dac4a52c87b
+config_resolved:
+  model:
+    image_size: 144
+    d_model: 256
+    heads: 8
+    encoder_layers: 2
+    decoder_layers: 8
+    feedforward: 1024
+    dropout: 0.2
+    metric: true
+    fourier: 10
+    order: path
+    sources: 0
+  training:
+    steps: 60000
+    batch_size: 32
+    learning_rate: 0.0005
+    weight_decay: 0.01
+    warmup_steps: 1000
+    seed: 7004
+    eval_every: 2000
+    eval_icons: 64
+    train_icons: null
+    evaluate_on_train: false
+    augment_variants: 0
+    augment_seed: 9004
+    augment_mirror: 0.5
+    augment_max_shift: 48
+    augment_colour: 0.1
+    augment_online: true
+    compose_probability: 0.5
+    compose_parts: 4
+    augment_original: 0.1
+    loader_workers: 16
+    extra_training: []
+    bf16: true
+  final_eval_icons: 339
+  clip_icons: 32
+dataset:
+  pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+  cache_sha256: 476466042da98d72c2bf2774cecc18f08d50a362eefbecae97904bde7a04ef0e
+  train_icons: 2681
+  augmented_variants: 0
+  extra_training: null
+  augmented_sha256: null
+  evaluated_on: primary/validation
+seed: 7004
+determinism: seeded; cuDNN and SDPA kernels not forced deterministic
+model_parameters: 11132706
+command: .venv/bin/python -m mojidiff.learning.render2svg --config configs/render2svg/cur-d02-dec8-seed4.yaml
+outputs:
+  run_dir: runs/r2s-cur-d02-dec8-seed4-9a606d4-26b732e3-47646604
+  checkpoints: /home/eai-jdkxz/eai-team11/mojidiff/cache/runs/r2s-cur-d02-dec8-seed4-9a606d4-26b732e3-47646604
+notes: ''
+cancelled_at: '2026-10-30T19:14:28Z'
+cancel_reason: cancelled_after_2_min_replaced_by_wave_3b_120k_replications_of_r2s-cur-d02-s120k
+slurm_job: '13975'

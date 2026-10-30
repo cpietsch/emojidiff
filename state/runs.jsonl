@@ -378,3 +378,19 @@
 {"result_file":"runs/r2s-cur-d02-dec8-508979a-0eedf911-47646604/result.md","run_id":"r2s-cur-d02-dec8-508979a-0eedf911-47646604","state":"completed","timestamp":"2026-10-30T17:13:18Z"}
 {"result_file":"runs/r2s-cur-d02-seed2-508979a-8a9c9811-47646604/result.md","run_id":"r2s-cur-d02-seed2-508979a-8a9c9811-47646604","state":"completed","timestamp":"2026-10-30T17:13:30Z"}
 {"result_file":"runs/r2s-cur-d02-s120k-508979a-b67c21df-47646604/result.md","run_id":"r2s-cur-d02-s120k-508979a-b67c21df-47646604","state":"completed","timestamp":"2026-10-30T18:14:23Z"}
+{"config":"configs/render2svg/cur-d02-dec10.yaml","run_id":"r2s-cur-d02-dec10-9a606d4-63f0cc09-47646604","slug":"r2s-cur-d02-dec10","state":"running","timestamp":"2026-10-30T18:15:02Z"}
+{"config":"configs/render2svg/cur-d02-dec8-seed3.yaml","run_id":"r2s-cur-d02-dec8-seed3-9a606d4-25f6173e-47646604","slug":"r2s-cur-d02-dec8-seed3","state":"running","timestamp":"2026-10-30T18:15:02Z"}
+{"config":"configs/render2svg/cur-d015.yaml","run_id":"r2s-cur-d015-9a606d4-eeaea17d-47646604","slug":"r2s-cur-d015","state":"running","timestamp":"2026-10-30T18:15:02Z"}
+{"config":"configs/render2svg/cur-d025-dec8.yaml","run_id":"r2s-cur-d025-dec8-9a606d4-ef2b28d0-47646604","slug":"r2s-cur-d025-dec8","state":"running","timestamp":"2026-10-30T18:15:02Z"}
+{"config":"configs/render2svg/cur-d02-dec8-seed2.yaml","run_id":"r2s-cur-d02-dec8-seed2-9a606d4-a56d5229-47646604","slug":"r2s-cur-d02-dec8-seed2","state":"running","timestamp":"2026-10-30T18:15:02Z"}
+{"config":"configs/render2svg/cur-d025.yaml","run_id":"r2s-cur-d025-9a606d4-30b17847-47646604","slug":"r2s-cur-d025","state":"running","timestamp":"2026-10-30T18:15:02Z"}
+{"config":"configs/render2svg/cur-d02-dec8-seed4.yaml","run_id":"r2s-cur-d02-dec8-seed4-9a606d4-26b732e3-47646604","slug":"r2s-cur-d02-dec8-seed4","state":"running","timestamp":"2026-10-30T18:15:02Z"}
+{"config":"configs/render2svg/cur-d02-compose03.yaml","run_id":"r2s-cur-d02-compose03-9a606d4-ea68092a-47646604","slug":"r2s-cur-d02-compose03","state":"running","timestamp":"2026-10-30T18:15:02Z"}
+{"result_file":"runs/r2s-cur-d025-9a606d4-30b17847-47646604/result.md","run_id":"r2s-cur-d025-9a606d4-30b17847-47646604","state":"completed","timestamp":"2026-10-30T19:01:22Z"}
+{"result_file":"runs/r2s-cur-d015-9a606d4-eeaea17d-47646604/result.md","run_id":"r2s-cur-d015-9a606d4-eeaea17d-47646604","state":"completed","timestamp":"2026-10-30T19:05:17Z"}
+{"result_file":"runs/r2s-cur-d02-dec8-seed2-9a606d4-a56d5229-47646604/result.md","run_id":"r2s-cur-d02-dec8-seed2-9a606d4-a56d5229-47646604","state":"completed","timestamp":"2026-10-30T19:11:10Z"}
+{"result_file":"runs/r2s-cur-d02-dec10-9a606d4-63f0cc09-47646604/result.md","run_id":"r2s-cur-d02-dec10-9a606d4-63f0cc09-47646604","state":"completed","timestamp":"2026-10-30T19:13:22Z"}
+{"reason": "cancelled_after_2_min_replaced_by_wave_3b_120k_replications_of_r2s-cur-d02-s120k", "run_id": "r2s-cur-d02-dec8-seed3-9a606d4-25f6173e-47646604", "slurm_job": "13974", "state": "cancelled", "timestamp": "2026-10-30T19:14:28Z", "worker": "curiosity-b300"}
+{"reason": "cancelled_after_2_min_replaced_by_wave_3b_120k_replications_of_r2s-cur-d02-s120k", "run_id": "r2s-cur-d02-dec8-seed4-9a606d4-26b732e3-47646604", "slurm_job": "13975", "state": "cancelled", "timestamp": "2026-10-30T19:14:28Z", "worker": "curiosity-b300"}
+{"reason": "cancelled_after_2_min_replaced_by_wave_3b_120k_replications_of_r2s-cur-d02-s120k", "run_id": "r2s-cur-d02-compose03-9a606d4-ea68092a-47646604", "slurm_job": "13979", "state": "cancelled", "timestamp": "2026-10-30T19:14:28Z", "worker": "curiosity-b300"}
+{"reason": "cancelled_after_2_min_replaced_by_wave_3b_120k_replications_of_r2s-cur-d02-s120k", "run_id": "r2s-cur-d025-dec8-9a606d4-ef2b28d0-47646604", "slurm_job": "13980", "state": "cancelled", "timestamp": "2026-10-30T19:14:28Z", "worker": "curiosity-b300"}
