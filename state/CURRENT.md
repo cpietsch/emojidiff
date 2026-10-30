@@ -50,10 +50,12 @@ run by the token smoke on the cluster.
 
 ## Active jobs
 
-- Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz): wave 2,
-  job 13958 on dgx04 (8 GPUs, 508979a, submitted 2026-10-30 ~17:00 CET, limit 9 h): cur-d02-seed2,
-  cur-d02-seed3, cur-seed3, cur-d03, cur-d02-wd01, cur-d02-dec8, cur-d02-w384, cur-d02-s120k.
-  Wave 1 (job 13939) recorded: findings 2026-10-30. Project folder
+- Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz; the Axis user
+  id changed at 17:45, `~/.ssh/config` updated): wave 2, job 13958 on dgx04 (8 GPUs, 508979a;
+  seven 60k arms done, read early; cur-d02-s120k ends ~19:35). Wave 3 queued behind it as eight
+  one-GPU jobs 13973-13980 on 9a606d4 (loader of d54e21d; job script 8099e35 in
+  ~/eai-team11/mojidiff/jobs/): cur-d02-dec8-seed2/3/4, cur-d015, cur-d025, cur-d02-dec10,
+  cur-d02-compose03, cur-d025-dec8. Project folder
   `~/eai-team11/mojidiff` (checkouts `repo-<commit>`, caches, `results/<job>`). No backup
   there; storage is purged after the hackathon, so results come home after every job.
 - Token for Hugging Face: `~/.cache/huggingface/token` here, `~/.config/mojidiff/hf_token`
@@ -76,6 +78,6 @@ on WebGPU only, ONNX files under `onnx/` in the checkpoints repo, test-split ico
 
 ## Next smallest evidence-producing action
 
-When wave 2 (job 13958) returns, pair each arm against every normal v9 run (RTX 4080 original,
-H100 rerun, B300 seeds 2 and 3; not the B300 seed-7001 outlier) with `python -m
-mojidiff.learning.paired`, and the dropout seeds against each other; then wave 3 (confirm).
+Record wave 2 when job 13958 returns (early read: dropout 0.2 replicates, 0.0690-0.0698 over three
+seeds against 0.0719-0.0728 for four v9 runs; with 8 decoder layers 0.0684 on one seed). Score
+wave 3 the same way; the final winner alone goes to the test split and to 4080 latency.
