@@ -400,3 +400,9 @@
 {"result_file":"runs/r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604/result.md","run_id":"r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604","state":"completed","timestamp":"2026-10-30T19:51:51Z"}
 {"result_file":"runs/r2s-cur-d02-s120k-seed3-53b3108-9a8d30b7-47646604/result.md","run_id":"r2s-cur-d02-s120k-seed3-53b3108-9a8d30b7-47646604","state":"completed","timestamp":"2026-10-30T19:55:01Z"}
 {"result_file":"runs/r2s-cur-d02-dec8-s120k-53b3108-f17a6a39-47646604/result.md","run_id":"r2s-cur-d02-dec8-s120k-53b3108-f17a6a39-47646604","state":"completed","timestamp":"2026-10-30T19:58:31Z"}
+{"config":"configs/render2svg/cur-d02-s120k-seed4.yaml","run_id":"r2s-cur-d02-s120k-seed4-3681e08-a4b1b1bc-47646604","slug":"r2s-cur-d02-s120k-seed4","state":"running","timestamp":"2026-10-30T19:17:23Z"}
+{"config":"configs/render2svg/cur-d025-s120k.yaml","run_id":"r2s-cur-d025-s120k-3681e08-e90187c2-47646604","slug":"r2s-cur-d025-s120k","state":"running","timestamp":"2026-10-30T19:17:23Z"}
+{"config":"configs/render2svg/cur-d03-s120k.yaml","run_id":"r2s-cur-d03-s120k-3681e08-f7ccd8a2-47646604","slug":"r2s-cur-d03-s120k","state":"running","timestamp":"2026-10-30T19:17:23Z"}
+{"result_file":"runs/r2s-cur-d025-s120k-3681e08-e90187c2-47646604/result.md","run_id":"r2s-cur-d025-s120k-3681e08-e90187c2-47646604","state":"completed","timestamp":"2026-10-30T20:47:00Z"}
+{"result_file":"runs/r2s-cur-d03-s120k-3681e08-f7ccd8a2-47646604/result.md","run_id":"r2s-cur-d03-s120k-3681e08-f7ccd8a2-47646604","state":"completed","timestamp":"2026-10-30T20:47:35Z"}
+{"result_file":"runs/r2s-cur-d02-s120k-seed4-3681e08-a4b1b1bc-47646604/result.md","run_id":"r2s-cur-d02-s120k-seed4-3681e08-a4b1b1bc-47646604","state":"completed","timestamp":"2026-10-30T20:51:52Z"}
