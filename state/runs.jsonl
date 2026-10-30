@@ -406,3 +406,5 @@
 {"result_file":"runs/r2s-cur-d025-s120k-3681e08-e90187c2-47646604/result.md","run_id":"r2s-cur-d025-s120k-3681e08-e90187c2-47646604","state":"completed","timestamp":"2026-10-30T20:47:00Z"}
 {"result_file":"runs/r2s-cur-d03-s120k-3681e08-f7ccd8a2-47646604/result.md","run_id":"r2s-cur-d03-s120k-3681e08-f7ccd8a2-47646604","state":"completed","timestamp":"2026-10-30T20:47:35Z"}
 {"result_file":"runs/r2s-cur-d02-s120k-seed4-3681e08-a4b1b1bc-47646604/result.md","run_id":"r2s-cur-d02-s120k-seed4-3681e08-a4b1b1bc-47646604","state":"completed","timestamp":"2026-10-30T20:51:52Z"}
+{"config":"configs/render2svg/cur-d02-s240k.yaml","run_id":"r2s-cur-d02-s240k-53b3108-52ce75ff-47646604","slug":"r2s-cur-d02-s240k","state":"running","timestamp":"2026-10-30T18:18:03Z"}
+{"result_file":"runs/r2s-cur-d02-s240k-53b3108-52ce75ff-47646604/result.md","run_id":"r2s-cur-d02-s240k-53b3108-52ce75ff-47646604","state":"completed","timestamp":"2026-10-30T21:14:32Z"}
