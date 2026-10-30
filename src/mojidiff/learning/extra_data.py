@@ -142,6 +142,13 @@ def load_twemoji(
 
 
 def concatenate(first: SplitData, second: SplitData) -> SplitData:
+    """`first`'s rows then `second`'s; unlabelled rows become set 0 and set 1 (Twemoji)."""
+
+    def labels(split: SplitData, default: int) -> np.ndarray:
+        if split.sources is not None:
+            return split.sources
+        return np.full(len(split.tokens), default, dtype=np.int64)
+
     return SplitData(
         hexcodes=first.hexcodes + second.hexcodes,
         tokens=torch.cat((first.tokens, second.tokens)),
@@ -149,4 +156,5 @@ def concatenate(first: SplitData, second: SplitData) -> SplitData:
         images=torch.cat((first.images, second.images)),
         targets=torch.cat((first.targets, second.targets)),
         shape=first.shape,
+        sources=np.concatenate((labels(first, 0), labels(second, 1))),
     )

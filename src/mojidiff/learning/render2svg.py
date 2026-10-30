@@ -105,6 +105,14 @@ class ModelConfig:
     then every segment. "path" decodes path by path - style, start point, then that
     path's own segments - and tells the decoder which field and which path each
     position is. The grammar and the loss are unchanged; only the order differs."""
+    sources: int = 0
+    """How many emoji sets the decoder is told apart; 0 gives it no source input.
+
+    Sets write the same picture their own way - OpenMoji outlines with strokes, Twemoji
+    with filled shapes - so a mixed corpus gives one render two right programs. A
+    learned vector per set, added to the encoder memory and zero at the start, says
+    which to write. Set 0 is OpenMoji, the default wherever no source is given, so every
+    decoder and evaluation path writes OpenMoji's convention unchanged."""
 
 
 @dataclass(frozen=True)
@@ -396,10 +404,16 @@ class SplitData:
     images: Tensor  # (N, S, S, 3) uint8, model input
     targets: Tensor  # (N, 72, 72, 3) uint8, evaluation reference
     shape: tuple[int, int]
+    sources: np.ndarray | None = None  # (N,) int64 emoji set per row; None: all OpenMoji
 
     def mask_batch(self, indices: np.ndarray) -> Tensor:
         bits = np.unpackbits(self.masks[indices], axis=1)
         return torch.from_numpy(bits.reshape(len(indices), *self.shape)).bool()
+
+    def source_batch(self, indices: np.ndarray) -> Tensor:
+        if self.sources is None:
+            return torch.zeros(len(indices), dtype=torch.long)
+        return torch.from_numpy(self.sources[indices].astype(np.int64))
 
     def subset(self, count: int) -> SplitData:
         return SplitData(
@@ -409,6 +423,7 @@ class SplitData:
             self.images[:count],
             self.targets[:count],
             self.shape,
+            None if self.sources is None else self.sources[:count],
         )
 
 
@@ -904,15 +919,19 @@ def compose_program(
 
 
 class OnlineAugmentation(
-    torch.utils.data.IterableDataset[tuple[Tensor, Tensor, np.ndarray, Tensor]]
+    torch.utils.data.IterableDataset[tuple[Tensor, Tensor, np.ndarray, Tensor, int]]
 ):
-    """An endless stream of (render, tokens, packed legal masks, path-major order).
+    """An endless stream of (render, tokens, packed legal masks, path-major order, set).
 
     Each item is an original icon, a fresh exact variant of one, or - with
     `compose_probability` - a composition of parts of several. Variants borrow their
     source's masks (tested equal where the loss reads); compositions change structure,
     so their masks are computed here. Each loader worker seeds its own generator from
     (augment_seed, worker id), so the stream is reproducible for a fixed worker count.
+
+    `sources` labels each icon with its emoji set. Given, a composition takes all its
+    parts from one set, so its label names one drawing convention; omitted, every item
+    is set 0 and the random draws are exactly those of the stream without labels.
     """
 
     def __init__(
@@ -924,6 +943,7 @@ class OnlineAugmentation(
         template: PackedTensorProgram,
         size: int,
         config: TrainConfig,
+        sources: np.ndarray | None = None,
     ) -> None:
         super().__init__()
         self.tokens = tokens
@@ -933,6 +953,12 @@ class OnlineAugmentation(
         self.template = template
         self.size = size
         self.config = config
+        self.sources = sources
+        self.members = (
+            {}
+            if sources is None
+            else {int(s): np.flatnonzero(sources == s) for s in np.unique(sources)}
+        )
         self.render_images = True
         """False streams programs only (for models that never see pixels); the image
         slot then holds a 1x1 placeholder and no variant is rasterised."""
@@ -949,7 +975,10 @@ class OnlineAugmentation(
         except (ValueError, IsolatedRenderError):
             return None
 
-    def __iter__(self) -> Iterator[tuple[Tensor, Tensor, np.ndarray, Tensor]]:
+    def _source(self, index: int) -> int:
+        return 0 if self.sources is None else int(self.sources[index])
+
+    def __iter__(self) -> Iterator[tuple[Tensor, Tensor, np.ndarray, Tensor, int]]:
         info = torch.utils.data.get_worker_info()
         worker = info.id if info is not None else 0
         rng = np.random.default_rng([self.config.augment_seed, worker])
@@ -960,7 +989,13 @@ class OnlineAugmentation(
             composing = self.config.compose_probability > 0.0
             if composing and rng.random() < self.config.compose_probability:
                 parts = int(rng.integers(2, max(2, self.config.compose_parts) + 1))
-                picks = rng.integers(len(self.tokens), size=parts)
+                if self.sources is None:
+                    picks = rng.integers(len(self.tokens), size=parts)
+                else:
+                    first = int(rng.integers(len(self.tokens)))
+                    pool = self.members[self._source(first)]
+                    picks = np.concatenate(([first], rng.choice(pool, size=parts - 1)))
+                source_set = self._source(int(picks[0]))
                 sources = [
                     unflatten_program(
                         torch.from_numpy(self.tokens[int(i)].astype(np.int64)),
@@ -987,6 +1022,7 @@ class OnlineAugmentation(
                     tokens,
                     np.packbits(mask.reshape(-1)),
                     path_major_order(tokens, layout),
+                    source_set,
                 )
                 continue
             index = int(rng.integers(len(self.tokens)))
@@ -998,13 +1034,17 @@ class OnlineAugmentation(
                     if self.render_images
                     else torch.zeros((1, 1, 3), dtype=torch.uint8)
                 )
-                yield original, source, self.masks[index], order
+                yield original, source, self.masks[index], order, self._source(index)
                 continue
             variant = augment_program_tokens(source, layout, rng, self.config)
             image = self._render(unflatten_program(variant, self.template, layout))
             if image is None:
                 continue
-            yield torch.from_numpy(image), variant, self.masks[index], order
+            yield torch.from_numpy(image), variant, self.masks[index], order, self._source(index)
+
+
+Batch = tuple[Tensor, Tensor, Tensor, Tensor | None, Tensor, Tensor]
+"""(images, tokens, masks, orders or None, source icon indices or -1, emoji sets)."""
 
 
 def _online_batches(
@@ -1014,8 +1054,13 @@ def _online_batches(
     size: int,
     config: TrainConfig,
     render_images: bool = True,
-) -> Iterator[tuple[Tensor, Tensor, Tensor, Tensor | None, Tensor]]:
-    """(images, tokens, masks, orders, -1 source indices) from the online stream."""
+    labelled: bool = False,
+) -> Iterator[Batch]:
+    """Batches from the online stream; source icon indices are -1 (no fixed source).
+
+    `labelled` streams `train.sources` (single-set compositions); otherwise every item
+    is set 0 and compositions mix sets, as before labels existed.
+    """
 
     dataset = OnlineAugmentation(
         train.tokens.numpy().astype(np.int16),
@@ -1025,6 +1070,7 @@ def _online_batches(
         template,
         size,
         config,
+        train.sources if labelled else None,
     )
     dataset.render_images = render_images
     loader = torch.utils.data.DataLoader(
@@ -1035,10 +1081,10 @@ def _online_batches(
         prefetch_factor=8 if config.loader_workers > 0 else None,
     )
     shape = (layout.length, layout.vocabulary)
-    for images, tokens, packed, orders in loader:
+    for images, tokens, packed, orders, sets in loader:
         bits = np.unpackbits(packed.numpy(), axis=1)
         masks = torch.from_numpy(bits.reshape(len(tokens), *shape)).bool()
-        yield images, tokens, masks, orders, torch.full((len(tokens),), -1)
+        yield images, tokens, masks, orders, torch.full((len(tokens),), -1), sets.long()
 
 
 # --------------------------------------------------------------------------- model
@@ -1302,6 +1348,9 @@ class RenderToProgram(nn.Module):
             for _ in range(config.encoder_layers)
         )
         self.encoder_norm = nn.LayerNorm(width)
+        if config.sources:
+            self.source_embedding = nn.Embedding(config.sources, width)
+            nn.init.zeros_(self.source_embedding.weight)
         self.token_embedding = nn.Embedding(layout.vocabulary, width)
         self.position_embedding = nn.Embedding(layout.length, width)
         self.decoder = nn.ModuleList(
@@ -1376,8 +1425,12 @@ class RenderToProgram(nn.Module):
 
         return (self.config.image_size // 8) ** 2
 
-    def encode(self, images: Tensor) -> list[tuple[Tensor, Tensor]]:
-        """Per-decoder-layer cross-attention keys and values for uint8 NHWC renders."""
+    def encode(self, images: Tensor, sources: Tensor | None = None) -> list[tuple[Tensor, Tensor]]:
+        """Per-decoder-layer cross-attention keys and values for uint8 NHWC renders.
+
+        `sources` names each render's emoji set for a model with `sources`; None means
+        OpenMoji (set 0). A model without sources ignores it.
+        """
 
         pixels = images.permute(0, 3, 1, 2).to(self.grid_embedding.dtype) / 127.5 - 1.0
         features = self.stem(pixels).flatten(2).transpose(1, 2) + self.grid_embedding
@@ -1387,6 +1440,10 @@ class RenderToProgram(nn.Module):
         for block in self.encoder:
             features = block(features)
         memory = self.encoder_norm(features)
+        if self.config.sources:
+            if sources is None:
+                sources = torch.zeros(images.shape[0], dtype=torch.long, device=images.device)
+            memory = memory + self.source_embedding(sources)[:, None]
         return [
             cast(_DecoderBlock, block).cross_attention.keys_values(memory) for block in self.decoder
         ]
@@ -1464,7 +1521,13 @@ class RenderToProgram(nn.Module):
             logits = logits + chosen * (target >= 0)[..., None].to(chosen.dtype)
         return logits, updated
 
-    def forward(self, images: Tensor, tokens: Tensor, order: Tensor | None = None) -> Tensor:
+    def forward(
+        self,
+        images: Tensor,
+        tokens: Tensor,
+        order: Tensor | None = None,
+        sources: Tensor | None = None,
+    ) -> Tensor:
         """Teacher-forced logits, returned at the original positions they predict."""
 
         if self.config.order == "path" and order is None:
@@ -1472,7 +1535,7 @@ class RenderToProgram(nn.Module):
         if self.config.order == "layout":
             order = None
         inputs, extras = self.step_inputs(tokens, order, 0, tokens.shape[1])
-        logits, _ = self.decode(inputs, self.encode(images), extras=extras)
+        logits, _ = self.decode(inputs, self.encode(images, sources), extras=extras)
         if order is None:
             return logits
         inverse = torch.argsort(order, dim=1)
@@ -1774,8 +1837,8 @@ def _schedule(step: int, config: TrainConfig) -> float:
 
 def _batches(
     train: SplitData, augmented: AugmentedData | None, config: TrainConfig, rng: np.random.Generator
-) -> Iterator[tuple[Tensor, Tensor, Tensor, Tensor | None, Tensor]]:
-    """(images, tokens, masks, None, source indices) on CPU, from originals and variants.
+) -> Iterator[Batch]:
+    """(images, tokens, masks, None, source indices, sets) on CPU, from originals and variants.
 
     A variant borrows its source icon's legal masks. Mirroring and translation change
     no mask, and a palette permutation changes only rows the grammar already forces,
@@ -1812,7 +1875,14 @@ def _batches(
                 for pick in picks
             ]
         )
-        yield images, tokens, train.mask_batch(base), None, torch.from_numpy(base)
+        yield (
+            images,
+            tokens,
+            train.mask_batch(base),
+            None,
+            torch.from_numpy(base),
+            train.source_batch(base),
+        )
 
 
 def _git(*args: str) -> str:
@@ -1902,6 +1972,12 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
 
         extra, extra_report = load_twemoji(layout, pilot, template, config.model.image_size)
         train = concatenate(train, extra)
+    if config.model.sources and train.sources is not None:
+        if int(train.sources.max()) >= config.model.sources:
+            raise ValueError(
+                f"model.sources {config.model.sources} does not cover the training data's "
+                f"{int(train.sources.max()) + 1} emoji sets"
+            )
     augmented: AugmentedData | None = None
     augment_hash: str | None = None
     if config.training.augment_variants > 0 and not config.training.augment_online:
@@ -1971,7 +2047,14 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
     metrics_path = run_dir / "metrics.jsonl"
     rng = np.random.default_rng(config.training.seed)
     batches = (
-        _online_batches(train, layout, template, config.model.image_size, config.training)
+        _online_batches(
+            train,
+            layout,
+            template,
+            config.model.image_size,
+            config.training,
+            labelled=config.model.sources > 0,
+        )
         if config.training.augment_online
         else _batches(train, augmented, config.training, rng)
     )
@@ -1983,7 +2066,7 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
     try:
         for step in range(1, config.training.steps + 1):
             model.train()
-            images, tokens, masks, orders, base = next(batches)
+            images, tokens, masks, orders, base, sets = next(batches)
             images, tokens, masks = images.to(device), tokens.to(device), masks.to(device)
             order = None
             if path_order:
@@ -1991,7 +2074,7 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
                     device
                 )
             with torch.autocast("cuda", dtype=torch.bfloat16, enabled=bf16):
-                logits = model(images, tokens, order)
+                logits = model(images, tokens, order, sets.to(device))
             free = masks.sum(dim=-1) > 1
             loss = F.cross_entropy(
                 logits.float().masked_fill(~masks, float("-inf"))[free], tokens[free]

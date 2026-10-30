@@ -1,0 +1,31 @@
+# Curiosity wave 1 (B300), one change from r2s-cur-twemoji: the decoder is told each icon's emoji set (model.sources 2;
+# compositions then take all parts from one set). Evaluation decodes as set 0, OpenMoji.
+# Scored paired against the v9 rerun on the same machine and seed, and against
+# r2s-cur-twemoji (the same data without the source input), which isolates the token.
+schema_version: 1
+slug: r2s-cur-twemoji-src
+parent_run: r2s-cur-twemoji
+hypothesis: >-
+  Told which emoji set each training icon comes from (OpenMoji strokes or Twemoji fills), and decoding as OpenMoji, the model trained on OpenMoji plus the Twemoji icons that fit the codec transcribes OpenMoji validation renders better than v9, instead of hedging between two conventions as v8 did. Pass requires the paired 95% bootstrap interval on the per-icon reduction in mean
+  72 px pixel error on the 339 validation renders, against the v9 rerun, to exclude zero.
+  Its greedy latency on the RTX 4080 is recorded.
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+model: {image_size: 144, d_model: 256, heads: 8, encoder_layers: 2, decoder_layers: 6, feedforward: 1024, dropout: 0.1, metric: true, fourier: 10, order: path, sources: 2}
+training:
+  steps: 60000
+  batch_size: 32
+  learning_rate: 0.0005
+  warmup_steps: 1000
+  eval_every: 2000
+  eval_icons: 64
+  augment_online: true
+  augment_original: 0.1
+  loader_workers: 16
+  compose_probability: 0.5
+  compose_parts: 4
+  augment_mirror: 0.5
+  augment_max_shift: 48
+  augment_colour: 0.1
+  extra_training: [twemoji]
+final_eval_icons: 339
+clip_icons: 32

@@ -161,8 +161,11 @@ class LatentToProgram(RenderToProgram):
         mean, log_variance = self.to_posterior(self.program_norm(hidden[:, 0])).chunk(2, dim=-1)
         return mean, log_variance.clamp(-10.0, 10.0)
 
-    def encode(self, latent: Tensor) -> list[tuple[Tensor, Tensor]]:
-        """Per-decoder-layer cross-attention keys and values for a batch of latents."""
+    def encode(self, latent: Tensor, sources: Tensor | None = None) -> list[tuple[Tensor, Tensor]]:
+        """Per-decoder-layer cross-attention keys and values for a batch of latents.
+
+        `sources` is accepted for the parent's signature; a latent names no emoji set.
+        """
 
         batch = latent.shape[0]
         memory = self.to_memory(latent.to(self.memory_position.dtype)).view(
@@ -308,7 +311,7 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
     try:
         for step in range(1, config.training.steps + 1):
             model.train()
-            _, tokens, masks, orders, _ = next(batches)
+            _, tokens, masks, orders, _, _ = next(batches)
             tokens, masks = tokens.to(device), masks.to(device)
             order = cast(Tensor, orders).to(device)
             beta = settings.beta * min(

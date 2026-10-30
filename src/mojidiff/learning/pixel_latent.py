@@ -299,8 +299,11 @@ class VariationalTranscriber(RenderToProgram):
             cast(_DecoderBlock, block).cross_attention.keys_values(memory) for block in self.decoder
         ]
 
-    def encode(self, inputs: Tensor) -> list[tuple[Tensor, Tensor]]:
-        """uint8 NHWC renders -> their posterior means' memory; float latent grids -> theirs."""
+    def encode(self, inputs: Tensor, sources: Tensor | None = None) -> list[tuple[Tensor, Tensor]]:
+        """uint8 NHWC renders -> their posterior means' memory; float latent grids -> theirs.
+
+        `sources` is accepted for the parent's signature; this model names no emoji set.
+        """
 
         if inputs.dtype == torch.uint8:
             mean, _ = self.posterior(inputs)
@@ -922,7 +925,7 @@ def train_and_evaluate(
         write(evaluate(0, None))
         for step in range(1, config.training.steps + 1):
             model.train()
-            images, tokens, masks, orders, _ = next(batches)
+            images, tokens, masks, orders, _, _ = next(batches)
             images, tokens, masks = images.to(device), tokens.to(device), masks.to(device)
             order = cast(Tensor, orders).to(device)
             beta = controller.beta

@@ -1,7 +1,7 @@
 #!/bin/bash
 # Bring one commit up on the Curiosity cluster (login node): fetch the private transfer
 # repo from Hugging Face, verify every file, check the commit out, link the caches, and
-# build the environment and the CLIP weights once.
+# build that checkout's environment and the CLIP weights.
 #
 #   bash -l scripts/curiosity/setup.sh <short commit>
 #
@@ -15,18 +15,12 @@ HF_TOKEN=$(cat "$HOME/.config/mojidiff/hf_token")
 export HF_TOKEN TMPDIR=$T/tmp UV_CACHE_DIR=$T/tmp/uv HF_HOME=$T/hf HF_HUB_DISABLE_PROGRESS_BARS=1
 mkdir -p "$T"/{tmp,transfer,cache,logs,hf,raw}
 
-if [ ! -x "$T/env/bin/python" ]; then
-    $UV venv -q --python 3.12 "$T/env"
-    $UV pip install -q --python "$T/env/bin/python" torch==2.14.1 \
-        --index-url https://download.pytorch.org/whl/cu130
-    $UV pip install -q --python "$T/env/bin/python" "CairoSVG>=2.8.2" "Pillow>=11.3" \
-        "PyYAML>=6.0.2" "defusedxml>=0.7.1" "numpy>=2.3" "picosvg>=0.23.0" "pyarrow>=21.0" \
-        "svg.path>=7.0" transformers==5.17.0 "huggingface_hub>=1.28" pytest
-fi
-HF=$T/env/bin/hf
-
-$HF download "$REPO" --repo-type dataset --local-dir "$T/transfer" --quiet \
-    --include SHA256SUMS "code/mojidiff-$COMMIT.bundle" "data/*" "cache/*"
+# Downloads before any environment exists use the cluster's own uv-managed hf tool.
+HF="$UV tool run --from huggingface_hub>=1.28 hf"
+$HF download "$REPO" SHA256SUMS "code/mojidiff-$COMMIT.bundle" data/openmoji-17.0.0.tar.gz \
+    data/twemoji.tar.gz cache/render2svg-corpus-5590a1948f5f.npz \
+    cache/render2svg-extra-twemoji-23878da09a9c.npz \
+    --repo-type dataset --local-dir "$T/transfer" --quiet
 (cd "$T/transfer" && grep -E "code/mojidiff-$COMMIT.bundle|data/|cache/" SHA256SUMS \
     | sha256sum -c --quiet)
 
@@ -44,8 +38,19 @@ if [ ! -d "$R" ]; then
 fi
 test "$(git -C "$R" rev-parse --short=7 HEAD)" = "$COMMIT"
 
-$HF download openai/clip-vit-base-patch32 --revision 3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268 \
+# One environment per checkout with the project installed: the isolated renderer starts
+# `python -I`, which ignores PYTHONPATH, so mojidiff must be importable from site-packages.
+E=$R/.venv
+if [ ! -x "$E/bin/python" ]; then
+    $UV venv -q --python 3.12 "$E"
+    $UV pip install -q --python "$E/bin/python" torch==2.14.1 \
+        --index-url https://download.pytorch.org/whl/cu130
+    $UV pip install -q --python "$E/bin/python" -e "$R" transformers==5.17.0 \
+        "huggingface_hub>=1.28" pytest
+fi
+"$E/bin/hf" download openai/clip-vit-base-patch32 --revision 3d74acf9a28c67741b2f4f2ea7635f0aaf6f0268 \
     --quiet >/dev/null
-"$T/env/bin/python" -c "import torch, cairosvg, transformers; print('torch', torch.__version__, \
+(cd /tmp && env -i LC_ALL=C.UTF-8 "$E/bin/python" -I -c "import mojidiff.representation.render_worker")
+"$E/bin/python" -c "import torch, cairosvg, transformers; print('torch', torch.__version__, \
 'transformers', transformers.__version__)"
 echo "ready: $R"

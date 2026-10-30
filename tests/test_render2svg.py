@@ -348,8 +348,9 @@ def test_online_augmentation_streams_exact_reproducible_variants(pieces: Pieces)
     stream = iter(OnlineAugmentation(tokens, images, masks, layout, programs[0], 32, config))
     samples = [next(stream) for _ in range(4)]
     again = iter(OnlineAugmentation(tokens, images, masks, layout, programs[0], 32, config))
-    for image, variant, _, order in samples:
-        other_image, other_variant, _, other_order = next(again)
+    for image, variant, _, order, source in samples:
+        other_image, other_variant, _, other_order, _ = next(again)
+        assert source == 0
         assert torch.equal(variant, other_variant) and torch.equal(order, other_order)
         assert torch.equal(image, other_image)
         program = unflatten_program(variant, programs[0], layout)
@@ -378,7 +379,8 @@ def test_compositions_are_valid_and_carry_their_own_masks(pieces: Pieces) -> Non
     config = TrainConfig(compose_probability=1.0, compose_parts=3, augment_seed=2)
     stream = iter(OnlineAugmentation(tokens, images, masks, layout, programs[0], 32, config))
     for _ in range(3):
-        image, variant, packed, order = next(stream)
+        image, variant, packed, order, source = next(stream)
+        assert source == 0
         assert np.array_equal(packed, _masks(variant, layout))
         assert torch.equal(order, path_major_order(variant, layout))
         program = unflatten_program(variant, programs[0], layout)
@@ -448,3 +450,91 @@ def test_cache_root_follows_the_environment(tmp_path: Path) -> None:
         [sys.executable, "-c", code], env=env, capture_output=True, text=True, check=True
     )
     assert out.stdout.strip() == str(tmp_path)
+
+
+def _renders(programs: list[PackedTensorProgram], layout: SequenceLayout) -> np.ndarray:
+    return np.stack(
+        [render_trusted_rgb(serialize_packed_svg(p, layout.codec, 128), 32) for p in programs]
+    )
+
+
+def test_source_embedding_starts_neutral_and_defaults_to_openmoji(pieces: Pieces) -> None:
+    from dataclasses import replace
+
+    layout, programs = pieces
+    plain = RenderToProgram(layout, _TINY_PATH)
+    assert not any(name.startswith("source_embedding") for name in plain.state_dict())
+    torch.manual_seed(0)
+    model = RenderToProgram(layout, replace(_TINY_PATH, sources=2)).eval()
+    images = torch.from_numpy(_renders(programs, layout))
+    tokens = torch.stack([flatten_program(p, layout) for p in programs])
+    order = torch.stack([path_major_order(row, layout) for row in tokens])
+    openmoji = torch.zeros(len(programs), dtype=torch.long)
+    with torch.no_grad():
+        default = model(images, tokens, order)
+        assert torch.equal(default, model(images, tokens, order, openmoji + 1))
+        model.source_embedding.weight[1].normal_()
+        assert torch.equal(model(images, tokens, order), model(images, tokens, order, openmoji))
+        assert not torch.allclose(model(images, tokens, order, openmoji + 1), default)
+
+
+def test_labelled_compositions_take_parts_from_one_set(
+    pieces: Pieces, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import mojidiff.learning.render2svg as module
+
+    layout, programs = pieces
+    rows = [flatten_program(p, layout) for p in programs]
+    tokens = np.stack([r.numpy() for r in rows]).astype(np.int16)
+    masks = np.stack([_masks(r, layout) for r in rows])
+    images = np.zeros((len(programs), 32, 32, 3), dtype=np.uint8)
+    sources = np.array([0, 0, 1])
+    calls: list[list[int]] = []
+    real = module.compose_program
+
+    def recording(
+        parts: list[PackedTensorProgram], layout: SequenceLayout, rng: np.random.Generator
+    ) -> PackedTensorProgram | None:
+        flat = [flatten_program(part, layout) for part in parts]
+        calls.append([next(i for i, row in enumerate(rows) if torch.equal(row, f)) for f in flat])
+        return real(parts, layout, rng)
+
+    monkeypatch.setattr(module, "compose_program", recording)
+    config = TrainConfig(compose_probability=1.0, compose_parts=3, augment_seed=2)
+    stream = iter(
+        module.OnlineAugmentation(tokens, images, masks, layout, programs[0], 32, config, sources)
+    )
+    seen = set()
+    for _ in range(12):
+        _, _, _, _, source = next(stream)
+        assert {int(sources[i]) for i in calls[-1]} == {source}
+        seen.add(source)
+    assert seen == {0, 1}
+
+
+def test_concatenate_labels_sets_and_static_batches_carry_them(pieces: Pieces) -> None:
+    from mojidiff.learning.extra_data import concatenate
+    from mojidiff.learning.render2svg import SplitData, _batches
+
+    layout, programs = pieces
+    rows = [flatten_program(p, layout) for p in programs]
+
+    def split(chosen: list[torch.Tensor]) -> SplitData:
+        return SplitData(
+            hexcodes=[str(i) for i in range(len(chosen))],
+            tokens=torch.stack(chosen),
+            masks=np.stack([_masks(r, layout) for r in chosen]),
+            images=torch.zeros((len(chosen), 32, 32, 3), dtype=torch.uint8),
+            targets=torch.zeros((len(chosen), 72, 72, 3), dtype=torch.uint8),
+            shape=(layout.length, layout.vocabulary),
+        )
+
+    joined = concatenate(split(rows[:2]), split(rows[2:]))
+    labels, head = joined.sources, joined.subset(2).sources
+    assert labels is not None and labels.tolist() == [0, 0, 1]
+    assert head is not None and head.tolist() == [0, 0]
+    assert split(rows).source_batch(np.array([2, 0])).tolist() == [0, 0]
+    batches = _batches(joined, None, TrainConfig(batch_size=8), np.random.default_rng(3))
+    _, tokens, _, _, base, sets = next(batches)
+    assert torch.equal(sets, torch.from_numpy(labels[base.numpy()]))
+    assert torch.equal(tokens, joined.tokens[base])
