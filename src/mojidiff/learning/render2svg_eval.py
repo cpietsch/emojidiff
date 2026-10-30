@@ -9,9 +9,10 @@ quality and the latency it reports describe one and the same decoder:
 * CLIP top-1 on Gate N's 32 validation icons (validation split only);
 * single-icon latency through `fast_decode.GraphDecoder`, and batched throughput.
 
-    python -m mojidiff.learning.render2svg_eval --run <run_id> [--split test]
+    python -m mojidiff.learning.render2svg_eval --run <run_id> [--split test] [--checkpoint latest]
 
-Writes `runs/<run_id>/eval-<split>.json` and `eval-<split>.png`.
+Writes `runs/<run_id>/eval-<split>.json` and `eval-<split>.png` (`eval-<split>-latest.*` for
+the last checkpoint instead of the selected one).
 """
 
 from __future__ import annotations
@@ -50,14 +51,35 @@ from mojidiff.learning.telemetry import measure_latency, resource_summary
 SPLITS = {"validation": "primary/validation", "test": "primary/test"}
 
 
+CHECKPOINTS = ("best", "latest")
+"""`best.pt` is the checkpoint the run selected on its 64-icon evaluations; `latest.pt` is the
+last step. Scoring both on all icons shows how much that selection costs or gains."""
+
+
+def output_stem(split: str, checkpoint: str = "best", rerank: int = 0) -> str:
+    """File stem for an evaluation: eval-<split>[-latest][-rerank<n>]."""
+
+    if checkpoint not in CHECKPOINTS:
+        raise ValueError(f"unknown checkpoint {checkpoint!r}")
+    stem = f"eval-{split}"
+    if checkpoint != "best":
+        stem += f"-{checkpoint}"
+    if rerank > 1:
+        stem += f"-rerank{rerank}"
+    return stem
+
+
 def evaluate_run(
     run_id: str,
     split: str,
     icons: int | None = None,
     rerank: int = 0,
     temperature: float = 0.7,
+    checkpoint: str = "best",
 ) -> dict[str, Any]:
     import yaml
+
+    stem = output_stem(split, checkpoint, rerank)
 
     run_dir = REPO_ROOT / "runs" / run_id
     record = yaml.safe_load((run_dir / "run.yaml").read_text())
@@ -68,7 +90,7 @@ def evaluate_run(
     )
     if dataset_hash != record["dataset"]["cache_sha256"]:
         raise SystemExit("the cached corpus differs from the one this run trained on")
-    state = torch.load(CACHE_ROOT / "runs" / run_id / "best.pt", map_location=device)
+    state = torch.load(CACHE_ROOT / "runs" / run_id / f"{checkpoint}.pt", map_location=device)
     model = RenderToProgram(layout, ModelConfig(**state["config"])).to(device).eval()
     model.load_state_dict(state["model"])
 
@@ -163,7 +185,7 @@ def evaluate_run(
             "gate_n_omnisvg_zero_shot_top1": 39 / 64,
         }
 
-    suffix = f"-rerank{rerank}" if rerank > 1 else ""
+    result["checkpoint"] = {"file": f"{checkpoint}.pt", "step": state.get("step")}
     if rerank > 1:
         one = data.images[0].to(device)
         rerank_latency = measure_latency(
@@ -182,8 +204,8 @@ def evaluate_run(
             [data.targets[i].numpy(), renders[i], library.targets[int(nearest[i])].numpy()]
             for i in range(min(24, count))
         ]
-        (run_dir / f"eval-{split}{suffix}.png").write_bytes(contact_sheet(sheet_rows))
-        (run_dir / f"eval-{split}{suffix}.json").write_text(json.dumps(result, indent=2) + "\n")
+        (run_dir / f"{stem}.png").write_bytes(contact_sheet(sheet_rows))
+        (run_dir / f"{stem}.json").write_text(json.dumps(result, indent=2) + "\n")
         return result
     graph = GraphDecoder(model, dtype=torch.float32)
     agreement = sum(
@@ -212,8 +234,8 @@ def evaluate_run(
         [data.targets[i].numpy(), renders[i], library.targets[int(nearest[i])].numpy()]
         for i in range(min(24, count))
     ]
-    (run_dir / f"eval-{split}.png").write_bytes(contact_sheet(sheet_rows))
-    (run_dir / f"eval-{split}.json").write_text(json.dumps(result, indent=2) + "\n")
+    (run_dir / f"{stem}.png").write_bytes(contact_sheet(sheet_rows))
+    (run_dir / f"{stem}.json").write_text(json.dumps(result, indent=2) + "\n")
     return result
 
 
@@ -297,11 +319,14 @@ def main() -> None:
     parser.add_argument("--latency-only", action="store_true")
     parser.add_argument("--rerank", type=int, default=0, help="candidates per icon")
     parser.add_argument("--temperature", type=float, default=0.7)
+    parser.add_argument("--checkpoint", choices=CHECKPOINTS, default="best")
     args = parser.parse_args()
     if args.latency_only:
         print(json.dumps(latency_only(args.run, args.icons or 16, args.rerank)))
         return
-    result = evaluate_run(args.run, args.split, args.icons, args.rerank, args.temperature)
+    result = evaluate_run(
+        args.run, args.split, args.icons, args.rerank, args.temperature, args.checkpoint
+    )
     print(json.dumps(result))
 
 

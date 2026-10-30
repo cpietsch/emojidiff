@@ -632,3 +632,14 @@ def test_unpack_masks_matches_numpy_and_the_packed_stream(pieces: Pieces) -> Non
     assert plain[2].dtype == torch.bool and bits[2].dtype == torch.uint8
     assert torch.equal(unpack_masks(bits[2], shape), plain[2])
     assert all(torch.equal(a, b) for a, b in zip(plain[:2], bits[:2], strict=True))
+
+
+def test_evaluation_files_name_the_checkpoint_and_decoder() -> None:
+    from mojidiff.learning.render2svg_eval import output_stem
+
+    assert output_stem("validation") == "eval-validation"
+    assert output_stem("test", "latest") == "eval-test-latest"
+    assert output_stem("validation", "best", 8) == "eval-validation-rerank8"
+    assert output_stem("test", "latest", 8) == "eval-test-latest-rerank8"
+    with pytest.raises(ValueError, match="unknown checkpoint"):
+        output_stem("validation", "final")
