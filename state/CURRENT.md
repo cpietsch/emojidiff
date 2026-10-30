@@ -51,11 +51,13 @@ run by the token smoke on the cluster.
 ## Active jobs
 
 - Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz; the Axis user
-  id changed at 17:45, `~/.ssh/config` updated): wave 2, job 13958 on dgx04 (8 GPUs, 508979a;
-  seven 60k arms done, read early; cur-d02-s120k ends ~19:35). Wave 3 queued behind it as eight
-  one-GPU jobs 13973-13980 on 9a606d4 (loader of d54e21d; job script 8099e35 in
-  ~/eai-team11/mojidiff/jobs/): cur-d02-dec8-seed2/3/4, cur-d015, cur-d025, cur-d02-dec10,
-  cur-d02-compose03, cur-d025-dec8. Project folder
+  id changed at 17:45, `~/.ssh/config` updated). Wave 3, one-GPU jobs on dgx01/dgx03 started
+  ~19:20 CET (job script ~/eai-team11/mojidiff/jobs/arms-8099e35.slurm): 60k arms on 9a606d4
+  13973 cur-d02-dec8-seed2, 13976 cur-d015, 13977 cur-d025, 13978 cur-d02-dec10; on 53b3108
+  13981 cur-d02-s120k-seed2, 13982 cur-d02-s120k-seed3, 13983 cur-d02-dec8-s120k, 13984
+  cur-d02-s240k (limit 8 h). 13974/13975/13979/13980 were cancelled after 2 minutes (their
+  runs registered as running; record them as cancelled). Jobs sharing a checkout upload each
+  other's partial run dirs: take each run's record from the job that ran it. Project folder
   `~/eai-team11/mojidiff` (checkouts `repo-<commit>`, caches, `results/<job>`). No backup
   there; storage is purged after the hackathon, so results come home after every job.
 - Token for Hugging Face: `~/.cache/huggingface/token` here, `~/.config/mojidiff/hf_token`
@@ -78,6 +80,5 @@ on WebGPU only, ONNX files under `onnx/` in the checkpoints repo, test-split ico
 
 ## Next smallest evidence-producing action
 
-Record wave 2 when job 13958 returns (early read: dropout 0.2 replicates, 0.0690-0.0698 over three
-seeds against 0.0719-0.0728 for four v9 runs; with 8 decoder layers 0.0684 on one seed). Score
-wave 3 the same way; the final winner alone goes to the test split and to 4080 latency.
+Wave 2 recorded (findings 2026-10-30): dropout 0.2 at 120k steps reached 0.0654, ahead of every v9
+run. Score wave 3 the same way; the final winner alone goes to the test split and to 4080 latency.
