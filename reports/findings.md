@@ -4104,3 +4104,50 @@ combined with weight decay 0.1, 8 decoder layers, width 384 and 120k steps: if d
 back overfitting, capacity and length may now pay. Jobs cap each main process at 8 CPU
 threads (scheduling only). External data is set aside until it can be converted to
 OpenMoji's own drawing style rather than labelled.
+
+## 2026-10-30 — Curiosity wave 2: dropout 0.2 replicates, and with it longer training finally pays: 0.0654 at 120k steps
+
+**Setting.** Wave 1 left dropout 0.2 as the only lead (0.0696, intervals including zero) and
+showed that same-seed reruns on different hardware differ by up to 0.0066. Wave 2 (job 13958,
+commit 508979a, eight B300 runs) replicated dropout 0.2 on two more seeds, added a third v9
+seed, and combined dropout with a dose change, weight decay, depth, width and length. Each
+main process was capped at 8 CPU threads (12.4-14.1 steps/s per run against 10.2 in wave 1;
+`reports/curiosity/speedup.md`). Paired comparisons are against every normal v9 run: the
+RTX 4080 original (0.0719), the H100 rerun (0.0724), B300 seed 2 (0.0728), B300 seed 3
+(0.0722, this wave); the B300 seed-7001 rerun (0.0790) is left out as the outlier recorded
+in wave 1.
+
+| arm | change from v9 | pixel error | selected step | vs the four v9 runs | vs dropout 0.2 (wave 1) |
+| --- | --- | --- | --- | --- | --- |
+| d02-s120k | dropout 0.2, 120k steps | **0.0654** | 72k | +0.0065 to +0.0073, all exclude zero | +0.0042 [+0.0009, +0.0075] |
+| d02-dec8 | dropout 0.2, 8 decoder layers | 0.0684 | 48k | +0.0035 to +0.0044, 3 of 4 exclude zero | +0.0012 [-0.0026, +0.0050] |
+| d02-seed2 | dropout 0.2, seeds 7002 / 9002 | 0.0690 | 28k | +0.0029 to +0.0038, 1 of 4 excludes zero | +0.0006 [-0.0028, +0.0041] |
+| d02-seed3 | dropout 0.2, seeds 7003 / 9003 | 0.0698 | 54k | +0.0021 to +0.0030 | -0.0002 [-0.0045, +0.0043] |
+| d02-w384 | dropout 0.2, width 384 | 0.0704 | 52k | +0.0016 to +0.0024 | -0.0008 [-0.0046, +0.0029] |
+| seed3 | v9, seeds 7003 / 9003 | 0.0722 | 26k | -0.0003 to +0.0006 | |
+| d02-wd01 | dropout 0.2, weight decay 0.1 | 0.0743 | 54k | -0.0015 to -0.0023 | -0.0047 [-0.0089, -0.0007] |
+| d03 | dropout 0.3 | 0.0790 | 56k | -0.0062 to -0.0070, all exclude zero | -0.0094 [-0.0135, -0.0053] |
+
+**Dropout 0.2 is real.** Three seeds give 0.0696, 0.0690 and 0.0698; four normal v9 runs give
+0.0719-0.0728. The ranges do not overlap and all 12 seed-by-reference pairings favour dropout
+(+0.0021 to +0.0038), although most single intervals include zero: an effect of about 0.003
+(4%), smaller than one pair resolves on 339 icons, larger than the seed spread. The dose is
+narrow: 0.3 costs 0.009, and weight decay on top of dropout costs 0.005.
+
+**With dropout, length pays.** At 120k steps dropout 0.2 reaches 0.0654: the first arm since v7
+whose interval against every reference excludes zero, and ahead of its own 60k version. Its
+64-icon evaluation was still falling at 60k (0.073) and peaked at 72k (0.062). Without dropout,
+120k and 240k steps gave nothing on MUSICA (0.0727, 0.0712): the extra steps went into fitting
+the 2,681 icons. Dropout slows that fitting enough for the extra steps to generalise. This is
+one seed; wave 3b replicates it.
+
+Depth with dropout leans (8 decoder layers 0.0684, +0.0012 over 6 layers, one seed); width does
+not.
+
+**Decision.** Wave 3 (eight one-GPU jobs on 9a606d4 and 53b3108, with the byte-identical 2.3x
+loader of d54e21d) replicates dropout 0.2 at 120k on seeds 2 and 3, tries 8 decoder layers at
+120k and 240k steps, and keeps four 60k arms already running (8 decoder layers seed 2, dropout
+0.15 and 0.25, 10 decoder layers). Four queued 60k arms were cancelled before they ran (8-layer
+seeds 3 and 4, compositions 0.3, dropout 0.25 with 8 layers). Wave 2's cost of the fixed-list
+launcher: seven GPUs idled about 30 minutes waiting for the 120k arm; wave 3 runs one job per
+GPU instead.
