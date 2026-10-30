@@ -1,0 +1,70 @@
+{
+  "run_id": "r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604",
+  "split": "primary/validation",
+  "icons": 339,
+  "precision": "float32",
+  "selected_step": 64000,
+  "model_parameters": 9025826,
+  "model_pixel_error": [
+    0.044972342094782944,
+    0.041683784413888564,
+    0.04842811733695802
+  ],
+  "model_pixel_error_median": 0.039526600390672684,
+  "nearest_training_icon_pixel_error": [
+    0.08973124639576185,
+    0.0848205749792233,
+    0.09466393787711656
+  ],
+  "model_minus_baseline_error_reduction": [
+    0.04475890430097891,
+    0.04128055141287663,
+    0.04818098312426872
+  ],
+  "icons_model_beats_baseline": 321,
+  "exact_program_rate": 0.05014749262536873,
+  "rendered_rate": 1.0,
+  "batched_decode_seconds": 957.5439392799744,
+  "rerank": {
+    "candidates": 8,
+    "temperature": 0.7
+  },
+  "rerank_chose_a_sample_rate": 0.8141592920353983,
+  "clip_retrieval": {
+    "model_greedy": {
+      "top1_rate": 0.875,
+      "top5_rate": 1.0,
+      "mean_rank": 1.28125,
+      "clip_to_reference_mean": 0.9494962245225906,
+      "chance_top1": 0.03125,
+      "icons": 32
+    },
+    "nearest_training_icon": {
+      "top1_rate": 0.34375,
+      "top5_rate": 0.59375,
+      "mean_rank": 7.40625,
+      "clip_to_reference_mean": 0.8630629815161228,
+      "chance_top1": 0.03125,
+      "icons": 32
+    },
+    "gate_n_omnisvg_zero_shot_top1": 0.609375
+  },
+  "checkpoint": {
+    "file": "best.pt",
+    "step": 64000
+  },
+  "resource": {
+    "device": "NVIDIA GeForce RTX 4080",
+    "torch_version": "2.14.0a0+4fdf77b940.nv26.08",
+    "cuda_version": "13.4",
+    "python_version": "3.12.3",
+    "peak_vram_gib": 0.7318105697631836,
+    "train_seconds": null,
+    "inference_ms_per_icon": 3566.509595955722,
+    "inference_p95_ms_per_icon": 3569.742574938573,
+    "icons_per_second": 0.28038617956726086,
+    "train_seconds_null_reason": "evaluation of a trained checkpoint",
+    "decoder": "batched reference, float32, greedy plus 7 samples, each rendered and compared with the input",
+    "includes": "rasterising every candidate"
+  }
+}

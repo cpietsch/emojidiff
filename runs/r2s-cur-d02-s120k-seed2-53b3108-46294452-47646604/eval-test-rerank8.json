@@ -1,0 +1,51 @@
+{
+  "run_id": "r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604",
+  "split": "primary/test",
+  "icons": 339,
+  "precision": "float32",
+  "selected_step": 64000,
+  "model_parameters": 9025826,
+  "model_pixel_error": [
+    0.03974434217025325,
+    0.03671233640680815,
+    0.042843922906208226
+  ],
+  "model_pixel_error_median": 0.038437776267528534,
+  "nearest_training_icon_pixel_error": [
+    0.08685627185250563,
+    0.081932680372873,
+    0.09165201794647489
+  ],
+  "model_minus_baseline_error_reduction": [
+    0.04711192968225238,
+    0.04337259608205936,
+    0.05092860126979412
+  ],
+  "icons_model_beats_baseline": 319,
+  "exact_program_rate": 0.0471976401179941,
+  "rendered_rate": 1.0,
+  "batched_decode_seconds": 814.1590660029324,
+  "rerank": {
+    "candidates": 8,
+    "temperature": 0.7
+  },
+  "rerank_chose_a_sample_rate": 0.7964601769911505,
+  "checkpoint": {
+    "file": "best.pt",
+    "step": 64000
+  },
+  "resource": {
+    "device": "NVIDIA GeForce RTX 4080",
+    "torch_version": "2.14.0a0+4fdf77b940.nv26.08",
+    "cuda_version": "13.4",
+    "python_version": "3.12.3",
+    "peak_vram_gib": 0.3879222869873047,
+    "train_seconds": null,
+    "inference_ms_per_icon": 868.2041169377044,
+    "inference_p95_ms_per_icon": 871.618181001395,
+    "icons_per_second": 1.151802877331613,
+    "train_seconds_null_reason": "evaluation of a trained checkpoint",
+    "decoder": "batched reference, float32, greedy plus 7 samples, each rendered and compared with the input",
+    "includes": "rasterising every candidate"
+  }
+}
