@@ -4038,3 +4038,69 @@ Cost: about 20.5 MUSICA credits (two nodes for 1.4 h and 1.9 h, two single-GPU j
 planned seeds-and-test-split step has no winner to confirm, and the canvas-latent rerun
 it was to unlock has no stronger backbone. The next direction is the operator's call;
 candidates are in state/CURRENT.md.
+
+## 2026-10-30 — Curiosity wave 1: Twemoji hurts with or without an emoji-set input; dropout 0.2 leans better; same-seed reruns differ by 0.007
+
+**Setting.** The operator gave the project about 20 hours of one Curiosity node (8 NVIDIA
+B300). The MUSICA sweep had shown that capacity and compute do not move the transcriber at
+2,681 training icons, so wave 1 changed data and regularisation, one factor per arm, all
+eight on one node and one commit (67bab78, job 13939), scored on the 339 validation icons.
+Transfer runs through the private Hugging Face dataset `chrispie/mojidiff-transfer`; setup
+and job scripts are `scripts/curiosity/`. Two environment smokes came first: the first
+trained like the RTX 4080 but rendered nothing at evaluation (the isolated renderer's
+`python -I` ignores PYTHONPATH; recorded as failed), the second matched the 4080 (0.1603
+against 0.1630 on 32 icons at step 1,200).
+
+**Hypotheses.** (1) Twemoji hurt v8 because it writes outlines as fills where OpenMoji uses
+strokes; told each icon's set (`model.sources`, a learned vector per set on the encoder
+memory; OpenMoji at evaluation; compositions from one set at a time), the model can use the
+extra 2,211 icons. (2) More compositions or (3) more regularisation help in the data-limited
+regime.
+
+| arm | change from v9 | pixel error | selected step | beats nearest icon | CLIP top-1 (bf16) |
+| --- | --- | --- | --- | --- | --- |
+| v9 rerun | none | 0.0790 | 30k | 214 | 0.66 |
+| seed2 | seeds 7002 / 9002 | 0.0728 | 48k | 241 | 0.75 |
+| dropout02 | dropout 0.1 -> 0.2 | **0.0696** | 58k | 246 | 0.63 |
+| wd01 | weight decay 0.01 -> 0.1 | 0.0728 | 56k | 247 | 0.59 |
+| compose08 | compositions 0.5 -> 0.8 | 0.0831 | 44k | 223 | 0.53 |
+| twemoji | + 2,211 Twemoji icons | 0.0844 | 58k | 195 | 0.47 |
+| twemoji-src | + Twemoji, set input | 0.0835 | 40k | 194 | 0.53 |
+| twemoji-src-dec8 | + Twemoji, set input, 8 decoder layers | 0.0813 | 54k | 212 | 0.56 |
+
+**The v9 rerun on the B300 is an outlier.** Its 64-icon evaluation peaked at step 30k and
+worsened to the end (0.0811 at 60k), where every other v9 run kept improving to 46k-58k; it
+is 0.0066 [0.0033, 0.0102] worse than the same config and seed on the H100. A same-seed rerun
+on other hardware is a different trajectory, and single runs differ by more than the gaps
+this sweep is looking for. Each arm is therefore paired against all three normal v9 runs (the
+RTX 4080 original 0.0719, the H100 rerun 0.0724, seed2 on the B300 0.0728), not the outlier:
+
+| arm | vs v9 RTX 4080 | vs v9 H100 | vs seed2 (B300) |
+| --- | --- | --- | --- |
+| dropout02 | +0.0024 [-0.0013, +0.0060] | +0.0028 [-0.0010, +0.0065] | +0.0032 [-0.0010, +0.0072] |
+| wd01 | -0.0009 [-0.0047, +0.0030] | -0.0004 [-0.0042, +0.0035] | -0.0000 [-0.0041, +0.0039] |
+| compose08 | -0.0111 [-0.0151, -0.0071] | -0.0107 [-0.0145, -0.0068] | -0.0103 [-0.0144, -0.0062] |
+| twemoji | -0.0124 [-0.0162, -0.0089] | -0.0120 [-0.0156, -0.0082] | -0.0116 [-0.0155, -0.0077] |
+| twemoji-src | -0.0116 [-0.0150, -0.0079] | -0.0111 [-0.0145, -0.0076] | -0.0107 [-0.0146, -0.0070] |
+| twemoji-src-dec8 | -0.0093 [-0.0133, -0.0055] | -0.0089 [-0.0124, -0.0052] | -0.0085 [-0.0121, -0.0048] |
+
+The set input against the same data without it: +0.0009 [-0.0027, +0.0045]; 8 decoder layers
+on top: +0.0022 [-0.0016, +0.0059].
+
+**Reading.** (1) is falsified: Twemoji costs 0.011-0.012 whether or not the decoder is told
+which set it is writing, so v8's loss was not (only) two conventions for one picture. With
+4,892 training icons, of which 45% are palette-snapped Twemoji, the model fits a different
+distribution; the extra icons dilute OpenMoji rather than teach shape. (2) is falsified the
+wrong way: compositions at 0.8 cost 0.011, so 0.5 is past the useful dose, not short of it.
+(3) leans: dropout 0.2 is the lowest validation error any transcriber has reached and ahead
+of all three normal v9 runs, but no interval excludes zero. Weight decay changes nothing.
+Every arm took about 98 minutes for 60k steps (10.2 steps/s with evaluation), against about
+53 minutes alone on an H100: eight runs on one node are CPU-bound (load 397 on 256 threads;
+`reports/curiosity/speedup.md`).
+
+**Decision.** No arm replaces v9. Wave 2 (commit 508979a) replicates dropout 0.2 with two
+more seeds, adds a third v9 seed for the baseline, and tests dropout 0.3 and dropout 0.2
+combined with weight decay 0.1, 8 decoder layers, width 384 and 120k steps: if dropout holds
+back overfitting, capacity and length may now pay. Jobs cap each main process at 8 CPU
+threads (scheduling only). External data is set aside until it can be converted to
+OpenMoji's own drawing style rather than labelled.
