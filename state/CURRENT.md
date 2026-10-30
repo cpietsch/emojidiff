@@ -34,6 +34,15 @@ rerun on the B300 went bad late (0.0790). Wave 2 replicates dropout with seeds a
 with dose, weight decay, depth, width and length. Wave 3: confirm the winner with seeds, test
 split for the final winner only; 4080 latency measured locally afterwards.
 
+**Final-model rule (declared 2026-10-30 20:30 CET, before any 120k replication, 180k, 240k or
+dose-at-120k result):** the Curiosity final model is the configuration with the lowest mean
+339-icon validation pixel error over its seeds (the runs' own bf16 scores), among dropout 0.2 at
+120k (seeds 1-4), 180k, 240k, dropout 0.25 and 0.3 at 120k, and 8 decoder layers at 120k. A
+one-seed configuration qualifies only if it beats the 120k seed mean by more than the 120k seeds'
+range; a tie goes to fewer steps. From that configuration, the seed with the lowest validation
+error is re-scored in float32 (`python -m mojidiff.learning.render2svg_eval`) on validation and
+once on the 339 test icons, greedy and best of 8, with GraphDecoder latency on the RTX 4080.
+
 ## Last completed action and verification
 
 2026-10-30: cluster bring-up. Transfer goes through the private Hugging Face dataset
