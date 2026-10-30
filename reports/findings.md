@@ -4227,3 +4227,30 @@ single-run comparisons becomes useful candidates.
 best-of-models decoder with one declared test look, the browser demo on the new model, and the canvas-latent
 line rebuilt on the dropout recipe. Protocol change for new runs: report the last checkpoint alongside the
 selected one, and compare configurations by seed means, not single runs.
+
+## 2026-10-30 — Corrections: the best-of-models criterion, light latency icons; multi-model decoding dropped
+
+**Criterion.** The previous entry says the best-of-models script keeps "the candidate whose render best
+matches the input". It picked by the 72 px render of the ground-truth program, which is the evaluation
+reference, not the input a deployed decoder sees. Re-run read-only with the deployed criterion (144 px render
+against the 144 px input, as `fast_decode.rerank` does), the two pick the same candidate on 332 of 339
+validation icons for the four seeds' greedy decodes: 0.04833 against 0.04831. The numbers stand; the label was
+wrong. The committed best-of-8 scores of the final model (validation 0.0450, test 0.0397) already use the
+deployed criterion.
+
+**Multi-model decoding does not pay.** A GraphDecoder holds one model's weights, so four models decoded one
+after another need about 1,041 decoder calls, about 1.5 s per icon median on the RTX 4080, for a validation
+score (0.048) worse than one model's best of 8 (0.0450 at 1,022 ms). A stacked one-graph decoder for K models
+might reach about 0.8 s, but it is a second implementation of the decoder step, and in the browser four models
+are four 38 MB downloads. No subset search on the examined pool helps either: the best 4 of 11 chosen on half
+the icons scores 0.0484 on the other half, against 0.0482 for the fixed four seeds. Decision: no multi-model
+decoder; best of N samples of one model stays the high-quality mode.
+
+**Latency icons are light.** Every RTX 4080 latency median in this record (v7's 381 ms, the final model's
+388 ms and 1,022 ms) is over validation icons 0-15, whose programs need a median of about 260 decoder calls,
+against about 468 over all 339 validation icons. A typical icon takes about 1.8 times as long. Latency claims
+from here on are measured over a representative sample. Each decoder call also reads the whole 1,377-slot key
+and value cache whatever the prefix length (`fast_decode.py`), a speed lever for the server and the browser.
+
+Source: a read-only investigation with an independent check of each claim
+(summarised here; the investigation scripts were session scratch and are not kept).
