@@ -1,0 +1,66 @@
+{
+  "config": "configs/latent/vt-v3-d02.yaml",
+  "git_commit": "56f4fac55dd6fc58ac4d47dd14fca9d42f894111",
+  "uncommitted_sources": [],
+  "parent_checkpoint": "/home/eai-jdkxz/eai-team11/mojidiff/cache/runs/r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604/best.pt",
+  "parent_checkpoint_sha256": "38daeca4dd27fb4c6ad337891cc976b26f7e60e2dc1285fb2a9ad78940159c50",
+  "dataset_sha256": "476466042da98d72c2bf2774cecc18f08d50a362eefbecae97904bde7a04ef0e",
+  "icons": 64,
+  "precision": "IEEE float32 greedy decoding (TF32 off: matmul and cuDNN); pixel metrics at 72 px",
+  "pca": {
+    "icons": 2681,
+    "cells": 868644,
+    "explained_variance": {
+      "1": 0.2280818370264393,
+      "2": 0.3016893183895003,
+      "4": 0.3929850127433201,
+      "8": 0.519129026163516,
+      "16": 0.6671638008956701,
+      "32": 0.8159108283748467,
+      "64": 0.9339166197195974
+    }
+  },
+  "v9_pixel_error": [
+    0.06390114573878236,
+    0.05655439254114754,
+    0.07151541183848167
+  ],
+  "rank_8": {
+    "explained_variance": 0.519129026163516,
+    "pixel_error": [
+      0.12304223270621151,
+      0.11172775737941265,
+      0.13550504664017354
+    ],
+    "minus_v9": [
+      0.059141086967429146,
+      0.04757514777520555,
+      0.07224456742042094
+    ],
+    "initial_kl_nats_per_icon": 7717.4599609375
+  },
+  "rank_16": {
+    "explained_variance": 0.6671638008956701,
+    "pixel_error": [
+      0.09505583022837527,
+      0.08597649576404365,
+      0.10572520622081356
+    ],
+    "minus_v9": [
+      0.03115468448959291,
+      0.022088724167406325,
+      0.04110437219933374
+    ],
+    "initial_kl_nats_per_icon": 15458.3388671875
+  },
+  "seconds": 44.10998907999601,
+  "float32_flags": {
+    "matmul_allow_tf32": false,
+    "cudnn_allow_tf32": false,
+    "float32_matmul_precision": "highest",
+    "tf32_cublas_override_variable": null
+  },
+  "rule": "rank-8 error <= 0.12: c = 8; else rank-16 error <= 0.12: c = 16; else no declared outcome (the operator decides)",
+  "chosen_channels": 16,
+  "rule_outcome": "rank-8 error 0.1230 > 0.12, rank-16 0.0951 <= it: c = 16"
+}

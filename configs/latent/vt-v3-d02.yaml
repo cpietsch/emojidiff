@@ -25,7 +25,7 @@ parent_checkpoint: /home/eai-jdkxz/eai-team11/mojidiff/cache/runs/r2s-cur-d02-s1
 preflight_report: reports/latent/vt-v3-d02-preflight.json
 hypothesis: >-
   A variational transcriber - the new final transcriber whose 18 x 18 stem grid passes through
-  a per-cell Gaussian latent (c = 8 channels, pending the pre-flight) held at a KL budget of
+  a per-cell Gaussian latent (c = 16 channels, chosen by the pre-flight) held at a KL budget of
   C = 2,000 nats per icon - reconstructs held-out icons from its posterior mean close to its
   parent while its latent is smooth at the posterior scale. Pass, on the first 339 validation
   icons, IEEE float32 (TF32 off) greedy decoding, 72 px pixel error, bootstrap intervals, all
@@ -41,7 +41,7 @@ pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
 # Must equal the parent checkpoint's config; the run refuses to start otherwise.
 model: {image_size: 144, d_model: 256, heads: 8, encoder_layers: 2, decoder_layers: 6, feedforward: 1024, dropout: 0.2, metric: true, fourier: 10, order: path}
 canvas:
-  channels: 8  # pending the pre-flight rule above
+  channels: 16  # the pre-flight rule: rank-8 error 0.1230 > 0.12, rank-16 0.0951 <= 0.12
   budget_nats: 2000
   beta_initial: 0.0001
   beta_min: 0.0001

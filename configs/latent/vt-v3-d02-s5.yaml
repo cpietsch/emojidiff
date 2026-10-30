@@ -1,0 +1,77 @@
+# The canvas latent, reopened on a stronger parent (Curiosity, 2026-10-30). The canvas line
+# stopped on 2026-10-03 by its declared rule: vt-v1 (c = 8) and vt-v2 (c = 16) were
+# non-inferior to v9 but did not beat retrieval-with-mirrors (A1). This is a new hypothesis,
+# not a third try of the old one: the parent is the new final transcriber
+# r2s-cur-d02-s120k-seed2 (dropout 0.2, 120k steps; validation 0.0645 in float32, test 0.0617),
+# 0.009 better than v9 on test. Everything else is vt-v1's: the canvas block, the 30k-step
+# fine-tune at lr 3e-4, the KL budget and band, and the parent's own stream (seed 7002,
+# augment_seed 9002, which this file copies field for field).
+#
+# Order of work, declared before any result:
+#   1. pre-flight on this parent (no training): `--preflight` writes `preflight_report`; the
+#      rule is vt-v1's (c = 8 if rank-8 error <= 0.12, else c = 16 if rank 16 is, else the
+#      operator decides). `channels` and the hypothesis are then set to the chosen c.
+#   2. three VT runs that differ only in seed (7002/9002, 7003/9003, 7005/9005).
+#   3. the line passes stage A if at least two of the three runs pass A1 and A3; then the flow
+#      prior (lfp-v2) is fitted on the passing run with the lowest reconstruction error.
+#      Fewer than two passing runs stops the line again; no c = 16 retry on this parent.
+#
+# Paths are the Curiosity cluster's: the line runs there end to end (pre-flight, VT, flow),
+# because the checks compare checkpoint paths as strings.
+schema_version: 1
+slug: vt-v3-d02-s5
+parent_run: r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604
+parent_checkpoint: /home/eai-jdkxz/eai-team11/mojidiff/cache/runs/r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604/best.pt
+preflight_report: reports/latent/vt-v3-d02-preflight.json
+hypothesis: >-
+  A variational transcriber - the new final transcriber whose 18 x 18 stem grid passes through
+  a per-cell Gaussian latent (c = 16 channels, chosen by the pre-flight) held at a KL budget of
+  C = 2,000 nats per icon - reconstructs held-out icons from its posterior mean close to its
+  parent while its latent is smooth at the posterior scale. Pass, on the first 339 validation
+  icons, IEEE float32 (TF32 off) greedy decoding, 72 px pixel error, bootstrap intervals, all
+  comparisons paired, requires A1 and A3; A2 is a collapse check. (A1) reconstruction from mu
+  is non-inferior to the parent re-decoded in float32 on the same icons - the upper 95% bound
+  of (VT - parent) is at most +0.015 - and beats the nearest training render or its mirror, the
+  95% interval on the reduction excluding zero. (A2) held-out KL within [0.8C, 1.2C] with beta
+  above its floor. (A3) decoding one posterior sample instead of mu costs at most 0.010 pixel
+  error, paired mean. Note: the parent was chosen as the best of four seeds on these validation
+  icons, so its score is optimistic and non-inferiority is the harder half. Decision for the
+  line (three seeds): at least two runs pass A1 and A3 - fit the flow prior; otherwise stop.
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+# Must equal the parent checkpoint's config; the run refuses to start otherwise.
+model: {image_size: 144, d_model: 256, heads: 8, encoder_layers: 2, decoder_layers: 6, feedforward: 1024, dropout: 0.2, metric: true, fourier: 10, order: path}
+canvas:
+  channels: 16  # the pre-flight rule: rank-8 error 0.1230 > 0.12, rank-16 0.0951 <= 0.12
+  budget_nats: 2000
+  beta_initial: 0.0001
+  beta_min: 0.0001
+  beta_max: 1.0
+  beta_rate: 0.01
+  kl_ema_decay: 0.9
+  band_low: 0.8
+  band_high: 1.2
+  log_variance_bias: -6.0
+  pca_icons: null  # every training render
+training:
+  steps: 30000
+  batch_size: 32
+  learning_rate: 0.0003
+  warmup_steps: 500
+  seed: 7005
+  augment_seed: 9005
+  eval_every: 2000
+  eval_icons: 64
+  # The parent's stream, field for field, with seed 7005 / augment_seed 9005.
+  augment_online: true
+  augment_original: 0.1
+  loader_workers: 16
+  compose_probability: 0.5
+  compose_parts: 4
+  augment_mirror: 0.5
+  augment_max_shift: 48
+  augment_colour: 0.1
+eval_icons: 339
+prior_samples: 64
+interpolation_pairs: 8
+interpolation_frames: 9
+non_inferiority_margin: 0.015
