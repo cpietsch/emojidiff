@@ -1,0 +1,32 @@
+# Curiosity wave 2 (B300), one change from r2s-cur-dropout02: seeds 7003 / 9003.
+# Wave 1: dropout 0.2 (r2s-cur-dropout02) reached 0.0696, ahead of every v9 run by 0.0024-0.0032
+# with intervals including zero; v9 reruns differ by up to 0.0066, so wave 2 replicates with seeds.
+schema_version: 1
+slug: r2s-cur-d02-seed3
+parent_run: r2s-cur-dropout02
+hypothesis: >-
+  With dropout 0.2 (a third seed), the model transcribes validation renders better than v9. Pass requires the paired 95% bootstrap interval on the per-icon reduction in mean
+  72 px pixel error on the 339 validation renders to exclude zero against each v9 run of
+  the same protocol (seeds 7001-7003 on the B300, the H100 rerun, the RTX 4080 original).
+  Its greedy latency on the RTX 4080 is recorded.
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+model: {image_size: 144, d_model: 256, heads: 8, encoder_layers: 2, decoder_layers: 6, feedforward: 1024, dropout: 0.2, metric: true, fourier: 10, order: path}
+training:
+  steps: 60000
+  batch_size: 32
+  seed: 7003
+  augment_seed: 9003
+  learning_rate: 0.0005
+  warmup_steps: 1000
+  eval_every: 2000
+  eval_icons: 64
+  augment_online: true
+  augment_original: 0.1
+  loader_workers: 16
+  compose_probability: 0.5
+  compose_parts: 4
+  augment_mirror: 0.5
+  augment_max_shift: 48
+  augment_colour: 0.1
+final_eval_icons: 339
+clip_icons: 32

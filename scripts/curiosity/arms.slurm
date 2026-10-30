@@ -23,6 +23,9 @@ mkdir -p "$OUT" "/tmp/mojidiff-$SLURM_JOB_ID"
 HF_TOKEN=$(cat "$HOME/.config/mojidiff/hf_token")
 export HF_TOKEN PYTHONUNBUFFERED=1 MOJIDIFF_CACHE_ROOT=$T/cache HF_HOME=$T/hf TMPDIR=/tmp/mojidiff-$SLURM_JOB_ID \
        HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 TOKENIZERS_PARALLELISM=false HF_HUB_DISABLE_PROGRESS_BARS=1
+# Each main process would otherwise start a CPU thread pool the size of the node (256) and
+# compete with 8 x 16 loader workers: wave 1 ran at load 397 on 256 threads. Scheduling only.
+export OMP_NUM_THREADS=8 MKL_NUM_THREADS=8 OPENBLAS_NUM_THREADS=8
 cd "$R" || exit 1
 registry_lines=$(wc -l < state/runs.jsonl)
 nvidia-smi --query-gpu=index,name,memory.total --format=csv,noheader
