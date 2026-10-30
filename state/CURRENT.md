@@ -27,12 +27,12 @@ where OpenMoji uses strokes, so one render had two right programs.
 
 **Direction since 2026-10-30 (operator, ~20 hours on the Curiosity cluster, 8 B300 GPUs):**
 attack the data limit, one factor per arm, paired against a v9 rerun on the same machine.
-Wave 1 (eight arms, one job): v9 rerun; second seed (noise floor); Twemoji without and with
-an emoji-set input (`model.sources`, commit 67bab78: a learned vector per set on the encoder
-memory, OpenMoji at evaluation; single-set compositions); Twemoji + set input + 8 decoder
-layers; compositions 0.8; dropout 0.2; weight decay 0.1. Wave 2: a second seed of the best
-arm, then that arm with dec8, w384, 120k steps. Wave 3: third seed, test split for the final
-winner only. 4080 latency of the winner measured locally afterwards.
+Wave 1 (findings 2026-10-30): Twemoji hurts with or without an emoji-set input
+(`model.sources`, 67bab78), compositions 0.8 hurt, weight decay is neutral, dropout 0.2 leans
+better (0.0696; +0.0024-0.0032 against three v9 runs, intervals include zero); a same-seed v9
+rerun on the B300 went bad late (0.0790). Wave 2 replicates dropout with seeds and tests it
+with dose, weight decay, depth, width and length. Wave 3: confirm the winner with seeds, test
+split for the final winner only; 4080 latency measured locally afterwards.
 
 ## Last completed action and verification
 
@@ -50,10 +50,10 @@ run by the token smoke on the cluster.
 
 ## Active jobs
 
-- Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz): wave 1,
-  job 13939 on dgx04 (8 GPUs, 67bab78, submitted 2026-10-30 ~14:00 CET, limit 6 h): v9 rerun,
-  cur-seed2, cur-twemoji, cur-twemoji-src, cur-twemoji-src-dec8, cur-compose08,
-  cur-dropout02, cur-wd01. Smokes 13938 passed (findings to follow with wave 1). Project folder
+- Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz): wave 2,
+  job 13958 on dgx04 (8 GPUs, 508979a, submitted 2026-10-30 ~17:00 CET, limit 9 h): cur-d02-seed2,
+  cur-d02-seed3, cur-seed3, cur-d03, cur-d02-wd01, cur-d02-dec8, cur-d02-w384, cur-d02-s120k.
+  Wave 1 (job 13939) recorded: findings 2026-10-30. Project folder
   `~/eai-team11/mojidiff` (checkouts `repo-<commit>`, caches, `results/<job>`). No backup
   there; storage is purged after the hackathon, so results come home after every job.
 - Token for Hugging Face: `~/.cache/huggingface/token` here, `~/.config/mojidiff/hf_token`
@@ -76,5 +76,6 @@ on WebGPU only, ONNX files under `onnx/` in the checkpoints repo, test-split ico
 
 ## Next smallest evidence-producing action
 
-When wave 1 (job 13939) returns, score each arm paired against the v9 rerun with
-`python -m mojidiff.learning.paired runs/<arm> runs/<v9 rerun>`, then launch wave 2.
+When wave 2 (job 13958) returns, pair each arm against every normal v9 run (RTX 4080 original,
+H100 rerun, B300 seeds 2 and 3; not the B300 seed-7001 outlier) with `python -m
+mojidiff.learning.paired`, and the dropout seeds against each other; then wave 3 (confirm).
