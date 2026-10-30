@@ -26,6 +26,25 @@ First reading: the node is CPU-bound, not GPU-bound. A B300 is far larger than t
 needs, so the GPUs wait for rendered batches, and the main processes compete with the
 loader workers for cores.
 
+## First lever, measured: cap each main process's CPU threads
+
+Wave 2 (job 13958, commit 508979a) sets `OMP_NUM_THREADS=8` (and MKL/OpenBLAS) for every run.
+DataLoader workers already run one thread each, so this only stops the eight main processes
+from each starting a 256-thread pool. It changes scheduling, not the computation. At about
+12 minutes, against wave 1 at the same point:
+
+| | wave 1 (no cap) | wave 2 (cap 8) |
+| --- | --- | --- |
+| node load average | 397 | 116-126 |
+| steps/s per run, v9-size arms | 9.98-10.04 | 11.76-13.37 |
+| steps/s, 8 decoder layers | 9.59 | 12.28 |
+| steps/s, width 384 | | 12.32 |
+| GPU utilization samples | 0-51% | 0 or 49-64% |
+
+About 25% more steps per hour for one environment variable. It is still below one run alone
+(about 18-19 steps/s on an H100 under the full protocol, including evaluation), so the node is
+still host-bound.
+
 ## Under investigation
 
 1. Loader: items per second per worker for originals, exact variants and compositions;
