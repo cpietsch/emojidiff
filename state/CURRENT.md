@@ -50,8 +50,10 @@ run by the token smoke on the cluster.
 
 ## Active jobs
 
-- Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz): smoke
-  job 13938 (2 GPUs: smoke-v9-w16 and smoke-cur-src on 67bab78). Project folder
+- Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz): wave 1,
+  job 13939 on dgx04 (8 GPUs, 67bab78, submitted 2026-10-30 ~14:00 CET, limit 6 h): v9 rerun,
+  cur-seed2, cur-twemoji, cur-twemoji-src, cur-twemoji-src-dec8, cur-compose08,
+  cur-dropout02, cur-wd01. Smokes 13938 passed (findings to follow with wave 1). Project folder
   `~/eai-team11/mojidiff` (checkouts `repo-<commit>`, caches, `results/<job>`). No backup
   there; storage is purged after the hackathon, so results come home after every job.
 - Token for Hugging Face: `~/.cache/huggingface/token` here, `~/.config/mojidiff/hf_token`
@@ -74,6 +76,5 @@ on WebGPU only, ONNX files under `onnx/` in the checkpoints repo, test-split ico
 
 ## Next smallest evidence-producing action
 
-If smoke 13938 renders (smoke-v9-w16 near 0.163 on 32 icons, as on the 4080 and H100) and the
-token smoke trains, submit wave 1 as one 8-GPU job on 67bab78 and score each arm with
-`python -m mojidiff.learning.paired runs/<arm> runs/<v9 rerun>`.
+When wave 1 (job 13939) returns, score each arm paired against the v9 rerun with
+`python -m mojidiff.learning.paired runs/<arm> runs/<v9 rerun>`, then launch wave 2.
