@@ -1,0 +1,3 @@
+{"step": 400, "train_loss": 3.115541458129883, "eval_nll_per_free_token": 3.096478812302215, "eval_free_token_accuracy": 0.3216420534458509, "eval_pixel_error_mean": 1.0, "elapsed_seconds": 71.53994387801504, "learning_rate": 0.0004137151834863213}
+{"step": 800, "train_loss": 2.680753231048584, "eval_nll_per_free_token": 2.718388768020394, "eval_free_token_accuracy": 0.3408052039381153, "eval_pixel_error_mean": 1.0, "elapsed_seconds": 102.91193182603456, "learning_rate": 0.0001461462467495284}
+{"step": 1200, "train_loss": 2.6939570903778076, "eval_nll_per_free_token": 2.6631923841860057, "eval_free_token_accuracy": 0.3507383966244726, "eval_pixel_error_mean": 1.0, "elapsed_seconds": 138.090653752035, "learning_rate": 0.0}

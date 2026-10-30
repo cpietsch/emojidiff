@@ -1,100 +1,79 @@
 # Current research state
 
-Updated: 2026-10-14
+Updated: 2026-10-30
 
 ## Current hypothesis and evidence
 
-The first phase (2026-08-23 to 2026-09-24, Gates A to O) established a render-safe
-typed SVG codec that round-trips all 4,006 curated OpenMoji icons, fixed hashed
-family-disjoint splits (P32/T128 bucket: 2,681 train / 339 val / 339 test), a paired
-render evaluation with bootstrap intervals, and a run registry. Its full narrative is
-`reports/findings.md`; the last long-form handoff is `reports/state-history-2026-09-24.md`.
+The first phase (2026-08-23 to 2026-09-24, Gates A to O) built a render-safe typed SVG codec
+that round-trips all 4,006 curated OpenMoji icons, fixed hashed family-disjoint splits
+(P32/T128 bucket: 2,681 train / 339 val / 339 test), a paired render evaluation with
+bootstrap intervals, and a run registry. Full narrative: `reports/findings.md`; last long
+handoff: `reports/state-history-2026-09-24.md`.
 
-That phase's models (label-conditioned generators, a denoiser, 2B-4B fine-tunes) never
-beat their no-model baselines and never measured latency; see findings through Gate O.
+The deliverable is in `AGENTS.md`. Since 2026-09-27 the direction is a small render-to-SVG
+transcriber over the codec (`mojidiff.learning.render2svg`). v9
+(`r2s-full-v9-colour-621bc8e-b26ad95e-47646604`, 9.0M parameters) is the model: 0.072 mean
+72 px pixel error on validation against 0.090 for the nearest training icon; v7, its parent,
+beats retrieval on the untouched test split (0.071 against 0.087). RTX 4080, float32: greedy
+381 ms per icon median, best of 8 1,154 ms. Browser milestone 0: WASM 881 ms per icon median
+on 32 replayed traces (findings, 2026-10-04).
 
-The deliverable is stated in `AGENTS.md`: a small fast model with a demo and a measured
-per-icon latency. The operator chose the direction on 2026-09-27: a small from-scratch
-render-to-SVG transcriber over the existing codec (`mojidiff.learning.render2svg`),
-with wider vector data, distillation, and a continuous latent model queued behind it.
+Every from-scratch result reduces to one limit: 2,681 training icons. The MUSICA sweep
+(findings, 2026-10-14) made it direct: width, depth, resolution, steps and batch all fail
+against a v9 rerun; best checkpoints come early, so extra capacity fits the training set.
+The only levers that ever moved the transcriber were data-shaped (exact augmentation,
+path order, compositions). Twemoji (v8) cost 0.015 because it writes outlines as fills
+where OpenMoji uses strokes, so one render had two right programs.
 
-Render-to-SVG evidence (339 validation icons; nearest training icon scores pixel error
-0.090; full tables in `reports/findings.md`):
-
-| run | change | pixel error | beats nearest | CLIP top-1 |
-| --- | --- | --- | --- | --- |
-| v1 | none | 0.149 | 16 | 0.22 |
-| v2 / v4 | cached / online exact variants | 0.130 / 0.121 | 50 / 62 | 0.16 / 0.25 |
-| v3 | metric coordinates | 0.106 | 138 | 0.22 |
-| v5 | + path-major order | 0.098 | 153 | 0.44 |
-| v6 | compositions (vs v4) | 0.111 | 96 | 0.31 |
-| v7 | all of the above, 60k steps | 0.077 | 225 | 0.47 bf16 / 0.63 fp32 |
-| v7 best of 8 | render-and-compare decoding | 0.057 | 298 | 0.66 |
-| v9 | palette permutation 0.1 (vs v7) | 0.072 | 227 | 0.53 bf16 |
-
-v7 (`r2s-full-v7-systems-42762c2-e9842024-47646604`, 9.0M parameters) is the final model
-by the rule declared before v8's result. On the untouched test split it beats retrieval
-greedy (pixel error 0.071 against 0.087, 244 of 339 icons) and best of 8 (0.051, 286 of
-339). Idle RTX 4080, float32, rendering included for best-of: greedy 381 ms per icon
-median, best of 4 753 ms, best of 8 1,154 ms. It keeps pixel edits as often as OmniSVG
-4B on Gate N's edit test (best of 8: 0.74 reflected against 0.70). CLIP top-1 on Gate
-N's 32 icons clears OmniSVG zero-shot (0.609) in float32 (greedy 0.63, best of 8 0.66)
-but not in the run's own bfloat16 evaluation (0.47), so v7 is recorded as falsified on
-that criterion.
-
-Other directions (findings, 2026-09-28 to 2026-10-03): wider data (v8 + Twemoji, worse
-by 0.015: fills against strokes); distillation from OmniSVG (62-86% misses the codec);
-program latents (latent-v1/v2/v3: distinct but blobby); canvas latent vt-v1/vt-v2-c16
-(stopped after two A1 failures); flow prior lfp-v1x (best sampler so far, exploratory).
+**Direction since 2026-10-30 (operator, ~20 hours on the Curiosity cluster, 8 B300 GPUs):**
+attack the data limit, one factor per arm, paired against a v9 rerun on the same machine.
+Wave 1 (eight arms, one job): v9 rerun; second seed (noise floor); Twemoji without and with
+an emoji-set input (`model.sources`, commit 67bab78: a learned vector per set on the encoder
+memory, OpenMoji at evaluation; single-set compositions); Twemoji + set input + 8 decoder
+layers; compositions 0.8; dropout 0.2; weight decay 0.1. Wave 2: a second seed of the best
+arm, then that arm with dec8, w384, 120k steps. Wave 3: third seed, test split for the final
+winner only. 4080 latency of the winner measured locally afterwards.
 
 ## Last completed action and verification
 
-2026-10-04: public release and browser milestone 0 (findings, 2026-10-04). The repo
-`cpietsch/emojidiff` is public (CC BY-SA 4.0); the weblog deploys to
-https://cpietsch.github.io/emojidiff/ from GitHub Actions (first deploy checked: pages
-return 200). Hugging Face Docker Spaces need a paid PRO account, so none was created;
-the operator chose in-browser inference. Milestone 0, replaying 32 recorded v9 greedy
-traces in headless Chrome on the 4080: WASM 4 threads 881 ms per icon median (about
-1.2 s projected over the validation set), WebGPU 1,731 ms, server 512 ms; argmax 100%
-for the float32-id export (the int64 export is wrong on WebGPU JSEP: 75.9%). An
-independent re-run matched within 2%. Full suite 321 passed, ruff and strict mypy clean
-at the release commit.
+2026-10-30: cluster bring-up. Transfer goes through the private Hugging Face dataset
+`chrispie/mojidiff-transfer` (code bundles, raw OpenMoji and Twemoji, corpus cache
+5590a1948f5f = dataset 47646604, Twemoji cache; `SHA256SUMS` checked on arrival); jobs
+return records, logs and checkpoints under `results/<job id>/` and a `DONE` file the
+workstation polls, so waiting needs no ssh. Scripts: `scripts/curiosity/setup.sh`
+(per-checkout environment, torch 2.14.1+cu130) and `scripts/curiosity/arms.slurm` (one
+config per GPU). The first smoke (job 13937) trained like the 4080 reference (loss 2.6940
+against 2.6947 at step 1,200) but every evaluation render failed: the isolated renderer's
+`python -I` ignores PYTHONPATH. Recorded as failed; fixed in 67bab78. The emoji-set input:
+ruff, strict mypy, three new tests, full pytest 327 passed; its training-loop path is first
+run by the token smoke on the cluster.
 
 ## Active jobs
 
-2026-10-13: the operator resumed MojiDiff for training on the MUSICA cluster (ASC; H100 nodes,
-about 80 credits approved), where it runs under the codename "predictable": checkout
-`$DATA/predictable/repo`, checkpoints in `$DATA/predictable/cache/runs`, job scripts and the
-record fetch helper in the operator's private cluster repo (`jobs/predictable_*.slurm`,
-`scripts/predictable_fetch.sh`). Records come back here and are committed from this machine.
-Smoke runs passed on the RTX 4080 and on one H100 node (about 14.5 steps/s per H100 against
-10.7 here; not loader-bound; same corpus file, dataset hash 47646604; Cairo 1.18.2 there).
-
-No jobs running. The MUSICA scaling sweep finished (findings 2026-10-14): no arm beats the
-v9 rerun; v9 stays the model. About 20.5 of the 80 approved credits spent.
-Local servers stay stopped; this GPU serves other work (short smoke tests allowed).
+- Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz): smoke
+  job 13938 (2 GPUs: smoke-v9-w16 and smoke-cur-src on 67bab78). Project folder
+  `~/eai-team11/mojidiff` (checkouts `repo-<commit>`, caches, `results/<job>`). No backup
+  there; storage is purged after the hackathon, so results come home after every job.
+- Token for Hugging Face: `~/.cache/huggingface/token` here, `~/.config/mojidiff/hf_token`
+  there (mode 600). It was pasted into the session; rotate it after the hackathon.
+- Local servers stay stopped; this GPU serves other work (short smoke tests allowed).
 
 ## Artifact durability
 
-- Checkpoints: v16 repairer and Gate L arm 21 `checkpoint.zip` under `data/processed/`.
-- HF weights for OmniSVG 1.1 and Qwen3.5 under `/home/dev/.cache/huggingface` (~34 GB).
-- Run records under `runs/`, registry in `state/runs.jsonl`, all committed.
-- Off-machine (2026-10-04): every checkpoint on https://huggingface.co/chrispie/mojidiff-checkpoints
-  (index `reports/checkpoints-hf.json`); code on GitHub `cpietsch/emojidiff`. Cluster runs
-  stay in `$DATA/predictable/cache` (no backup there) until copied here.
-- Browser probe (exports, Chrome harness, traces): `/home/dev/.cache/mojidiff/
-  browser-probe-2026-10-04/`; compact results in `reports/browser/m0/`.
+- Checkpoints: every pre-cluster checkpoint on https://huggingface.co/chrispie/mojidiff-checkpoints
+  (index `reports/checkpoints-hf.json`); code on GitHub `cpietsch/emojidiff`.
+- Curiosity checkpoints arrive through `chrispie/mojidiff-transfer` (`results/<job>/checkpoints`)
+  and are copied to `/home/dev/.cache/mojidiff/runs/`.
+- MUSICA runs stay in `$DATA/predictable/cache` (no backup) until copied here.
+- Browser probe: `/home/dev/.cache/mojidiff/browser-probe-2026-10-04/`; results `reports/browser/m0/`.
 
 ## Current blockers
 
-None for training. Browser demo, open with the operator: the go/no-go thresholds, best of 8 on
-WebGPU only, ONNX files under `onnx/` in the checkpoints repo, test-split icons labelled.
+None for training. Browser demo, open with the operator: the go/no-go thresholds, best of 8
+on WebGPU only, ONNX files under `onnx/` in the checkpoints repo, test-split icons labelled.
 
 ## Next smallest evidence-producing action
 
-Operator to choose (findings 2026-10-14: at 2,681 training icons the transcriber overfits
-extra capacity or compute; dec8 +0.0017 and s240k +0.0012 lean better without clearing zero):
-(a) seeds for v9, dec8 and s240k, to see whether those leanings are real (about 10 credits);
-(b) regularisation arms for the data-limited regime (more compositions, dropout, weight
-decay, stronger augmentation); (c) the canvas latent and flow prior on v9 as it is;
-(d) back to the browser milestones (findings 2026-10-04).
+If smoke 13938 renders (smoke-v9-w16 near 0.163 on 32 icons, as on the 4080 and H100) and the
+token smoke trains, submit wave 1 as one 8-GPU job on 67bab78 and score each arm with
+`python -m mojidiff.learning.paired runs/<arm> runs/<v9 rerun>`.

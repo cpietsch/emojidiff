@@ -339,3 +339,6 @@
 {"result_file":"runs/r2s-v10-s120k-5247da7-95eba274-47646604/result.md","run_id":"r2s-v10-s120k-5247da7-95eba274-47646604","state":"completed","timestamp":"2026-10-13T19:52:30Z"}
 {"result_file":"runs/r2s-v10-s240k-5247da7-4db5ead0-47646604/result.md","run_id":"r2s-v10-s240k-5247da7-4db5ead0-47646604","state":"completed","timestamp":"2026-10-13T21:39:17Z"}
 {"result_file":"runs/r2s-v10-b128-e526a4e-f66c07e7-47646604/result.md","run_id":"r2s-v10-b128-e526a4e-f66c07e7-47646604","state":"completed","timestamp":"2026-10-13T22:10:11Z"}
+{"config":"configs/render2svg/smoke-v9-w16.yaml","run_id":"r2s-smoke-v9-w16-a4d3d37-30dc1c5d-47646604","slug":"r2s-smoke-v9-w16","state":"running","timestamp":"2026-10-30T13:28:47Z"}
+{"result_file":"runs/r2s-smoke-v9-w16-a4d3d37-30dc1c5d-47646604/result.md","run_id":"r2s-smoke-v9-w16-a4d3d37-30dc1c5d-47646604","state":"completed","timestamp":"2026-10-30T13:32:46Z"}
+{"failure_reason": "evaluation_renders_all_failed_isolated_renderer_python_-I_ignores_PYTHONPATH_so_mojidiff_was_not_importable_on_the_cluster_checkout", "run_id": "r2s-smoke-v9-w16-a4d3d37-30dc1c5d-47646604", "slurm_job": "13937", "state": "failed", "superseded_by_environment_fix": "67bab78", "timestamp": "2026-10-30T13:46:40Z", "training_valid": true, "worker": "curiosity-b300"}
