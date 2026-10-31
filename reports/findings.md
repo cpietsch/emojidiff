@@ -4422,3 +4422,39 @@ single runs could not.
 reference, 7e-4 gains 0.0028; the largest single gain is on the bad seed 7004 (0.0816 to 0.0746). Compositions are
 near their best at 0.5 (0.3 costs 0.0040, 0.7 gains nothing). **Decision.** Continue the learning-rate axis: 1e-3,
 seed-matched (wave 10), queued behind the translation arm (wave 9).
+
+## 2026-10-31 — Browser milestone 1: the final model decodes free-running in Chrome, token for token as Python, 1.2 s per icon median
+
+**What changed since milestone 0** (2026-10-04, replay of recorded masks with v9): the export, the grammar and the
+decoder now live in the repository (commit 2b2ab8f, squash of the reviewed branch browser-m1) and run without any
+recorded state. `python -m mojidiff.learning.onnx_export --run <id>` writes encoder.onnx and decoder_step.onnx
+(variant B: float32 ids, growing cache, folded heads) with a manifest; `onnx_decode.py` is the ONNX Runtime
+reference under the Python grammar; `web/src` holds the JavaScript grammar (legal masks, path-major order, roles and
+labels, forced tokens), the greedy loop, the SVG codec and an onnxruntime-web/node adapter; `web/e2e` the Node and
+headless-Chrome harness (COOP/COEP server, Playwright runner). Committed fixtures hold the validation split only.
+
+**Correctness.** On 32 validation icons spread over the split (median 419 decoder calls, range 113-938), every
+token, decoder-call count and SVG byte equals the Python ONNX Runtime reference on Chrome WASM with 4 threads (twice),
+WASM with 1 thread, WebGPU (twice) and onnxruntime-node; in Node all 32 also equal torch `greedy_decode`. The
+JavaScript grammar agrees with Python at every position of 3,730 programs (all 3,359 corpus programs plus 371 decodes;
+the full set lives in the cache, the committed validation set has 710).
+
+**Latency** (final model r2s-cur-d02-s120k-seed2; RTX 4080 host, i7-13700K; Chrome for Testing 153, ONNX Runtime Web
+1.30.0; model download of 37.7 MB not included):
+
+| backend | median ms per icon | p90 | ms per call |
+| --- | --- | --- | --- |
+| Chrome WASM, 4 threads (cross-origin isolated) | 1,171 | 2,697 | 3.26 |
+| Chrome WASM, 1 thread | 1,519 | 3,447 | 4.25 |
+| Chrome WebGPU | 2,086 | 3,466 | 4.99 |
+| onnxruntime-node, CPU, 4 threads | 746 | 1,681 | 2.10 |
+
+The grammar takes under 0.5% of the time and the encoder 17 ms (WASM); the decoder steps are the cost. WASM's cost per
+call grows with the cache (1.6 ms per call on a 113-call icon, 4.2 ms on a 938-call one); WebGPU stays near 5 ms. The
+p90 is from the 32 icons and understates the split's heavy tail; the medians are representative (the old 881 ms was v9
+on 32 light, replayed icons). Details and how to reproduce: `reports/browser/m1/README.md`.
+
+**Reading.** Against milestone 0's proposed thresholds (go at a 3 s median, 3-6 s click-to-vectorise) greedy decoding
+in the browser is a go on WASM. Open: the Pages page itself (the cross-origin-isolation service worker is untested;
+without it WASM gets one thread), best of 8 in the browser, the model's 37.7 MB, and the operator's four demo
+questions (thresholds, best of 8 on WebGPU only, ONNX hosting, test-icon labels).
