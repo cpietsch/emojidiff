@@ -56,13 +56,12 @@ steps 250-300 with 64-icon evaluations inside the controls' range and are record
   degraded sets and traces under `/home/dev/.cache/mojidiff/{visual-review-2026-10-31,doodle-eval,quickdraw}/`;
   vtracer in its own venv at `/home/dev/.cache/mojidiff/tools/vtracer-venv`.
 - Speed-up and ensemble work: `/home/dev/.cache/mojidiff/{speedup,ensemble}-2026-10-30/`.
-- Code on GitHub `cpietsch/emojidiff`; local main is ahead of origin (not pushed).
+- Code on GitHub `cpietsch/emojidiff` (pushed 2026-10-31 21:10).
 
 ## Open items for the operator
 
 - Rotate the Hugging Face token (pasted into the session; stored mode 600 at
   `~/.cache/huggingface/token` and `~/.config/mojidiff/hf_token` on Curiosity).
-- Push local main to GitHub if wanted (not done).
 - Unanswered demo questions: go/no-go latency thresholds, best of 8 on WebGPU only, ONNX hosting,
   test-icon labels.
 
@@ -71,4 +70,5 @@ steps 250-300 with 64-icon evaluations inside the controls' range and are record
 The model only beats a tracer if it can draw shapes it has not memorised. Options with evidence behind
 them: best of 8 in the browser (the one visible model-side gain, 52% to 65% recognisable); a variations
 page for the dense families; or a different training signal (synthetic random-program pretraining was
-proposed, never run). Recipe arms on the transcriber are not worth more compute.
+proposed, never run). Recipe arms on the transcriber are not worth more compute. All ideas collected at the wrap-up (installation concepts,
+large-compute uses, model-side bets, what is ruled out): `reports/ideas-2026-10-31.md`.
