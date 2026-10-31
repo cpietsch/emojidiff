@@ -4575,3 +4575,26 @@ length, depth, width, compositions, translation and Twemoji are tried, and the p
 seeds (0.064 for the best of nine). Together with the visual review (gains of this size are not visible), further
 progress needs a different lever (best of 8, a different training signal), not more recipe arms. For training
 cost, lr 1e-3 for 60k steps is the cheapest way to this plateau.
+
+## 2026-10-31 — A classical tracer beats the transcriber three times over on fidelity, at 1.8 ms on a CPU
+
+**Question.** The operator asked whether this is the right approach. The obvious alternative for "emoji render
+to editable SVG" had never been measured: a classical colour tracer.
+
+**Observation** (`reports/visual/2026-10-31-tracer-baseline/`). vtracer 0.6.15 on the same 144 px inputs, scored
+with the same renderer and metric: pixel error 0.0219 (default) and 0.0246 (compact) against the final model's
+0.0642 greedy and 0.0450 best of 8; better than the model on 87% of icons; 1.8 ms per icon on a CPU against 388 ms
+on the RTX 4080. Visually the compact trace is recognisable on every icon checked, including the scenes the
+model breaks. Path counts are similar (median 7-9 against 10); files are 1.7-5x larger; outlines are filled
+rings, not strokes.
+
+**Reading.** As an image-to-SVG converter the learned transcriber is not competitive: a tool with no learning
+reproduces the input far better and 200x faster. What the model offers that the tracer cannot is structure in
+OpenMoji's own terms (strokes with a width, the 72-unit frame, the typed codec) - and that structure is only
+worth something if it is right, which the visual review says it is for about half the icons. Recipe tuning
+cannot close a 3x fidelity gap.
+
+**Decision.** This questions the deliverable's framing, so it goes to the operator: the transcription demo should
+either be measured against vtracer openly, or the model's role move to what a tracer cannot do (OpenMoji-
+structured output, e.g. turning a trace into strokes, or generation). No new cluster training until that is
+decided.
