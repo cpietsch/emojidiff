@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-10-31 12:55
+Updated: 2026-10-31 14:30
 
 ## Current hypothesis and evidence
 
@@ -48,8 +48,9 @@ the recorded run.
 - Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz). One-GPU
   jobs; job scripts ~/eai-team11/mojidiff/jobs/arms-<commit>.slurm (MODULE/EXTRA). Submit and wait
   only through scratchpad `submit_wave.sh` / `wait_jobs.sh` (bash; zsh loops broke waiters twice).
-  Running: wave 12 14121-14128 (submitted 12:20): dropout 0.2 + lr 1e-3 + 120k on seeds 7001-7008,
-  seed-matched against d02-s120k; the final-model rule below. Waves 9-11 are complete (findings 2026-10-31): translation range 64 +0.0000 [-0.0020, +0.0023].
+  Nothing running (14:25). Wave 12 done: dropout 0.2 + lr 1e-3 + 120k is level with d02-s120k
+  (-0.0009 [-0.0028, +0.0011], 4/8); the final-model rule's stage 1 failed, so the final model stays
+  and recipe tuning is closed (findings 2026-10-31). Waves 9-11 are complete (findings 2026-10-31): translation range 64 +0.0000 [-0.0020, +0.0023].
   Learning rate at 60k, seed-matched against 5e-4 (8 seeds unless noted): 3e-4 -0.0042, 7e-4
   +0.0028 [+0.0011, +0.0046], 1e-3 +0.0035 [+0.0002, +0.0066], 1.5e-3 +0.0001 (7 seeds; -0.0043
   [-0.0068, -0.0015] against 1e-3). Earlier: dropout 0.2 vs v9 +0.0039, compose 0.3 -0.0040,
@@ -87,12 +88,7 @@ on WebGPU only, ONNX files under `onnx/` in the checkpoints repo, test-split ico
 
 ## Next smallest evidence-producing action
 
-Declared before wave 11's results (11:50), applied 12:20: the recipe's learning rate is 1e-3 (the largest
-8-seed gain of 7e-4, 1e-3, 1.5e-3 over 5e-4 at 60k). Then train it with dropout
-0.2 for 120k steps on seeds 7001-7008, seed-matched against r2s-cur-d02-s120k(-seedN). Final-model
-rule: (1) the recipe's mean gain over d02-s120k has a bootstrap interval over seeds excluding zero;
-(2) if so, the candidate is the run with the lowest float32 greedy validation error (339 icons);
-(3) one test look, candidate and current final re-decoded paired: the candidate replaces the final
-model if its test error is lower, interval reported either way. Findings entries for waves 9-11
-when their last seeds land. The allocation ends about 22:45 on 2026-10-31. Browser: the Pages page (coi-serviceworker) and best of 8, pending the
-operator's four demo answers.
+Asked the operator (14:20) whether to (1) grade best-of-8 SVGs visually on the same sheets (4080, ~15 min),
+(2) measure a classical tracer (vtracer/potrace) on the same 339 icons as a reference point, and (3) use the
+remaining cluster hours (until ~22:45) for synthetic random-program pretraining aimed at the template-recall
+failure. Recommended 1 and 2; 3 only as a deliberate last bet. Browser: best of 8 and a public page.

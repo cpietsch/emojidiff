@@ -4544,3 +4544,34 @@ Per seed (48 minus 64, positive = 64 better): +0.0041, -0.0017, -0.0001, -0.0001
 **Decision.** Translation range is not a lever; it stays at 48. With the learning-rate sweep (1e-3 best) and the
 visual review (recipe gains are visually small), the remaining cluster time goes to wave 12 and its declared test
 look, not to more augmentation arms. The third attempt at seed 7 ran without incident on the re-collating loader.
+
+## 2026-10-31 — The combined recipe (dropout 0.2 + lr 1e-3 + 120k) is no better; the final model stays
+
+**Setting.** Wave 12 (Curiosity jobs 14121-14128, commit ee83881), declared in state/CURRENT.md before wave 11's
+results: dropout 0.2 with lr 1e-3 for 120k steps on seeds 7001-7008, each against r2s-cur-d02-s120k of the same
+seed (lr 5e-4). Final-model rule: (1) the recipe beats d02-s120k across seeds with a bootstrap interval excluding
+zero; (2) then its best validation run is the candidate; (3) one paired test look decides.
+
+| seed | d02-s120k (lr 5e-4) | lr 1e-3, 120k | difference | selected step |
+| --- | --- | --- | --- | --- |
+| 7001 | 0.0654 | 0.0694 | -0.0040 | 68k |
+| 7002 | 0.0641 | 0.0673 | -0.0033 | 66k |
+| 7003 | 0.0724 | 0.0709 | +0.0015 | 64k |
+| 7004 | 0.0746 | 0.0742 | +0.0004 | 104k |
+| 7005 | 0.0723 | 0.0771 | -0.0049 | 68k |
+| 7006 | 0.0764 | 0.0726 | +0.0038 | 120k |
+| 7007 | 0.0744 | 0.0735 | +0.0009 | 84k |
+| 7008 | 0.0750 | 0.0768 | -0.0017 | 52k |
+| mean | 0.0718 | 0.0727 | **-0.0009 [-0.0028, +0.0011], 4 of 8** | |
+
+**Reading.** The higher learning rate's gain at 60k (+0.0035) does not add to the gain of training longer: at 120k
+the two recipes are level, and lr 1e-3 at 60k is itself level with lr 5e-4 at 120k (+0.0011 [-0.0016, +0.0034],
+5/8). A higher rate reaches the same plateau in half the steps; it does not raise the plateau. Its selected
+checkpoints come early (52k-68k for five seeds), so the second half of training mostly overfits.
+
+**Decision.** Stage (1) of the rule fails, so the current final model (r2s-cur-d02-s120k-seed2, test 0.0617)
+stays and no test look is taken. This closes recipe tuning on the Curiosity cluster: dropout, learning rate,
+length, depth, width, compositions, translation and Twemoji are tried, and the plateau sits near 0.072 mean over
+seeds (0.064 for the best of nine). Together with the visual review (gains of this size are not visible), further
+progress needs a different lever (best of 8, a different training signal), not more recipe arms. For training
+cost, lr 1e-3 for 60k steps is the cheapest way to this plateau.

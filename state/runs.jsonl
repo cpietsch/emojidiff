@@ -594,3 +594,5 @@
 {"result_file":"runs/r2s-cur-d02-lr10-s120k-s2-ee83881-8948d8bc-47646604/result.md","run_id":"r2s-cur-d02-lr10-s120k-s2-ee83881-8948d8bc-47646604","state":"completed","timestamp":"2026-10-31T12:50:16Z"}
 {"result_file":"runs/r2s-cur-d02-lr10-s120k-s7-ee83881-b4883b0f-47646604/result.md","run_id":"r2s-cur-d02-lr10-s120k-s7-ee83881-b4883b0f-47646604","state":"completed","timestamp":"2026-10-31T12:52:52Z"}
 {"result_file":"runs/r2s-cur-d02-lr10-s120k-s4-ee83881-bc6abff9-47646604/result.md","run_id":"r2s-cur-d02-lr10-s120k-s4-ee83881-bc6abff9-47646604","state":"completed","timestamp":"2026-10-31T12:56:13Z"}
+{"config":"configs/render2svg/cur-d02-lr10-s120k-s8.yaml","run_id":"r2s-cur-d02-lr10-s120k-s8-ee83881-0c56d3c1-47646604","slug":"r2s-cur-d02-lr10-s120k-s8","state":"running","timestamp":"2026-10-31T11:53:36Z"}
+{"result_file":"runs/r2s-cur-d02-lr10-s120k-s8-ee83881-0c56d3c1-47646604/result.md","run_id":"r2s-cur-d02-lr10-s120k-s8-ee83881-0c56d3c1-47646604","state":"completed","timestamp":"2026-10-31T13:24:50Z"}
