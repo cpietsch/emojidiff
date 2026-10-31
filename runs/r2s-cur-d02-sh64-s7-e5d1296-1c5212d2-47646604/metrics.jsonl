@@ -1,0 +1,1 @@
+{"step": 2000, "train_loss": 2.334226131439209, "eval_nll_per_free_token": 2.3029155385609563, "eval_free_token_accuracy": 0.39569134612187906, "eval_pixel_error_mean": 0.13761967315804213, "elapsed_seconds": 95.33296343701659, "learning_rate": 0.0004996456739191905}

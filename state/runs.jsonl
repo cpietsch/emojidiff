@@ -528,3 +528,19 @@
 {"result_file":"runs/r2s-cur-d02-c07-s7-d42025b-277d3c62-47646604/result.md","run_id":"r2s-cur-d02-c07-s7-d42025b-277d3c62-47646604","state":"completed","timestamp":"2026-10-31T08:27:04Z"}
 {"result_file":"runs/r2s-cur-d02-lr7-s8-d42025b-fd262e81-47646604/result.md","run_id":"r2s-cur-d02-lr7-s8-d42025b-fd262e81-47646604","state":"completed","timestamp":"2026-10-31T08:31:03Z"}
 {"result_file":"runs/r2s-cur-d02-c07-s8-d42025b-33cefe1c-47646604/result.md","run_id":"r2s-cur-d02-c07-s8-d42025b-33cefe1c-47646604","state":"completed","timestamp":"2026-10-31T08:32:55Z"}
+{"config":"configs/render2svg/cur-d02-sh64-s1.yaml","run_id":"r2s-cur-d02-sh64-s1-e5d1296-78ba2ddc-47646604","slug":"r2s-cur-d02-sh64-s1","state":"running","timestamp":"2026-10-31T08:23:48Z"}
+{"config":"configs/render2svg/cur-d02-sh64-s2.yaml","run_id":"r2s-cur-d02-sh64-s2-e5d1296-34ede2c6-47646604","slug":"r2s-cur-d02-sh64-s2","state":"running","timestamp":"2026-10-31T08:24:53Z"}
+{"config":"configs/render2svg/cur-d02-sh64-s3.yaml","run_id":"r2s-cur-d02-sh64-s3-e5d1296-7f9f4726-47646604","slug":"r2s-cur-d02-sh64-s3","state":"running","timestamp":"2026-10-31T08:24:54Z"}
+{"config":"configs/render2svg/cur-d02-sh64-s4.yaml","run_id":"r2s-cur-d02-sh64-s4-e5d1296-308df9c2-47646604","slug":"r2s-cur-d02-sh64-s4","state":"running","timestamp":"2026-10-31T08:26:23Z"}
+{"config":"configs/render2svg/cur-d02-sh64-s5.yaml","run_id":"r2s-cur-d02-sh64-s5-e5d1296-8c893144-47646604","slug":"r2s-cur-d02-sh64-s5","state":"running","timestamp":"2026-10-31T08:26:29Z"}
+{"config":"configs/render2svg/cur-d02-sh64-s6.yaml","run_id":"r2s-cur-d02-sh64-s6-e5d1296-1c71590b-47646604","slug":"r2s-cur-d02-sh64-s6","state":"running","timestamp":"2026-10-31T08:27:23Z"}
+{"config":"configs/render2svg/cur-d02-sh64-s8.yaml","run_id":"r2s-cur-d02-sh64-s8-e5d1296-54eb201c-47646604","slug":"r2s-cur-d02-sh64-s8","state":"running","timestamp":"2026-10-31T08:33:14Z"}
+{"result_file":"runs/r2s-cur-d02-sh64-s1-e5d1296-78ba2ddc-47646604/result.md","run_id":"r2s-cur-d02-sh64-s1-e5d1296-78ba2ddc-47646604","state":"completed","timestamp":"2026-10-31T09:09:44Z"}
+{"result_file":"runs/r2s-cur-d02-sh64-s3-e5d1296-7f9f4726-47646604/result.md","run_id":"r2s-cur-d02-sh64-s3-e5d1296-7f9f4726-47646604","state":"completed","timestamp":"2026-10-31T09:10:58Z"}
+{"result_file":"runs/r2s-cur-d02-sh64-s2-e5d1296-34ede2c6-47646604/result.md","run_id":"r2s-cur-d02-sh64-s2-e5d1296-34ede2c6-47646604","state":"completed","timestamp":"2026-10-31T09:11:00Z"}
+{"result_file":"runs/r2s-cur-d02-sh64-s4-e5d1296-308df9c2-47646604/result.md","run_id":"r2s-cur-d02-sh64-s4-e5d1296-308df9c2-47646604","state":"completed","timestamp":"2026-10-31T09:11:29Z"}
+{"result_file":"runs/r2s-cur-d02-sh64-s5-e5d1296-8c893144-47646604/result.md","run_id":"r2s-cur-d02-sh64-s5-e5d1296-8c893144-47646604","state":"completed","timestamp":"2026-10-31T09:12:32Z"}
+{"result_file":"runs/r2s-cur-d02-sh64-s6-e5d1296-1c71590b-47646604/result.md","run_id":"r2s-cur-d02-sh64-s6-e5d1296-1c71590b-47646604","state":"completed","timestamp":"2026-10-31T09:13:44Z"}
+{"result_file":"runs/r2s-cur-d02-sh64-s8-e5d1296-54eb201c-47646604/result.md","run_id":"r2s-cur-d02-sh64-s8-e5d1296-54eb201c-47646604","state":"completed","timestamp":"2026-10-31T09:19:38Z"}
+{"config":"configs/render2svg/cur-d02-sh64-s7.yaml","run_id":"r2s-cur-d02-sh64-s7-e5d1296-1c5212d2-47646604","slug":"r2s-cur-d02-sh64-s7","state":"running","timestamp":"2026-10-31T08:31:24Z"}
+{"reason": "hung_after_a_DataLoader_worker_died_could_not_unlink_shared_memory_file_cancelled_after_76_min_rerun_with_loader_timeout_d35d12b", "run_id": "r2s-cur-d02-sh64-s7-e5d1296-1c5212d2-47646604", "slurm_job": "14072", "state": "cancelled", "timestamp": "2026-10-31T09:49:50Z", "worker": "curiosity-b300"}
