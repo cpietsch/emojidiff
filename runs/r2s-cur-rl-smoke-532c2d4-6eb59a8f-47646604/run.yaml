@@ -1,0 +1,141 @@
+schema_version: 2
+run_id: r2s-cur-rl-smoke-532c2d4-6eb59a8f-47646604
+state: completed
+planned_at: '2026-10-31T17:39:31Z'
+hypothesis: 'Smoke test: render-reward fine-tuning from the final model runs end to end (6
+  steps, 4 icons x 4 samples on the 16 GiB card).'
+parent_run: r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604
+git_commit: 532c2d4782562261abb60738a7997ab3d4bbcc86
+dirty_patch_sha256: a951c3b97bef875ec9dd2ae71b96b7952fc0d761fc4a04468cb4f5a6accd4c46
+config: configs/render2svg/cur-rl-smoke.yaml
+config_sha256: 6eb59a8f38d83b7db44b8a4e51cbec01c6571ce5bdeb50794cadd00cc1ec8129
+config_resolved:
+  model:
+    image_size: 144
+    d_model: 256
+    heads: 8
+    encoder_layers: 2
+    decoder_layers: 6
+    feedforward: 1024
+    dropout: 0.2
+    metric: true
+    fourier: 10
+    order: path
+    sources: 0
+  training:
+    steps: 6
+    batch_size: 4
+    learning_rate: 2.0e-05
+    weight_decay: 0.01
+    warmup_steps: 2
+    seed: 7001
+    eval_every: 3
+    eval_icons: 16
+    train_icons: null
+    evaluate_on_train: false
+    augment_variants: 0
+    augment_seed: 9001
+    augment_mirror: 0.5
+    augment_max_shift: 48
+    augment_colour: 0.5
+    augment_online: false
+    compose_probability: 0.0
+    compose_parts: 4
+    augment_original: 0.1
+    loader_workers: 10
+    extra_training: []
+    degrade_probability: 0.0
+    degrade_kinds:
+    - lineart
+    - sloppy
+    - flat
+    degrade_eval_seed: 0
+    init_run: r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604
+    init_sha256: 38daeca4dd27fb4c6ad337891cc976b26f7e60e2dc1285fb2a9ad78940159c50
+    rl_samples: 4
+    rl_temperature: 1.0
+    rl_anchor: 0.5
+    max_seconds: null
+    bf16: true
+  final_eval_icons: 16
+  clip_icons: 4
+dataset:
+  pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+  cache_sha256: 476466042da98d72c2bf2774cecc18f08d50a362eefbecae97904bde7a04ef0e
+  train_icons: 2681
+  augmented_variants: 0
+  extra_training: null
+  augmented_sha256: null
+  evaluated_on: primary/validation
+  evaluation_inputs: clean renders
+init:
+  run: r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604
+  checkpoint: /home/dev/.cache/mojidiff/runs/r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604/best.pt
+  sha256: 38daeca4dd27fb4c6ad337891cc976b26f7e60e2dc1285fb2a9ad78940159c50
+  step: 64000
+seed: 7001
+determinism: seeded; cuDNN and SDPA kernels not forced deterministic
+model_parameters: 9025826
+command: .venv/bin/python -m mojidiff.learning.render2svg --config configs/render2svg/cur-rl-smoke.yaml
+outputs:
+  run_dir: runs/r2s-cur-rl-smoke-532c2d4-6eb59a8f-47646604
+  checkpoints: /home/dev/.cache/mojidiff/runs/r2s-cur-rl-smoke-532c2d4-6eb59a8f-47646604
+notes: ''
+stopped_at_step: 6
+completed_at: '2026-10-31T17:40:25Z'
+resource:
+  device: NVIDIA GeForce RTX 4080
+  torch_version: 2.14.0a0+4fdf77b940.nv26.08
+  cuda_version: '13.4'
+  python_version: 3.12.3
+  peak_vram_gib: 2.6904897689819336
+  train_seconds: 20.500978632015176
+  inference_ms_per_icon: 1266.5482920128852
+  inference_p95_ms_per_icon: 1268.6366389971226
+  icons_per_second: 0.7895474703224553
+  batched_ms_per_icon: 122.37189293955453
+  batched_icons_per_call: 16
+  excludes: rendering the output SVG to pixels
+baselines:
+  blank_canvas_pixel_error: 0.18288448872044683
+  nearest_training_icon_pixel_error: 0.07745827548205853
+  gate_n_omnisvg_zero_shot_top1: 0.609375
+  nearest_training_icon_clip_top1: 0.25
+result:
+  icons: 16
+  model_pixel_error:
+  - 0.06416897277813405
+  - 0.04558524929743726
+  - 0.0830126314162044
+  model_pixel_error_median: 0.06061196327209473
+  exact_program_rate: 0.0
+  rendered_rate: 1.0
+  blank_pixel_error: 0.18288448872044683
+  selected_step: 6
+  nearest_training_icon_pixel_error:
+  - 0.07745827548205853
+  - 0.05690388170769438
+  - 0.10184130002744496
+  model_minus_baseline_error_reduction:
+  - 0.013289302703924477
+  - -0.009265280261752195
+  - 0.034862902690656485
+  icons_model_beats_baseline: 11
+  clip_retrieval:
+    model_greedy:
+      top1_rate: 1.0
+      top5_rate: 1.0
+      mean_rank: 1.0
+      clip_to_reference_mean: 0.9236414879560471
+      chance_top1: 0.25
+      icons: 4
+    nearest_training_icon:
+      top1_rate: 0.25
+      top5_rate: 1.0
+      mean_rank: 2.0
+      clip_to_reference_mean: 0.8300648927688599
+      chance_top1: 0.25
+      icons: 4
+    gate_n_omnisvg_zero_shot_top1: 0.609375
+    gate_n_omnisvg_best_of_12_top1: 0.828125
+  model_calls_per_icon: 621

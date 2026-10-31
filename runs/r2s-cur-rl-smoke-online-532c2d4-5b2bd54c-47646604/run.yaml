@@ -1,0 +1,144 @@
+schema_version: 2
+run_id: r2s-cur-rl-smoke-online-532c2d4-5b2bd54c-47646604
+state: completed
+planned_at: '2026-10-31T17:41:34Z'
+hypothesis: 'Render-reward fine-tuning of the final model for 800 steps at lr 2e-5 on the
+  d02 recipe''s online stream. Declared in state/CURRENT.md (2026-10-31 19:20): the RL arm''s
+  greedy float32 pixel error on the 339 validation renders beats the control''s, seed-matched
+  over seeds 7001-7004 with a bootstrap interval excluding zero, and the best RL run is more
+  often recognisable than the final model on the same blind visual review.'
+parent_run: r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604
+git_commit: 532c2d4782562261abb60738a7997ab3d4bbcc86
+dirty_patch_sha256: 7214a7436324fb29253c82f27b475b3e46fb836524e5c0e29b5c57357a9f6fa6
+config: configs/render2svg/cur-rl-smoke-online.yaml
+config_sha256: 5b2bd54c516cef8e82b1d397296def8f7245d7bd98253c33eca8f7ce06a6c5bc
+config_resolved:
+  model:
+    image_size: 144
+    d_model: 256
+    heads: 8
+    encoder_layers: 2
+    decoder_layers: 6
+    feedforward: 1024
+    dropout: 0.2
+    metric: true
+    fourier: 10
+    order: path
+    sources: 0
+  training:
+    steps: 6
+    batch_size: 4
+    learning_rate: 2.0e-05
+    weight_decay: 0.01
+    warmup_steps: 2
+    seed: 7001
+    eval_every: 3
+    eval_icons: 16
+    train_icons: null
+    evaluate_on_train: false
+    augment_variants: 0
+    augment_seed: 9001
+    augment_mirror: 0.5
+    augment_max_shift: 48
+    augment_colour: 0.1
+    augment_online: true
+    compose_probability: 0.5
+    compose_parts: 4
+    augment_original: 0.1
+    loader_workers: 4
+    extra_training: []
+    degrade_probability: 0.0
+    degrade_kinds:
+    - lineart
+    - sloppy
+    - flat
+    degrade_eval_seed: 0
+    init_run: r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604
+    init_sha256: 38daeca4dd27fb4c6ad337891cc976b26f7e60e2dc1285fb2a9ad78940159c50
+    rl_samples: 4
+    rl_temperature: 1.0
+    rl_anchor: 0.5
+    max_seconds: 6000
+    bf16: true
+  final_eval_icons: 16
+  clip_icons: 4
+dataset:
+  pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+  cache_sha256: 476466042da98d72c2bf2774cecc18f08d50a362eefbecae97904bde7a04ef0e
+  train_icons: 2681
+  augmented_variants: 0
+  extra_training: null
+  augmented_sha256: null
+  evaluated_on: primary/validation
+  evaluation_inputs: clean renders
+init:
+  run: r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604
+  checkpoint: /home/dev/.cache/mojidiff/runs/r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604/best.pt
+  sha256: 38daeca4dd27fb4c6ad337891cc976b26f7e60e2dc1285fb2a9ad78940159c50
+  step: 64000
+seed: 7001
+determinism: seeded; cuDNN and SDPA kernels not forced deterministic
+model_parameters: 9025826
+command: .venv/bin/python -m mojidiff.learning.render2svg --config configs/render2svg/cur-rl-smoke-online.yaml
+outputs:
+  run_dir: runs/r2s-cur-rl-smoke-online-532c2d4-5b2bd54c-47646604
+  checkpoints: /home/dev/.cache/mojidiff/runs/r2s-cur-rl-smoke-online-532c2d4-5b2bd54c-47646604
+notes: ''
+stopped_at_step: 6
+completed_at: '2026-10-31T17:42:31Z'
+resource:
+  device: NVIDIA GeForce RTX 4080
+  torch_version: 2.14.0a0+4fdf77b940.nv26.08
+  cuda_version: '13.4'
+  python_version: 3.12.3
+  peak_vram_gib: 2.6880550384521484
+  train_seconds: 20.33484890696127
+  inference_ms_per_icon: 1519.1862200153992
+  inference_p95_ms_per_icon: 1524.363096919842
+  icons_per_second: 0.6582471502340664
+  batched_ms_per_icon: 122.51662105700234
+  batched_icons_per_call: 16
+  excludes: rendering the output SVG to pixels
+baselines:
+  blank_canvas_pixel_error: 0.18288448872044683
+  nearest_training_icon_pixel_error: 0.07745827548205853
+  gate_n_omnisvg_zero_shot_top1: 0.609375
+  nearest_training_icon_clip_top1: 0.25
+result:
+  icons: 16
+  model_pixel_error:
+  - 0.06532894936390221
+  - 0.04797290363931097
+  - 0.08210613640840166
+  model_pixel_error_median: 0.06860841065645218
+  exact_program_rate: 0.0
+  rendered_rate: 1.0
+  blank_pixel_error: 0.18288448872044683
+  selected_step: 3
+  nearest_training_icon_pixel_error:
+  - 0.07745827548205853
+  - 0.05690388170769438
+  - 0.10184130002744496
+  model_minus_baseline_error_reduction:
+  - 0.012129326118156314
+  - -0.011976541666081175
+  - 0.03578556511783973
+  icons_model_beats_baseline: 11
+  clip_retrieval:
+    model_greedy:
+      top1_rate: 1.0
+      top5_rate: 1.0
+      mean_rank: 1.0
+      clip_to_reference_mean: 0.9526227116584778
+      chance_top1: 0.25
+      icons: 4
+    nearest_training_icon:
+      top1_rate: 0.25
+      top5_rate: 1.0
+      mean_rank: 2.0
+      clip_to_reference_mean: 0.8300648927688599
+      chance_top1: 0.25
+      icons: 4
+    gate_n_omnisvg_zero_shot_top1: 0.609375
+    gate_n_omnisvg_best_of_12_top1: 0.828125
+  model_calls_per_icon: 747

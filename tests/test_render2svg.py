@@ -808,3 +808,44 @@ def test_the_loader_collates_again_when_its_shared_memory_file_vanishes(
     with pytest.raises(RuntimeError, match="shared memory"):
         module._collate_retrying(items)
     assert len(calls) == module.SHARED_MEMORY_ATTEMPTS
+
+
+def test_a_true_program_scores_zero_with_the_grammar_masks_and_order(pieces: Pieces) -> None:
+    from mojidiff.learning.render2svg import score_sample
+
+    layout, programs = pieces
+    tokens = flatten_program(programs[0], layout)
+    target = render_trusted_rgb(serialize_packed_svg(programs[0], layout.codec, 128), 32)
+    error, masks, order = score_sample(tokens, target, layout, programs[0])
+    assert error < 1e-6
+    assert np.array_equal(np.packbits(masks.reshape(-1)), _masks(tokens, layout))
+    assert torch.equal(order, path_major_order(tokens, layout))
+
+
+def test_the_render_reward_loss_is_finite_and_reaches_every_trained_weight(pieces: Pieces) -> None:
+    from mojidiff.learning.render2svg import render_reward_loss
+
+    layout, programs = pieces
+    torch.manual_seed(0)
+    small = ModelConfig(
+        image_size=32, d_model=32, heads=2, encoder_layers=1, decoder_layers=1, feedforward=64
+    )
+    model = RenderToProgram(layout, small)
+    images = torch.from_numpy(
+        np.stack(
+            [
+                render_trusted_rgb(serialize_packed_svg(p, layout.codec, 128), 32)
+                for p in programs[:2]
+            ]
+        )
+    )
+    targets = images.numpy()
+    training = TrainConfig(rl_samples=3, rl_temperature=1.0)
+    loss, info = render_reward_loss(
+        model, images, targets, programs[0], training, torch.Generator().manual_seed(1), False
+    )
+    assert torch.isfinite(loss)
+    assert 0.0 <= info["rl_sample_error_best_mean"] <= info["rl_sample_error_mean"] <= 1.0
+    loss.backward()  # type: ignore[no-untyped-call]
+    grads = [p.grad for p in model.decoder.parameters() if p.requires_grad]
+    assert any(g is not None and torch.count_nonzero(g) > 0 for g in grads)

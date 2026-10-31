@@ -1,0 +1,24 @@
+# Smoke test of render-reward fine-tuning (render2svg.render_reward_loss) on the RTX 4080, before wave R1.
+schema_version: 1
+slug: r2s-cur-rl-smoke
+parent_run: r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604
+hypothesis: >-
+  Smoke test: render-reward fine-tuning from the final model runs end to end (6 steps, 4 icons x 4 samples on the 16 GiB card).
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+model: {image_size: 144, d_model: 256, heads: 8, encoder_layers: 2, decoder_layers: 6, feedforward: 1024, dropout: 0.2, metric: true, fourier: 10, order: path}
+training:
+  steps: 6
+  batch_size: 4
+  learning_rate: 0.00002
+  warmup_steps: 2
+  eval_every: 3
+  eval_icons: 16
+  augment_online: false
+  augment_variants: 0
+  rl_samples: 4
+  rl_temperature: 1.0
+  rl_anchor: 0.5
+  init_run: r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604
+  init_sha256: 38daeca4dd27fb4c6ad337891cc976b26f7e60e2dc1285fb2a9ad78940159c50
+final_eval_icons: 16
+clip_icons: 4

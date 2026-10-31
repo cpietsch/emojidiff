@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-10-31 17:30 — wrapped up at the operator's request
+Updated: 2026-10-31 18:45 — wrapped up at 17:30; reopened at 18:30 for one bet on the remaining cluster hours
 
 ## Where the project stands
 
@@ -37,9 +37,15 @@ The recurring check-in loop was cancelled.
 
 ## Active jobs
 
-None. Curiosity (allocation ends about 22:45 on 2026-10-31) is idle; nothing local runs. The demo
-server and the Cloudflare tunnel were closed at the operator's request; restart with
-`node web/demo/serve.mjs --model DIR --reference DIR [--doodle DIR]` (header of `web/demo/serve.mjs`).
+Wave R1, render-reward RL (operator's choice, 18:30): 8 one-GPU Curiosity jobs from the final model, 800 steps
+at lr 2e-5 on the d02 recipe's online stream, seeds 7001-7004 in two arms that differ only in rl_samples:
+RL (16 icons x 8 samples per step, reward minus pixel error against the clean render, group-normalised
+advantages, plus 0.5 x the supervised loss; `render2svg.render_reward_loss`) and a supervised-only control.
+Declared before results (18:45): (1) RL's greedy float32 pixel error on the 339 validation renders beats the
+control's, seed-matched with a bootstrap interval excluding zero; (2) the best RL run (lowest validation
+error) is recognisable more often than the final model's 52% on the same blind visual review. Both pass:
+the RL model becomes a candidate for the demo. (1) fails: RL adds nothing over continued training; stop.
+Smoke runs on the RTX 4080: r2s-cur-rl-smoke-*. The allocation ends about 22:45.
 
 ## Artifact durability
 

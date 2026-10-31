@@ -164,6 +164,16 @@ class TrainConfig:
     """Start from this run's best.pt (fine-tuning) instead of random weights."""
     init_sha256: str | None = None
     """The sha256 that `init_run`'s best.pt must have."""
+    rl_samples: int = 0
+    """Render-reward fine-tuning (`render_reward_loss`) when above 0: candidates sampled
+    per training icon of the batch, rewarded by minus their pixel error against the icon's
+    clean target (the batch's true program rendered at the evaluation size, so online
+    variants and compositions work), with advantages normalised within each icon's group."""
+    rl_temperature: float = 1.0
+    rl_anchor: float = 0.5
+    """Weight of the supervised loss on the batch's true programs next to the reward term."""
+    max_seconds: float | None = None
+    """Stop training after this many seconds (the selected checkpoint is still evaluated)."""
     bf16: bool = True
 
 
@@ -2058,6 +2068,98 @@ def _write_yaml(path: Path, value: dict[str, Any]) -> None:
     path.write_text(yaml.safe_dump(plain, sort_keys=False, width=88, allow_unicode=True))
 
 
+def render_targets(
+    tokens: Tensor, layout: SequenceLayout, template: PackedTensorProgram
+) -> np.ndarray:
+    """(B, 72, 72, 3) renders of the batch's true programs: the reward's references."""
+
+    return np.stack(
+        [
+            render_trusted_rgb(
+                serialize_packed_svg(
+                    unflatten_program(row, template, layout),
+                    layout.codec,
+                    layout.total_segment_slots,
+                ),
+                EVAL_SIZE,
+            )
+            for row in tokens
+        ]
+    )
+
+
+def score_sample(
+    tokens: Tensor, target: np.ndarray, layout: SequenceLayout, template: PackedTensorProgram
+) -> tuple[float, np.ndarray, Tensor]:
+    """One sampled program: its pixel error against `target` (1.0 when it does not render),
+    its legal masks and its path-major order, as the grammar saw them while sampling."""
+
+    try:
+        svg = serialize_packed_svg(
+            unflatten_program(tokens, template, layout), layout.codec, layout.total_segment_slots
+        )
+        error = pixel_error(render_trusted_rgb(svg, int(target.shape[0])), target)
+    except (ValueError, IsolatedRenderError):
+        error = 1.0
+    return (
+        float(error),
+        program_legal_masks(tokens, layout),
+        path_major_order(tokens, layout),
+    )
+
+
+def render_reward_loss(
+    model: RenderToProgram,
+    images: Tensor,
+    targets: np.ndarray,
+    template: PackedTensorProgram,
+    training: TrainConfig,
+    generator: torch.Generator,
+    bf16: bool,
+) -> tuple[Tensor, dict[str, float]]:
+    """Group-relative policy-gradient loss from rendered rewards (GRPO without a critic).
+
+    Each of the B icons gets `training.rl_samples` programs sampled under the grammar with
+    dropout off; each is rendered at the target size and rewarded by minus its pixel error
+    against the clean target. Advantages are the rewards standardised within each icon's
+    group. The loss is minus the advantage times the program's log-probability (summed over
+    free positions, divided by the batch's mean count of free positions), re-computed with
+    gradients on the same masks and order the sampler used."""
+
+    layout = model.layout
+    device = images.device
+    k = training.rl_samples
+    repeated = images.repeat_interleave(k, dim=0)
+    model.eval()
+    with torch.no_grad(), torch.autocast("cuda", dtype=torch.bfloat16, enabled=bf16):
+        sampled = greedy_decode(
+            model, repeated, temperature=training.rl_temperature, generator=generator
+        )
+    scored = [score_sample(row, targets[i // k], layout, template) for i, row in enumerate(sampled)]
+    errors = np.array([s[0] for s in scored], dtype=np.float64).reshape(-1, k)
+    rewards = -errors
+    advantages = (rewards - rewards.mean(axis=1, keepdims=True)) / (
+        rewards.std(axis=1, keepdims=True) + 1e-3
+    )
+    masks = torch.from_numpy(np.stack([s[1] for s in scored])).to(device)
+    orders = torch.stack([s[2] for s in scored]).to(device)
+    tokens = sampled.to(device)
+    sets = torch.zeros(len(tokens), dtype=torch.long, device=device)
+    with torch.autocast("cuda", dtype=torch.bfloat16, enabled=bf16):
+        logits = model(repeated, tokens, orders, sets)
+    log_probs = torch.log_softmax(logits.float().masked_fill(~masks, float("-inf")), dim=-1)
+    picked = log_probs.gather(-1, tokens[..., None]).squeeze(-1)
+    free = masks.sum(dim=-1) > 1
+    picked = torch.where(free, picked, torch.zeros_like(picked))
+    sequence = picked.sum(dim=1) / free.sum(dim=1).float().mean().clamp(min=1.0)
+    weight = torch.from_numpy(advantages.reshape(-1)).to(device=device, dtype=sequence.dtype)
+    loss = -(weight * sequence).mean()
+    return loss, {
+        "rl_sample_error_mean": float(errors.mean()),
+        "rl_sample_error_best_mean": float(errors.min(axis=1).mean()),
+    }
+
+
 def load_init(
     model: RenderToProgram,
     model_config: ModelConfig,
@@ -2226,7 +2328,10 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
     best_error = float("inf")
     best_step = 0
     reset_peak_memory(device)
+    rl_generator = torch.Generator(device=device).manual_seed(config.training.seed)
+    rl_history: list[float] = []
     started = time.perf_counter()
+    stopped_at = config.training.steps
     try:
         for step in range(1, config.training.steps + 1):
             model.train()
@@ -2245,12 +2350,33 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
             loss = F.cross_entropy(
                 logits.float().masked_fill(~masks, float("-inf"))[free], tokens[free]
             )
+            objective = loss
+            if config.training.rl_samples > 0:
+                reward_loss, rl_info = render_reward_loss(
+                    model,
+                    images,
+                    render_targets(tokens.cpu(), layout, template),
+                    template,
+                    config.training,
+                    rl_generator,
+                    bf16,
+                )
+                rl_history.append(rl_info["rl_sample_error_mean"])
+                objective = reward_loss + config.training.rl_anchor * loss
             optimizer.zero_grad(set_to_none=True)
-            loss.backward()  # type: ignore[no-untyped-call]
+            objective.backward()  # type: ignore[no-untyped-call]
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             optimizer.step()
             scheduler.step()
-            if step % config.training.eval_every == 0 or step == config.training.steps:
+            out_of_time = (
+                config.training.max_seconds is not None
+                and time.perf_counter() - started > config.training.max_seconds
+            )
+            if (
+                step % config.training.eval_every == 0
+                or step == config.training.steps
+                or out_of_time
+            ):
                 nll, accuracy = teacher_forced_loss(
                     model, evaluation, device, config.training.eval_icons, bf16, evaluation_orders
                 )
@@ -2271,6 +2397,9 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
                     "elapsed_seconds": time.perf_counter() - started,
                     "learning_rate": scheduler.get_last_lr()[0],
                 }
+                if rl_history:
+                    window = rl_history[-config.training.eval_every :]
+                    entry["rl_sample_error_mean"] = float(np.mean(window))
                 with metrics_path.open("a") as handle:
                     handle.write(json.dumps(entry) + "\n")
                 print(json.dumps(entry), flush=True)
@@ -2282,11 +2411,15 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
                         {"model": model.state_dict(), "step": step, "config": asdict(config.model)},
                         checkpoint_dir / "best.pt",
                     )
+            if out_of_time:
+                stopped_at = step
+                break
+        record["stopped_at_step"] = stopped_at
         torch.save(
             {
                 "model": model.state_dict(),
                 "optimizer": optimizer.state_dict(),
-                "step": config.training.steps,
+                "step": stopped_at,
                 "config": asdict(config.model),
             },
             checkpoint_dir / "latest.pt",
