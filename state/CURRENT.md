@@ -48,9 +48,9 @@ the recorded run.
 - Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz). One-GPU
   jobs; job scripts ~/eai-team11/mojidiff/jobs/arms-<commit>.slurm (MODULE/EXTRA). Submit and wait
   only through scratchpad `submit_wave.sh` / `wait_jobs.sh` (bash; zsh loops broke waiters twice).
-  Running (seed-matched over seeds 7001-7008 against dropout 0.2 at 60k): wave 9 seed 7 rerun 14089
-  (translation 16 view units; 7 seeds -0.0008 [-0.0024, +0.0011]), wave 10 seed 8 14082 (lr 1e-3;
-  7 seeds +0.0044 [+0.0014, +0.0074], +0.0012 n.s. over 7e-4), wave 11 14099-14106 (lr 1.5e-3,
+  Running (seed-matched over seeds 7001-7008 against dropout 0.2 at 60k): wave 9 seed 7
+  (translation 16 view units; 7 seeds -0.0008 [-0.0024, +0.0011]; 14089 failed, rerun 14107), wave 10 done (lr 1e-3, 8 seeds:
+  +0.0035 [+0.0002, +0.0066], 6/8; over 7e-4 +0.0007 [-0.0013, +0.0026]), wave 11 14099-14106 (lr 1.5e-3,
   submitted 11:25). Earlier (findings 2026-10-31): dropout 0.2 vs v9 +0.0039 (8 pairs), lr 7e-4
   +0.0028, lr 3e-4 -0.0042, compose 0.3 -0.0040, compose 0.7 -0.0013 (n.s.), 120k vs 60k +0.0024.
 - Browser milestone 1 merged (2b2ab8f, squash of browser-m1; findings 2026-10-31): the final model
