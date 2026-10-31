@@ -4669,3 +4669,5 @@ are removed (branches kept), the cluster is idle, and the open items are in stat
 Face token, push to GitHub if wanted). Recipe arms are not worth more compute; if the project resumes, the
 evidence points to best of 8 in the browser, a variations page for the dense families, or a training signal that
 teaches drawing unfamiliar shapes.
+
+The lessons drawn from the whole project are written up in `reports/learnings-2026-10-31.md`.
