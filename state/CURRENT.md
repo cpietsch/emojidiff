@@ -46,15 +46,12 @@ the recorded run.
 ## Active jobs
 
 - Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz). One-GPU
-  jobs; job scripts ~/eai-team11/mojidiff/jobs/arms-<commit>.slurm (MODULE/EXTRA since the
-  vt-v3 commit). Running: 14010-14013 cur-d02-s120k-seed6..9 (seed pool), 14014
-  cur-diag-init7004, 14015 cur-diag-aug9004 (is seed 4's badness its initialisation or its
-  stream?), 14016/14017 cur-d025-s120k-seed5/6. Queued: vt-v3-d02 pre-flight
-  (MODULE=pixel_latent, EXTRA=--preflight); its report comes home under results/<job>/reports/,
-  then the channel rule sets `channels` and three VT seeds run (configs/latent/vt-v3-d02.yaml
-  declares the order and the stage-A rule). Jobs sharing a checkout upload each other's
-  partial run dirs: take each run's record from the job that ran it (the copy with
-  stdout.log); `scratchpad/collect.py` does this.
+  jobs; job scripts ~/eai-team11/mojidiff/jobs/arms-<commit>.slurm (MODULE/EXTRA). Running or
+  queued at 01:00: 14016/14017 cur-d025-s120k-seed5/6; wave 6 (seed counts, --nice=100)
+  14024-14031 cur-seed5..8 and cur-d02-seed5..8; 14032 lfp-v2x-exploratory (flow prior on
+  vt-v3-d02-s5; queued ahead of wave 6). vt-v3-d02 stage A stopped the canvas line (findings
+  2026-10-31). Jobs sharing a checkout upload each other's partial run dirs: take each run's
+  record from the job that ran it; `scratchpad/collect.py` does this.
 - Browser milestone 1: workflow `browser-milestone-1` (agents in their own git worktrees,
   branches browser-m1-python, browser-m1-js, then browser-m1) builds the in-repo ONNX export
   with parity tests, the JS grammar and decoder with Node parity tests, and measures the new
@@ -82,6 +79,7 @@ on WebGPU only, ONNX files under `onnx/` in the checkpoints repo, test-split ico
 
 ## Next smallest evidence-producing action
 
-Pre-flight result -> set vt-v3 channels and hypothesis -> three VT seeds on the cluster. Merge
-the browser milestone when its workflow's final review passes. Score wave 5/5b when they land
-(seed pool, the seed-4 diagnosis, dropout 0.25 at 120k seeds 5-6).
+When lfp-v2x lands: bring its checkpoints home, add gallery entries (canvas, canvas-flow), score
+B1-B5 with latent_metrics on the RTX 4080 (two reports), findings. When wave 6 lands: the dropout
+effect over eight seeds per arm (findings: seed analysis, incl. the seed-4 training-seed result).
+Merge the browser milestone when its workflow's final review passes.
