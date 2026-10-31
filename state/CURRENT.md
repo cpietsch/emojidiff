@@ -46,12 +46,13 @@ the recorded run.
 ## Active jobs
 
 - Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz). One-GPU
-  jobs; job scripts ~/eai-team11/mojidiff/jobs/arms-<commit>.slurm (MODULE/EXTRA). Running or
-  queued at 01:00: 14016/14017 cur-d025-s120k-seed5/6; wave 6 (seed counts, --nice=100)
-  14024-14031 cur-seed5..8 and cur-d02-seed5..8; 14032 lfp-v2x-exploratory (flow prior on
-  vt-v3-d02-s5; queued ahead of wave 6). vt-v3-d02 stage A stopped the canvas line (findings
-  2026-10-31). Jobs sharing a checkout upload each other's partial run dirs: take each run's
-  record from the job that ran it; `scratchpad/collect.py` does this.
+  jobs; job scripts ~/eai-team11/mojidiff/jobs/arms-<commit>.slurm (MODULE/EXTRA). Running at
+  01:45: wave 6 (seed counts, --nice=100) 14024-14031 cur-seed5..8 and cur-d02-seed5..8, the
+  seed-matched dropout comparison (training seed carries the run-to-run variance: seed 7004 is
+  bad in 5 of 5 runs, its stream alone is not). The canvas line is stopped (vt-v3 stage A) and
+  the exploratory flow lfp-v2x is scored (findings 2026-10-31). Jobs sharing a checkout upload
+  each other's partial run dirs: take each run's record from the job that ran it;
+  `scratchpad/collect.py` does this.
 - Browser milestone 1: workflow `browser-milestone-1` (agents in their own git worktrees,
   branches browser-m1-python, browser-m1-js, then browser-m1) builds the in-repo ONNX export
   with parity tests, the JS grammar and decoder with Node parity tests, and measures the new
@@ -79,7 +80,7 @@ on WebGPU only, ONNX files under `onnx/` in the checkpoints repo, test-split ico
 
 ## Next smallest evidence-producing action
 
-When lfp-v2x lands: bring its checkpoints home, add gallery entries (canvas, canvas-flow), score
-B1-B5 with latent_metrics on the RTX 4080 (two reports), findings. When wave 6 lands: the dropout
-effect over eight seeds per arm (findings: seed analysis, incl. the seed-4 training-seed result).
-Merge the browser milestone when its workflow's final review passes.
+When wave 6 lands (~02:20): the dropout effect over eight seed-matched pairs (findings: the seed
+analysis, incl. the seed-4 training-seed result and the nine-seed 120k pool). Merge the browser
+milestone when its workflow's final review passes. Then choose the next cluster use (the canvas
+design is exhausted at this data scale).
