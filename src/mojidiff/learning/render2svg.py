@@ -1086,6 +1086,13 @@ class OnlineAugmentation(
             yield torch.from_numpy(image), variant, self.masks[index], order, self._source(index)
 
 
+LOADER_TIMEOUT_SECONDS = 900
+"""How long the training loop waits for one batch from the loader workers. A worker that dies
+(on the cluster, a shared-memory file removed under it) otherwise leaves the run waiting
+forever on its GPU; with a timeout the run fails and is recorded as failed. A healthy batch
+takes well under a second."""
+
+
 Batch = tuple[Tensor, Tensor, Tensor, Tensor | None, Tensor, Tensor]
 """(images, tokens, masks, orders or None, source icon indices or -1, emoji sets)."""
 
@@ -1125,6 +1132,7 @@ def _online_batches(
         num_workers=config.loader_workers,
         persistent_workers=config.loader_workers > 0,
         prefetch_factor=8 if config.loader_workers > 0 else None,
+        timeout=LOADER_TIMEOUT_SECONDS if config.loader_workers > 0 else 0,
     )
     shape = (layout.length, layout.vocabulary)
     for images, tokens, packed, orders, sets in loader:

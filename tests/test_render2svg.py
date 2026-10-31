@@ -643,3 +643,38 @@ def test_evaluation_files_name_the_checkpoint_and_decoder() -> None:
     assert output_stem("test", "latest", 8) == "eval-test-latest-rerank8"
     with pytest.raises(ValueError, match="unknown checkpoint"):
         output_stem("validation", "final")
+
+
+def test_the_online_loader_gives_up_on_a_dead_worker(
+    pieces: Pieces, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """With loader workers, the DataLoader carries a timeout, so a worker that dies leaves the
+    run failing instead of waiting forever; without workers there is nothing to wait for."""
+
+    import mojidiff.learning.render2svg as module
+
+    layout, programs = pieces
+    seen: list[dict[str, object]] = []
+
+    class Recording:
+        def __init__(self, dataset: object, **kwargs: object) -> None:
+            seen.append(kwargs)
+
+        def __iter__(self) -> object:
+            return iter(())
+
+    monkeypatch.setattr(torch.utils.data, "DataLoader", Recording)
+    rows = [flatten_program(p, layout) for p in programs]
+    train = module.SplitData(
+        hexcodes=["a", "b", "c"],
+        tokens=torch.stack(rows),
+        masks=np.stack([_masks(r, layout) for r in rows]),
+        images=torch.zeros((3, 32, 32, 3), dtype=torch.uint8),
+        targets=torch.zeros((3, 72, 72, 3), dtype=torch.uint8),
+        shape=(layout.length, layout.vocabulary),
+    )
+    for workers, timeout in ((4, module.LOADER_TIMEOUT_SECONDS), (0, 0)):
+        config = TrainConfig(loader_workers=workers)
+        list(module._online_batches(train, layout, programs[0], 32, config))
+        assert seen[-1]["timeout"] == timeout
+    assert 0 < module.LOADER_TIMEOUT_SECONDS
