@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-10-31 14:30
+Updated: 2026-10-31 15:00
 
 ## Current hypothesis and evidence
 
@@ -88,7 +88,8 @@ on WebGPU only, ONNX files under `onnx/` in the checkpoints repo, test-split ico
 
 ## Next smallest evidence-producing action
 
-Asked the operator (14:20) whether to (1) grade best-of-8 SVGs visually on the same sheets (4080, ~15 min),
-(2) measure a classical tracer (vtracer/potrace) on the same 339 icons as a reference point, and (3) use the
-remaining cluster hours (until ~22:45) for synthetic random-program pretraining aimed at the template-recall
-failure. Recommended 1 and 2; 3 only as a deliberate last bet. Browser: best of 8 and a public page.
+Decision for the operator (asked 15:00): vtracer, a classical tracer, beats the transcriber 3x on pixel error
+(0.022 vs 0.064; findings 2026-10-31, reports/visual/2026-10-31-tracer-baseline/) at 1.8 ms on a CPU. Either
+measure the demo openly against vtracer, or move the model's role to what a tracer cannot do (OpenMoji-
+structured output: strokes, the 72-unit frame; or generation). No new cluster training until decided; the
+cluster is idle with ~7.5 h left. Best-of-8 SVGs for the 339 icons are being generated on the 4080.
