@@ -1,0 +1,6 @@
+{
+  "checkpoint_best": "/home/eai-jdkxz/eai-team11/mojidiff/cache/runs/r2s-cur-d02-lr10-s6-fd78355-566636e7-47646604/best.pt",
+  "checkpoint_latest": "/home/eai-jdkxz/eai-team11/mojidiff/cache/runs/r2s-cur-d02-lr10-s6-fd78355-566636e7-47646604/latest.pt",
+  "samples": "samples.png (rows: reference, model, nearest training icon)",
+  "per_icon": "per_icon.jsonl"
+}
