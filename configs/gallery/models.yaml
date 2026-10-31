@@ -23,12 +23,6 @@
 
 schema_version: 1
 models:
-- id: d02
-  run_id: r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604
-  kind: transcriber
-  label: final (dropout 0.2)
-  description: v9 recipe with dropout 0.2, 120k steps, best of nine seeds; test 0.0617 (v7 0.0710)
-
 - id: v9
   run_id: r2s-full-v9-colour-621bc8e-b26ad95e-47646604
   kind: transcriber
@@ -88,20 +82,6 @@ models:
   kind: transcriber
   label: overfit fixture
   description: trained on 4 icons only - draws one of them whatever you show it
-
-- id: lf2
-  run_id: lfp-v2x-exploratory-a8cbfdc-d2e9869c-47646604
-  kind: latent
-  backend: canvas-flow
-  label: canvas flow v2
-  description: flow prior over the c = 16 canvas latent on the final transcriber (exploratory - its canvas missed A1 by 0.0002)
-
-- id: c3
-  run_id: vt-v3-d02-s5-d05a169-0112d238-47646604
-  kind: latent
-  backend: canvas
-  label: canvas v3, plain noise
-  description: the c = 16 canvas latent on the final transcriber, sampled from N(0, I) - the control for flow v2
 
 - id: lf1
   run_id: lfp-v1x-exploratory-81eb2e2-5ae4d777-47646604
