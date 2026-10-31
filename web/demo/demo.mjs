@@ -4,6 +4,12 @@
 // `python -m mojidiff.learning.web_e2e --icons 339`, whose Python decodes the ticks compare to.
 //
 // Query: ep=wasm|webgpu (default wasm)  threads=N (WASM threads, default 4; 1 without isolation)
+//
+// On WASM each ONNX Runtime call runs synchronously on this thread, so the page yields to the
+// browser (a frame, then a task) before every icon, outside the timed window: cards appear one
+// by one, Stop is seen between icons, and clicks made during an icon land while the buttons are
+// still disabled. The stats tiles count validation icons only; the session's first decode is
+// warm-up and stays out of the latency tiles.
 import { tokensToSvg } from "../src/codec.mjs";
 import { greedyDecode } from "../src/decode.mjs";
 import { createGrammar } from "../src/grammar.mjs";
@@ -16,11 +22,12 @@ const threads = Number(q.get("threads") || 4);
 const $ = id => document.getElementById(id);
 const now = () => performance.now();
 const status = html => { $("status").innerHTML = html; };
+const showError = text => { $("error").textContent = text; $("error").hidden = !text; };
 const buttons = ["next", "eight", "all"];
 
 let model, grammar, codec, reference, images, size, pixels;
-let queue = [], done = new Set(), busy = false, stopping = false;
-const rows = [];
+let queue = [], busy = false, stopping = false, loaded = false;
+const done = new Set(), rows = [];
 
 async function json(url) {
   const response = await fetch(url);
@@ -28,8 +35,20 @@ async function json(url) {
   return response.json();
 }
 
+/** A task boundary that queues behind waiting input and timers. Not scheduler.yield: Chrome
+ * runs its continuation ahead of other tasks, so a batch starved clicks and timers anyway. */
+function yieldTask() {
+  return new Promise(resolve => setTimeout(resolve, 0));
+}
+
+/** Let the browser paint what changed (a frame, then a task after it), then go on. */
+async function yieldToBrowser() {
+  if (!document.hidden) await new Promise(resolve => requestAnimationFrame(() => resolve()));
+  await yieldTask();
+}
+
 function spreadOrder(n) {
-  // Bit-reversal-like spread: halves, then quarters, so any prefix covers the split.
+  // Halves, then quarters, and so on, so any prefix covers the split; every index once.
   const order = [], seen = new Set();
   for (let step = n; step >= 1; step = Math.floor(step / 2)) {
     for (let i = 0; i < n; i += step) if (!seen.has(i)) { seen.add(i); order.push(i); }
@@ -73,8 +92,7 @@ function card(title) {
 }
 
 function showResult(element, svg, result, title) {
-  const blob = new Blob([svg], { type: "image/svg+xml" });
-  const url = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
   const img = document.createElement("img");
   img.alt = `SVG written by the model for ${title}`;
   img.src = url;
@@ -85,18 +103,26 @@ function showResult(element, svg, result, title) {
   link.textContent = `SVG (${(svg.length / 1024).toFixed(1)} kB)`;
 }
 
+function showFailure(element, error) {
+  const pending = element.querySelector(".pending");
+  if (pending) { pending.textContent = "failed"; pending.classList.add("no"); }
+  const mark = element.querySelector(".check");
+  mark.className = "check no";
+  mark.textContent = String((error && error.message) || error);
+}
+
 function updateStats() {
-  const measured = rows.filter(r => !r.cold);
-  const pool = measured.length ? measured : rows;
-  $("stats").hidden = rows.length === 0;
-  $("s-n").textContent = rows.length;
-  if (!pool.length) return;
-  const ms = pool.map(r => r.ms), calls = pool.map(r => r.calls);
-  $("s-med").textContent = Math.round(quantile(ms, 0.5)).toLocaleString();
-  $("s-p90").textContent = pool.length >= 5 ? Math.round(quantile(ms, 0.9)).toLocaleString() : "–";
-  $("s-calls").textContent = Math.round(quantile(calls, 0.5));
-  const checked = rows.filter(r => r.identical !== null);
-  $("s-same").textContent = checked.length ? `${checked.filter(r => r.identical).length} / ${checked.length}` : "–";
+  const validation = rows.filter(r => r.kind === "validation");
+  const warm = validation.filter(r => !r.cold);
+  $("stats").hidden = validation.length === 0;
+  $("s-n").textContent = validation.length;
+  const cold = validation.find(r => r.cold);
+  $("s-cold").textContent = cold ? `first icon ${Math.round(cold.ms).toLocaleString()} ms with warm-up, not counted` : "";
+  $("s-med").textContent = warm.length ? Math.round(quantile(warm.map(r => r.ms), 0.5)).toLocaleString() : "–";
+  $("s-p90").textContent = warm.length >= 5 ? Math.round(quantile(warm.map(r => r.ms), 0.9)).toLocaleString() : "–";
+  $("s-warm").textContent = warm.length ? `over ${warm.length} icon${warm.length === 1 ? "" : "s"}` : "after warm-up";
+  $("s-calls").textContent = validation.length ? Math.round(quantile(validation.map(r => r.calls), 0.5)) : "–";
+  $("s-same").textContent = validation.length ? `${validation.filter(r => r.identical).length} / ${validation.length}` : "–";
 }
 
 async function decode(image) {
@@ -110,67 +136,105 @@ async function decode(image) {
 async function runIndex(k) {
   const ref = reference.icons[k];
   const image = images.subarray(k * pixels, (k + 1) * pixels);
-  const title = ref.hexcode;
-  const element = card(title);
+  const element = card(ref.hexcode);
   drawRender(element.querySelector("canvas"), image);
-  const result = await decode(image);
+  await yieldToBrowser();
+  let result;
+  try {
+    result = await decode(image);
+  } catch (error) {
+    showFailure(element, error);
+    throw error;
+  }
   const check = compareIcon(result.tokens, result.svg, result.calls, ref);
-  showResult(element, result.svg, result, title);
+  showResult(element, result.svg, result, ref.hexcode);
   const mark = element.querySelector(".check");
   mark.className = "check " + (check.identical ? "ok" : "no");
   mark.textContent = check.identical ? "✓ tokens equal Python's" : `✗ differs from Python at position ${check.first_difference}`;
-  rows.push({ ms: result.ms, calls: result.calls, identical: check.identical, cold: rows.length === 0 });
+  rows.push({ kind: "validation", ms: result.ms, calls: result.calls, identical: check.identical, cold: rows.length === 0 });
   done.add(k);
   updateStats();
 }
 
-async function runFile(file) {
-  const bitmap = await createImageBitmap(file);
-  const canvas = document.createElement("canvas");
-  canvas.width = size; canvas.height = size;
-  const context = canvas.getContext("2d");
-  context.fillStyle = "#fff";
-  context.fillRect(0, 0, size, size);
-  const scale = Math.min(size / bitmap.width, size / bitmap.height);
-  const w = bitmap.width * scale, h = bitmap.height * scale;
-  context.drawImage(bitmap, (size - w) / 2, (size - h) / 2, w, h);
-  const rgba = context.getImageData(0, 0, size, size).data;
-  const image = new Uint8Array(pixels);
-  for (let p = 0, o = 0; p < pixels; p += 3, o += 4) {
-    image[p] = rgba[o]; image[p + 1] = rgba[o + 1]; image[p + 2] = rgba[o + 2];
+/** The viewer's file as the encoder's input: composited on white, fitted into size x size. */
+async function fileToRender(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const canvas = document.createElement("canvas");
+    canvas.width = size; canvas.height = size;
+    const context = canvas.getContext("2d");
+    context.fillStyle = "#fff";
+    context.fillRect(0, 0, size, size);
+    context.imageSmoothingQuality = "high";
+    // An SVG with only a viewBox may report no natural size: draw it at the full canvas.
+    const width = img.naturalWidth || size, height = img.naturalHeight || size;
+    const scale = Math.min(size / width, size / height);
+    const w = width * scale, h = height * scale;
+    context.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+    const rgba = context.getImageData(0, 0, size, size).data;
+    const image = new Uint8Array(pixels);
+    for (let p = 0, o = 0; p < pixels; p += 3, o += 4) {
+      image[p] = rgba[o]; image[p + 1] = rgba[o + 1]; image[p + 2] = rgba[o + 2];
+    }
+    return image;
+  } finally {
+    URL.revokeObjectURL(url);
   }
+}
+
+async function runFile(file) {
   const title = file.name.replace(/\.[^.]+$/, "") || "image";
   const element = card(title);
-  drawRender(element.querySelector("canvas"), image);
-  const result = await decode(image);
-  showResult(element, result.svg, result, title);
-  element.querySelector(".check").textContent = "your image (no reference)";
-  rows.push({ ms: result.ms, calls: result.calls, identical: null, cold: rows.length === 0 });
-  updateStats();
+  try {
+    const image = await fileToRender(file);
+    drawRender(element.querySelector("canvas"), image);
+    await yieldToBrowser();
+    const result = await decode(image);
+    showResult(element, result.svg, result, title);
+    element.querySelector(".check").textContent = "your image (no reference)";
+    rows.push({ kind: "upload", ms: result.ms, calls: result.calls, identical: null, cold: rows.length === 0 });
+    showError("");
+  } catch (error) {
+    showFailure(element, error);
+    showError(`Could not convert ${file.name}: ${String((error && error.message) || error)}`);
+    console.error(error);
+  }
 }
 
 function setBusy(value) {
   busy = value;
-  for (const id of buttons) $(id).disabled = value || queue.length === 0;
+  for (const id of buttons) $(id).disabled = !loaded || value || queue.length === 0;
   $("stop").disabled = !value;
-  $("file").disabled = value;
+  $("stop").textContent = "Stop";
+  $("file").disabled = !loaded || value;
+}
+
+async function finish() {
+  // Input queued during the last icon is dispatched now, while the buttons are still disabled.
+  await yieldTask();
+  setBusy(false);
 }
 
 async function run(count) {
-  if (busy) return;
+  if (busy || !loaded) return;
   setBusy(true);
   stopping = false;
   try {
-    for (let n = 0; n < count && queue.length && !stopping; n++) {
+    for (let n = 0; n < count && queue.length && !stopping;) {
       const k = queue.shift();
-      if (done.has(k)) { n--; continue; }
+      if (done.has(k)) continue;
       await runIndex(k);
+      n++;
+      showError("");
     }
   } catch (error) {
-    status(`<span class="warn">Decoding failed: ${String(error.message || error)}</span>`);
+    showError(`Decoding failed: ${String((error && error.message) || error)}`);
     console.error(error);
   }
-  setBusy(false);
+  await finish();
 }
 
 function refill() {
@@ -190,11 +254,14 @@ async function main() {
   if (backend === "webgpu" && !navigator.gpu) throw new Error("WebGPU is not available here (it needs a secure context: https or localhost)");
 
   const loadStart = now();
+  status("Loading the validation icons (24 MB)…");
   let manifest;
   [codec, manifest, reference] = await Promise.all([
     json("/web/src/codec.json"), json("/model/manifest.json"), json("/reference/reference.json"),
   ]);
-  images = new Uint8Array(await (await fetch("/reference/images.u8")).arrayBuffer());
+  const response = await fetch("/reference/images.u8");
+  if (!response.ok) throw new Error(`/reference/images.u8: ${response.status}`);
+  images = new Uint8Array(await response.arrayBuffer());
   checkBundle(manifest, reference);
   const constants = manifest.constants;
   if (codec.length !== constants.length || codec.vocabulary !== constants.vocabulary) {
@@ -226,21 +293,27 @@ async function main() {
   $("next").addEventListener("click", () => run(1));
   $("eight").addEventListener("click", () => run(8));
   $("all").addEventListener("click", () => run(Infinity));
-  $("stop").addEventListener("click", () => { stopping = true; });
+  $("stop").addEventListener("click", () => {
+    stopping = true;
+    $("stop").disabled = true;
+    $("stop").textContent = "Stopping after this icon…";
+  });
   $("order").addEventListener("change", refill);
   $("file").addEventListener("change", async event => {
     const file = event.target.files[0];
     event.target.value = "";
     if (!file || busy) return;
     setBusy(true);
-    try { await runFile(file); } catch (error) { status(`<span class="warn">${String(error.message || error)}</span>`); }
-    setBusy(false);
+    await runFile(file);
+    await finish();
   });
+  loaded = true;
   refill();
   await run(1);
 }
 
 main().catch(error => {
-  status(`<span class="warn">${String(error.message || error)}</span>`);
+  showError(String((error && error.message) || error));
+  status(`<span class="warn">The demo could not start.</span>`);
   console.error(error);
 });

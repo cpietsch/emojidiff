@@ -22,6 +22,9 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
     process.exit(2);
   }
   const routes = harnessRoutes(values.model, values.reference);
-  const { port } = await startServer({ routes, host: values.host, port: Number(values.port) });
+  // The runtime, the model and the icons are fixed for a run id: cache them for an hour, so a
+  // reload or a backend switch does not fetch 74 MB again. The page and its modules stay no-store.
+  const cacheControl = url => (url.startsWith("/web/") ? "no-store" : "public, max-age=3600");
+  const { port } = await startServer({ routes, host: values.host, port: Number(values.port), cacheControl });
   console.log(`http://${values.host}:${port}/web/demo/index.html`);
 }

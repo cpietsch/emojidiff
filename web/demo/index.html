@@ -35,12 +35,15 @@
   button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
   button:disabled { opacity: 0.5; cursor: default; }
   label.file input { display: none; }
+  label.file:has(input:disabled) { opacity: 0.5; cursor: default; }
+  #error { margin-top: 6px; font-size: 0.9rem; }
   #status { color: var(--muted); font-size: 0.9rem; margin-top: 8px; }
   #status b { color: var(--ink); font-weight: 600; }
   .warn { color: var(--bad); }
   .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; }
   .stat .v { font-size: 1.25rem; font-weight: 600; font-variant-numeric: tabular-nums; }
   .stat .k { color: var(--muted); font-size: 0.82rem; }
+  .stat .s { color: var(--muted); font-size: 0.75rem; }
   #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 12px; }
   .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
   .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
@@ -82,16 +85,17 @@
         <option value="webgpu">WebGPU</option>
       </select>
       <label class="file" title="Outside the training data: OpenMoji-style line art works best">
-        Your own image…<input id="file" type="file" accept="image/*">
+        Your own image…<input id="file" type="file" accept="image/*" disabled>
       </label>
     </div>
-    <div id="status">Loading the model…</div>
+    <div id="status">Loading…</div>
+    <div id="error" class="warn" hidden></div>
   </section>
 
   <section class="panel stats" id="stats" hidden>
-    <div class="stat"><div class="v" id="s-n">0</div><div class="k">icons decoded</div></div>
-    <div class="stat"><div class="v" id="s-med">–</div><div class="k">median ms per icon</div></div>
-    <div class="stat"><div class="v" id="s-p90">–</div><div class="k">p90 ms per icon</div></div>
+    <div class="stat"><div class="v" id="s-n">0</div><div class="k">validation icons decoded</div><div class="s" id="s-cold"></div></div>
+    <div class="stat"><div class="v" id="s-med">–</div><div class="k">median ms per icon</div><div class="s" id="s-warm"></div></div>
+    <div class="stat"><div class="v" id="s-p90">–</div><div class="k">p90 ms per icon</div><div class="s">from 5 icons</div></div>
     <div class="stat"><div class="v" id="s-calls">–</div><div class="k">median decoder calls</div></div>
     <div class="stat"><div class="v" id="s-same">–</div><div class="k">tokens equal to Python</div></div>
   </section>
@@ -103,7 +107,7 @@
     <p>ms per icon runs from the Uint8 pixels to the SVG text: the encoder, every decoder call
       (one per step whose grammar mask leaves a choice), the JavaScript grammar, the masked argmax and the
       codec. The model download and session creation are not in it. The first icon after loading
-      includes one-off warm-up. The 4 WASM threads and WebGPU need a secure context
+      includes one-off warm-up and stays out of the median and p90; your own images stay out of all the tiles. The 4 WASM threads and WebGPU need a secure context
       (https or localhost); over plain http the browser gets 1 WASM thread and no WebGPU. On the RTX 4080
       workstation in Chrome the median was 1,171 ms with 4 WASM threads and 1,519 ms with one.</p>
   </details>

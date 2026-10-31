@@ -28,11 +28,21 @@ export function harnessRoutes(model, reference) {
   return { "/web/": WEB, "/ort/": path.join(ort, "dist"), "/model/": model, "/reference/": reference };
 }
 
-/** Serve `routes` ({url prefix: directory}); resolves to {server, port, close()}. */
-export function startServer({ routes, port = 0, host = "127.0.0.1", coi = true }) {
+/**
+ * Serve `routes` ({url prefix: directory}); resolves to {server, port, close()}.
+ * `cacheControl(url)` gives each file's Cache-Control header (default: no-store everywhere).
+ */
+export function startServer({ routes, port = 0, host = "127.0.0.1", coi = true, cacheControl = () => "no-store" }) {
   const table = Object.entries(routes).map(([prefix, dir]) => [prefix, path.resolve(dir)]);
   const server = http.createServer((request, response) => {
-    const url = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
+    let url;
+    try {
+      url = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
+    } catch {
+      response.writeHead(400);
+      response.end();
+      return;
+    }
     const route = table.find(([prefix]) => url.startsWith(prefix));
     const file = route && path.resolve(route[1], "." + url.slice(route[0].length - 1));
     if (!route || !file.startsWith(route[1] + path.sep) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
@@ -40,7 +50,7 @@ export function startServer({ routes, port = 0, host = "127.0.0.1", coi = true }
       response.end();
       return;
     }
-    const headers = { "Content-Type": TYPES[path.extname(file)] || "application/octet-stream", "Cache-Control": "no-store" };
+    const headers = { "Content-Type": TYPES[path.extname(file)] || "application/octet-stream", "Cache-Control": cacheControl(url) };
     if (coi) {
       Object.assign(headers, {
         "Cross-Origin-Opener-Policy": "same-origin",
@@ -49,7 +59,7 @@ export function startServer({ routes, port = 0, host = "127.0.0.1", coi = true }
       });
     }
     response.writeHead(200, headers);
-    fs.createReadStream(file).pipe(response);
+    fs.createReadStream(file).on("error", () => response.destroy()).pipe(response);
   });
   return new Promise((resolve, reject) => {
     server.once("error", reject);
