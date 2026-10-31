@@ -4642,3 +4642,30 @@ model that draws unfamiliar shapes, which 2,681 icons have not produced.
 variations page from the existing flow prior (no training). Its prototype works where the corpus is dense (busts,
 faces, couples, stick figures: new hair, skin, beards, expressions; mixing two faces) and fragments elsewhere;
 the operator decides whether that is worth building or whether the project wraps up here.
+
+## 2026-10-31 — Wrap-up: what MojiDiff delivers, and why it stops here
+
+**The deliverable.** A 9.0M-parameter transcriber (`r2s-cur-d02-s120k-seed2-*`) turns a 144 px OpenMoji-style
+render into an editable SVG program in the typed codec: test pixel error 0.0617 greedy, 0.0397 best of 8; 388 ms
+greedy on the RTX 4080; in Chrome token-identical to Python at 1,171 ms per icon (WASM, 4 threads), with a browser
+demo (`web/demo`: validation icons, uploads, a drawing pad, parity ticks, per-icon latency).
+
+**What two days on the Curiosity cluster established.** Training at 21 steps/s per GPU (2.3x the first wave,
+byte-identical batches); the training seed carries most of the variance, so configurations were compared
+seed-matched over eight seeds; dropout 0.2 is the one recipe lever (+0.005), learning rate reaches the same plateau
+faster but no lower, and length, depth, width, compositions, translation range and Twemoji add nothing. The canvas
+latent and its flow prior stopped by their declared rules.
+
+**The decisive comparison came last.** Judged by eye on blind sheets, the final model's greedy SVGs are 52%
+recognisable and best of 8 65%; a classical tracer (vtracer, 1.6 ms on a CPU) is 99% recognisable with a third of
+the pixel error. The model's distinctive value - OpenMoji's own structure, strokes as strokes, small files - holds
+only where its drawing is right. A job a tracer cannot do, doodle to emoji, failed its declared test (the output is
+further from the clean icon than the doodle itself) and fragments real doodles. The common cause, seen in every
+review: the model redraws shapes it has memorised and drops what it has not seen; 2,681 icons have not taught it to
+draw unfamiliar shapes.
+
+**Decision (operator).** Wrap up. The final model, demo and records stand as they are; leftover agent worktrees
+are removed (branches kept), the cluster is idle, and the open items are in state/CURRENT.md (rotate the Hugging
+Face token, push to GitHub if wanted). Recipe arms are not worth more compute; if the project resumes, the
+evidence points to best of 8 in the browser, a variations page for the dense families, or a training signal that
+teaches drawing unfamiliar shapes.

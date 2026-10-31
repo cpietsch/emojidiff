@@ -1,75 +1,69 @@
 # Current research state
 
-Updated: 2026-10-31 17:10
+Updated: 2026-10-31 17:30 — wrapped up at the operator's request
 
-## Current hypothesis and evidence
+## Where the project stands
 
-The first phase (2026-08-23 to 2026-09-24, Gates A to O) built a render-safe typed SVG codec
-that round-trips all 4,006 curated OpenMoji icons, fixed hashed family-disjoint splits
-(P32/T128 bucket: 2,681 train / 339 val / 339 test), a paired render evaluation with
-bootstrap intervals, and a run registry. Full narrative: `reports/findings.md`; last long
-handoff: `reports/state-history-2026-09-24.md`.
+The first phase (2026-08-23 to 2026-09-24, Gates A to O) built a render-safe typed SVG codec that
+round-trips all 4,006 curated OpenMoji icons, fixed hashed family-disjoint splits (2,681 train / 339
+val / 339 test), a paired render evaluation with bootstrap intervals and a run registry. Since
+2026-09-27 the model is a small render-to-SVG transcriber (`mojidiff.learning.render2svg`). Full
+narrative: `reports/findings.md`; the wrap-up entry of 2026-10-31 summarises the end state.
 
-The deliverable is in `AGENTS.md`. Since 2026-09-27 the direction is a small render-to-SVG
-transcriber over the codec (`mojidiff.learning.render2svg`).
+**Final model:** `r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604` (9.0M parameters, dropout 0.2,
+120k steps; best.pt at step 64k), chosen by a declared rule. Untouched test split, float32: greedy
+0.0617 [0.0567, 0.0667] against v7 0.0710; best of 8 0.0397. RTX 4080: greedy 388 ms, best of 8
+1,022 ms (16 light icons). In Chrome it decodes token for token as Python, WASM 4 threads 1,171 ms per
+icon median (`web/`, `reports/browser/m1/`). Checkpoint in `/home/dev/.cache/mojidiff/runs/` and on
+the public HF repo `chrispie/mojidiff-checkpoints`.
 
-**Final model since 2026-10-30:** `r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604` (9.0M
-parameters; v9's recipe with dropout 0.2 and 120k steps; best.pt at step 64k), chosen by a rule
-declared before its results. Untouched test split, float32: greedy 0.0617 [0.0567, 0.0667]
-against v7 0.0710 (paired +0.0093 [+0.0056, +0.0131]); best of 8 0.0397 (v7 0.0506). RTX 4080,
-16-icon median: greedy 388 ms, best of 8 1,022 ms. Checkpoint in
-`/home/dev/.cache/mojidiff/runs/<run_id>/` and on the HF checkpoints repo.
-
-What the cluster established (findings 2026-10-30/31): recipe tuning is closed (dropout 0.2 the one
-lever; lr, length, depth, width, compositions, translation, Twemoji level). Visually the final model's greedy
-SVGs are 52% recognisable, best of 8 65%; vtracer, a classical tracer, 99% at 1.6 ms on a CPU
-(reports/visual/). So the model's job changes to what a tracer cannot do (below).
+**What the evidence says** (findings 2026-10-30/31):
+- Recipe tuning is closed: dropout 0.2 is the one lever; learning rate, length, depth, width,
+  compositions, translation range and Twemoji are level at 2,681 training icons.
+- Visually (blind grades, 339 validation icons): greedy 52% recognisable (16% faithful), best of 8 65%
+  (22%); vtracer, a classical tracer, 99% (52%) at 1.6 ms on a CPU, and 3x lower pixel error
+  (`reports/visual/`). As an image-to-SVG converter the model is not competitive with a tracer; it
+  draws familiar templates and drops unfamiliar parts.
+- Doodle to emoji (a job a tracer cannot do) failed its declared criterion and fragments real doodles
+  (`reports/doodle/2026-10-31-wave-d1/`). The canvas latent and flow prior stopped by their own rules;
+  their variations work only for busts, faces, couples and stick figures.
 
 ## Last completed action and verification
 
-2026-10-31 15:58: doodle path (mojidiff.learning.doodle, render2svg degrade hooks, fine-tuning via init_run)
-smoke-tested on the RTX 4080 (r2s-cur-doodle-smoke-*: parent loaded with its sha256, degraded selection set,
-completed); ruff, strict mypy, 25 targeted tests.
+2026-10-31 17:30: wrap-up. The five browser-milestone agent worktrees were removed with the operator's
+approval (their data symlinks unlinked first; main's 67,977 data files unchanged; branches kept); their
+Node packages now live in `web/node_modules` (ignored by git; `e2e/modules.mjs` resolves them there).
+The recurring check-in loop was cancelled.
 
 ## Active jobs
 
-- Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz). One-GPU
-  jobs; job scripts ~/eai-team11/mojidiff/jobs/arms-<commit>.slurm (MODULE/EXTRA). Submit and wait
-  only through scratchpad `submit_wave.sh` / `wait_jobs.sh` (bash; zsh loops broke waiters twice).
-  Nothing running. Waves 1-12 and doodle wave D1 are complete and recorded.
-- Browser demo (web/demo, 92089f7): the operator closed the tunnel and the demo server at 16:05; restart with
-  `node web/demo/serve.mjs` (see its header) when needed. Its review fixes are in (95c3348).
-- Browser milestone 1 merged (2b2ab8f, squash of browser-m1; findings 2026-10-31): the final model
-  decodes in Chrome token for token as Python, WASM 4 threads 1,171 ms per icon median. Agent
-  worktrees (mojidiff-browser-m1*, mojidiff-m1js-review, mojidiff-review-m1py) are still on disk.
-- d02, vt-v3-d02-s5 and lfp-v2x are on the public HF checkpoints repo (operator approved 2026-10-31;
-  sha256 verified, index reports/checkpoints-hf.json) and back in configs/gallery/models.yaml.
-- Hugging Face token: `~/.cache/huggingface/token` here, `~/.config/mojidiff/hf_token` there
-  (mode 600). It was pasted into the session; rotate it after the hackathon.
-- Local servers stay stopped; the RTX 4080 runs short evaluations only.
+None. Curiosity (allocation ends about 22:45 on 2026-10-31) is idle; nothing local runs. The demo
+server and the Cloudflare tunnel were closed at the operator's request; restart with
+`node web/demo/serve.mjs --model DIR --reference DIR [--doodle DIR]` (header of `web/demo/serve.mjs`).
 
 ## Artifact durability
 
-- Checkpoints: pre-cluster ones on https://huggingface.co/chrispie/mojidiff-checkpoints (index
-  `reports/checkpoints-hf.json`); Curiosity ones arrive through the private dataset
-  `chrispie/mojidiff-transfer` (`results/<job>/checkpoints`) and are copied to
-  `/home/dev/.cache/mojidiff/runs/` when needed. Cluster storage is purged after the hackathon.
-- Speed-up research scripts: `/home/dev/.cache/mojidiff/speedup-2026-10-30/`; ensemble and paired
-  test: `/home/dev/.cache/mojidiff/ensemble-2026-10-30/`.
-- MUSICA runs stay in `$DATA/predictable/cache` (no backup) until copied here.
-- Browser probe: `/home/dev/.cache/mojidiff/browser-probe-2026-10-04/`; results `reports/browser/m0/`.
+- Checkpoints: the final model, vt-v3-d02-s5 and lfp-v2x on `chrispie/mojidiff-checkpoints` (index
+  `reports/checkpoints-hf.json`); every Curiosity run in the private dataset `chrispie/mojidiff-transfer`
+  (`results/<job>/`), the doodle fine-tunes' best.pt also under `/home/dev/.cache/mojidiff/runs/`.
+  Cluster storage is purged after the hackathon; nothing there is needed.
+- Visual reviews, tracer and doodle evaluations: `reports/visual/`, `reports/doodle/`; raw sheets,
+  degraded sets and traces under `/home/dev/.cache/mojidiff/{visual-review-2026-10-31,doodle-eval,quickdraw}/`;
+  vtracer in its own venv at `/home/dev/.cache/mojidiff/tools/vtracer-venv`.
+- Speed-up and ensemble work: `/home/dev/.cache/mojidiff/{speedup,ensemble}-2026-10-30/`.
 - Code on GitHub `cpietsch/emojidiff`; local main is ahead of origin (not pushed).
 
-## Current blockers
+## Open items for the operator
 
-None for training. Browser demo, open with the operator: the go/no-go thresholds, best of 8
-on WebGPU only, ONNX files under `onnx/` in the checkpoints repo, test-split icons labelled.
+- Rotate the Hugging Face token (pasted into the session; stored mode 600 at
+  `~/.cache/huggingface/token` and `~/.config/mojidiff/hf_token` on Curiosity).
+- Push local main to GitHub if wanted (not done).
+- Unanswered demo questions: go/no-go latency thresholds, best of 8 on WebGPU only, ONNX hosting,
+  test-icon labels.
 
-## Next smallest evidence-producing action
+## Next smallest evidence-producing action, if the project resumes
 
-Doodle to emoji (wave D1, 8 fine-tunes) failed its declared criterion (2): on lineart and pencil the model's
-output is further from the clean icon than the degraded input itself (lineart 0.105 vs 0.097), level with
-vtracer on lineart; real QuickDraw doodles fragment (findings 2026-10-31, reports/doodle/2026-10-31-wave-d1/).
-By the declared rule the line stops. Asked the operator (17:10): build the fallback variations page from the
-existing flow prior (no training; works for busts, faces, couples, stick figures, fragments elsewhere) or wrap
-up. The cluster is idle (allocation ends about 22:45); the demo server is off.
+The model only beats a tracer if it can draw shapes it has not memorised. Options with evidence behind
+them: best of 8 in the browser (the one visible model-side gain, 52% to 65% recognisable); a variations
+page for the dense families; or a different training signal (synthetic random-program pretraining was
+proposed, never run). Recipe arms on the transcriber are not worth more compute.
