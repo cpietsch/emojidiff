@@ -4531,3 +4531,16 @@ sits between the recognisable and partial medians, so the recent recipe gains (0
 **Decision.** Report pixel error together with this grade from now on; the next visual check is best of 8 (test
 0.040 against greedy 0.062) on the same sheets, since that is the one lever that moves pixel error by a whole
 grade band. Recipe tuning alone will not change what the operator sees.
+
+## 2026-10-31 — Seed-matched: larger translations (up to 16 view units) do nothing
+
+**Setting.** Wave 9 (Curiosity jobs 14066-14073, commit e5d1296; seed 7 rerun as 14107 on 2bd7d3a after two
+shared-memory failures on dgx01): one change from dropout 0.2 at 60k, `augment_max_shift` 48 -> 64 (translations up
+to 16 view units instead of 12), seeds 7001-7008, each against the dropout-0.2 run of the same seed.
+
+Per seed (48 minus 64, positive = 64 better): +0.0041, -0.0017, -0.0001, -0.0001, -0.0032, -0.0011, +0.0059,
+-0.0036; mean **+0.0000 [-0.0020, +0.0023]**, 2 of 8.
+
+**Decision.** Translation range is not a lever; it stays at 48. With the learning-rate sweep (1e-3 best) and the
+visual review (recipe gains are visually small), the remaining cluster time goes to wave 12 and its declared test
+look, not to more augmentation arms. The third attempt at seed 7 ran without incident on the re-collating loader.
