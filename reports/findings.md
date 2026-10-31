@@ -4254,3 +4254,39 @@ and value cache whatever the prefix length (`fast_decode.py`), a speed lever for
 
 Source: a read-only investigation with an independent check of each claim
 (report in `/home/dev/.cache/mojidiff/next24-2026-10-30/understand.json`).
+
+## 2026-10-31 — The canvas latent on the new transcriber: reconstructions beat retrieval at last, and miss non-inferiority by 0.0002-0.0004; the line stops
+
+**Hypothesis (declared in configs/latent/vt-v3-d02.yaml before any run).** On a stronger parent, the new final
+transcriber (test 0.0617), the canvas latent's reconstruction stays non-inferior to the parent and now beats
+retrieval-with-mirrors, the half that stopped vt-v1 and vt-v2 (2026-10-03). Declared order: pre-flight, three
+seeds, and the line passes stage A if at least two runs pass A1 and A3; fewer stops it, with no c = 16 retry.
+
+**Pre-flight** (Curiosity job 14018): the parent decodes the 64 icons at 0.0639; its stem projected to rank 8
+gives 0.1230, just over the declared 0.12, rank 16 gives 0.0951, so the rule set c = 16 (v9 had given c = 8 at
+0.116).
+
+**Stage A** (jobs 14021-14023, 30k-step fine-tunes from the parent, 339 validation icons, IEEE float32):
+
+| run | seed | reconstruction from mu | VT - parent (bound 0.015) | vs nearest training icon or mirror | A1 | A3 |
+| --- | --- | --- | --- | --- | --- | --- |
+| vt-v3-d02 | 7002 / 9002 | 0.0821 | +0.0179 [0.0140, 0.0221] | +0.0027 [-0.0021, +0.0073] | fail | pass |
+| vt-v3-d02-s3 | 7003 / 9003 | 0.0760 | +0.0117 [0.0081, 0.0154] | +0.0089 [+0.0047, +0.0130] | fail | pass |
+| vt-v3-d02-s5 | 7005 / 9005 | 0.0758 | +0.0115 [0.0078, 0.0152] | +0.0091 [+0.0046, +0.0134] | fail | pass |
+
+The parent re-decodes at 0.0642 on these icons; retrieval-with-mirrors 0.0849. A2 (KL 1,805-1,841 nats, in
+band) passes on all three. Seed 2's run selected its checkpoint at step 2,000 and is the outlier.
+
+**Reading.** The reconstructions of seeds 3 and 5 (0.076) are the best any canvas latent has reached (vt-v1
+0.083, vt-v2 0.081) and, for the first time, beat retrieval-with-mirrors with intervals excluding zero. What
+fails is the other half: the bottleneck costs +0.0115 to +0.0117 against the parent, and the upper bounds land
+0.0002-0.0004 above the 0.015 margin. The parent is the best of nine seeds on these same icons (its score is
+optimistic), which makes non-inferiority the harder half, as the hypothesis noted beforehand. **By the declared
+rule the canvas line stops.**
+
+**Decision.** No retry under this rule. As with lfp-v1x on 2026-09-29, the flow prior is fitted on the best
+seed as an explicitly exploratory run (`configs/latent/lfp-v2x-exploratory.yaml`, Curiosity job 14032), so the
+operator can judge samples and interpolations; its B1-B5 outcomes are reported as conditional on a stage A that
+failed. B2 was re-declared before the run (CLIP precision at least 0.73, twice latent-v2's N(0, I) row; the old
+bound of 1.17 could not be reached). A flow trained on the cluster now loads here through its parent's sha256
+(91eeb89), so the gallery and the harness can score it on the RTX 4080.
