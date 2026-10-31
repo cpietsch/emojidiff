@@ -511,6 +511,31 @@ def test_a_flow_checkpoint_round_trips_and_names_its_frozen_parent(
         load_flow_parent(state, layout)
 
 
+def test_a_flow_trained_elsewhere_finds_its_parent_in_this_cache_by_sha256(
+    corpus: tuple[SequenceLayout, Any, SplitData, SplitData], tmp_path: Path
+) -> None:
+    """A flow from the cluster records the VT's cluster path; here the same run's file under
+    this machine's cache is used, and only if its sha256 matches the recorded one."""
+
+    layout = corpus[0]
+    cluster = tmp_path / "cluster"
+    cluster.mkdir()
+    vt = _vt_file(layout, cluster / "best.pt")
+    _flow_file(cluster / "best.pt", tmp_path / "flow.pt")
+    state = torch.load(tmp_path / "flow.pt", map_location="cpu")
+    cache = tmp_path / "cache"
+    (cache / "runs" / "vt-toy").mkdir(parents=True)
+    (cluster / "best.pt").rename(cache / "runs" / "vt-toy" / "best.pt")
+    parent = load_flow_parent(state, layout, cache_root=cache)
+    for name, value in vt.state_dict().items():
+        assert torch.equal(parent.state_dict()[name], value)
+    with pytest.raises(ValueError, match="no sha256 confirms"):
+        load_flow_parent({**state, "parent_checkpoint_sha256": None}, layout, cache_root=cache)
+    _vt_file(layout, cache / "runs" / "vt-toy" / "best.pt", image_size=32)  # another file
+    with pytest.raises(ValueError, match="changed since"):
+        load_flow_parent(state, layout, cache_root=cache)
+
+
 # --------------------------------------------------------------------------- config and run
 
 

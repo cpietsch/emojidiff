@@ -974,11 +974,24 @@ def load_flow_checkpoint(state: Mapping[str, Any]) -> LatentFlowPrior:
     return prior.eval()
 
 
-def load_flow_parent(state: Mapping[str, Any], layout: SequenceLayout) -> VariationalTranscriber:
-    """The frozen VT a flow checkpoint names, on the CPU; refused if the file changed."""
+def load_flow_parent(
+    state: Mapping[str, Any], layout: SequenceLayout, cache_root: Path | None = None
+) -> VariationalTranscriber:
+    """The frozen VT a flow checkpoint names, on the CPU; refused if the file changed.
+
+    The checkpoint records the VT's absolute path on the machine it trained on. Where that
+    path does not exist (a flow trained on the cluster, used here), the same run's file
+    under this machine's cache is used instead, and only with a matching recorded sha256.
+    """
 
     path = Path(str(state["parent_checkpoint"]))
     recorded = state.get("parent_checkpoint_sha256")
+    if not path.is_file() and state.get("parent_run"):
+        moved = (cache_root or CACHE_ROOT) / "runs" / str(state["parent_run"]) / path.name
+        if moved.is_file():
+            if not recorded:
+                raise ValueError(f"{path} is missing and no sha256 confirms {moved}")
+            path = moved
     if recorded and _sha256(path) != recorded:
         raise ValueError(f"{path} changed since the flow was trained on it")
     model = load_checkpoint(torch.load(path, map_location="cpu"), layout)
