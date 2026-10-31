@@ -4290,3 +4290,37 @@ operator can judge samples and interpolations; its B1-B5 outcomes are reported a
 failed. B2 was re-declared before the run (CLIP precision at least 0.73, twice latent-v2's N(0, I) row; the old
 bound of 1.17 could not be reached). A flow trained on the cluster now loads here through its parent's sha256
 (91eeb89), so the gallery and the harness can score it on the RTX 4080.
+
+## 2026-10-31 — Exploratory flow prior on the new canvas latent: samples as good as lfp-v1x, interpolations worse
+
+**Setting.** `lfp-v2x-exploratory` (Curiosity job 14032, 40k steps in 797 s on a B300): lfp-v1's flow prior on
+the frozen c = 16 canvas latent vt-v3-d02-s5, which missed A1 (previous entry), so every outcome below is
+conditional on a stage A that failed. Scored on the RTX 4080 with `latent_metrics` (copy rule without-twins;
+339 samples; 32 validation pairs x 9 frames): the default report for B1-B3, `--interpolation backend` for
+B4-B5. Control: the same canvas latent sampled from N(0, I) (gallery id c3). Validation flow loss 1.502 against
+1.746 for the Gaussian velocity.
+
+| criterion | lfp-v2x | lfp-v1x (2026-10-03) | canvas v3, N(0, I) | pass |
+| --- | --- | --- | --- | --- |
+| B1 sample fragments <= 10% | 0.165 [0.127, 0.206] | 0.177 | 0.204 | no |
+| B2 CLIP precision >= 0.73 (re-declared), recall > 0.147 | 0.625 [0.575, 0.676] / 0.410 [0.357, 0.463] | 0.614 / 0.422 | 0.327 / 0.044 | no (precision) |
+| B3 copies <= 10%, all 339 distinct | 0.000, 339 distinct | 0.000, 339 | 0.000 | yes |
+| B4 slerp interior fragments <= 15%; jump below latent-v2; detours <= 20% | 0.509 [0.388, 0.625]; -0.008 [-0.042, +0.028]; 0.009 | 0.339; -0.031; 0.009 | | no |
+| B5 slerp interior precision above v9 crossfade | 0.531 vs 0.643: -0.112 [-0.246, +0.013] | -0.054 | | no |
+
+**The re-declared B2 is still not a fair bar.** Real training renders score CLIP precision 0.543 on this metric
+and collages 0.552; the flow's samples already exceed both (0.625), so a bound of 0.73 asks for more than real
+icons reach. B2 is recorded as failed as declared; precision is not the weak side of these samples, recall
+(0.41 against 0.75 for training renders) is.
+
+**Reading.** On the stronger backbone the flow prior samples about as well as on v9's canvas: one sample in six
+fragments, the rest are whole drawings and novel (no copies), dominated by people and faces, as the corpus is
+(`runs/lfp-v2x-*/prior-samples.png`: couples with a heart, faces with different hair, a fist, a folder, a
+standing figure). Its interpolations through the prior's noise space are worse than v1x's: half of the interior
+frames fragment, and the latent adds nothing over transcribing a pixel crossfade (B5). Some lines do morph
+plausibly (a water-polo player into a swimmer through water scenes), most pass through blanks or blobs. The
+transcriber's 0.009 test gain did not carry into the generative model; at 2,681 training icons the canvas design
+with a flow prior has reached what it gives.
+
+**Decision.** The canvas line stays stopped. lfp-v2x joins the gallery (ids lf2, c3) for the operator's visual
+judgement; no larger prior is trained (lfp-v1's rule for B1/B2 failures assumes a passing stage A).
