@@ -45,7 +45,7 @@ Declared before results (18:45): (1) RL's greedy float32 pixel error on the 339 
 control's, seed-matched with a bootstrap interval excluding zero; (2) the best RL run (lowest validation
 error) is recognisable more often than the final model's 52% on the same blind visual review. Both pass:
 the RL model becomes a candidate for the demo. (1) fails: RL adds nothing over continued training; stop.
-Smoke runs on the RTX 4080: r2s-cur-rl-smoke-*. The allocation ends about 22:45.
+Added 19:00 (operator approved) on the GPUs the controls free: wave R1b, the RL arm at lr 5e-5, same seeds; judged by the same criteria against the same control. Smoke runs on the RTX 4080: r2s-cur-rl-smoke-*. The allocation ends about 22:45.
 
 ## Artifact durability
 

@@ -1,0 +1,36 @@
+# Render-reward RL, wave R1b (seed-matched, the RL arm at lr 5e-5 instead of 2e-5): render-reward fine-tuning (16 icons x 8 samples per step, rewarded by minus pixel error against the clean render, group-normalised advantages) plus 0.5 x the supervised loss, from the final model.
+# The two arms differ only in rl_samples (8 vs 0). Seed 7001 / 9001.
+schema_version: 1
+slug: r2s-cur-rl-lr5-s1
+parent_run: r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604
+hypothesis: >-
+  Render-reward fine-tuning of the final model for 800 steps at lr 5e-5 on the
+  d02 recipe's online stream. Declared in state/CURRENT.md (2026-10-31 18:45): the RL arm's greedy float32 pixel
+  error on the 339 validation renders beats the control's, seed-matched over seeds 7001-7004 with a bootstrap
+  interval excluding zero, and the best RL run is more often recognisable than the final model on the same
+  blind visual review.
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+model: {image_size: 144, d_model: 256, heads: 8, encoder_layers: 2, decoder_layers: 6, feedforward: 1024, dropout: 0.2, metric: true, fourier: 10, order: path}
+training:
+  steps: 800
+  batch_size: 16
+  learning_rate: 0.00005
+  warmup_steps: 50
+  eval_every: 50
+  eval_icons: 64
+  augment_online: true
+  augment_original: 0.1
+  loader_workers: 16
+  compose_probability: 0.5
+  compose_parts: 4
+  augment_mirror: 0.5
+  augment_max_shift: 48
+  augment_colour: 0.1
+  rl_samples: 8
+  rl_temperature: 1.0
+  rl_anchor: 0.5
+  max_seconds: 6000
+  init_run: r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604
+  init_sha256: 38daeca4dd27fb4c6ad337891cc976b26f7e60e2dc1285fb2a9ad78940159c50
+final_eval_icons: 339
+clip_icons: 32
