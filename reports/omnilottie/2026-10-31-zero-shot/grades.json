@@ -1,0 +1,5 @@
+{"scale": "3 faithful, 2 recognisable, 1 partial, 0 garbage or empty; graded by eye from the first frame against the OpenMoji input (not blind: the grader saw the input)",
+ "image": {"1F493":1,"1F494":0,"2764":2,"1F608":1,"1F923":0,"1FAE8":1,"1F970":2,"1F916":1,"1F47E":2,"1F40B":0,"1F433":0,"1F415":0,"1F426":0,"1F430":1,"1F99F":0,
+           "1F342":2,"1F331":2,"1F344":2,"1F4A3":2,"2699":1,"1F50B":2,"1FAE7":2,"1F30A":1,"1F329":2,"1F6DE":2,"2708":2,"1FA90":0,"2602":2,"26A0":2,"274C":2},
+ "text": {"2602":2,"1F30A":1},
+ "text_note": "every text-only output not listed is 0: a different object or abstract marks"}

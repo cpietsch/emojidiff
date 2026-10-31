@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-10-31 20:00 — wrapped up at 17:30; reopened 18:30-19:55 for render-reward RL, stopped by the operator
+Updated: 2026-10-31 21:00 — wrapped up at 17:30; reopened 18:30-19:55 for render-reward RL (stopped by the operator); OmniLottie zero-shot probe 20:30-21:00
 
 ## Where the project stands
 
@@ -29,6 +29,10 @@ the public HF repo `chrispie/mojidiff-checkpoints`.
   their variations work only for busts, faces, couples and stick figures.
 
 ## Last completed action and verification
+
+2026-10-31 21:00: OmniLottie zero-shot probe (Curiosity job 14197; findings 2026-10-31,
+`reports/omnilottie/2026-10-31-zero-shot/`): image plus prompt 15/30 recognisable, none faithful, almost no motion,
+64.5 s per icon on a B300. No fine-tuning arm.
 
 2026-10-31 17:30: wrap-up. The five browser-milestone agent worktrees were removed with the operator's
 approval (their data symlinks unlinked first; main's 67,977 data files unchanged; branches kept); their

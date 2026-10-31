@@ -4690,3 +4690,25 @@ cancelled (`runs/r2s-cur-rl-*`, metrics only; no final evaluation, no checkpoint
 **Reading.** No criterion was scored. At 250-300 steps there is no sign that the rendered reward moves the model
 beyond what continued supervised training does, which itself leaves it where it was. Whether more steps, a larger
 sample group or a reward on unseen shapes would help is open; the method is in the code and tested.
+
+## 2026-10-31 — OmniLottie zero-shot: half the simple icons traced, almost no motion, 65 s per icon on a B300
+
+**Question.** Does a pretrained image/text-to-Lottie model (OmniLottie, 4B parameters, Qwen2.5-VL-3B based) animate
+OpenMoji icons in their style with no training, as a shortcut to "a job a tracer cannot do"?
+
+**Setup.** 30 validation icons with a short look-plus-motion prompt each, image plus prompt and prompt only, the
+repository's default sampling, Curiosity job 14197 (8 B300s, 15 min). Rendered with lottie-web, 8 frames each,
+graded by eye from the first frame (not blind). `reports/omnilottie/2026-10-31-zero-shot/`.
+
+**Observation.** All 60 outputs are valid Lottie. Image plus prompt: 15 of 30 recognisable, none faithful. Simple
+flat objects come back as outlines, often on an invented green or navy square and missing fills. Faces, animals and
+dense icons are fragments or empty, and 14 of 30 hit the 4,096-token limit. Prompt only: 1 of 30 recognisable.
+Motion: 6 of 30 image outputs change visibly between frames, and only the spinning wheel matches its prompt; the
+recognisable outputs are static. Median 64.5 s per icon on a B300 (p90 128 s), about 34 tokens/s, 7.9 GB.
+
+**Reading.** As a tracer it is worse than vtracer (99% recognisable, 1.6 ms on a CPU) and slower than the
+transcriber by about 170x on far larger hardware. As an animator it barely animates. OpenMoji's style is not
+preserved even when the shape is. Fine-tuning would need animated OpenMoji-style training data, which does not
+exist, and inference would stay far from the deliverable's latency on an RTX 4080.
+
+**Decision.** No fine-tuning arm. The probe, scripts and sheets are kept; the project stays wrapped up.
