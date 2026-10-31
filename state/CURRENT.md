@@ -46,17 +46,17 @@ the recorded run.
 ## Active jobs
 
 - Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz). One-GPU
-  jobs; job scripts ~/eai-team11/mojidiff/jobs/arms-<commit>.slurm (MODULE/EXTRA). Running at
-  01:45: wave 6 (seed counts, --nice=100) 14024-14031 cur-seed5..8 and cur-d02-seed5..8, the
-  seed-matched dropout comparison (training seed carries the run-to-run variance: seed 7004 is
-  bad in 5 of 5 runs, its stream alone is not). The canvas line is stopped (vt-v3 stage A) and
-  the exploratory flow lfp-v2x is scored (findings 2026-10-31). Jobs sharing a checkout upload
-  each other's partial run dirs: take each run's record from the job that ran it;
-  `scratchpad/collect.py` does this.
-- Browser milestone 1: workflow `browser-milestone-1` (agents in their own git worktrees,
-  branches browser-m1-python, browser-m1-js, then browser-m1) builds the in-repo ONNX export
-  with parity tests, the JS grammar and decoder with Node parity tests, and measures the new
-  model in headless Chrome over representative icons. Merge into main after its final review.
+  jobs; job scripts ~/eai-team11/mojidiff/jobs/arms-<commit>.slurm (MODULE/EXTRA). Submit and wait
+  only through scratchpad `submit_wave.sh` / `wait_jobs.sh` (bash; zsh loops broke waiters twice).
+  Running: wave 9 14066-14073 (translation 16 view units), wave 10 14075-14082 (learning rate
+  1e-3), both seed-matched over seeds 7001-7008 against dropout 0.2 at 60k. Seed-matched results so
+  far (findings 2026-10-31): dropout 0.2 vs v9 +0.0039 (8 pairs), lr 7e-4 +0.0028, lr 3e-4 -0.0042,
+  compose 0.3 -0.0040, compose 0.7 -0.0013 (n.s.), 120k vs 60k +0.0024 (marginal).
+- Browser milestone 1 merged (2b2ab8f, squash of browser-m1; findings 2026-10-31): the final model
+  decodes in Chrome token for token as Python, WASM 4 threads 1,171 ms per icon median. Agent
+  worktrees (mojidiff-browser-m1*, mojidiff-m1js-review, mojidiff-review-m1py) are still on disk.
+- Cluster-only models (d02, lf2, c3) are in configs/gallery/curiosity.yaml until their checkpoints
+  are on the HF checkpoints repo (asked the operator 2026-10-31 ~09:30; no answer yet).
 - Hugging Face token: `~/.cache/huggingface/token` here, `~/.config/mojidiff/hf_token` there
   (mode 600). It was pasted into the session; rotate it after the hackathon.
 - Local servers stay stopped; the RTX 4080 runs short evaluations only.
@@ -80,7 +80,7 @@ on WebGPU only, ONNX files under `onnx/` in the checkpoints repo, test-split ico
 
 ## Next smallest evidence-producing action
 
-When wave 6 lands (~02:20): the dropout effect over eight seed-matched pairs (findings: the seed
-analysis, incl. the seed-4 training-seed result and the nine-seed 120k pool). Merge the browser
-milestone when its workflow's final review passes. Then choose the next cluster use (the canvas
-design is exhausted at this data scale).
+Score waves 9 and 10 seed-matched when they land; if lr 1e-3 beats 7e-4, try 1.5e-3, else combine
+the winners (dropout 0.2 + best lr + 120k) into a new recipe, train seeds, pick on validation and
+take one declared test look. Browser: the Pages page (coi-serviceworker) and best of 8, pending the
+operator's four demo answers.
