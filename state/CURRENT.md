@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-10-30 23:00
+Updated: 2026-10-31 11:30
 
 ## Current hypothesis and evidence
 
@@ -18,7 +18,7 @@ parameters; v9's recipe with dropout 0.2 and 120k steps; best.pt at step 64k), c
 declared before its results. Untouched test split, float32: greedy 0.0617 [0.0567, 0.0667]
 against v7 0.0710 (paired +0.0093 [+0.0056, +0.0131]); best of 8 0.0397 (v7 0.0506). RTX 4080,
 16-icon median: greedy 388 ms, best of 8 1,022 ms. Checkpoint in
-`/home/dev/.cache/mojidiff/runs/<run_id>/` (not yet on the HF checkpoints repo).
+`/home/dev/.cache/mojidiff/runs/<run_id>/` and on the HF checkpoints repo.
 
 What the Curiosity night established (findings 2026-10-30, three entries): at 2,681 training
 icons dropout (0.15-0.3) is the one lever that holds, about 5%; length, depth, width, Twemoji
@@ -48,10 +48,11 @@ the recorded run.
 - Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz). One-GPU
   jobs; job scripts ~/eai-team11/mojidiff/jobs/arms-<commit>.slurm (MODULE/EXTRA). Submit and wait
   only through scratchpad `submit_wave.sh` / `wait_jobs.sh` (bash; zsh loops broke waiters twice).
-  Running: wave 9 14066-14073 (translation 16 view units), wave 10 14075-14082 (learning rate
-  1e-3), both seed-matched over seeds 7001-7008 against dropout 0.2 at 60k. Seed-matched results so
-  far (findings 2026-10-31): dropout 0.2 vs v9 +0.0039 (8 pairs), lr 7e-4 +0.0028, lr 3e-4 -0.0042,
-  compose 0.3 -0.0040, compose 0.7 -0.0013 (n.s.), 120k vs 60k +0.0024 (marginal).
+  Running (seed-matched over seeds 7001-7008 against dropout 0.2 at 60k): wave 9 seed 7 rerun 14089
+  (translation 16 view units; 7 seeds -0.0008 [-0.0024, +0.0011]), wave 10 seed 8 14082 (lr 1e-3;
+  7 seeds +0.0044 [+0.0014, +0.0074], +0.0012 n.s. over 7e-4), wave 11 14099-14106 (lr 1.5e-3,
+  submitted 11:25). Earlier (findings 2026-10-31): dropout 0.2 vs v9 +0.0039 (8 pairs), lr 7e-4
+  +0.0028, lr 3e-4 -0.0042, compose 0.3 -0.0040, compose 0.7 -0.0013 (n.s.), 120k vs 60k +0.0024.
 - Browser milestone 1 merged (2b2ab8f, squash of browser-m1; findings 2026-10-31): the final model
   decodes in Chrome token for token as Python, WASM 4 threads 1,171 ms per icon median. Agent
   worktrees (mojidiff-browser-m1*, mojidiff-m1js-review, mojidiff-review-m1py) are still on disk.
@@ -80,7 +81,7 @@ on WebGPU only, ONNX files under `onnx/` in the checkpoints repo, test-split ico
 
 ## Next smallest evidence-producing action
 
-Score waves 9 and 10 seed-matched when they land; if lr 1e-3 beats 7e-4, try 1.5e-3, else combine
-the winners (dropout 0.2 + best lr + 120k) into a new recipe, train seeds, pick on validation and
-take one declared test look. Browser: the Pages page (coi-serviceworker) and best of 8, pending the
+Write the findings entries for waves 9 and 10 when their last seeds land; score wave 11. Then
+combine the winners (dropout 0.2 + the best lr + 120k) into a new recipe, train eight seeds, pick on
+validation and take one declared test look (the allocation ends about 22:45 on 2026-10-31). Browser: the Pages page (coi-serviceworker) and best of 8, pending the
 operator's four demo answers.
