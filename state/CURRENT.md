@@ -81,7 +81,12 @@ on WebGPU only, ONNX files under `onnx/` in the checkpoints repo, test-split ico
 
 ## Next smallest evidence-producing action
 
-Write the findings entries for waves 9 and 10 when their last seeds land; score wave 11. Then
-combine the winners (dropout 0.2 + the best lr + 120k) into a new recipe, train eight seeds, pick on
-validation and take one declared test look (the allocation ends about 22:45 on 2026-10-31). Browser: the Pages page (coi-serviceworker) and best of 8, pending the
+Declared before wave 11's results (11:50): the recipe's learning rate is the one of 7e-4, 1e-3,
+1.5e-3 with the largest 8-seed seed-matched mean gain over 5e-4 at 60k. Then train it with dropout
+0.2 for 120k steps on seeds 7001-7008, seed-matched against r2s-cur-d02-s120k(-seedN). Final-model
+rule: (1) the recipe's mean gain over d02-s120k has a bootstrap interval over seeds excluding zero;
+(2) if so, the candidate is the run with the lowest float32 greedy validation error (339 icons);
+(3) one test look, candidate and current final re-decoded paired: the candidate replaces the final
+model if its test error is lower, interval reported either way. Findings entries for waves 9-11
+when their last seeds land. The allocation ends about 22:45 on 2026-10-31. Browser: the Pages page (coi-serviceworker) and best of 8, pending the
 operator's four demo answers.
