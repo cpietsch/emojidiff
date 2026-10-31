@@ -4458,3 +4458,40 @@ on 32 light, replayed icons). Details and how to reproduce: `reports/browser/m1/
 in the browser is a go on WASM. Open: the Pages page itself (the cross-origin-isolation service worker is untested;
 without it WASM gets one thread), best of 8 in the browser, the model's 37.7 MB, and the operator's four demo
 questions (thresholds, best of 8 on WebGPU only, ONNX hosting, test-icon labels).
+
+## 2026-10-31 — Seed-matched learning-rate sweep: 1e-3 is the peak (+0.0035), 1.5e-3 falls back to the baseline
+
+**Setting.** Waves 10 and 11 (Curiosity jobs 14075-14082, commit fd78355; 14099-14106, commit c0f85b3) complete
+the learning-rate axis of waves 7-8: one change from dropout 0.2 at 60k steps (warm-up 1,000 steps, then the
+schedule as before), over seeds 7001-7008, each scored against the dropout-0.2 run of the same seed. 339
+validation icons, selected checkpoints, bootstrap over seeds.
+
+| seed | 5e-4 (dropout 0.2) | 3e-4 | 7e-4 | 1e-3 | 1.5e-3 |
+| --- | --- | --- | --- | --- | --- |
+| 7001 | 0.0696 | 0.0749 | 0.0683 | 0.0726 | 0.0704 |
+| 7002 | 0.0690 | 0.0755 | 0.0662 | 0.0647 | 0.0724 |
+| 7003 | 0.0698 | 0.0736 | 0.0673 | 0.0676 | 0.0747 |
+| 7004 | 0.0816 | 0.0880 | 0.0746 | 0.0706 | 0.0785 |
+| 7005 | 0.0734 | 0.0769 | 0.0736 | 0.0699 | 0.0756 |
+| 7006 | 0.0783 | 0.0796 | 0.0727 | 0.0726 | 0.0761 |
+| 7007 | 0.0790 | 0.0774 | 0.0752 | 0.0717 | 0.0723 |
+| 7008 | 0.0729 | 0.0810 | 0.0735 | 0.0761 | 0.0795 |
+| mean | 0.0742 | 0.0784 | 0.0714 | 0.0707 | 0.0749 |
+| better than 5e-4 by | | -0.0042 | +0.0028 [+0.0011, +0.0046], 6/8 | **+0.0035 [+0.0002, +0.0066], 6/8** | -0.0007 [-0.0035, +0.0023], 3/8 |
+
+Directly: 1e-3 against 7e-4 +0.0007 [-0.0013, +0.0026] (5/8); 1.5e-3 against 1e-3 -0.0042 [-0.0064, -0.0017]
+(1/8). Wave 9's seed 7 failed twice on the cluster's shared-memory error (one hang, one clean failure after the
+loader timeout of d35d12b); since 2bd7d3a the loader workers collate again on that error, and its third attempt
+(job 14107) is running.
+
+**Reading.** The curve has a flat top between 7e-4 and 1e-3 and falls on both sides: 1.5e-3 is as bad as 5e-4 and
+its selected checkpoints come earlier (step 28k-58k), as when a rate is too high. The gain at the top is about
+0.003-0.004 (4-5%), the size of dropout's, and like dropout's it is largest on the bad seed 7004 (0.0816 to
+0.0706). The single run with lr 1e-3, seed 7002, reaches 0.0647 at 60k, level with the final model (0.0641 at
+120k, best of nine seeds).
+
+**Decision.** By the rule declared before wave 11's results (state/CURRENT.md, 11:50: the largest 8-seed gain),
+the recipe takes 1e-3. Wave 12 (jobs 14121-14128, commit ee83881) trains dropout 0.2 + lr 1e-3 for 120k steps on
+seeds 7001-7008, seed-matched against d02-s120k. The final-model rule was registered with it: the recipe must
+beat d02-s120k across seeds (interval excluding zero); then its best validation run is the candidate, and one
+paired test look against the current final model decides.
