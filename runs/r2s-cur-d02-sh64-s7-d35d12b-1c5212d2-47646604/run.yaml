@@ -1,0 +1,86 @@
+schema_version: 2
+run_id: r2s-cur-d02-sh64-s7-d35d12b-1c5212d2-47646604
+state: failed
+planned_at: '2026-10-31T09:56:34Z'
+hypothesis: 'With exact translations of up to 16 view units instead of 12 and everything else
+  as dropout 0.2 at 60k steps, the model transcribes the 339 validation renders better than
+  the dropout-0.2 run of the same seed. Judged over seeds 7001-7008: the mean seed-matched
+  difference with a bootstrap interval over seeds excluding zero.'
+parent_run: r2s-cur-dropout02
+git_commit: d35d12b35ce8019342e1cad4a9b543bffd86c1f5
+dirty_patch_sha256: ''
+config: configs/render2svg/cur-d02-sh64-s7.yaml
+config_sha256: 1c5212d20f3e8295cc89f5593e10b0d272a78c7e336328f7be3f13f6fdda056d
+config_resolved:
+  model:
+    image_size: 144
+    d_model: 256
+    heads: 8
+    encoder_layers: 2
+    decoder_layers: 6
+    feedforward: 1024
+    dropout: 0.2
+    metric: true
+    fourier: 10
+    order: path
+    sources: 0
+  training:
+    steps: 60000
+    batch_size: 32
+    learning_rate: 0.0005
+    weight_decay: 0.01
+    warmup_steps: 1000
+    seed: 7007
+    eval_every: 2000
+    eval_icons: 64
+    train_icons: null
+    evaluate_on_train: false
+    augment_variants: 0
+    augment_seed: 9007
+    augment_mirror: 0.5
+    augment_max_shift: 64
+    augment_colour: 0.1
+    augment_online: true
+    compose_probability: 0.5
+    compose_parts: 4
+    augment_original: 0.1
+    loader_workers: 16
+    extra_training: []
+    bf16: true
+  final_eval_icons: 339
+  clip_icons: 32
+dataset:
+  pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+  cache_sha256: 476466042da98d72c2bf2774cecc18f08d50a362eefbecae97904bde7a04ef0e
+  train_icons: 2681
+  augmented_variants: 0
+  extra_training: null
+  augmented_sha256: null
+  evaluated_on: primary/validation
+seed: 7007
+determinism: seeded; cuDNN and SDPA kernels not forced deterministic
+model_parameters: 9025826
+command: .venv/bin/python -m mojidiff.learning.render2svg --config configs/render2svg/cur-d02-sh64-s7.yaml
+outputs:
+  run_dir: runs/r2s-cur-d02-sh64-s7-d35d12b-1c5212d2-47646604
+  checkpoints: /home/eai-jdkxz/eai-team11/mojidiff/cache/runs/r2s-cur-d02-sh64-s7-d35d12b-1c5212d2-47646604
+notes: ''
+failed_at: '2026-10-31T10:20:07Z'
+failure_reason: 'RuntimeError(''Caught RuntimeError in DataLoader worker process 10.\nOriginal
+  Traceback (most recent call last):\n  File "/home/eai-jdkxz/eai-team11/mojidiff/repo-d35d12b/.venv/lib/python3.12/site-packages/torch/utils/data/_utils/worker.py",
+  line 375, in _worker_loop\n    data = fetcher.fetch(index)  # type: ignore[possibly-undefined]\n           ^^^^^^^^^^^^^^^^^^^^\n  File
+  "/home/eai-jdkxz/eai-team11/mojidiff/repo-d35d12b/.venv/lib/python3.12/site-packages/torch/utils/data/_utils/fetch.py",
+  line 45, in fetch\n    return self.collate_fn(data)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File
+  "/home/eai-jdkxz/eai-team11/mojidiff/repo-d35d12b/.venv/lib/python3.12/site-packages/torch/utils/data/_utils/collate.py",
+  line 401, in default_collate\n    return collate(batch, collate_fn_map=default_collate_fn_map)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File
+  "/home/eai-jdkxz/eai-team11/mojidiff/repo-d35d12b/.venv/lib/python3.12/site-packages/torch/utils/data/_utils/collate.py",
+  line 215, in collate\n    collate(samples, collate_fn_map=collate_fn_map)\n  File "/home/eai-jdkxz/eai-team11/mojidiff/repo-d35d12b/.venv/lib/python3.12/site-packages/torch/utils/data/_utils/collate.py",
+  line 155, in collate\n    return collate_fn_map[elem_type](batch, collate_fn_map=collate_fn_map)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File
+  "/home/eai-jdkxz/eai-team11/mojidiff/repo-d35d12b/.venv/lib/python3.12/site-packages/torch/utils/data/_utils/collate.py",
+  line 273, in collate_tensor_fn\n    storage = elem._typed_storage()._new_shared(numel, device=elem.device)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File
+  "/home/eai-jdkxz/eai-team11/mojidiff/repo-d35d12b/.venv/lib/python3.12/site-packages/torch/storage.py",
+  line 1220, in _new_shared\n    untyped_storage = torch.UntypedStorage._new_shared(\n                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File
+  "/home/eai-jdkxz/eai-team11/mojidiff/repo-d35d12b/.venv/lib/python3.12/site-packages/torch/storage.py",
+  line 423, in _new_shared\n    return cls._new_using_fd_cpu(size)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^\nRuntimeError:
+  could not unlink the shared memory file /torch_262778_660356566_9855 : No such file or directory
+  (2)\n'')'

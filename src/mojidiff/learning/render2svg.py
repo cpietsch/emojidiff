@@ -47,6 +47,7 @@ import torch
 import torch.nn.functional as F
 import yaml
 from torch import Tensor, nn
+from torch.utils.data import default_collate
 
 from mojidiff.learning.autoregressive import (
     SequenceLayout,
@@ -1092,6 +1093,26 @@ LOADER_TIMEOUT_SECONDS = 900
 forever on its GPU; with a timeout the run fails and is recorded as failed. A healthy batch
 takes well under a second."""
 
+SHARED_MEMORY_ATTEMPTS = 5
+"""How often a loader worker collates one batch before a shared-memory error is fatal."""
+
+
+def _collate_retrying(items: list[Any]) -> Any:
+    """`default_collate`, tried again when the worker's shared-memory file vanishes.
+
+    On the cluster a job starting on the same node can remove a worker's freshly created
+    shared-memory file before torch unlinks it ("could not unlink the shared memory file").
+    The items are already drawn, so collating them again gives the identical batch and the
+    stream stays the same; any other error, or the last attempt's, propagates."""
+
+    for _ in range(SHARED_MEMORY_ATTEMPTS - 1):
+        try:
+            return default_collate(items)
+        except RuntimeError as error:
+            if "shared memory" not in str(error):
+                raise
+    return default_collate(items)
+
 
 Batch = tuple[Tensor, Tensor, Tensor, Tensor | None, Tensor, Tensor]
 """(images, tokens, masks, orders or None, source icon indices or -1, emoji sets)."""
@@ -1133,6 +1154,7 @@ def _online_batches(
         persistent_workers=config.loader_workers > 0,
         prefetch_factor=8 if config.loader_workers > 0 else None,
         timeout=LOADER_TIMEOUT_SECONDS if config.loader_workers > 0 else 0,
+        collate_fn=_collate_retrying,
     )
     shape = (layout.length, layout.vocabulary)
     for images, tokens, packed, orders, sets in loader:

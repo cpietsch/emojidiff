@@ -677,4 +677,46 @@ def test_the_online_loader_gives_up_on_a_dead_worker(
         config = TrainConfig(loader_workers=workers)
         list(module._online_batches(train, layout, programs[0], 32, config))
         assert seen[-1]["timeout"] == timeout
+        assert seen[-1]["collate_fn"] is module._collate_retrying
     assert 0 < module.LOADER_TIMEOUT_SECONDS
+
+
+def test_the_loader_collates_again_when_its_shared_memory_file_vanishes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A shared-memory error while collating is retried and gives the batch default_collate
+    gives; other errors, and a shared-memory error on every attempt, still propagate."""
+
+    import mojidiff.learning.render2svg as module
+
+    items = [(torch.arange(3), np.int64(1)), (torch.arange(3) + 3, np.int64(2))]
+    expected = torch.utils.data.default_collate(items)
+    calls: list[int] = []
+
+    def flaky(batch: list[object]) -> object:
+        calls.append(1)
+        if len(calls) < 3:
+            raise RuntimeError("could not unlink the shared memory file /torch_1_2_3")
+        return torch.utils.data.default_collate(batch)
+
+    monkeypatch.setattr(module, "default_collate", flaky)
+    images, labels = module._collate_retrying(items)
+    assert len(calls) == 3
+    assert torch.equal(images, expected[0]) and torch.equal(labels, expected[1])
+
+    def broken(batch: list[object]) -> object:
+        raise RuntimeError("stack expects each tensor to be equal size")
+
+    monkeypatch.setattr(module, "default_collate", broken)
+    with pytest.raises(RuntimeError, match="equal size"):
+        module._collate_retrying(items)
+
+    def vanishing(batch: list[object]) -> object:
+        calls.append(1)
+        raise RuntimeError("could not unlink the shared memory file /torch_4_5_6")
+
+    calls.clear()
+    monkeypatch.setattr(module, "default_collate", vanishing)
+    with pytest.raises(RuntimeError, match="shared memory"):
+        module._collate_retrying(items)
+    assert len(calls) == module.SHARED_MEMORY_ATTEMPTS

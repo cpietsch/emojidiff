@@ -1,0 +1,66 @@
+{"run_id": "r2s-cur-d02-sh64-s7-d35d12b-1c5212d2-47646604", "parameters": 9025826}
+{"step": 2000, "train_loss": 2.335548162460327, "eval_nll_per_free_token": 2.297110058097011, "eval_free_token_accuracy": 0.40044549353369463, "eval_pixel_error_mean": 0.14331032993504778, "elapsed_seconds": 107.96226350800134, "learning_rate": 0.0004996456739191905}
+{"step": 4000, "train_loss": 1.5307860374450684, "eval_nll_per_free_token": 1.6296364235637821, "eval_free_token_accuracy": 0.572060241364407, "eval_pixel_error_mean": 0.12371647387044504, "elapsed_seconds": 205.03419606905663, "learning_rate": 0.0004968170886803362}
+{"step": 6000, "train_loss": 1.1888281106948853, "eval_nll_per_free_token": 1.481209507671465, "eval_free_token_accuracy": 0.6031782971508362, "eval_pixel_error_mean": 0.10618489549960941, "elapsed_seconds": 293.98737891903147, "learning_rate": 0.000491191967203629}
+{"step": 8000, "train_loss": 0.8720760941505432, "eval_nll_per_free_token": 1.421136190323814, "eval_free_token_accuracy": 0.6206655806376542, "eval_pixel_error_mean": 0.09808291017543525, "elapsed_seconds": 392.06360567803495, "learning_rate": 0.0004828340443630846}
+{"step": 10000, "train_loss": 1.1587984561920166, "eval_nll_per_free_token": 1.3593981811438212, "eval_free_token_accuracy": 0.6279464077928123, "eval_pixel_error_mean": 0.09651202589157037, "elapsed_seconds": 483.9698711830424, "learning_rate": 0.0004718380187641429}
+{"step": 12000, "train_loss": 0.8879637122154236, "eval_nll_per_free_token": 1.3851231795334784, "eval_free_token_accuracy": 0.6326340636324346, "eval_pixel_error_mean": 0.09239552641520277, "elapsed_seconds": 570.7744933070499, "learning_rate": 0.00045832847977062875}
+{"step": 14000, "train_loss": 0.813716471195221, "eval_nll_per_free_token": 1.359489509655823, "eval_free_token_accuracy": 0.6413777053758436, "eval_pixel_error_mean": 0.09523197828093544, "elapsed_seconds": 655.4120079430286, "learning_rate": 0.00044245849585747656}
+{"step": 16000, "train_loss": 0.6009964942932129, "eval_nll_per_free_token": 1.3760530862478806, "eval_free_token_accuracy": 0.6387180424881146, "eval_pixel_error_mean": 0.09016159950988367, "elapsed_seconds": 741.5140291410498, "learning_rate": 0.0004244078802837462}
+{"step": 18000, "train_loss": 0.7928088903427124, "eval_nll_per_free_token": 1.3749173076004022, "eval_free_token_accuracy": 0.6461983443598524, "eval_pixel_error_mean": 0.09124456133577041, "elapsed_seconds": 829.9601988830254, "learning_rate": 0.000404381153736548}
+{"step": 20000, "train_loss": 0.6176160573959351, "eval_nll_per_free_token": 1.3676113513061439, "eval_free_token_accuracy": 0.6517836364240832, "eval_pixel_error_mean": 0.09243773570051417, "elapsed_seconds": 916.2307852140511, "learning_rate": 0.0003826052270299356}
+{"step": 22000, "train_loss": 0.7719851136207581, "eval_nll_per_free_token": 1.3068969811787294, "eval_free_token_accuracy": 0.6562385717610293, "eval_pixel_error_mean": 0.08748653330258094, "elapsed_seconds": 1005.2848720390466, "learning_rate": 0.0003593268301147139}
+{"step": 24000, "train_loss": 0.7484724521636963, "eval_nll_per_free_token": 1.4660916033092024, "eval_free_token_accuracy": 0.6483925662422289, "eval_pixel_error_mean": 0.08356916511547752, "elapsed_seconds": 1090.259565104032, "learning_rate": 0.00033480971652950753}
+{"step": 26000, "train_loss": 0.6503552794456482, "eval_nll_per_free_token": 1.339932740917667, "eval_free_token_accuracy": 0.660294557664816, "eval_pixel_error_mean": 0.08454867693944834, "elapsed_seconds": 1177.1924395120004, "learning_rate": 0.00030933167496777875}
+{"step": 28000, "train_loss": 0.5244820713996887, "eval_nll_per_free_token": 1.376222821569866, "eval_free_token_accuracy": 0.6618903553974533, "eval_pixel_error_mean": 0.07980486336600734, "elapsed_seconds": 1266.76115992805, "learning_rate": 0.00028318138182093053}
+{"step": 30000, "train_loss": 0.828321099281311, "eval_nll_per_free_token": 1.3754975829274576, "eval_free_token_accuracy": 0.6619900927557432, "eval_pixel_error_mean": 0.08517300372477621, "elapsed_seconds": 1353.1275894319988, "learning_rate": 0.00025665513035944373}
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/storage/hackathon_teams/eai-team11/mojidiff/repo-d35d12b/src/mojidiff/learning/render2svg.py", line 2460, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/storage/hackathon_teams/eai-team11/mojidiff/repo-d35d12b/src/mojidiff/learning/render2svg.py", line 2455, in main
+    train_and_evaluate(args.config)
+  File "/storage/hackathon_teams/eai-team11/mojidiff/repo-d35d12b/src/mojidiff/learning/render2svg.py", line 2137, in train_and_evaluate
+    images, tokens, masks, orders, base, sets = next(batches)
+                                                ^^^^^^^^^^^^^
+  File "/storage/hackathon_teams/eai-team11/mojidiff/repo-d35d12b/src/mojidiff/learning/render2svg.py", line 1138, in _online_batches
+    for images, tokens, packed, orders, sets in loader:
+  File "/home/eai-jdkxz/eai-team11/mojidiff/repo-d35d12b/.venv/lib/python3.12/site-packages/torch/utils/data/dataloader.py", line 725, in __next__
+    data = self._next_data()
+           ^^^^^^^^^^^^^^^^^
+  File "/home/eai-jdkxz/eai-team11/mojidiff/repo-d35d12b/.venv/lib/python3.12/site-packages/torch/utils/data/dataloader.py", line 1501, in _next_data
+    return self._process_data(data, worker_id)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/eai-jdkxz/eai-team11/mojidiff/repo-d35d12b/.venv/lib/python3.12/site-packages/torch/utils/data/dataloader.py", line 1569, in _process_data
+    data.reraise()
+  File "/home/eai-jdkxz/eai-team11/mojidiff/repo-d35d12b/.venv/lib/python3.12/site-packages/torch/_utils.py", line 803, in reraise
+    raise exception
+RuntimeError: Caught RuntimeError in DataLoader worker process 10.
+Original Traceback (most recent call last):
+  File "/home/eai-jdkxz/eai-team11/mojidiff/repo-d35d12b/.venv/lib/python3.12/site-packages/torch/utils/data/_utils/worker.py", line 375, in _worker_loop
+    data = fetcher.fetch(index)  # type: ignore[possibly-undefined]
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/home/eai-jdkxz/eai-team11/mojidiff/repo-d35d12b/.venv/lib/python3.12/site-packages/torch/utils/data/_utils/fetch.py", line 45, in fetch
+    return self.collate_fn(data)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/eai-jdkxz/eai-team11/mojidiff/repo-d35d12b/.venv/lib/python3.12/site-packages/torch/utils/data/_utils/collate.py", line 401, in default_collate
+    return collate(batch, collate_fn_map=default_collate_fn_map)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/eai-jdkxz/eai-team11/mojidiff/repo-d35d12b/.venv/lib/python3.12/site-packages/torch/utils/data/_utils/collate.py", line 215, in collate
+    collate(samples, collate_fn_map=collate_fn_map)
+  File "/home/eai-jdkxz/eai-team11/mojidiff/repo-d35d12b/.venv/lib/python3.12/site-packages/torch/utils/data/_utils/collate.py", line 155, in collate
+    return collate_fn_map[elem_type](batch, collate_fn_map=collate_fn_map)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/eai-jdkxz/eai-team11/mojidiff/repo-d35d12b/.venv/lib/python3.12/site-packages/torch/utils/data/_utils/collate.py", line 273, in collate_tensor_fn
+    storage = elem._typed_storage()._new_shared(numel, device=elem.device)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/eai-jdkxz/eai-team11/mojidiff/repo-d35d12b/.venv/lib/python3.12/site-packages/torch/storage.py", line 1220, in _new_shared
+    untyped_storage = torch.UntypedStorage._new_shared(
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/eai-jdkxz/eai-team11/mojidiff/repo-d35d12b/.venv/lib/python3.12/site-packages/torch/storage.py", line 423, in _new_shared
+    return cls._new_using_fd_cpu(size)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: could not unlink the shared memory file /torch_262778_660356566_9855 : No such file or directory (2)
+
