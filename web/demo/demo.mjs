@@ -4,6 +4,10 @@
 // `python -m mojidiff.learning.web_e2e --icons 339`, whose Python decodes the ticks compare to.
 //
 // Query: ep=wasm|webgpu (default wasm)  threads=N (WASM threads, default 4; 1 without isolation)
+//        model=final|doodle (default final; doodle loads /model-doodle/, the doodle-to-emoji export)
+//
+// The drawing pad draws black strokes at OpenMoji's outline width and fits the drawing into the
+// icon's 22-122 px content frame at 144 px before decoding, as the QuickDraw check does.
 //
 // On WASM each ONNX Runtime call runs synchronously on this thread, so the page yields to the
 // browser (a frame, then a task) before every icon, outside the timed window: cards appear one
@@ -19,11 +23,14 @@ import { checkBundle, compareIcon, quantile } from "../e2e/check.mjs";
 const q = new URLSearchParams(location.search);
 const backend = q.get("ep") === "webgpu" ? "webgpu" : "wasm";
 const threads = Number(q.get("threads") || 4);
+const modelName = q.get("model") === "doodle" ? "doodle" : "final";
+const MODEL = modelName === "doodle" ? "/model-doodle/" : "/model/";
 const $ = id => document.getElementById(id);
 const now = () => performance.now();
 const status = html => { $("status").innerHTML = html; };
 const showError = text => { $("error").textContent = text; $("error").hidden = !text; };
 const buttons = ["next", "eight", "all"];
+const strokes = [];
 
 let model, grammar, codec, reference, images, size, pixels;
 let queue = [], busy = false, stopping = false, loaded = false;
@@ -146,12 +153,18 @@ async function runIndex(k) {
     showFailure(element, error);
     throw error;
   }
-  const check = compareIcon(result.tokens, result.svg, result.calls, ref);
   showResult(element, result.svg, result, ref.hexcode);
   const mark = element.querySelector(".check");
-  mark.className = "check " + (check.identical ? "ok" : "no");
-  mark.textContent = check.identical ? "✓ tokens equal Python's" : `✗ differs from Python at position ${check.first_difference}`;
-  rows.push({ kind: "validation", ms: result.ms, calls: result.calls, identical: check.identical, cold: rows.length === 0 });
+  let identical = null;
+  if (modelName === "final") {
+    const check = compareIcon(result.tokens, result.svg, result.calls, ref);
+    identical = check.identical;
+    mark.className = "check " + (check.identical ? "ok" : "no");
+    mark.textContent = check.identical ? "✓ tokens equal Python's" : `✗ differs from Python at position ${check.first_difference}`;
+  } else {
+    mark.textContent = "doodle model (the reference ticks are the final model's)";
+  }
+  rows.push({ kind: "validation", ms: result.ms, calls: result.calls, identical, cold: rows.length === 0 });
   done.add(k);
   updateStats();
 }
@@ -185,23 +198,110 @@ async function fileToRender(file) {
   }
 }
 
-async function runFile(file) {
-  const title = file.name.replace(/\.[^.]+$/, "") || "image";
+/** Decode the viewer's own input (an upload or a drawing); it stays out of the stats tiles. */
+async function runOwn(title, makeImage, label) {
   const element = card(title);
   try {
-    const image = await fileToRender(file);
+    const image = await makeImage();
     drawRender(element.querySelector("canvas"), image);
     await yieldToBrowser();
     const result = await decode(image);
     showResult(element, result.svg, result, title);
-    element.querySelector(".check").textContent = "your image (no reference)";
+    element.querySelector(".check").textContent = label;
     rows.push({ kind: "upload", ms: result.ms, calls: result.calls, identical: null, cold: rows.length === 0 });
     showError("");
   } catch (error) {
     showFailure(element, error);
-    showError(`Could not convert ${file.name}: ${String((error && error.message) || error)}`);
+    showError(`Could not convert ${title}: ${String((error && error.message) || error)}`);
     console.error(error);
   }
+}
+
+async function runFile(file) {
+  const title = file.name.replace(/\.[^.]+$/, "") || "image";
+  await runOwn(title, () => fileToRender(file), "your image (no reference)");
+}
+
+/** The pad's strokes as the encoder's input: black, OpenMoji's 4 px outline at 144 px, fitted
+ * into the 22-122 px content frame and drawn 4x supersampled. */
+function drawingToRender() {
+  const points = strokes.flat();
+  const xs = points.map(p => p[0]), ys = points.map(p => p[1]);
+  const left = Math.min(...xs), top = Math.min(...ys);
+  const width = Math.max(...xs) - left, height = Math.max(...ys) - top;
+  const lo = 22 / 144 * size, hi = 122 / 144 * size, frame = hi - lo;
+  const scale = frame / Math.max(width, height, 1);
+  const ox = lo + (frame - width * scale) / 2, oy = lo + (frame - height * scale) / 2;
+  const big = document.createElement("canvas");
+  big.width = big.height = size * 4;
+  const ink = big.getContext("2d");
+  ink.fillStyle = "#fff";
+  ink.fillRect(0, 0, big.width, big.height);
+  ink.strokeStyle = ink.fillStyle = "#000";
+  ink.lineWidth = 4 / 144 * size * 4;
+  ink.lineCap = ink.lineJoin = "round";
+  for (const stroke of strokes) {
+    ink.beginPath();
+    stroke.forEach(([x, y], i) => {
+      const px = (ox + (x - left) * scale) * 4, py = (oy + (y - top) * scale) * 4;
+      if (i === 0) ink.moveTo(px, py); else ink.lineTo(px, py);
+    });
+    if (stroke.length === 1) ink.lineTo((ox + (stroke[0][0] - left) * scale) * 4 + 0.1, (oy + (stroke[0][1] - top) * scale) * 4);
+    ink.stroke();
+  }
+  const small = document.createElement("canvas");
+  small.width = small.height = size;
+  const context = small.getContext("2d");
+  context.imageSmoothingQuality = "high";
+  context.drawImage(big, 0, 0, size, size);
+  const rgba = context.getImageData(0, 0, size, size).data;
+  const image = new Uint8Array(pixels);
+  for (let p = 0, o = 0; p < pixels; p += 3, o += 4) {
+    image[p] = rgba[o]; image[p + 1] = rgba[o + 1]; image[p + 2] = rgba[o + 2];
+  }
+  return image;
+}
+
+function setUpPad() {
+  const pad = $("pad");
+  const context = pad.getContext("2d");
+  const clear = () => {
+    strokes.length = 0;
+    context.fillStyle = "#fff";
+    context.fillRect(0, 0, pad.width, pad.height);
+    setBusy(busy);
+  };
+  const at = event => {
+    const box = pad.getBoundingClientRect();
+    return [(event.clientX - box.left) * pad.width / box.width, (event.clientY - box.top) * pad.height / box.height];
+  };
+  let drawing = false;
+  pad.addEventListener("pointerdown", event => {
+    drawing = true;
+    pad.setPointerCapture(event.pointerId);
+    strokes.push([at(event)]);
+  });
+  pad.addEventListener("pointermove", event => {
+    if (!drawing) return;
+    const stroke = strokes[strokes.length - 1];
+    const [x0, y0] = stroke[stroke.length - 1], [x, y] = at(event);
+    stroke.push([x, y]);
+    context.strokeStyle = "#000";
+    context.lineWidth = pad.width / 48;
+    context.lineCap = "round";
+    context.beginPath(); context.moveTo(x0, y0); context.lineTo(x, y); context.stroke();
+  });
+  const end = () => { drawing = false; setBusy(busy); };
+  pad.addEventListener("pointerup", end);
+  pad.addEventListener("pointercancel", end);
+  $("pad-clear").addEventListener("click", clear);
+  $("pad-convert").addEventListener("click", async () => {
+    if (busy || !strokes.length) return;
+    setBusy(true);
+    await runOwn("drawing", async () => drawingToRender(), "your drawing (no reference)");
+    await finish();
+  });
+  clear();
 }
 
 function setBusy(value) {
@@ -210,6 +310,8 @@ function setBusy(value) {
   $("stop").disabled = !value;
   $("stop").textContent = "Stop";
   $("file").disabled = !loaded || value;
+  $("pad-convert").disabled = !loaded || value || strokes.length === 0;
+  $("model").disabled = value;
 }
 
 async function finish() {
@@ -245,11 +347,17 @@ function refill() {
 
 async function main() {
   $("backend").value = backend;
-  $("backend").addEventListener("change", () => {
-    const next = new URLSearchParams(location.search);
-    next.set("ep", $("backend").value);
-    location.search = next.toString();
-  });
+  $("model").value = modelName;
+  for (const id of ["backend", "model"]) {
+    $(id).addEventListener("change", () => {
+      const next = new URLSearchParams(location.search);
+      next.set(id === "backend" ? "ep" : "model", $(id).value);
+      location.search = next.toString();
+    });
+  }
+  const doodle = await fetch("/model-doodle/manifest.json").then(r => r.ok, () => false);
+  if (!doodle) $("model").querySelector('option[value="doodle"]').disabled = true;
+  if (modelName === "doodle" && !doodle) throw new Error("this server has no doodle model (serve.mjs --doodle DIR)");
   if (!navigator.gpu) $("backend").querySelector('option[value="webgpu"]').disabled = true;
   if (backend === "webgpu" && !navigator.gpu) throw new Error("WebGPU is not available here (it needs a secure context: https or localhost)");
 
@@ -257,12 +365,12 @@ async function main() {
   status("Loading the validation icons (24 MB)…");
   let manifest;
   [codec, manifest, reference] = await Promise.all([
-    json("/web/src/codec.json"), json("/model/manifest.json"), json("/reference/reference.json"),
+    json("/web/src/codec.json"), json(MODEL + "manifest.json"), json("/reference/reference.json"),
   ]);
   const response = await fetch("/reference/images.u8");
   if (!response.ok) throw new Error(`/reference/images.u8: ${response.status}`);
   images = new Uint8Array(await response.arrayBuffer());
-  checkBundle(manifest, reference);
+  if (modelName === "final") checkBundle(manifest, reference);
   const constants = manifest.constants;
   if (codec.length !== constants.length || codec.vocabulary !== constants.vocabulary) {
     throw new Error("codec.json and the exported model disagree on the sequence layout");
@@ -278,8 +386,8 @@ async function main() {
   ort.env.wasm.numThreads = self.crossOriginIsolated ? threads : 1;
   const options = sessionOptions(backend);
   const sessionStart = now();
-  const encoder = await ort.InferenceSession.create("/model/encoder.onnx", options.encoder);
-  const decoder = await ort.InferenceSession.create("/model/decoder_step.onnx", options.decoder);
+  const encoder = await ort.InferenceSession.create(MODEL + "encoder.onnx", options.encoder);
+  const decoder = await ort.InferenceSession.create(MODEL + "decoder_step.onnx", options.decoder);
   const sessionMs = now() - sessionStart;
   model = ortModel(ort, { encoder, decoder, constants });
 
@@ -307,6 +415,7 @@ async function main() {
     await runFile(file);
     await finish();
   });
+  setUpPad();
   loaded = true;
   refill();
   await run(1);

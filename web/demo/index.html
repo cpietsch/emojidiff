@@ -37,6 +37,9 @@
   label.file input { display: none; }
   label.file:has(input:disabled) { opacity: 0.5; cursor: default; }
   #error { margin-top: 6px; font-size: 0.9rem; }
+  #pad { display: block; width: min(100%, 288px); aspect-ratio: 1; margin: 8px 0; background: #fff;
+    border: 1px solid var(--line); border-radius: 8px; touch-action: none; cursor: crosshair; }
+  .hint { color: var(--muted); font-size: 0.85rem; }
   #status { color: var(--muted); font-size: 0.9rem; margin-top: 8px; }
   #status b { color: var(--ink); font-weight: 600; }
   .warn { color: var(--bad); }
@@ -80,6 +83,10 @@
         <option value="spread">Spread over the split</option>
         <option value="random">Random</option>
       </select>
+      <select id="model" title="Which model decodes (reloads the page)">
+        <option value="final">Final model</option>
+        <option value="doodle">Doodle model</option>
+      </select>
       <select id="backend" title="ONNX Runtime backend (reloads the page)">
         <option value="wasm">WASM (CPU)</option>
         <option value="webgpu">WebGPU</option>
@@ -90,6 +97,16 @@
     </div>
     <div id="status">Loading…</div>
     <div id="error" class="warn" hidden></div>
+  </section>
+
+  <section class="panel">
+    <div class="row"><strong>Draw an emoji</strong>
+      <span class="hint">black pen; the drawing is fitted into the icon frame before converting</span></div>
+    <canvas id="pad" width="432" height="432"></canvas>
+    <div class="row">
+      <button id="pad-convert" class="primary" disabled>Convert drawing</button>
+      <button id="pad-clear">Clear</button>
+    </div>
   </section>
 
   <section class="panel stats" id="stats" hidden>
