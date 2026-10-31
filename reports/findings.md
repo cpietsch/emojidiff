@@ -4619,3 +4619,26 @@ those are the 9% of icons where the model is better, because it draws faces as t
 **Decision.** For the demo as framed (render in, editable SVG out) a tracer is the honest state of the art and the
 transcriber does not reach it; the operator decides whether the model's role changes. If the transcriber stays in
 the demo, it should use best of 8 and show vtracer next to it.
+
+## 2026-10-31 — Doodle to emoji fails: worse than the doodle itself, and real doodles fragment
+
+**Hypothesis** (declared in state/CURRENT.md at 16:00, wave D1, 8 fine-tunes of the final model on renders degraded
+to look hand-drawn): the fine-tuned model turns a rough drawing into a clean OpenMoji SVG closer to the clean icon
+than the drawing itself and than a tracer, a job a tracer cannot do.
+
+**Observation** (`reports/doodle/2026-10-31-wave-d1/`). Against the clean targets on the 339 validation icons: on
+lineart the model scores 0.105 (parent 0.139, the degraded input itself 0.097, vtracer 0.107); on the held-out
+pencil kind 0.138 (parent 0.145, input 0.134, vtracer 0.148). It beats the parent clearly and vtracer on pencil,
+but it is worse than returning the drawing unchanged, in every seed. Clean validation error rises by 0.009 (p0.5)
+and 0.013 (p0.9). On 130 real QuickDraw doodles the outputs fragment like the parent's; one category in 26 (the
+star) comes out as a clean emoji.
+
+**Reading.** The degradations kept OpenMoji's own shapes, so the model learned to repair shapes it knows. Real
+drawings do not have those shapes, and the model has no general skill of drawing what it sees - the same
+template-recall limit the visual review found on clean renders. A tracer-beating job for this model would need a
+model that draws unfamiliar shapes, which 2,681 icons have not produced.
+
+**Decision.** Criterion (2) fails, so by the declared rule the doodle line stops and the evening's fallback is a
+variations page from the existing flow prior (no training). Its prototype works where the corpus is dense (busts,
+faces, couples, stick figures: new hair, skin, beards, expressions; mixing two faces) and fragments elsewhere;
+the operator decides whether that is worth building or whether the project wraps up here.

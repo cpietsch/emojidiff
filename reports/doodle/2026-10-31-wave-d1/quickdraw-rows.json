@@ -1,0 +1,912 @@
+[
+ {
+  "category": "umbrella",
+  "key_id": "5060802019065856",
+  "hexcode": "2602",
+  "annotation": "umbrella",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "umbrella",
+  "key_id": "4916738481192960",
+  "hexcode": "2602",
+  "annotation": "umbrella",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "umbrella",
+  "key_id": "5171915670945792",
+  "hexcode": "2602",
+  "annotation": "umbrella",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "umbrella",
+  "key_id": "4685148610101248",
+  "hexcode": "2602",
+  "annotation": "umbrella",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "umbrella",
+  "key_id": "5471481188319232",
+  "hexcode": "2602",
+  "annotation": "umbrella",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "apple",
+  "key_id": "4986110117675008",
+  "hexcode": "1F34E",
+  "annotation": "red apple",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "apple",
+  "key_id": "6489082920173568",
+  "hexcode": "1F34E",
+  "annotation": "red apple",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "apple",
+  "key_id": "4587619411296256",
+  "hexcode": "1F34E",
+  "annotation": "red apple",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "apple",
+  "key_id": "5198601426829312",
+  "hexcode": "1F34E",
+  "annotation": "red apple",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "apple",
+  "key_id": "4826235060355072",
+  "hexcode": "1F34E",
+  "annotation": "red apple",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "pizza",
+  "key_id": "6694100835237888",
+  "hexcode": "1F355",
+  "annotation": "pizza",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "pizza",
+  "key_id": "6595531419680768",
+  "hexcode": "1F355",
+  "annotation": "pizza",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "pizza",
+  "key_id": "4678379955552256",
+  "hexcode": "1F355",
+  "annotation": "pizza",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "pizza",
+  "key_id": "5383644388524032",
+  "hexcode": "1F355",
+  "annotation": "pizza",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "pizza",
+  "key_id": "5022351588589568",
+  "hexcode": "1F355",
+  "annotation": "pizza",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "bird",
+  "key_id": "4926006882205696",
+  "hexcode": "1F426",
+  "annotation": "bird",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "bird",
+  "key_id": "5357674197680128",
+  "hexcode": "1F426",
+  "annotation": "bird",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "bird",
+  "key_id": "5553672849195008",
+  "hexcode": "1F426",
+  "annotation": "bird",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "bird",
+  "key_id": "5635633911431168",
+  "hexcode": "1F426",
+  "annotation": "bird",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "bird",
+  "key_id": "5633137012899840",
+  "hexcode": "1F426",
+  "annotation": "bird",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "hand",
+  "key_id": "5903859719340032",
+  "hexcode": "270B",
+  "annotation": "raised hand",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "hand",
+  "key_id": "5234179514040320",
+  "hexcode": "270B",
+  "annotation": "raised hand",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "hand",
+  "key_id": "6625242686423040",
+  "hexcode": "270B",
+  "annotation": "raised hand",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "hand",
+  "key_id": "5759888758145024",
+  "hexcode": "270B",
+  "annotation": "raised hand",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "hand",
+  "key_id": "5432670165139456",
+  "hexcode": "270B",
+  "annotation": "raised hand",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "camera",
+  "key_id": "5238104472420352",
+  "hexcode": "1F4F7",
+  "annotation": "camera",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "camera",
+  "key_id": "6188402061869056",
+  "hexcode": "1F4F7",
+  "annotation": "camera",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "camera",
+  "key_id": "4567807415025664",
+  "hexcode": "1F4F7",
+  "annotation": "camera",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "camera",
+  "key_id": "4708593225957376",
+  "hexcode": "1F4F7",
+  "annotation": "camera",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "camera",
+  "key_id": "4803262291116032",
+  "hexcode": "1F4F7",
+  "annotation": "camera",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "airplane",
+  "key_id": "5152802093400064",
+  "hexcode": "2708",
+  "annotation": "airplane",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "airplane",
+  "key_id": "6577010312740864",
+  "hexcode": "2708",
+  "annotation": "airplane",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "airplane",
+  "key_id": "5643224746033152",
+  "hexcode": "2708",
+  "annotation": "airplane",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "airplane",
+  "key_id": "6670046841536512",
+  "hexcode": "2708",
+  "annotation": "airplane",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "airplane",
+  "key_id": "5509429904539648",
+  "hexcode": "2708",
+  "annotation": "airplane",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "mushroom",
+  "key_id": "5340017608097792",
+  "hexcode": "1F344",
+  "annotation": "mushroom",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "mushroom",
+  "key_id": "4800909198491648",
+  "hexcode": "1F344",
+  "annotation": "mushroom",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "mushroom",
+  "key_id": "5159616730103808",
+  "hexcode": "1F344",
+  "annotation": "mushroom",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "mushroom",
+  "key_id": "6296521148465152",
+  "hexcode": "1F344",
+  "annotation": "mushroom",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "mushroom",
+  "key_id": "6510912930316288",
+  "hexcode": "1F344",
+  "annotation": "mushroom",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "rabbit",
+  "key_id": "6499801011060736",
+  "hexcode": "1F430",
+  "annotation": "rabbit face",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "rabbit",
+  "key_id": "5084232823078912",
+  "hexcode": "1F430",
+  "annotation": "rabbit face",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "rabbit",
+  "key_id": "6366193956945920",
+  "hexcode": "1F430",
+  "annotation": "rabbit face",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "rabbit",
+  "key_id": "6529761427849216",
+  "hexcode": "1F430",
+  "annotation": "rabbit face",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "rabbit",
+  "key_id": "6742357342945280",
+  "hexcode": "1F430",
+  "annotation": "rabbit face",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "teapot",
+  "key_id": "4699508627734528",
+  "hexcode": "1FAD6",
+  "annotation": "teapot",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "teapot",
+  "key_id": "4825567041945600",
+  "hexcode": "1FAD6",
+  "annotation": "teapot",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "teapot",
+  "key_id": "5554967832166400",
+  "hexcode": "1FAD6",
+  "annotation": "teapot",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "teapot",
+  "key_id": "5418174516297728",
+  "hexcode": "1FAD6",
+  "annotation": "teapot",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "teapot",
+  "key_id": "4974592932184064",
+  "hexcode": "1FAD6",
+  "annotation": "teapot",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "violin",
+  "key_id": "5235884959989760",
+  "hexcode": "1F3BB",
+  "annotation": "violin",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "violin",
+  "key_id": "6379764493320192",
+  "hexcode": "1F3BB",
+  "annotation": "violin",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "violin",
+  "key_id": "6514669961347072",
+  "hexcode": "1F3BB",
+  "annotation": "violin",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "violin",
+  "key_id": "4916791035822080",
+  "hexcode": "1F3BB",
+  "annotation": "violin",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "violin",
+  "key_id": "5143820729581568",
+  "hexcode": "1F3BB",
+  "annotation": "violin",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "hedgehog",
+  "key_id": "6330100159086592",
+  "hexcode": "1F994",
+  "annotation": "hedgehog",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "hedgehog",
+  "key_id": "5301347031187456",
+  "hexcode": "1F994",
+  "annotation": "hedgehog",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "hedgehog",
+  "key_id": "4741560165990400",
+  "hexcode": "1F994",
+  "annotation": "hedgehog",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "hedgehog",
+  "key_id": "4622314995974144",
+  "hexcode": "1F994",
+  "annotation": "hedgehog",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "hedgehog",
+  "key_id": "4942042545258496",
+  "hexcode": "1F994",
+  "annotation": "hedgehog",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "stop sign",
+  "key_id": "5703037202989056",
+  "hexcode": "1F6D1",
+  "annotation": "stop sign",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "stop sign",
+  "key_id": "4552316948578304",
+  "hexcode": "1F6D1",
+  "annotation": "stop sign",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "stop sign",
+  "key_id": "5176347141865472",
+  "hexcode": "1F6D1",
+  "annotation": "stop sign",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "stop sign",
+  "key_id": "4843101279485952",
+  "hexcode": "1F6D1",
+  "annotation": "stop sign",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "stop sign",
+  "key_id": "4833295923675136",
+  "hexcode": "1F6D1",
+  "annotation": "stop sign",
+  "icon_split": "primary/validation"
+ },
+ {
+  "category": "smiley face",
+  "key_id": "6700392291237888",
+  "hexcode": "1F600",
+  "annotation": "grinning face",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "smiley face",
+  "key_id": "5222978671345664",
+  "hexcode": "1F600",
+  "annotation": "grinning face",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "smiley face",
+  "key_id": "6496977913118720",
+  "hexcode": "1F600",
+  "annotation": "grinning face",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "smiley face",
+  "key_id": "4778829828587520",
+  "hexcode": "1F600",
+  "annotation": "grinning face",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "smiley face",
+  "key_id": "5330433904476160",
+  "hexcode": "1F600",
+  "annotation": "grinning face",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "sun",
+  "key_id": "5712076074909696",
+  "hexcode": "2600",
+  "annotation": "sun",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "sun",
+  "key_id": "5880193308688384",
+  "hexcode": "2600",
+  "annotation": "sun",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "sun",
+  "key_id": "5415290848411648",
+  "hexcode": "2600",
+  "annotation": "sun",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "sun",
+  "key_id": "6574005630795776",
+  "hexcode": "2600",
+  "annotation": "sun",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "sun",
+  "key_id": "5725261842612224",
+  "hexcode": "2600",
+  "annotation": "sun",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "moon",
+  "key_id": "5431885159202816",
+  "hexcode": "1F319",
+  "annotation": "crescent moon",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "moon",
+  "key_id": "5783988255850496",
+  "hexcode": "1F319",
+  "annotation": "crescent moon",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "moon",
+  "key_id": "4985243645771776",
+  "hexcode": "1F319",
+  "annotation": "crescent moon",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "moon",
+  "key_id": "4677704068628480",
+  "hexcode": "1F319",
+  "annotation": "crescent moon",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "moon",
+  "key_id": "5252141214072832",
+  "hexcode": "1F319",
+  "annotation": "crescent moon",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "star",
+  "key_id": "5260413706960896",
+  "hexcode": "2B50",
+  "annotation": "star",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "star",
+  "key_id": "4853913289228288",
+  "hexcode": "2B50",
+  "annotation": "star",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "star",
+  "key_id": "4624556264259584",
+  "hexcode": "2B50",
+  "annotation": "star",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "star",
+  "key_id": "4729612393250816",
+  "hexcode": "2B50",
+  "annotation": "star",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "star",
+  "key_id": "5130650279477248",
+  "hexcode": "2B50",
+  "annotation": "star",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "cloud",
+  "key_id": "4746105067667456",
+  "hexcode": "2601",
+  "annotation": "cloud",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "cloud",
+  "key_id": "4791745197899776",
+  "hexcode": "2601",
+  "annotation": "cloud",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "cloud",
+  "key_id": "5175490744680448",
+  "hexcode": "2601",
+  "annotation": "cloud",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "cloud",
+  "key_id": "5868899880927232",
+  "hexcode": "2601",
+  "annotation": "cloud",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "cloud",
+  "key_id": "5007611478933504",
+  "hexcode": "2601",
+  "annotation": "cloud",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "house",
+  "key_id": "5054419760578560",
+  "hexcode": "1F3E0",
+  "annotation": "house",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "house",
+  "key_id": "6190295400054784",
+  "hexcode": "1F3E0",
+  "annotation": "house",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "house",
+  "key_id": "4774272331415552",
+  "hexcode": "1F3E0",
+  "annotation": "house",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "house",
+  "key_id": "5515902256676864",
+  "hexcode": "1F3E0",
+  "annotation": "house",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "house",
+  "key_id": "5372917690925056",
+  "hexcode": "1F3E0",
+  "annotation": "house",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "cat",
+  "key_id": "5201136883597312",
+  "hexcode": "1F431",
+  "annotation": "cat face",
+  "icon_split": "primary/test"
+ },
+ {
+  "category": "cat",
+  "key_id": "4647694628814848",
+  "hexcode": "1F431",
+  "annotation": "cat face",
+  "icon_split": "primary/test"
+ },
+ {
+  "category": "cat",
+  "key_id": "6411036099870720",
+  "hexcode": "1F431",
+  "annotation": "cat face",
+  "icon_split": "primary/test"
+ },
+ {
+  "category": "cat",
+  "key_id": "6196755135725568",
+  "hexcode": "1F431",
+  "annotation": "cat face",
+  "icon_split": "primary/test"
+ },
+ {
+  "category": "cat",
+  "key_id": "4597292839469056",
+  "hexcode": "1F431",
+  "annotation": "cat face",
+  "icon_split": "primary/test"
+ },
+ {
+  "category": "fish",
+  "key_id": "6591076297080832",
+  "hexcode": "1F41F",
+  "annotation": "fish",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "fish",
+  "key_id": "6721582066040832",
+  "hexcode": "1F41F",
+  "annotation": "fish",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "fish",
+  "key_id": "5385703221362688",
+  "hexcode": "1F41F",
+  "annotation": "fish",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "fish",
+  "key_id": "5751665556717568",
+  "hexcode": "1F41F",
+  "annotation": "fish",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "fish",
+  "key_id": "6528113636802560",
+  "hexcode": "1F41F",
+  "annotation": "fish",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "tree",
+  "key_id": "4593716037681152",
+  "hexcode": "1F333",
+  "annotation": "deciduous tree",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "tree",
+  "key_id": "5194627692888064",
+  "hexcode": "1F333",
+  "annotation": "deciduous tree",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "tree",
+  "key_id": "5374156503777280",
+  "hexcode": "1F333",
+  "annotation": "deciduous tree",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "tree",
+  "key_id": "6718527320883200",
+  "hexcode": "1F333",
+  "annotation": "deciduous tree",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "tree",
+  "key_id": "4866136313167872",
+  "hexcode": "1F333",
+  "annotation": "deciduous tree",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "key",
+  "key_id": "5223042911305728",
+  "hexcode": "1F511",
+  "annotation": "key",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "key",
+  "key_id": "5425151371902976",
+  "hexcode": "1F511",
+  "annotation": "key",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "key",
+  "key_id": "5094706637701120",
+  "hexcode": "1F511",
+  "annotation": "key",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "key",
+  "key_id": "6472784727244800",
+  "hexcode": "1F511",
+  "annotation": "key",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "key",
+  "key_id": "5924545036812288",
+  "hexcode": "1F511",
+  "annotation": "key",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "light bulb",
+  "key_id": "4999702888054784",
+  "hexcode": "1F4A1",
+  "annotation": "light bulb",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "light bulb",
+  "key_id": "6349307806482432",
+  "hexcode": "1F4A1",
+  "annotation": "light bulb",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "light bulb",
+  "key_id": "5754900577255424",
+  "hexcode": "1F4A1",
+  "annotation": "light bulb",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "light bulb",
+  "key_id": "4762556147171328",
+  "hexcode": "1F4A1",
+  "annotation": "light bulb",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "light bulb",
+  "key_id": "4940177459904512",
+  "hexcode": "1F4A1",
+  "annotation": "light bulb",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "snowman",
+  "key_id": "5040959249186816",
+  "hexcode": "2603",
+  "annotation": "snowman",
+  "icon_split": "primary/test"
+ },
+ {
+  "category": "snowman",
+  "key_id": "5057709479034880",
+  "hexcode": "2603",
+  "annotation": "snowman",
+  "icon_split": "primary/test"
+ },
+ {
+  "category": "snowman",
+  "key_id": "4649154502459392",
+  "hexcode": "2603",
+  "annotation": "snowman",
+  "icon_split": "primary/test"
+ },
+ {
+  "category": "snowman",
+  "key_id": "5670608501211136",
+  "hexcode": "2603",
+  "annotation": "snowman",
+  "icon_split": "primary/test"
+ },
+ {
+  "category": "snowman",
+  "key_id": "6248191743754240",
+  "hexcode": "2603",
+  "annotation": "snowman",
+  "icon_split": "primary/test"
+ },
+ {
+  "category": "crown",
+  "key_id": "5215651742351360",
+  "hexcode": "1F451",
+  "annotation": "crown",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "crown",
+  "key_id": "5929020929605632",
+  "hexcode": "1F451",
+  "annotation": "crown",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "crown",
+  "key_id": "6650947604316160",
+  "hexcode": "1F451",
+  "annotation": "crown",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "crown",
+  "key_id": "6258408296546304",
+  "hexcode": "1F451",
+  "annotation": "crown",
+  "icon_split": "primary/train"
+ },
+ {
+  "category": "crown",
+  "key_id": "5113118021648384",
+  "hexcode": "1F451",
+  "annotation": "crown",
+  "icon_split": "primary/train"
+ }
+]
