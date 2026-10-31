@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-10-31 16:00
+Updated: 2026-10-31 17:10
 
 ## Current hypothesis and evidence
 
@@ -36,7 +36,7 @@ completed); ruff, strict mypy, 25 targeted tests.
 - Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz). One-GPU
   jobs; job scripts ~/eai-team11/mojidiff/jobs/arms-<commit>.slurm (MODULE/EXTRA). Submit and wait
   only through scratchpad `submit_wave.sh` / `wait_jobs.sh` (bash; zsh loops broke waiters twice).
-  Wave D1 (doodle fine-tunes) is being submitted; waves 1-12 are complete and recorded.
+  Nothing running. Waves 1-12 and doodle wave D1 are complete and recorded.
 - Browser demo (web/demo, 92089f7): the operator closed the tunnel and the demo server at 16:05; restart with
   `node web/demo/serve.mjs` (see its header) when needed. Its review fixes are in (95c3348).
 - Browser milestone 1 merged (2b2ab8f, squash of browser-m1; findings 2026-10-31): the final model
@@ -67,20 +67,9 @@ on WebGPU only, ONNX files under `onnx/` in the checkpoints repo, test-split ico
 
 ## Next smallest evidence-producing action
 
-Direction (operator, 15:30): give the model a job a tracer cannot do. Design workflow (5 agents, two judges
-unanimous): doodle to emoji - fine-tune the final model on renders degraded to look hand-drawn
-(mojidiff.learning.doodle), so a rough drawing comes out as a clean OpenMoji SVG. Wave D1: 8 fine-tunes from
-the final model's best.pt, 30k steps at lr 3e-4, seeds 7001-7004, degrade_probability 0.5 vs 0.9.
-Declared before results (16:00), scored by doodle_eval on the 339 validation icons, each kind degraded once
-with seed 1 (selection used seed 0), against the clean targets, means over icons with paired bootstrap:
-(1) each arm beats the parent on the training kinds (expected, not evidence);
-(2) the decisive claim: on lineart and on the held-out pencil kind the arm beats both the degraded input
-    itself (input-as-output at 72 px, the bound for any faithful tracer) and vtracer compact on the degraded
-    input, intervals excluding zero;
-(3) clean validation error rises by at most 0.010 over the parent;
-(4) blind visual grades on lineart and pencil sheets (input | vtracer | parent | doodle model, shuffled
-    columns, neutral ids): recognisable as the icon, in clean OpenMoji style.
-The arm with the lower mean over the held-out kinds that passes (3) is the doodle model; within it the seed
-with the lowest error on the mixed selection set. Real drawings (QuickDraw, the operator's own) are reported,
-not gated. Fallback if (2) or (3) fails by ~19:30: a variations page from the existing flow prior.
-The allocation ends about 22:45.
+Doodle to emoji (wave D1, 8 fine-tunes) failed its declared criterion (2): on lineart and pencil the model's
+output is further from the clean icon than the degraded input itself (lineart 0.105 vs 0.097), level with
+vtracer on lineart; real QuickDraw doodles fragment (findings 2026-10-31, reports/doodle/2026-10-31-wave-d1/).
+By the declared rule the line stops. Asked the operator (17:10): build the fallback variations page from the
+existing flow prior (no training; works for busts, faces, couples, stick figures, fragments elsewhere) or wrap
+up. The cluster is idle (allocation ends about 22:45); the demo server is off.
