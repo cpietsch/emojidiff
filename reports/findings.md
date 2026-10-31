@@ -4495,3 +4495,39 @@ the recipe takes 1e-3. Wave 12 (jobs 14121-14128, commit ee83881) trains dropout
 seeds 7001-7008, seed-matched against d02-s120k. The final-model rule was registered with it: the recipe must
 beat d02-s120k across seeds (interval excluding zero); then its best validation run is the candidate, and one
 paired test look against the current final model decides.
+
+## 2026-10-31 — Visual review of the final model's SVGs: half recognisable, one in six faithful, 2% garbage
+
+**Question (the operator's).** The browser demo made the outputs visible, and some looked like garbage: how
+good are the final model's greedy SVGs to the eye, and does pixel error say so?
+
+**Method.** All 339 validation icons, the SVGs the demo shows (greedy; Python ONNX Runtime, token-identical to the
+browser). Contact sheets with input render and model SVG side by side under neutral shuffled ids (no metric, no
+hexcode). One test per icon: would a viewer who sees only the model's image name the same emoji? 3 faithful, 2
+recognisable with obvious flaws, 1 partial (resemblance but subject lost), 0 garbage. Eight model graders with a
+calibrated rubric, a ninth re-grading two sheets blind, my own grades on two sheets, and a by-grade spot check
+(`reports/visual/2026-10-31-final-greedy/`).
+
+| grade | share | pixel error median |
+| --- | --- | --- |
+| 3 faithful | 16% (53) | 0.003 |
+| 2 recognisable | 37% (124) | 0.051 |
+| 1 partial | 46% (156) | 0.076 |
+| 0 garbage | 2% (6) | 0.112 |
+
+Agreement is high: blind re-grade 96% exact, mine 94% exact, never more than one grade apart. Grade and pixel
+error correlate (Spearman -0.55); family-weighted shares are the same (53% recognisable, 15% faithful).
+
+**Reading.** The model vectorises simple, bold icons well (hands, hearts, faces, busts, walking people) and
+breaks detailed ones: fewer than 300 decoder calls 68% recognisable and 38% faithful, above 450 calls almost none
+faithful. Missing parts are the commonest defect (153 icons), then distortion (96), fragmentation (85) and wrong
+colour (82). It replaces unfamiliar parts with familiar templates: vampires, fairies and older people, whose
+families the split keeps out of training, become plain people in 35 of 36; water-polo and weightlifting scenes
+keep the water or the barbell and lose the figure. A systematic colour error: the red heart of couple and kiss
+icons comes out brown in 18 of 26. It is not mere recall: 72% of faithful icons have no near-twin in training,
+and on the 237 icons with nothing close in training 45% are recognisable. The model's mean pixel error (0.064)
+sits between the recognisable and partial medians, so the recent recipe gains (0.003-0.005) are visually small.
+
+**Decision.** Report pixel error together with this grade from now on; the next visual check is best of 8 (test
+0.040 against greedy 0.062) on the same sheets, since that is the one lever that moves pixel error by a whole
+grade band. Recipe tuning alone will not change what the operator sees.

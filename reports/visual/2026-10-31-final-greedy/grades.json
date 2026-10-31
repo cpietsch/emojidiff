@@ -1,0 +1,5011 @@
+{
+ "#000": {
+  "index": 333,
+  "hexcode": "E253",
+  "pixel_error": 0.015625756233930588,
+  "retrieval_error": 0.06105436757206917,
+  "calls": 127,
+  "id": "#000",
+  "input_subject": "share icon (three linked circles)",
+  "model_drew": "three loose circles, no lines",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#001": {
+  "index": 335,
+  "hexcode": "E2C7",
+  "pixel_error": 0.1111600324511528,
+  "retrieval_error": 0.11814355850219727,
+  "calls": 465,
+  "id": "#001",
+  "input_subject": "glacier/iceberg over water",
+  "model_drew": "few jagged strokes and a slab outline, tiny blue",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_fill"
+  ]
+ },
+ "#002": {
+  "index": 199,
+  "hexcode": "1F93D-1F3FD",
+  "pixel_error": 0.0822719931602478,
+  "retrieval_error": 0.12338314205408096,
+  "calls": 750,
+  "id": "#002",
+  "input_subject": "water polo player, medium skin",
+  "model_drew": "tan blob with raised arm and ball, water mostly lines",
+  "grade": 1,
+  "defects": [
+   "distorted_shape",
+   "fragmented",
+   "wrong_colour"
+  ]
+ },
+ "#003": {
+  "index": 198,
+  "hexcode": "1F93D-1F3FD-200D-2642-FE0F",
+  "pixel_error": 0.07648849487304688,
+  "retrieval_error": 0.11682577431201935,
+  "calls": 566,
+  "id": "#003",
+  "input_subject": "water polo player, medium skin",
+  "model_drew": "tan blob, ball outline, black wave lines, no blue",
+  "grade": 1,
+  "defects": [
+   "distorted_shape",
+   "missing_fill",
+   "fragmented"
+  ]
+ },
+ "#004": {
+  "index": 92,
+  "hexcode": "1F468-1F3FD-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FD",
+  "pixel_error": 0.056005656719207764,
+  "retrieval_error": 0.0466664656996727,
+  "calls": 800,
+  "id": "#004",
+  "input_subject": "couple with heart, two men medium skin",
+  "model_drew": "heart and two heads, right face garbled with red strokes",
+  "grade": 2,
+  "defects": [
+   "distorted_shape",
+   "wrong_colour"
+  ]
+ },
+ "#005": {
+  "index": 299,
+  "hexcode": "270B-1F3FF",
+  "pixel_error": 0.00495037529617548,
+  "retrieval_error": 0.09678900986909866,
+  "calls": 337,
+  "id": "#005",
+  "input_subject": "raised hand, dark skin",
+  "model_drew": "raised dark hand, close match",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#006": {
+  "index": 264,
+  "hexcode": "1F9FA",
+  "pixel_error": 0.07757832109928131,
+  "retrieval_error": 0.10622452944517136,
+  "calls": 415,
+  "id": "#006",
+  "input_subject": "picnic basket",
+  "model_drew": "lid bar, loose lines, empty trapezoid, no weave",
+  "grade": 1,
+  "defects": [
+   "missing_fill",
+   "missing_parts",
+   "fragmented"
+  ]
+ },
+ "#007": {
+  "index": 315,
+  "hexcode": "E0A7",
+  "pixel_error": 0.02552877739071846,
+  "retrieval_error": 0.1326388716697693,
+  "calls": 109,
+  "id": "#007",
+  "input_subject": "right arrow curving up",
+  "model_drew": "same arrow with angular bend and white wedge artifact",
+  "grade": 2,
+  "defects": [
+   "distorted_shape"
+  ]
+ },
+ "#008": {
+  "index": 22,
+  "hexcode": "1F3CA-1F3FB-200D-2640-FE0F",
+  "pixel_error": 0.04047118127346039,
+  "retrieval_error": 0.10369940847158432,
+  "calls": 303,
+  "id": "#008",
+  "input_subject": "swimmer, light skin",
+  "model_drew": "water with stray strokes, no swimmer",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#009": {
+  "index": 216,
+  "hexcode": "1F99F",
+  "pixel_error": 0.04896589741110802,
+  "retrieval_error": 0.09985122829675674,
+  "calls": 638,
+  "id": "#009",
+  "input_subject": "mosquito",
+  "model_drew": "insect with legs and grey abdomen, wings mostly gone",
+  "grade": 2,
+  "defects": [
+   "missing_parts",
+   "distorted_shape"
+  ]
+ },
+ "#010": {
+  "index": 218,
+  "hexcode": "1F9BF",
+  "pixel_error": 0.042128872126340866,
+  "retrieval_error": 0.06629019230604172,
+  "calls": 379,
+  "id": "#010",
+  "input_subject": "mechanical leg",
+  "model_drew": "thin grey vertical stroke with foot",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "fragmented"
+  ]
+ },
+ "#011": {
+  "index": 205,
+  "hexcode": "1F93D-1F3FF",
+  "pixel_error": 0.1399318128824234,
+  "retrieval_error": 0.12708181142807007,
+  "calls": 849,
+  "id": "#011",
+  "input_subject": "water polo player, dark skin",
+  "model_drew": "ball, a few strokes, blue wedge, wave lines",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "fragmented"
+  ]
+ },
+ "#012": {
+  "index": 159,
+  "hexcode": "1F68F",
+  "pixel_error": 0.056205619126558304,
+  "retrieval_error": 0.10202104598283768,
+  "calls": 283,
+  "id": "#012",
+  "input_subject": "bus stop sign with H",
+  "model_drew": "sign on pole outline, H replaced by odd glyph, no fill",
+  "grade": 1,
+  "defects": [
+   "lost_text_or_symbol",
+   "missing_fill"
+  ]
+ },
+ "#013": {
+  "index": 137,
+  "hexcode": "1F596-1F3FD",
+  "pixel_error": 0.17063210904598236,
+  "retrieval_error": 0.1483493596315384,
+  "calls": 291,
+  "id": "#013",
+  "input_subject": "vulcan salute, medium skin",
+  "model_drew": "vulcan hand outline, almost no skin fill",
+  "grade": 2,
+  "defects": [
+   "missing_fill"
+  ]
+ },
+ "#014": {
+  "index": 239,
+  "hexcode": "1F9DA-1F3FE",
+  "pixel_error": 0.12079551070928574,
+  "retrieval_error": 0.11278115957975388,
+  "calls": 796,
+  "id": "#014",
+  "input_subject": "fairy, medium-dark skin",
+  "model_drew": "person with green hair/shirt, no wings",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "wrong_colour"
+  ]
+ },
+ "#015": {
+  "index": 38,
+  "hexcode": "1F3CA-200D-2642-FE0F",
+  "pixel_error": 0.024554939940571785,
+  "retrieval_error": 0.10343187302350998,
+  "calls": 423,
+  "id": "#015",
+  "input_subject": "swimmer, default yellow",
+  "model_drew": "water with head and arm stroke, little yellow",
+  "grade": 2,
+  "defects": [
+   "missing_fill"
+  ]
+ },
+ "#016": {
+  "index": 74,
+  "hexcode": "1F459",
+  "pixel_error": 0.05149025470018387,
+  "retrieval_error": 0.10087170451879501,
+  "calls": 313,
+  "id": "#016",
+  "input_subject": "bikini",
+  "model_drew": "purple bikini, misshapen top, unoutlined bottom",
+  "grade": 2,
+  "defects": [
+   "distorted_shape",
+   "broken_outline"
+  ]
+ },
+ "#017": {
+  "index": 235,
+  "hexcode": "1F9DA-1F3FC",
+  "pixel_error": 0.10236044973134995,
+  "retrieval_error": 0.11830771714448929,
+  "calls": 772,
+  "id": "#017",
+  "input_subject": "fairy, light skin blonde",
+  "model_drew": "blonde person with green shirt and wand scribble, no wings",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#018": {
+  "index": 127,
+  "hexcode": "1F4F4",
+  "pixel_error": 0.04738662764430046,
+  "retrieval_error": 0.12333903461694717,
+  "calls": 443,
+  "id": "#018",
+  "input_subject": "mobile phone off",
+  "model_drew": "grey phone slab with screen box, OFF text lost",
+  "grade": 2,
+  "defects": [
+   "lost_text_or_symbol",
+   "distorted_shape"
+  ]
+ },
+ "#019": {
+  "index": 65,
+  "hexcode": "1F424",
+  "pixel_error": 0.06077422574162483,
+  "retrieval_error": 0.08198857307434082,
+  "calls": 374,
+  "id": "#019",
+  "input_subject": "front-facing baby chick",
+  "model_drew": "chick face in orange with extra outline",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "extra_strokes"
+  ]
+ },
+ "#020": {
+  "index": 309,
+  "hexcode": "E060",
+  "pixel_error": 0.05383709445595741,
+  "retrieval_error": 0.1222827360033989,
+  "calls": 352,
+  "id": "#020",
+  "input_subject": "reddit alien logo",
+  "model_drew": "red circle with white bowl shape and smile, no eyes/ears",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#021": {
+  "index": 131,
+  "hexcode": "1F528",
+  "pixel_error": 0.02803472802042961,
+  "retrieval_error": 0.056072477251291275,
+  "calls": 349,
+  "id": "#021",
+  "input_subject": "hammer",
+  "model_drew": "hammer with white unfilled handle, altered head",
+  "grade": 2,
+  "defects": [
+   "missing_fill",
+   "wrong_colour"
+  ]
+ },
+ "#022": {
+  "index": 142,
+  "hexcode": "1F5DD",
+  "pixel_error": 0.06720905750989914,
+  "retrieval_error": 0.09843031316995621,
+  "calls": 502,
+  "id": "#022",
+  "input_subject": "old key",
+  "model_drew": "scribbled round bow and thin broken shaft",
+  "grade": 1,
+  "defects": [
+   "distorted_shape",
+   "fragmented",
+   "missing_fill"
+  ]
+ },
+ "#023": {
+  "index": 82,
+  "hexcode": "1F468-1F3FB-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FF",
+  "pixel_error": 0.030535131692886353,
+  "retrieval_error": 0.04261377453804016,
+  "calls": 868,
+  "id": "#023",
+  "input_subject": "couple with heart, light and dark skin",
+  "model_drew": "two heads with brown heart",
+  "grade": 2,
+  "defects": [
+   "wrong_colour"
+  ]
+ },
+ "#024": {
+  "index": 202,
+  "hexcode": "1F93D-1F3FE",
+  "pixel_error": 0.11032260954380035,
+  "retrieval_error": 0.12471555918455124,
+  "calls": 616,
+  "id": "#024",
+  "input_subject": "water polo player, medium skin",
+  "model_drew": "head and ball circles, arm stroke, wave lines, little blue",
+  "grade": 1,
+  "defects": [
+   "missing_fill",
+   "fragmented",
+   "missing_parts"
+  ]
+ },
+ "#025": {
+  "index": 2,
+  "hexcode": "1F194",
+  "pixel_error": 0.06013752892613411,
+  "retrieval_error": 0.043625686317682266,
+  "calls": 296,
+  "id": "#025",
+  "input_subject": "ID button",
+  "model_drew": "empty red rounded square",
+  "grade": 1,
+  "defects": [
+   "lost_text_or_symbol"
+  ]
+ },
+ "#026": {
+  "index": 103,
+  "hexcode": "1F468-1F3FF-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FC",
+  "pixel_error": 0.035168036818504333,
+  "retrieval_error": 0.04505492001771927,
+  "calls": 808,
+  "id": "#026",
+  "input_subject": "couple with heart, mixed skin tones",
+  "model_drew": "two heads with brown heart",
+  "grade": 2,
+  "defects": [
+   "wrong_colour"
+  ]
+ },
+ "#027": {
+  "index": 34,
+  "hexcode": "1F3CA-1F3FF-200D-2640-FE0F",
+  "pixel_error": 0.049910735338926315,
+  "retrieval_error": 0.10802014172077179,
+  "calls": 327,
+  "id": "#027",
+  "input_subject": "swimmer, darker skin, in water",
+  "model_drew": "water with rough swimmer strokes, light skin",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "distorted_shape"
+  ]
+ },
+ "#028": {
+  "index": 27,
+  "hexcode": "1F3CA-1F3FC",
+  "pixel_error": 0.09253031015396118,
+  "retrieval_error": 0.11694654822349548,
+  "calls": 406,
+  "id": "#028",
+  "input_subject": "swimmer, light skin, in water",
+  "model_drew": "scattered small circles and lines, no water",
+  "grade": 0,
+  "defects": [
+   "fragmented",
+   "missing_fill",
+   "missing_parts"
+  ]
+ },
+ "#029": {
+  "index": 220,
+  "hexcode": "1F9D1-1F3FB-200D-1FA70",
+  "pixel_error": 0.04175315424799919,
+  "retrieval_error": 0.09681901335716248,
+  "calls": 488,
+  "id": "#029",
+  "input_subject": "person in dance/kick pose, light skin",
+  "model_drew": "fragmented figure with similar pose",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "distorted_shape"
+  ]
+ },
+ "#030": {
+  "index": 59,
+  "hexcode": "1F3F3-FE0F-200D-1F7EB",
+  "pixel_error": 0.0,
+  "retrieval_error": 0.0506536103785038,
+  "calls": 49,
+  "id": "#030",
+  "input_subject": "brown rectangle swatch",
+  "model_drew": "same brown rectangle",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#031": {
+  "index": 196,
+  "hexcode": "1F93D-1F3FC",
+  "pixel_error": 0.09876139461994171,
+  "retrieval_error": 0.12261785566806793,
+  "calls": 709,
+  "id": "#031",
+  "input_subject": "water polo player, light skin",
+  "model_drew": "figure strokes over black wave lines, no water",
+  "grade": 1,
+  "defects": [
+   "missing_fill",
+   "fragmented"
+  ]
+ },
+ "#032": {
+  "index": 291,
+  "hexcode": "26B0",
+  "pixel_error": 0.05843823030591011,
+  "retrieval_error": 0.09939027577638626,
+  "calls": 238,
+  "id": "#032",
+  "input_subject": "coffin",
+  "model_drew": "dark brown coffin silhouette, no outline",
+  "grade": 2,
+  "defects": [
+   "broken_outline",
+   "wrong_colour"
+  ]
+ },
+ "#033": {
+  "index": 68,
+  "hexcode": "1F44E-1F3FB",
+  "pixel_error": 0.06199190020561218,
+  "retrieval_error": 0.11897215992212296,
+  "calls": 396,
+  "id": "#033",
+  "input_subject": "thumbs down, light skin",
+  "model_drew": "thumbs down outline, no skin fill",
+  "grade": 2,
+  "defects": [
+   "missing_fill",
+   "distorted_shape"
+  ]
+ },
+ "#034": {
+  "index": 105,
+  "hexcode": "1F468-1F3FF-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FE",
+  "pixel_error": 0.03327710181474686,
+  "retrieval_error": 0.043442368507385254,
+  "calls": 882,
+  "id": "#034",
+  "input_subject": "couple with heart, two men",
+  "model_drew": "two heads with brown heart",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "distorted_shape"
+  ]
+ },
+ "#035": {
+  "index": 328,
+  "hexcode": "E200",
+  "pixel_error": 0.11982066929340363,
+  "retrieval_error": 0.18587331473827362,
+  "calls": 450,
+  "id": "#035",
+  "input_subject": "table with chairs and cup",
+  "model_drew": "distorted table and chairs, cup a block",
+  "grade": 2,
+  "defects": [
+   "distorted_shape"
+  ]
+ },
+ "#036": {
+  "index": 167,
+  "hexcode": "1F6B6-1F3FD",
+  "pixel_error": 0.0041631367057561874,
+  "retrieval_error": 0.06878605484962463,
+  "calls": 271,
+  "id": "#036",
+  "input_subject": "person walking, medium skin",
+  "model_drew": "same walking figure",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#037": {
+  "index": 189,
+  "hexcode": "1F933",
+  "pixel_error": 0.09912551194429398,
+  "retrieval_error": 0.16486044228076935,
+  "calls": 379,
+  "id": "#037",
+  "input_subject": "selfie arm with phone",
+  "model_drew": "blue sleeve arm, phone fragments, no hand",
+  "grade": 1,
+  "defects": [
+   "wrong_colour",
+   "missing_parts",
+   "fragmented"
+  ]
+ },
+ "#038": {
+  "index": 172,
+  "hexcode": "1F6B6-200D-2640-FE0F",
+  "pixel_error": 0.0,
+  "retrieval_error": 0.07199477404356003,
+  "calls": 305,
+  "id": "#038",
+  "input_subject": "woman walking, yellow",
+  "model_drew": "same walking figure",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#039": {
+  "index": 237,
+  "hexcode": "1F9DA-1F3FD",
+  "pixel_error": 0.1199452355504036,
+  "retrieval_error": 0.11508714407682419,
+  "calls": 914,
+  "id": "#039",
+  "input_subject": "fairy, medium skin",
+  "model_drew": "person, wings reduced to blue fragments",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "wrong_colour"
+  ]
+ },
+ "#040": {
+  "index": 121,
+  "hexcode": "1F4B5",
+  "pixel_error": 0.10484547913074493,
+  "retrieval_error": 0.12498966604471207,
+  "calls": 556,
+  "id": "#040",
+  "input_subject": "dollar banknote",
+  "model_drew": "green rectangle with scattered strokes, no $",
+  "grade": 1,
+  "defects": [
+   "lost_text_or_symbol",
+   "fragmented"
+  ]
+ },
+ "#041": {
+  "index": 13,
+  "hexcode": "1F342",
+  "pixel_error": 0.051638275384902954,
+  "retrieval_error": 0.10031645745038986,
+  "calls": 129,
+  "id": "#041",
+  "input_subject": "two leaves, orange and brown",
+  "model_drew": "one brown leaf, one unfilled leaf",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "missing_fill"
+  ]
+ },
+ "#042": {
+  "index": 191,
+  "hexcode": "1F93D-1F3FB-200D-2640-FE0F",
+  "pixel_error": 0.07524912804365158,
+  "retrieval_error": 0.12012652307748795,
+  "calls": 672,
+  "id": "#042",
+  "input_subject": "water polo player, light skin",
+  "model_drew": "head, ball, wave strokes, no water",
+  "grade": 1,
+  "defects": [
+   "missing_fill",
+   "fragmented"
+  ]
+ },
+ "#043": {
+  "index": 230,
+  "hexcode": "1F9D3-1F3FF",
+  "pixel_error": 0.02725379168987274,
+  "retrieval_error": 0.02690732665359974,
+  "calls": 437,
+  "id": "#043",
+  "input_subject": "older person, dark skin, grey hair",
+  "model_drew": "plain dark-skinned person, no grey hair",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "wrong_colour"
+  ]
+ },
+ "#044": {
+  "index": 54,
+  "hexcode": "1F3CB-1F3FF",
+  "pixel_error": 0.07776971161365509,
+  "retrieval_error": 0.1322823315858841,
+  "calls": 449,
+  "id": "#044",
+  "input_subject": "weightlifter, dark skin",
+  "model_drew": "barbell fragment and stray strokes",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_parts"
+  ]
+ },
+ "#045": {
+  "index": 324,
+  "hexcode": "E148",
+  "pixel_error": 0.07942613959312439,
+  "retrieval_error": 0.038191165775060654,
+  "calls": 749,
+  "id": "#045",
+  "input_subject": "broom with dustpan",
+  "model_drew": "small stroke and bristle fragment",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_parts"
+  ]
+ },
+ "#046": {
+  "index": 151,
+  "hexcode": "1F64F-1F3FB",
+  "pixel_error": 0.0018937101121991873,
+  "retrieval_error": 0.017440540716052055,
+  "calls": 397,
+  "id": "#046",
+  "input_subject": "folded hands, light skin",
+  "model_drew": "same folded hands",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#047": {
+  "index": 231,
+  "hexcode": "1F9D3",
+  "pixel_error": 0.031126443296670914,
+  "retrieval_error": 0.031796932220458984,
+  "calls": 437,
+  "id": "#047",
+  "input_subject": "older person, yellow, grey hair",
+  "model_drew": "plain blond person",
+  "grade": 1,
+  "defects": [
+   "wrong_colour",
+   "missing_parts"
+  ]
+ },
+ "#048": {
+  "index": 160,
+  "hexcode": "1F693",
+  "pixel_error": 0.014505920000374317,
+  "retrieval_error": 0.06806287914514542,
+  "calls": 573,
+  "id": "#048",
+  "input_subject": "police car, side view",
+  "model_drew": "same car with roof bar, blue side stripe missing",
+  "grade": 3,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#049": {
+  "index": 157,
+  "hexcode": "1F689",
+  "pixel_error": 0.36569711565971375,
+  "retrieval_error": 0.3001774847507477,
+  "calls": 416,
+  "id": "#049",
+  "input_subject": "high-speed train at station",
+  "model_drew": "dark filled blocks under station roof outline, no train",
+  "grade": 1,
+  "defects": [
+   "wrong_colour",
+   "missing_parts",
+   "distorted_shape"
+  ]
+ },
+ "#050": {
+  "index": 102,
+  "hexcode": "1F468-1F3FF-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FB",
+  "pixel_error": 0.03578053414821625,
+  "retrieval_error": 0.0459117516875267,
+  "calls": 885,
+  "id": "#050",
+  "input_subject": "kiss, two men, mixed skin tones, red heart",
+  "model_drew": "two heads kissing, heart brown, skin darker",
+  "grade": 2,
+  "defects": [
+   "wrong_colour"
+  ]
+ },
+ "#051": {
+  "index": 141,
+  "hexcode": "1F5A4",
+  "pixel_error": 0.0023299444001168013,
+  "retrieval_error": 0.020262446254491806,
+  "calls": 133,
+  "id": "#051",
+  "input_subject": "black heart",
+  "model_drew": "black heart, close match",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#052": {
+  "index": 112,
+  "hexcode": "1F469-1F3FE-200D-1F9B2",
+  "pixel_error": 0.00020399621280375868,
+  "retrieval_error": 0.0005219680606387556,
+  "calls": 281,
+  "id": "#052",
+  "input_subject": "person bust, medium-dark skin",
+  "model_drew": "same bust, close match",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#053": {
+  "index": 12,
+  "hexcode": "1F33F",
+  "pixel_error": 0.040738724172115326,
+  "retrieval_error": 0.08053159713745117,
+  "calls": 568,
+  "id": "#053",
+  "input_subject": "herb sprig with green leaves",
+  "model_drew": "stem with two green leaves and one orange leaf",
+  "grade": 2,
+  "defects": [
+   "missing_parts",
+   "wrong_colour"
+  ]
+ },
+ "#054": {
+  "index": 26,
+  "hexcode": "1F3CA-1F3FC-200D-2642-FE0F",
+  "pixel_error": 0.058041080832481384,
+  "retrieval_error": 0.10195321589708328,
+  "calls": 309,
+  "id": "#054",
+  "input_subject": "person swimming in water",
+  "model_drew": "water with swimmer head and arm arc, rough",
+  "grade": 2,
+  "defects": [
+   "distorted_shape",
+   "missing_fill"
+  ]
+ },
+ "#055": {
+  "index": 192,
+  "hexcode": "1F93D-1F3FB-200D-2642-FE0F",
+  "pixel_error": 0.06324765086174011,
+  "retrieval_error": 0.11836746335029602,
+  "calls": 732,
+  "id": "#055",
+  "input_subject": "water polo player with ball in water",
+  "model_drew": "scattered strokes, skin patches, ball fragment, no water",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "extra_strokes",
+   "missing_parts"
+  ]
+ },
+ "#056": {
+  "index": 233,
+  "hexcode": "1F9DA-1F3FB",
+  "pixel_error": 0.104350745677948,
+  "retrieval_error": 0.12233544141054153,
+  "calls": 852,
+  "id": "#056",
+  "input_subject": "fairy with wings and wand, light skin",
+  "model_drew": "person in green shirt, no wings, darker skin",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "wrong_colour"
+  ]
+ },
+ "#057": {
+  "index": 143,
+  "hexcode": "1F5E3",
+  "pixel_error": 0.05961379408836365,
+  "retrieval_error": 0.10383632779121399,
+  "calls": 253,
+  "id": "#057",
+  "input_subject": "speaking head silhouette, grey",
+  "model_drew": "faint shoulder line and breath marks, head nearly gone",
+  "grade": 1,
+  "defects": [
+   "missing_fill",
+   "missing_parts",
+   "broken_outline"
+  ]
+ },
+ "#058": {
+  "index": 106,
+  "hexcode": "1F468-1F3FF-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FF",
+  "pixel_error": 0.0440225824713707,
+  "retrieval_error": 0.04993267357349396,
+  "calls": 872,
+  "id": "#058",
+  "input_subject": "kiss, two dark-skinned people, red heart",
+  "model_drew": "two heads, heart black, one head with white top",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "distorted_shape"
+  ]
+ },
+ "#059": {
+  "index": 312,
+  "hexcode": "E08C",
+  "pixel_error": 0.10142066329717636,
+  "retrieval_error": 0.0901365652680397,
+  "calls": 454,
+  "id": "#059",
+  "input_subject": "yellow warning triangle with wave",
+  "model_drew": "grey ellipse and curly stroke, no triangle",
+  "grade": 0,
+  "defects": [
+   "missing_parts",
+   "fragmented"
+  ]
+ },
+ "#060": {
+  "index": 225,
+  "hexcode": "1F9D1-200D-1FA70",
+  "pixel_error": 0.0697878822684288,
+  "retrieval_error": 0.1071607917547226,
+  "calls": 497,
+  "id": "#060",
+  "input_subject": "yellow figure dancing, leg raised",
+  "model_drew": "head circle with yellow streaks and tangled strokes",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "distorted_shape"
+  ]
+ },
+ "#061": {
+  "index": 90,
+  "hexcode": "1F468-1F3FD-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FB",
+  "pixel_error": 0.03853636980056763,
+  "retrieval_error": 0.0459117516875267,
+  "calls": 808,
+  "id": "#061",
+  "input_subject": "kiss, two men, red heart",
+  "model_drew": "two faceless heads, heart brown",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "missing_parts"
+  ]
+ },
+ "#062": {
+  "index": 267,
+  "hexcode": "1FAA6",
+  "pixel_error": 0.17487922310829163,
+  "retrieval_error": 0.12568208575248718,
+  "calls": 353,
+  "id": "#062",
+  "input_subject": "headstone with grass",
+  "model_drew": "engraving lines and grey fragment, no stone shape",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "missing_fill"
+  ]
+ },
+ "#063": {
+  "index": 140,
+  "hexcode": "1F596",
+  "pixel_error": 0.10422516614198685,
+  "retrieval_error": 0.15542064607143402,
+  "calls": 287,
+  "id": "#063",
+  "input_subject": "vulcan salute, yellow hand",
+  "model_drew": "hand outline, mostly unfilled",
+  "grade": 2,
+  "defects": [
+   "missing_fill"
+  ]
+ },
+ "#064": {
+  "index": 275,
+  "hexcode": "1FAE7",
+  "pixel_error": 0.07267812639474869,
+  "retrieval_error": 0.11407774686813354,
+  "calls": 329,
+  "id": "#064",
+  "input_subject": "three blue bubbles",
+  "model_drew": "two circles, one outlined, no highlights",
+  "grade": 2,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#065": {
+  "index": 238,
+  "hexcode": "1F9DA-1F3FE-200D-2642-FE0F",
+  "pixel_error": 0.12319177389144897,
+  "retrieval_error": 0.11393503844738007,
+  "calls": 696,
+  "id": "#065",
+  "input_subject": "fairy with wings, dark skin",
+  "model_drew": "person in green shirt, no wings, lighter skin",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "wrong_colour"
+  ]
+ },
+ "#066": {
+  "index": 98,
+  "hexcode": "1F468-1F3FE-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FD",
+  "pixel_error": 0.04400291293859482,
+  "retrieval_error": 0.04422431066632271,
+  "calls": 661,
+  "id": "#066",
+  "input_subject": "kiss, two men, red heart",
+  "model_drew": "two heads, red heart, right head pale and broken",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "distorted_shape"
+  ]
+ },
+ "#067": {
+  "index": 213,
+  "hexcode": "1F970",
+  "pixel_error": 0.085805244743824,
+  "retrieval_error": 0.08093050867319107,
+  "calls": 468,
+  "id": "#067",
+  "input_subject": "smiling face with hearts",
+  "model_drew": "smiling face with one pale heart",
+  "grade": 2,
+  "defects": [
+   "missing_parts",
+   "wrong_colour"
+  ]
+ },
+ "#068": {
+  "index": 67,
+  "hexcode": "1F430",
+  "pixel_error": 0.17912657558918,
+  "retrieval_error": 0.22296960651874542,
+  "calls": 495,
+  "id": "#068",
+  "input_subject": "rabbit face, grey",
+  "model_drew": "dark ear shapes and tangled strokes",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_fill",
+   "extra_strokes"
+  ]
+ },
+ "#069": {
+  "index": 73,
+  "hexcode": "1F44E",
+  "pixel_error": 0.09937842935323715,
+  "retrieval_error": 0.10142318159341812,
+  "calls": 415,
+  "id": "#069",
+  "input_subject": "thumbs down, yellow",
+  "model_drew": "fist with knuckles, thumb missing",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "missing_fill"
+  ]
+ },
+ "#070": {
+  "index": 168,
+  "hexcode": "1F6B6-1F3FE-200D-2640-FE0F",
+  "pixel_error": 0.0,
+  "retrieval_error": 0.06670348346233368,
+  "calls": 305,
+  "id": "#070",
+  "input_subject": "person walking, brown",
+  "model_drew": "walking figure, close match",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#071": {
+  "index": 33,
+  "hexcode": "1F3CA-1F3FE",
+  "pixel_error": 0.08878827840089798,
+  "retrieval_error": 0.11889120191335678,
+  "calls": 287,
+  "id": "#071",
+  "input_subject": "person swimming in water",
+  "model_drew": "tub-like water box with head dot and stroke",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "distorted_shape"
+  ]
+ },
+ "#072": {
+  "index": 8,
+  "hexcode": "1F30A",
+  "pixel_error": 0.16865871846675873,
+  "retrieval_error": 0.20238767564296722,
+  "calls": 205,
+  "id": "#072",
+  "input_subject": "water wave",
+  "model_drew": "curling blue wave, no droplet or ripples",
+  "grade": 2,
+  "defects": [
+   "missing_parts",
+   "distorted_shape"
+  ]
+ },
+ "#073": {
+  "index": 93,
+  "hexcode": "1F468-1F3FD-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FE",
+  "pixel_error": 0.05358266457915306,
+  "retrieval_error": 0.043442368507385254,
+  "calls": 661,
+  "id": "#073",
+  "input_subject": "couple with heart, two men medium skin",
+  "model_drew": "heart and two heads, right head half missing",
+  "grade": 2,
+  "defects": [
+   "fragmented",
+   "missing_parts"
+  ]
+ },
+ "#074": {
+  "index": 318,
+  "hexcode": "E0CC",
+  "pixel_error": 0.08159621059894562,
+  "retrieval_error": 0.1136690080165863,
+  "calls": 631,
+  "id": "#074",
+  "input_subject": "plastic water bottle",
+  "model_drew": "scattered outline pieces and ridges, almost no blue",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_fill",
+   "broken_outline"
+  ]
+ },
+ "#075": {
+  "index": 114,
+  "hexcode": "1F469-200D-1F9B2",
+  "pixel_error": 4.4884207454742864e-05,
+  "retrieval_error": 0.0007325203623622656,
+  "calls": 281,
+  "id": "#075",
+  "input_subject": "person bust, yellow",
+  "model_drew": "matching yellow person bust",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#076": {
+  "index": 80,
+  "hexcode": "1F468-1F3FB-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FD",
+  "pixel_error": 0.03698937967419624,
+  "retrieval_error": 0.04422431066632271,
+  "calls": 797,
+  "id": "#076",
+  "input_subject": "couple with heart, light and medium skin",
+  "model_drew": "two heads, brown heart, red sliver on right head",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "extra_strokes"
+  ]
+ },
+ "#077": {
+  "index": 125,
+  "hexcode": "1F4DC",
+  "pixel_error": 0.12116668373346329,
+  "retrieval_error": 0.1547158658504486,
+  "calls": 237,
+  "id": "#077",
+  "input_subject": "scroll",
+  "model_drew": "scroll with text lines, body darker orange, bottom roll broken",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "broken_outline"
+  ]
+ },
+ "#078": {
+  "index": 276,
+  "hexcode": "1FAE8",
+  "pixel_error": 0.19920089840888977,
+  "retrieval_error": 0.119239941239357,
+  "calls": 447,
+  "id": "#078",
+  "input_subject": "dizzy yellow face with motion lines",
+  "model_drew": "face outline with motion lines, no yellow fill",
+  "grade": 2,
+  "defects": [
+   "missing_fill"
+  ]
+ },
+ "#079": {
+  "index": 249,
+  "hexcode": "1F9DB-1F3FC",
+  "pixel_error": 0.04007226973772049,
+  "retrieval_error": 0.06506218016147614,
+  "calls": 419,
+  "id": "#079",
+  "input_subject": "woman vampire, blond, medium-light skin",
+  "model_drew": "blond woman with white high collar, red cape colour lost",
+  "grade": 2,
+  "defects": [
+   "missing_fill",
+   "wrong_colour"
+  ]
+ },
+ "#080": {
+  "index": 279,
+  "hexcode": "203C",
+  "pixel_error": 0.027459805831313133,
+  "retrieval_error": 0.10198675096035004,
+  "calls": 351,
+  "id": "#080",
+  "input_subject": "double exclamation mark",
+  "model_drew": "two red exclamation marks",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#081": {
+  "index": 311,
+  "hexcode": "E084",
+  "pixel_error": 0.08589248359203339,
+  "retrieval_error": 0.17076148092746735,
+  "calls": 606,
+  "id": "#081",
+  "input_subject": "person crouching under table",
+  "model_drew": "table outline with no brown fill, broken yellow crawling figure",
+  "grade": 2,
+  "defects": [
+   "missing_fill",
+   "fragmented",
+   "extra_strokes"
+  ]
+ },
+ "#082": {
+  "index": 186,
+  "hexcode": "1F933-1F3FD",
+  "pixel_error": 0.08828950673341751,
+  "retrieval_error": 0.16577628254890442,
+  "calls": 484,
+  "id": "#082",
+  "input_subject": "selfie arm holding phone",
+  "model_drew": "diagonal white and blue sleeve shape, no phone or hand",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "wrong_colour",
+   "fragmented"
+  ]
+ },
+ "#083": {
+  "index": 57,
+  "hexcode": "1F3CB",
+  "pixel_error": 0.051713671535253525,
+  "retrieval_error": 0.1337423175573349,
+  "calls": 465,
+  "id": "#083",
+  "input_subject": "person lifting weights, yellow",
+  "model_drew": "stick-figure head and yellow shards, no barbell",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "fragmented"
+  ]
+ },
+ "#084": {
+  "index": 101,
+  "hexcode": "1F468-1F3FF-200D-1F9B1",
+  "pixel_error": 0.07357076555490494,
+  "retrieval_error": 0.024231167510151863,
+  "calls": 493,
+  "id": "#084",
+  "input_subject": "person with curly hair, dark skin",
+  "model_drew": "white-faced person with messy black hair",
+  "grade": 1,
+  "defects": [
+   "missing_fill",
+   "wrong_colour",
+   "missing_parts"
+  ]
+ },
+ "#085": {
+  "index": 28,
+  "hexcode": "1F3CA-1F3FD-200D-2640-FE0F",
+  "pixel_error": 0.05328184366226196,
+  "retrieval_error": 0.10549276322126389,
+  "calls": 467,
+  "id": "#085",
+  "input_subject": "person swimming, medium skin",
+  "model_drew": "water and brown arm, head unclear",
+  "grade": 2,
+  "defects": [
+   "fragmented",
+   "missing_parts"
+  ]
+ },
+ "#086": {
+  "index": 110,
+  "hexcode": "1F469-1F3FC-200D-1F9B2",
+  "pixel_error": 4.211046689306386e-05,
+  "retrieval_error": 0.000762779382057488,
+  "calls": 281,
+  "id": "#086",
+  "input_subject": "bald person, medium-light skin",
+  "model_drew": "matching bald person bust",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#087": {
+  "index": 253,
+  "hexcode": "1F9DB-1F3FE-200D-2640-FE0F",
+  "pixel_error": 0.04154588282108307,
+  "retrieval_error": 0.04817916452884674,
+  "calls": 476,
+  "id": "#087",
+  "input_subject": "woman vampire, medium-dark skin",
+  "model_drew": "plain woman with black hair, no cape",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#088": {
+  "index": 116,
+  "hexcode": "1F47E",
+  "pixel_error": 0.0877503901720047,
+  "retrieval_error": 0.1549808830022812,
+  "calls": 348,
+  "id": "#088",
+  "input_subject": "alien monster (space invader), purple",
+  "model_drew": "purple bar with loose outline pieces and two feet",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "distorted_shape",
+   "missing_parts"
+  ]
+ },
+ "#089": {
+  "index": 24,
+  "hexcode": "1F3CA-1F3FB",
+  "pixel_error": 0.06527802348136902,
+  "retrieval_error": 0.11549386382102966,
+  "calls": 457,
+  "id": "#089",
+  "input_subject": "person swimming, light skin",
+  "model_drew": "wavy lines and a head fragment, no water fill",
+  "grade": 1,
+  "defects": [
+   "missing_fill",
+   "fragmented"
+  ]
+ },
+ "#090": {
+  "index": 256,
+  "hexcode": "1F9DB-1F3FF-200D-2640-FE0F",
+  "pixel_error": 0.04147452116012573,
+  "retrieval_error": 0.04550326243042946,
+  "calls": 476,
+  "id": "#090",
+  "input_subject": "woman vampire, dark skin",
+  "model_drew": "plain dark-skinned woman, no cape",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#091": {
+  "index": 295,
+  "hexcode": "270B-1F3FB",
+  "pixel_error": 0.0765421986579895,
+  "retrieval_error": 0.0964982733130455,
+  "calls": 337,
+  "id": "#091",
+  "input_subject": "raised hand, light skin",
+  "model_drew": "raised palm with four fingers, no thumb",
+  "grade": 2,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#092": {
+  "index": 117,
+  "hexcode": "1F493",
+  "pixel_error": 0.18159545958042145,
+  "retrieval_error": 0.060178373008966446,
+  "calls": 201,
+  "id": "#092",
+  "input_subject": "beating heart",
+  "model_drew": "only the two vibration arcs, heart missing",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "blank_or_near_blank"
+  ]
+ },
+ "#093": {
+  "index": 221,
+  "hexcode": "1F9D1-1F3FC-200D-1FA70",
+  "pixel_error": 0.08165472000837326,
+  "retrieval_error": 0.1046326532959938,
+  "calls": 488,
+  "id": "#093",
+  "input_subject": "person kicking (martial arts), medium-light skin",
+  "model_drew": "tangled strokes with a bit of skin colour",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "extra_strokes"
+  ]
+ },
+ "#094": {
+  "index": 171,
+  "hexcode": "1F6B6-1F3FF",
+  "pixel_error": 0.0033920358400791883,
+  "retrieval_error": 0.06494568288326263,
+  "calls": 271,
+  "id": "#094",
+  "input_subject": "person walking, dark skin",
+  "model_drew": "matching walking figure",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#095": {
+  "index": 206,
+  "hexcode": "1F93D-200D-2640-FE0F",
+  "pixel_error": 0.0964617133140564,
+  "retrieval_error": 0.12253338098526001,
+  "calls": 543,
+  "id": "#095",
+  "input_subject": "person playing water polo, yellow",
+  "model_drew": "ball, head, yellow fragments, water outline without fill",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_fill"
+  ]
+ },
+ "#096": {
+  "index": 175,
+  "hexcode": "1F6D1",
+  "pixel_error": 0.24071376025676727,
+  "retrieval_error": 0.11050819605588913,
+  "calls": 685,
+  "id": "#096",
+  "input_subject": "stop sign",
+  "model_drew": "a few stray black strokes",
+  "grade": 0,
+  "defects": [
+   "blank_or_near_blank"
+  ]
+ },
+ "#097": {
+  "index": 39,
+  "hexcode": "1F3CA",
+  "pixel_error": 0.08368232101202011,
+  "retrieval_error": 0.11674810200929642,
+  "calls": 361,
+  "id": "#097",
+  "input_subject": "person swimming, yellow",
+  "model_drew": "swimmer head and arm with wave lines, no water fill",
+  "grade": 2,
+  "defects": [
+   "missing_fill",
+   "distorted_shape"
+  ]
+ },
+ "#098": {
+  "index": 177,
+  "hexcode": "1F6DE",
+  "pixel_error": 0.06082214042544365,
+  "retrieval_error": 0.14609584212303162,
+  "calls": 253,
+  "id": "#098",
+  "input_subject": "wheel with spokes",
+  "model_drew": "black tyre ring with hub, spokes replaced by a stray stroke",
+  "grade": 2,
+  "defects": [
+   "missing_parts",
+   "extra_strokes"
+  ]
+ },
+ "#099": {
+  "index": 262,
+  "hexcode": "1F9E2",
+  "pixel_error": 0.05301783233880997,
+  "retrieval_error": 0.09736569970846176,
+  "calls": 487,
+  "id": "#099",
+  "input_subject": "green baseball cap",
+  "model_drew": "green cap with white patches in crown",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "distorted_shape"
+  ]
+ },
+ "#100": {
+  "index": 129,
+  "hexcode": "1F508",
+  "pixel_error": 0.03268402814865112,
+  "retrieval_error": 0.020578399300575256,
+  "calls": 183,
+  "id": "#100",
+  "input_subject": "speaker low volume",
+  "model_drew": "speaker with unfilled, open cone and one wave",
+  "grade": 2,
+  "defects": [
+   "missing_fill",
+   "broken_outline"
+  ]
+ },
+ "#101": {
+  "index": 81,
+  "hexcode": "1F468-1F3FB-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FE",
+  "pixel_error": 0.043571218848228455,
+  "retrieval_error": 0.043442368507385254,
+  "calls": 861,
+  "id": "#101",
+  "input_subject": "couple with heart, two men, light and medium-dark skin",
+  "model_drew": "two faces with brown heart, right face smeared",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "distorted_shape"
+  ]
+ },
+ "#102": {
+  "index": 317,
+  "hexcode": "E0B0",
+  "pixel_error": 0.09553804993629456,
+  "retrieval_error": 0.1498018056154251,
+  "calls": 605,
+  "id": "#102",
+  "input_subject": "two people with left-right arrow",
+  "model_drew": "fragmented figures, arrow lost",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_parts"
+  ]
+ },
+ "#103": {
+  "index": 228,
+  "hexcode": "1F9D3-1F3FD",
+  "pixel_error": 0.02593122236430645,
+  "retrieval_error": 0.030446622520685196,
+  "calls": 437,
+  "id": "#103",
+  "input_subject": "older person, medium skin, grey hair",
+  "model_drew": "plain person with brown hair",
+  "grade": 1,
+  "defects": [
+   "wrong_colour",
+   "missing_parts"
+  ]
+ },
+ "#104": {
+  "index": 86,
+  "hexcode": "1F468-1F3FC-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FD",
+  "pixel_error": 0.03739459812641144,
+  "retrieval_error": 0.04422431066632271,
+  "calls": 838,
+  "id": "#104",
+  "input_subject": "couple with heart, light/medium skin",
+  "model_drew": "two faces with brown heart, right face smeared",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "distorted_shape"
+  ]
+ },
+ "#105": {
+  "index": 36,
+  "hexcode": "1F3CA-1F3FF",
+  "pixel_error": 0.07109810411930084,
+  "retrieval_error": 0.12026823312044144,
+  "calls": 332,
+  "id": "#105",
+  "input_subject": "person swimming, dark skin",
+  "model_drew": "water with ragged fill, small head and brown arm fragment",
+  "grade": 2,
+  "defects": [
+   "distorted_shape",
+   "fragmented"
+  ]
+ },
+ "#106": {
+  "index": 78,
+  "hexcode": "1F468-1F3FB-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FB",
+  "pixel_error": 0.04092179238796234,
+  "retrieval_error": 0.0459117516875267,
+  "calls": 838,
+  "id": "#106",
+  "input_subject": "couple with heart, light skin",
+  "model_drew": "two faces with brown heart, red patch on right face",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "distorted_shape"
+  ]
+ },
+ "#107": {
+  "index": 326,
+  "hexcode": "E1CA",
+  "pixel_error": 0.08123058080673218,
+  "retrieval_error": 0.1376984417438507,
+  "calls": 281,
+  "id": "#107",
+  "input_subject": "head in profile wearing VR headset",
+  "model_drew": "yellow circle with grey shapes and lines",
+  "grade": 1,
+  "defects": [
+   "distorted_shape",
+   "missing_parts"
+  ]
+ },
+ "#108": {
+  "index": 61,
+  "hexcode": "1F3F4-FE0F-200D-1F170-FE0F",
+  "pixel_error": 0.0807073563337326,
+  "retrieval_error": 0.08051270246505737,
+  "calls": 49,
+  "id": "#108",
+  "input_subject": "red/black diagonal flag",
+  "model_drew": "all-black rectangle",
+  "grade": 1,
+  "defects": [
+   "wrong_colour",
+   "missing_parts"
+  ]
+ },
+ "#109": {
+  "index": 289,
+  "hexcode": "26A0",
+  "pixel_error": 0.02988935448229313,
+  "retrieval_error": 0.07497983425855637,
+  "calls": 202,
+  "id": "#109",
+  "input_subject": "warning sign with exclamation",
+  "model_drew": "yellow triangle, faint bar, no dot, broken corner",
+  "grade": 2,
+  "defects": [
+   "lost_text_or_symbol",
+   "broken_outline"
+  ]
+ },
+ "#110": {
+  "index": 193,
+  "hexcode": "1F93D-1F3FB",
+  "pixel_error": 0.07585355639457703,
+  "retrieval_error": 0.12282361835241318,
+  "calls": 606,
+  "id": "#110",
+  "input_subject": "water polo player, light skin",
+  "model_drew": "stray lines, two circles, skin patch, no water fill",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_fill"
+  ]
+ },
+ "#111": {
+  "index": 281,
+  "hexcode": "25C9-FE0F-200D-1F534-200D-25AE-FE0F",
+  "pixel_error": 0.06265608221292496,
+  "retrieval_error": 0.10067149996757507,
+  "calls": 290,
+  "id": "#111",
+  "input_subject": "tall panel with red lens (HAL-style)",
+  "model_drew": "blue-outlined dark panel with red-orange lens",
+  "grade": 2,
+  "defects": [
+   "wrong_colour"
+  ]
+ },
+ "#112": {
+  "index": 259,
+  "hexcode": "1F9DB-200D-2640-FE0F",
+  "pixel_error": 0.03254332020878792,
+  "retrieval_error": 0.06484659761190414,
+  "calls": 476,
+  "id": "#112",
+  "input_subject": "woman vampire, yellow",
+  "model_drew": "plain woman with dark hair, no red collar/fangs",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#113": {
+  "index": 210,
+  "hexcode": "1F948",
+  "pixel_error": 0.01838058792054653,
+  "retrieval_error": 0.09033350646495819,
+  "calls": 407,
+  "id": "#113",
+  "input_subject": "2nd place medal",
+  "model_drew": "grey medal with ribbon, number 2 gone",
+  "grade": 2,
+  "defects": [
+   "lost_text_or_symbol"
+  ]
+ },
+ "#114": {
+  "index": 271,
+  "hexcode": "1FACE",
+  "pixel_error": 0.04095003008842468,
+  "retrieval_error": 0.11652066558599472,
+  "calls": 470,
+  "id": "#114",
+  "input_subject": "moose head",
+  "model_drew": "brown antlers on a narrow column, no face",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "distorted_shape"
+  ]
+ },
+ "#115": {
+  "index": 118,
+  "hexcode": "1F494",
+  "pixel_error": 0.06352149695158005,
+  "retrieval_error": 0.07738163322210312,
+  "calls": 361,
+  "id": "#115",
+  "input_subject": "broken heart",
+  "model_drew": "red heart with stray strokes and brown smudge, no crack",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "extra_strokes"
+  ]
+ },
+ "#116": {
+  "index": 42,
+  "hexcode": "1F3CB-1F3FB",
+  "pixel_error": 0.05972675979137421,
+  "retrieval_error": 0.1293129175901413,
+  "calls": 461,
+  "id": "#116",
+  "input_subject": "person lifting weights, light skin",
+  "model_drew": "one barbell end, head, skin blob, scattered",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_parts"
+  ]
+ },
+ "#117": {
+  "index": 153,
+  "hexcode": "1F64F-1F3FD",
+  "pixel_error": 0.0023839061614125967,
+  "retrieval_error": 0.017440540716052055,
+  "calls": 401,
+  "id": "#117",
+  "input_subject": "folded hands, medium skin",
+  "model_drew": "folded hands, close match",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#118": {
+  "index": 208,
+  "hexcode": "1F93D",
+  "pixel_error": 0.10582435131072998,
+  "retrieval_error": 0.12810583412647247,
+  "calls": 778,
+  "id": "#118",
+  "input_subject": "water polo player, yellow",
+  "model_drew": "blue blob, red ball, yellow fragments, lines",
+  "grade": 1,
+  "defects": [
+   "fragmented"
+  ]
+ },
+ "#119": {
+  "index": 58,
+  "hexcode": "1F3D1",
+  "pixel_error": 0.06526768952608109,
+  "retrieval_error": 0.1265774965286255,
+  "calls": 468,
+  "id": "#119",
+  "input_subject": "field hockey stick and ball",
+  "model_drew": "thin stick with curled blade, red ball",
+  "grade": 2,
+  "defects": [
+   "distorted_shape"
+  ]
+ },
+ "#120": {
+  "index": 1,
+  "hexcode": "1F12F",
+  "pixel_error": 0.0,
+  "retrieval_error": 0.056054070591926575,
+  "calls": 253,
+  "id": "#120",
+  "input_subject": "circled reversed C (copyleft)",
+  "model_drew": "same symbol, closely matched",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#121": {
+  "index": 88,
+  "hexcode": "1F468-1F3FC-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FF",
+  "pixel_error": 0.03893024101853371,
+  "retrieval_error": 0.04261377453804016,
+  "calls": 848,
+  "id": "#121",
+  "input_subject": "couple with heart, light and dark skin",
+  "model_drew": "two heads, heart brown, stray red mark",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "extra_strokes"
+  ]
+ },
+ "#122": {
+  "index": 323,
+  "hexcode": "E10D",
+  "pixel_error": 0.04231547191739082,
+  "retrieval_error": 0.12016385793685913,
+  "calls": 159,
+  "id": "#122",
+  "input_subject": "grey L-shape with expand arrow",
+  "model_drew": "grey square with no outline, small square, arrow tip becomes an X",
+  "grade": 2,
+  "defects": [
+   "broken_outline",
+   "distorted_shape"
+  ]
+ },
+ "#123": {
+  "index": 255,
+  "hexcode": "1F9DB-1F3FE",
+  "pixel_error": 0.05225707218050957,
+  "retrieval_error": 0.05552857741713524,
+  "calls": 357,
+  "id": "#123",
+  "input_subject": "vampire, medium skin, red collar",
+  "model_drew": "plain person, no cape or fangs",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#124": {
+  "index": 290,
+  "hexcode": "26AB",
+  "pixel_error": 0.004171961918473244,
+  "retrieval_error": 0.004179527051746845,
+  "calls": 125,
+  "id": "#124",
+  "input_subject": "large dark circle",
+  "model_drew": "dark circle, matched",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#125": {
+  "index": 84,
+  "hexcode": "1F468-1F3FC-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FB",
+  "pixel_error": 0.039618633687496185,
+  "retrieval_error": 0.0459117516875267,
+  "calls": 808,
+  "id": "#125",
+  "input_subject": "couple with heart, light skin",
+  "model_drew": "two heads with no faces, heart brown",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "missing_parts"
+  ]
+ },
+ "#126": {
+  "index": 232,
+  "hexcode": "1F9DA-1F3FB-200D-2642-FE0F",
+  "pixel_error": 0.11185750365257263,
+  "retrieval_error": 0.1235339492559433,
+  "calls": 817,
+  "id": "#126",
+  "input_subject": "fairy, medium-light, wings and wand",
+  "model_drew": "person in green shirt with a stick, no wings",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#127": {
+  "index": 99,
+  "hexcode": "1F468-1F3FE-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FE",
+  "pixel_error": 0.043548017740249634,
+  "retrieval_error": 0.05097963660955429,
+  "calls": 769,
+  "id": "#127",
+  "input_subject": "couple with heart, medium-dark skin",
+  "model_drew": "red heart, one good head, other head garbled and white",
+  "grade": 2,
+  "defects": [
+   "distorted_shape",
+   "missing_fill"
+  ]
+ },
+ "#128": {
+  "index": 184,
+  "hexcode": "1F933-1F3FB",
+  "pixel_error": 0.07763732224702835,
+  "retrieval_error": 0.1660481095314026,
+  "calls": 465,
+  "id": "#128",
+  "input_subject": "selfie arm holding phone",
+  "model_drew": "blue wedge, loose strokes, small square and circles",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "wrong_colour",
+   "missing_parts"
+  ]
+ },
+ "#129": {
+  "index": 79,
+  "hexcode": "1F468-1F3FB-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FC",
+  "pixel_error": 0.0399181991815567,
+  "retrieval_error": 0.04505492001771927,
+  "calls": 838,
+  "id": "#129",
+  "input_subject": "couple with heart, light skin",
+  "model_drew": "two heads without faces, brown heart, odd hair",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "missing_parts"
+  ]
+ },
+ "#130": {
+  "index": 130,
+  "hexcode": "1F50B",
+  "pixel_error": 0.0553407184779644,
+  "retrieval_error": 0.049138378351926804,
+  "calls": 111,
+  "id": "#130",
+  "input_subject": "full battery with green fill",
+  "model_drew": "battery outline with grey fill, no terminal",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "missing_parts"
+  ]
+ },
+ "#131": {
+  "index": 273,
+  "hexcode": "1FAD6",
+  "pixel_error": 0.06753282994031906,
+  "retrieval_error": 0.10239273309707642,
+  "calls": 305,
+  "id": "#131",
+  "input_subject": "grey teapot",
+  "model_drew": "pot body with no lid, half filled, spout and handle as strokes",
+  "grade": 2,
+  "defects": [
+   "missing_parts",
+   "broken_outline"
+  ]
+ },
+ "#132": {
+  "index": 195,
+  "hexcode": "1F93D-1F3FC-200D-2642-FE0F",
+  "pixel_error": 0.06926742941141129,
+  "retrieval_error": 0.11713945865631104,
+  "calls": 673,
+  "id": "#132",
+  "input_subject": "water polo player in water",
+  "model_drew": "ball outline, figure fragment, wave lines, no blue water",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_fill"
+  ]
+ },
+ "#133": {
+  "index": 3,
+  "hexcode": "1F199",
+  "pixel_error": 0.04345068708062172,
+  "retrieval_error": 0.045096274465322495,
+  "calls": 291,
+  "id": "#133",
+  "input_subject": "green UP! button",
+  "model_drew": "green square with garbled white glyphs",
+  "grade": 1,
+  "defects": [
+   "lost_text_or_symbol"
+  ]
+ },
+ "#134": {
+  "index": 44,
+  "hexcode": "1F3CB-1F3FC-200D-2642-FE0F",
+  "pixel_error": 0.0806836485862732,
+  "retrieval_error": 0.11918824911117554,
+  "calls": 507,
+  "id": "#134",
+  "input_subject": "weightlifter, medium-light",
+  "model_drew": "partial barbell, fragmented figure",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_parts"
+  ]
+ },
+ "#135": {
+  "index": 288,
+  "hexcode": "2699",
+  "pixel_error": 0.07900528609752655,
+  "retrieval_error": 0.125779926776886,
+  "calls": 218,
+  "id": "#135",
+  "input_subject": "grey gear",
+  "model_drew": "spiky saw-blade-like gear, no centre hole",
+  "grade": 2,
+  "defects": [
+   "distorted_shape",
+   "missing_parts"
+  ]
+ },
+ "#136": {
+  "index": 329,
+  "hexcode": "E204",
+  "pixel_error": 0.03228359669446945,
+  "retrieval_error": 0.10093096643686295,
+  "calls": 168,
+  "id": "#136",
+  "input_subject": "elevator doors between two bars",
+  "model_drew": "door rectangle with shading, left bar missing",
+  "grade": 2,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#137": {
+  "index": 64,
+  "hexcode": "1F423",
+  "pixel_error": 0.1043381318449974,
+  "retrieval_error": 0.12502546608448029,
+  "calls": 490,
+  "id": "#137",
+  "input_subject": "hatching chick",
+  "model_drew": "grey eggshell and a few strokes, no chick",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "fragmented"
+  ]
+ },
+ "#138": {
+  "index": 135,
+  "hexcode": "1F596-1F3FB",
+  "pixel_error": 0.10321703553199768,
+  "retrieval_error": 0.15787313878536224,
+  "calls": 299,
+  "id": "#138",
+  "input_subject": "Vulcan salute, light skin",
+  "model_drew": "hand with distorted fingers, broken outline",
+  "grade": 2,
+  "defects": [
+   "broken_outline",
+   "distorted_shape"
+  ]
+ },
+ "#139": {
+  "index": 87,
+  "hexcode": "1F468-1F3FC-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FE",
+  "pixel_error": 0.04252627491950989,
+  "retrieval_error": 0.043442368507385254,
+  "calls": 865,
+  "id": "#139",
+  "input_subject": "couple with heart, medium skin",
+  "model_drew": "two heads with no faces, brown heart",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "missing_parts"
+  ]
+ },
+ "#140": {
+  "index": 305,
+  "hexcode": "2B22",
+  "pixel_error": 0.09128162264823914,
+  "retrieval_error": 0.04979650676250458,
+  "calls": 145,
+  "id": "#140",
+  "input_subject": "dark grey hexagon",
+  "model_drew": "black hexagon without outline",
+  "grade": 3,
+  "defects": [
+   "wrong_colour"
+  ]
+ },
+ "#141": {
+  "index": 40,
+  "hexcode": "1F3CB-1F3FB-200D-2640-FE0F",
+  "pixel_error": 0.06038615480065346,
+  "retrieval_error": 0.11785759776830673,
+  "calls": 536,
+  "id": "#141",
+  "input_subject": "weightlifter, light skin",
+  "model_drew": "one plate and a stick-stroke figure",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_parts"
+  ]
+ },
+ "#142": {
+  "index": 14,
+  "hexcode": "1F344",
+  "pixel_error": 0.07811315357685089,
+  "retrieval_error": 0.1299574375152588,
+  "calls": 647,
+  "id": "#142",
+  "input_subject": "red spotted mushroom",
+  "model_drew": "red cap with grey patch, partial stem, no spots",
+  "grade": 2,
+  "defects": [
+   "missing_parts",
+   "distorted_shape"
+  ]
+ },
+ "#143": {
+  "index": 52,
+  "hexcode": "1F3CB-1F3FF-200D-2640-FE0F",
+  "pixel_error": 0.07530587166547775,
+  "retrieval_error": 0.11888490617275238,
+  "calls": 563,
+  "id": "#143",
+  "input_subject": "weightlifter, dark skin",
+  "model_drew": "barbell with faint, broken figure strokes",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_fill"
+  ]
+ },
+ "#144": {
+  "index": 296,
+  "hexcode": "270B-1F3FC",
+  "pixel_error": 0.019443940371274948,
+  "retrieval_error": 0.09591376781463623,
+  "calls": 337,
+  "id": "#144",
+  "input_subject": "raised hand, medium-light skin",
+  "model_drew": "raised hand, close match",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#145": {
+  "index": 145,
+  "hexcode": "1F608",
+  "pixel_error": 0.031071975827217102,
+  "retrieval_error": 0.0018841283163055778,
+  "calls": 319,
+  "id": "#145",
+  "input_subject": "smiling face with horns",
+  "model_drew": "red horned face, mouth missing",
+  "grade": 2,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#146": {
+  "index": 120,
+  "hexcode": "1F4A3",
+  "pixel_error": 0.08544844388961792,
+  "retrieval_error": 0.1438397616147995,
+  "calls": 113,
+  "id": "#146",
+  "input_subject": "bomb with fuse",
+  "model_drew": "flat dark ball with two spark dashes, no fuse cap",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "wrong_colour"
+  ]
+ },
+ "#147": {
+  "index": 223,
+  "hexcode": "1F9D1-1F3FE-200D-1FA70",
+  "pixel_error": 0.06941746175289154,
+  "retrieval_error": 0.11447036266326904,
+  "calls": 564,
+  "id": "#147",
+  "input_subject": "martial arts kick, medium-dark skin",
+  "model_drew": "fragmented brown figure with stray strokes",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "distorted_shape",
+   "extra_strokes"
+  ]
+ },
+ "#148": {
+  "index": 303,
+  "hexcode": "2795",
+  "pixel_error": 0.05077311769127846,
+  "retrieval_error": 0.04369906336069107,
+  "calls": 129,
+  "id": "#148",
+  "input_subject": "grey heavy plus sign",
+  "model_drew": "broken step outline with grey patches",
+  "grade": 1,
+  "defects": [
+   "broken_outline",
+   "distorted_shape",
+   "fragmented"
+  ]
+ },
+ "#149": {
+  "index": 310,
+  "hexcode": "E080",
+  "pixel_error": 0.056923769414424896,
+  "retrieval_error": 0.12115584313869476,
+  "calls": 388,
+  "id": "#149",
+  "input_subject": "location pin over two people",
+  "model_drew": "distorted red pin, people with wrong head colours",
+  "grade": 2,
+  "defects": [
+   "distorted_shape",
+   "wrong_colour"
+  ]
+ },
+ "#150": {
+  "index": 182,
+  "hexcode": "1F916",
+  "pixel_error": 0.051156144589185715,
+  "retrieval_error": 0.1355644315481186,
+  "calls": 582,
+  "id": "#150",
+  "input_subject": "robot face",
+  "model_drew": "grey robot head, mouth replaced by odd shapes",
+  "grade": 2,
+  "defects": [
+   "distorted_shape",
+   "missing_parts"
+  ]
+ },
+ "#151": {
+  "index": 165,
+  "hexcode": "1F6B6-1F3FC",
+  "pixel_error": 0.004522966220974922,
+  "retrieval_error": 0.07088150084018707,
+  "calls": 271,
+  "id": "#151",
+  "input_subject": "person walking, medium-light skin",
+  "model_drew": "walking person, slightly thinner",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#152": {
+  "index": 152,
+  "hexcode": "1F64F-1F3FC",
+  "pixel_error": 0.002465605502948165,
+  "retrieval_error": 0.017440540716052055,
+  "calls": 401,
+  "id": "#152",
+  "input_subject": "folded hands, medium-light skin",
+  "model_drew": "folded hands, close match",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#153": {
+  "index": 10,
+  "hexcode": "1F329",
+  "pixel_error": 0.02108675241470337,
+  "retrieval_error": 0.05447404459118843,
+  "calls": 253,
+  "id": "#153",
+  "input_subject": "cloud with lightning",
+  "model_drew": "offset grey clouds with small lightning bolt",
+  "grade": 2,
+  "defects": [
+   "distorted_shape",
+   "broken_outline"
+  ]
+ },
+ "#154": {
+  "index": 119,
+  "hexcode": "1F49C",
+  "pixel_error": 0.002801985014230013,
+  "retrieval_error": 0.03929486498236656,
+  "calls": 133,
+  "id": "#154",
+  "input_subject": "purple heart",
+  "model_drew": "purple heart",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#155": {
+  "index": 320,
+  "hexcode": "E104",
+  "pixel_error": 0.06630582362413406,
+  "retrieval_error": 0.02514171041548252,
+  "calls": 310,
+  "id": "#155",
+  "input_subject": "computer mouse with up/down arrows",
+  "model_drew": "dark grey mouse, lower arrow a single stroke",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "missing_parts"
+  ]
+ },
+ "#156": {
+  "index": 274,
+  "hexcode": "1FAD8",
+  "pixel_error": 0.060989320278167725,
+  "retrieval_error": 0.12076928466558456,
+  "calls": 405,
+  "id": "#156",
+  "input_subject": "beans",
+  "model_drew": "bright red blobs and a loose loop",
+  "grade": 1,
+  "defects": [
+   "wrong_colour",
+   "broken_outline",
+   "fragmented"
+  ]
+ },
+ "#157": {
+  "index": 270,
+  "hexcode": "1FAC0",
+  "pixel_error": 0.06782306730747223,
+  "retrieval_error": 0.08108710497617722,
+  "calls": 937,
+  "id": "#157",
+  "input_subject": "anatomical heart",
+  "model_drew": "lighter red heart shape with vessel stubs",
+  "grade": 2,
+  "defects": [
+   "distorted_shape",
+   "wrong_colour"
+  ]
+ },
+ "#158": {
+  "index": 327,
+  "hexcode": "E1CE",
+  "pixel_error": 0.0578559972345829,
+  "retrieval_error": 0.1051730290055275,
+  "calls": 523,
+  "id": "#158",
+  "input_subject": "smartwatch with app grid",
+  "model_drew": "top band and half dark face with grid, white teardrop, lower band missing",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "distorted_shape"
+  ]
+ },
+ "#159": {
+  "index": 89,
+  "hexcode": "1F468-1F3FD-200D-1F9B1",
+  "pixel_error": 0.03560074046254158,
+  "retrieval_error": 0.03264947980642319,
+  "calls": 685,
+  "id": "#159",
+  "input_subject": "person with curly hair, medium skin",
+  "model_drew": "curly-haired person, darker distorted face",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "distorted_shape"
+  ]
+ },
+ "#160": {
+  "index": 77,
+  "hexcode": "1F468-1F3FB-200D-1F9B1",
+  "pixel_error": 0.018051521852612495,
+  "retrieval_error": 0.038591597229242325,
+  "calls": 601,
+  "id": "#160",
+  "input_subject": "person with curly hair, light skin",
+  "model_drew": "person with wavy, not curly hair",
+  "grade": 2,
+  "defects": [
+   "distorted_shape"
+  ]
+ },
+ "#161": {
+  "index": 190,
+  "hexcode": "1F93A",
+  "pixel_error": 0.05951923131942749,
+  "retrieval_error": 0.12204015254974365,
+  "calls": 518,
+  "id": "#161",
+  "input_subject": "person fencing",
+  "model_drew": "messy yellow figure with sword line",
+  "grade": 2,
+  "defects": [
+   "extra_strokes",
+   "distorted_shape"
+  ]
+ },
+ "#162": {
+  "index": 269,
+  "hexcode": "1FABB",
+  "pixel_error": 0.0436115637421608,
+  "retrieval_error": 0.09259762614965439,
+  "calls": 524,
+  "id": "#162",
+  "input_subject": "purple flower with stem and leaf",
+  "model_drew": "purple scribble blob only",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "fragmented"
+  ]
+ },
+ "#163": {
+  "index": 17,
+  "hexcode": "1F36F",
+  "pixel_error": 0.15462559461593628,
+  "retrieval_error": 0.100694440305233,
+  "calls": 557,
+  "id": "#163",
+  "input_subject": "honey pot",
+  "model_drew": "unfilled jar outline with small drips",
+  "grade": 1,
+  "defects": [
+   "missing_fill",
+   "distorted_shape"
+  ]
+ },
+ "#164": {
+  "index": 257,
+  "hexcode": "1F9DB-1F3FF-200D-2642-FE0F",
+  "pixel_error": 0.06591472774744034,
+  "retrieval_error": 0.054028987884521484,
+  "calls": 388,
+  "id": "#164",
+  "input_subject": "vampire, dark skin",
+  "model_drew": "plain dark-skinned person, no red cape",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "wrong_colour"
+  ]
+ },
+ "#165": {
+  "index": 200,
+  "hexcode": "1F93D-1F3FE-200D-2640-FE0F",
+  "pixel_error": 0.05941181629896164,
+  "retrieval_error": 0.11912495642900467,
+  "calls": 675,
+  "id": "#165",
+  "input_subject": "water polo player, medium skin",
+  "model_drew": "fragmented brown figure, black strokes, no water",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_fill",
+   "extra_strokes"
+  ]
+ },
+ "#166": {
+  "index": 321,
+  "hexcode": "E108",
+  "pixel_error": 0.031842321157455444,
+  "retrieval_error": 0.012713577598333359,
+  "calls": 802,
+  "id": "#166",
+  "input_subject": "hand pointing up with curved arrow",
+  "model_drew": "yellow index-up hand, arrow reduced to short stroke",
+  "grade": 2,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#167": {
+  "index": 108,
+  "hexcode": "1F468-200D-2764-FE0F-200D-1F48B-200D-1F468",
+  "pixel_error": 0.0490160770714283,
+  "retrieval_error": 0.044878408312797546,
+  "calls": 775,
+  "id": "#167",
+  "input_subject": "couple with heart",
+  "model_drew": "two heads with heart, distorted hair and faces",
+  "grade": 2,
+  "defects": [
+   "distorted_shape",
+   "missing_parts"
+  ]
+ },
+ "#168": {
+  "index": 139,
+  "hexcode": "1F596-1F3FF",
+  "pixel_error": 0.2625822126865387,
+  "retrieval_error": 0.1328522115945816,
+  "calls": 309,
+  "id": "#168",
+  "input_subject": "Vulcan salute, dark skin",
+  "model_drew": "Vulcan hand outline, white, brown streaks",
+  "grade": 2,
+  "defects": [
+   "missing_fill",
+   "distorted_shape",
+   "extra_strokes"
+  ]
+ },
+ "#169": {
+  "index": 176,
+  "hexcode": "1F6D2",
+  "pixel_error": 0.1219879686832428,
+  "retrieval_error": 0.12047754228115082,
+  "calls": 733,
+  "id": "#169",
+  "input_subject": "shopping cart",
+  "model_drew": "scattered dots",
+  "grade": 0,
+  "defects": [
+   "fragmented",
+   "missing_parts"
+  ]
+ },
+ "#170": {
+  "index": 201,
+  "hexcode": "1F93D-1F3FE-200D-2642-FE0F",
+  "pixel_error": 0.09205373376607895,
+  "retrieval_error": 0.11713769286870956,
+  "calls": 504,
+  "id": "#170",
+  "input_subject": "water polo player, medium skin",
+  "model_drew": "brown fragments over wave strokes",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_parts",
+   "missing_fill"
+  ]
+ },
+ "#171": {
+  "index": 53,
+  "hexcode": "1F3CB-1F3FF-200D-2642-FE0F",
+  "pixel_error": 0.051192205399274826,
+  "retrieval_error": 0.11651309579610825,
+  "calls": 497,
+  "id": "#171",
+  "input_subject": "weightlifter, dark skin",
+  "model_drew": "figure with arms up, barbell mostly missing",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "fragmented"
+  ]
+ },
+ "#172": {
+  "index": 287,
+  "hexcode": "2660",
+  "pixel_error": 0.10306523740291595,
+  "retrieval_error": 0.10223235934972763,
+  "calls": 141,
+  "id": "#172",
+  "input_subject": "spade suit",
+  "model_drew": "spade, black instead of dark grey",
+  "grade": 3,
+  "defects": [
+   "wrong_colour"
+  ]
+ },
+ "#173": {
+  "index": 188,
+  "hexcode": "1F933-1F3FF",
+  "pixel_error": 0.13116149604320526,
+  "retrieval_error": 0.16671407222747803,
+  "calls": 495,
+  "id": "#173",
+  "input_subject": "selfie, dark skin, purple sleeve",
+  "model_drew": "brown arm, broken phone outline, blue wedge",
+  "grade": 1,
+  "defects": [
+   "wrong_colour",
+   "fragmented",
+   "missing_parts",
+   "extra_strokes"
+  ]
+ },
+ "#174": {
+  "index": 297,
+  "hexcode": "270B-1F3FD",
+  "pixel_error": 0.0724993497133255,
+  "retrieval_error": 0.09582198411226273,
+  "calls": 329,
+  "id": "#174",
+  "input_subject": "raised hand, medium skin",
+  "model_drew": "raised hand, smaller thumb",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#175": {
+  "index": 49,
+  "hexcode": "1F3CB-1F3FE-200D-2640-FE0F",
+  "pixel_error": 0.05843646451830864,
+  "retrieval_error": 0.1198900043964386,
+  "calls": 536,
+  "id": "#175",
+  "input_subject": "weightlifter, medium skin",
+  "model_drew": "barbell with head, body a tan blob, no legs",
+  "grade": 2,
+  "defects": [
+   "missing_parts",
+   "distorted_shape"
+  ]
+ },
+ "#176": {
+  "index": 5,
+  "hexcode": "1F1FA",
+  "pixel_error": 0.10712523758411407,
+  "retrieval_error": 0.022982478141784668,
+  "calls": 267,
+  "id": "#176",
+  "input_subject": "circled letter U",
+  "model_drew": "circle with filled black blob",
+  "grade": 1,
+  "defects": [
+   "lost_text_or_symbol",
+   "distorted_shape"
+  ]
+ },
+ "#177": {
+  "index": 185,
+  "hexcode": "1F933-1F3FC",
+  "pixel_error": 0.09356920421123505,
+  "retrieval_error": 0.16644500195980072,
+  "calls": 462,
+  "id": "#177",
+  "input_subject": "selfie, light skin, purple sleeve",
+  "model_drew": "tan arm, broken phone outline, blue wedge",
+  "grade": 1,
+  "defects": [
+   "wrong_colour",
+   "fragmented",
+   "missing_parts"
+  ]
+ },
+ "#178": {
+  "index": 9,
+  "hexcode": "1F313",
+  "pixel_error": 0.10896775871515274,
+  "retrieval_error": 0.07259742170572281,
+  "calls": 124,
+  "id": "#178",
+  "input_subject": "half dark, half yellow circle (moon phase)",
+  "model_drew": "all-yellow circle with dividing line",
+  "grade": 1,
+  "defects": [
+   "wrong_colour",
+   "missing_fill"
+  ]
+ },
+ "#179": {
+  "index": 209,
+  "hexcode": "1F943",
+  "pixel_error": 0.08653928339481354,
+  "retrieval_error": 0.14274941384792328,
+  "calls": 164,
+  "id": "#179",
+  "input_subject": "tumbler glass with ice",
+  "model_drew": "orange-filled glass, no ice, crack strokes",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "extra_strokes",
+   "broken_outline"
+  ]
+ },
+ "#180": {
+  "index": 265,
+  "hexcode": "1FA90",
+  "pixel_error": 0.1293797343969345,
+  "retrieval_error": 0.12025386840105057,
+  "calls": 306,
+  "id": "#180",
+  "input_subject": "ringed planet",
+  "model_drew": "red ball with yellow blob, no ring",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "distorted_shape"
+  ]
+ },
+ "#181": {
+  "index": 23,
+  "hexcode": "1F3CA-1F3FB-200D-2642-FE0F",
+  "pixel_error": 0.038910575211048126,
+  "retrieval_error": 0.10115008801221848,
+  "calls": 323,
+  "id": "#181",
+  "input_subject": "swimmer, light skin",
+  "model_drew": "water with head outline and faint arm",
+  "grade": 2,
+  "defects": [
+   "missing_parts",
+   "distorted_shape"
+  ]
+ },
+ "#182": {
+  "index": 246,
+  "hexcode": "1F9DB-1F3FB",
+  "pixel_error": 0.043785806745290756,
+  "retrieval_error": 0.0690087154507637,
+  "calls": 419,
+  "id": "#182",
+  "input_subject": "vampire, light skin",
+  "model_drew": "plain man with white collar, no cape",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "wrong_colour"
+  ]
+ },
+ "#183": {
+  "index": 30,
+  "hexcode": "1F3CA-1F3FD",
+  "pixel_error": 0.030972374603152275,
+  "retrieval_error": 0.11789315193891525,
+  "calls": 306,
+  "id": "#183",
+  "input_subject": "swimmer, medium skin",
+  "model_drew": "water with head outline and arm shape",
+  "grade": 2,
+  "defects": [
+   "missing_parts",
+   "distorted_shape"
+  ]
+ },
+ "#184": {
+  "index": 319,
+  "hexcode": "E102",
+  "pixel_error": 0.08013495802879333,
+  "retrieval_error": 0.12665289640426636,
+  "calls": 462,
+  "id": "#184",
+  "input_subject": "yellow raised hand with motion circles",
+  "model_drew": "yellow hand, odd fingers, swirl on top",
+  "grade": 2,
+  "defects": [
+   "distorted_shape",
+   "extra_strokes"
+  ]
+ },
+ "#185": {
+  "index": 331,
+  "hexcode": "E216",
+  "pixel_error": 0.07129327207803726,
+  "retrieval_error": 0.09544753283262253,
+  "calls": 451,
+  "id": "#185",
+  "input_subject": "moai statue",
+  "model_drew": "grey stone blob, facial features lost",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "distorted_shape"
+  ]
+ },
+ "#186": {
+  "index": 245,
+  "hexcode": "1F9DB-1F3FB-200D-2642-FE0F",
+  "pixel_error": 0.06004725396633148,
+  "retrieval_error": 0.05922824516892433,
+  "calls": 437,
+  "id": "#186",
+  "input_subject": "vampire, medium-light skin",
+  "model_drew": "plain man with white collar, no cape",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "wrong_colour"
+  ]
+ },
+ "#187": {
+  "index": 194,
+  "hexcode": "1F93D-1F3FC-200D-2640-FE0F",
+  "pixel_error": 0.09186562150716782,
+  "retrieval_error": 0.11912570893764496,
+  "calls": 638,
+  "id": "#187",
+  "input_subject": "water polo player, light skin",
+  "model_drew": "ball, head, scattered fragments, no blue water",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_fill",
+   "missing_parts"
+  ]
+ },
+ "#188": {
+  "index": 300,
+  "hexcode": "270B",
+  "pixel_error": 0.006795418914407492,
+  "retrieval_error": 0.09760802239179611,
+  "calls": 331,
+  "id": "#188",
+  "input_subject": "raised hand, yellow",
+  "model_drew": "raised hand, yellow",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#189": {
+  "index": 6,
+  "hexcode": "1F1FC",
+  "pixel_error": 0.0337100587785244,
+  "retrieval_error": 0.0746096521615982,
+  "calls": 206,
+  "id": "#189",
+  "input_subject": "circled letter W",
+  "model_drew": "circle with W, right half filled black",
+  "grade": 2,
+  "defects": [
+   "lost_text_or_symbol",
+   "distorted_shape"
+  ]
+ },
+ "#190": {
+  "index": 18,
+  "hexcode": "1F37D",
+  "pixel_error": 0.053787168115377426,
+  "retrieval_error": 0.1468275636434555,
+  "calls": 479,
+  "id": "#190",
+  "input_subject": "plate with fork and knife",
+  "model_drew": "plate and knife, fork in fragments",
+  "grade": 2,
+  "defects": [
+   "missing_parts",
+   "fragmented"
+  ]
+ },
+ "#191": {
+  "index": 247,
+  "hexcode": "1F9DB-1F3FC-200D-2640-FE0F",
+  "pixel_error": 0.03778821602463722,
+  "retrieval_error": 0.0601687952876091,
+  "calls": 476,
+  "id": "#191",
+  "input_subject": "woman vampire, blonde",
+  "model_drew": "plain blonde woman, no cape",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#192": {
+  "index": 277,
+  "hexcode": "1FBC6",
+  "pixel_error": 0.029917845502495766,
+  "retrieval_error": 0.005579006392508745,
+  "calls": 295,
+  "id": "#192",
+  "input_subject": "line-art person with both arms raised",
+  "model_drew": "line figure with one arm raised, garbled torso",
+  "grade": 2,
+  "defects": [
+   "missing_parts",
+   "distorted_shape"
+  ]
+ },
+ "#193": {
+  "index": 136,
+  "hexcode": "1F596-1F3FC",
+  "pixel_error": 0.12974965572357178,
+  "retrieval_error": 0.1546919047832489,
+  "calls": 309,
+  "id": "#193",
+  "input_subject": "vulcan salute, medium-light skin",
+  "model_drew": "messy hand outline with misplaced tan patches",
+  "grade": 1,
+  "defects": [
+   "distorted_shape",
+   "broken_outline",
+   "missing_fill"
+  ]
+ },
+ "#194": {
+  "index": 268,
+  "hexcode": "1FAAF",
+  "pixel_error": 0.05869467556476593,
+  "retrieval_error": 0.06421114504337311,
+  "calls": 251,
+  "id": "#194",
+  "input_subject": "khanda symbol on purple square",
+  "model_drew": "purple square with a small dagger stroke",
+  "grade": 1,
+  "defects": [
+   "lost_text_or_symbol"
+  ]
+ },
+ "#195": {
+  "index": 146,
+  "hexcode": "1F614",
+  "pixel_error": 0.0032019081991165876,
+  "retrieval_error": 0.02303442545235157,
+  "calls": 177,
+  "id": "#195",
+  "input_subject": "yellow face, closed eyes, flat mouth",
+  "model_drew": "near-identical face",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#196": {
+  "index": 11,
+  "hexcode": "1F331",
+  "pixel_error": 0.02124611660838127,
+  "retrieval_error": 0.0628005713224411,
+  "calls": 135,
+  "id": "#196",
+  "input_subject": "seedling",
+  "model_drew": "seedling with only one of two leaves",
+  "grade": 2,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#197": {
+  "index": 240,
+  "hexcode": "1F9DA-1F3FF-200D-2642-FE0F",
+  "pixel_error": 0.08918164670467377,
+  "retrieval_error": 0.11377616971731186,
+  "calls": 891,
+  "id": "#197",
+  "input_subject": "fairy, dark skin",
+  "model_drew": "person in green shirt with wand stroke, no wings",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#198": {
+  "index": 178,
+  "hexcode": "1F6E0",
+  "pixel_error": 0.13358953595161438,
+  "retrieval_error": 0.15383557975292206,
+  "calls": 709,
+  "id": "#198",
+  "input_subject": "hammer and wrench",
+  "model_drew": "grey crossed blobs, wrench head smear, no brown handle",
+  "grade": 1,
+  "defects": [
+   "distorted_shape",
+   "wrong_colour",
+   "fragmented"
+  ]
+ },
+ "#199": {
+  "index": 314,
+  "hexcode": "E0A4",
+  "pixel_error": 0.009115024469792843,
+  "retrieval_error": 0.04665965959429741,
+  "calls": 205,
+  "id": "#199",
+  "input_subject": "red NO square sign",
+  "model_drew": "red square with NO, slightly heavy N",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#200": {
+  "index": 25,
+  "hexcode": "1F3CA-1F3FC-200D-2640-FE0F",
+  "pixel_error": 0.048434097319841385,
+  "retrieval_error": 0.10450252890586853,
+  "calls": 425,
+  "id": "#200",
+  "input_subject": "swimmer, light skin",
+  "model_drew": "figure lying in pale water, distorted body",
+  "grade": 2,
+  "defects": [
+   "distorted_shape"
+  ]
+ },
+ "#201": {
+  "index": 15,
+  "hexcode": "1F34E",
+  "pixel_error": 0.0666956678032875,
+  "retrieval_error": 0.06713341176509857,
+  "calls": 377,
+  "id": "#201",
+  "input_subject": "red apple",
+  "model_drew": "red apple with green tinge, no stem or leaf",
+  "grade": 2,
+  "defects": [
+   "missing_parts",
+   "wrong_colour"
+  ]
+ },
+ "#202": {
+  "index": 109,
+  "hexcode": "1F469-1F3FB-200D-1F9B2",
+  "pixel_error": 2.3955055439728312e-05,
+  "retrieval_error": 0.0008790244464762509,
+  "calls": 281,
+  "id": "#202",
+  "input_subject": "bald person, light skin",
+  "model_drew": "near-identical bald person",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#203": {
+  "index": 254,
+  "hexcode": "1F9DB-1F3FE-200D-2642-FE0F",
+  "pixel_error": 0.07495108246803284,
+  "retrieval_error": 0.057199377566576004,
+  "calls": 396,
+  "id": "#203",
+  "input_subject": "vampire, medium-dark skin",
+  "model_drew": "plain person, no red cape collar or fangs",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#204": {
+  "index": 43,
+  "hexcode": "1F3CB-1F3FC-200D-2640-FE0F",
+  "pixel_error": 0.06800764799118042,
+  "retrieval_error": 0.12048232555389404,
+  "calls": 572,
+  "id": "#204",
+  "input_subject": "person lifting weights, light skin",
+  "model_drew": "barbell plates and fragmented tan figure",
+  "grade": 2,
+  "defects": [
+   "fragmented",
+   "distorted_shape"
+  ]
+ },
+ "#205": {
+  "index": 224,
+  "hexcode": "1F9D1-1F3FF-200D-1FA70",
+  "pixel_error": 0.05988234281539917,
+  "retrieval_error": 0.11746801435947418,
+  "calls": 483,
+  "id": "#205",
+  "input_subject": "person kicking/dancing, dark skin",
+  "model_drew": "scattered brown fragments and thin lines",
+  "grade": 1,
+  "defects": [
+   "fragmented"
+  ]
+ },
+ "#206": {
+  "index": 263,
+  "hexcode": "1F9EF",
+  "pixel_error": 0.044327445328235626,
+  "retrieval_error": 0.08915390074253082,
+  "calls": 347,
+  "id": "#206",
+  "input_subject": "fire extinguisher",
+  "model_drew": "red block with nozzle top, no hose or label",
+  "grade": 2,
+  "defects": [
+   "distorted_shape",
+   "missing_parts"
+  ]
+ },
+ "#207": {
+  "index": 56,
+  "hexcode": "1F3CB-FE0F-200D-2642-FE0F",
+  "pixel_error": 0.0513104684650898,
+  "retrieval_error": 0.11919127404689789,
+  "calls": 464,
+  "id": "#207",
+  "input_subject": "person lifting weights, yellow",
+  "model_drew": "barbell plates and blobby yellow figure",
+  "grade": 2,
+  "defects": [
+   "fragmented",
+   "distorted_shape"
+  ]
+ },
+ "#208": {
+  "index": 304,
+  "hexcode": "2B21-FE0F-200D-1F7EA",
+  "pixel_error": 0.0021841968409717083,
+  "retrieval_error": 0.04331981763243675,
+  "calls": 145,
+  "id": "#208",
+  "input_subject": "purple hexagon",
+  "model_drew": "near-identical purple hexagon",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#209": {
+  "index": 219,
+  "hexcode": "1F9CC",
+  "pixel_error": 0.16044414043426514,
+  "retrieval_error": 0.13111181557178497,
+  "calls": 1005,
+  "id": "#209",
+  "input_subject": "ogre/troll with club",
+  "model_drew": "green pointy-eared creature, club unfilled, no hair or tusks",
+  "grade": 2,
+  "defects": [
+   "missing_parts",
+   "missing_fill"
+  ]
+ },
+ "#210": {
+  "index": 69,
+  "hexcode": "1F44E-1F3FC",
+  "pixel_error": 0.10140906274318695,
+  "retrieval_error": 0.1190069392323494,
+  "calls": 393,
+  "id": "#210",
+  "input_subject": "thumbs down, light skin",
+  "model_drew": "stacked finger outlines with broken unfilled fist",
+  "grade": 1,
+  "defects": [
+   "broken_outline",
+   "missing_fill",
+   "fragmented"
+  ]
+ },
+ "#211": {
+  "index": 187,
+  "hexcode": "1F933-1F3FE",
+  "pixel_error": 0.07873774319887161,
+  "retrieval_error": 0.16542024910449982,
+  "calls": 651,
+  "id": "#211",
+  "input_subject": "selfie arm with phone",
+  "model_drew": "arm with blue sleeve, grey hand, phone outline",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "missing_fill"
+  ]
+ },
+ "#212": {
+  "index": 4,
+  "hexcode": "1F1EF",
+  "pixel_error": 0.031965624541044235,
+  "retrieval_error": 0.033841684460639954,
+  "calls": 131,
+  "id": "#212",
+  "input_subject": "circled letter J",
+  "model_drew": "circle with a smile curve, letter gone",
+  "grade": 1,
+  "defects": [
+   "lost_text_or_symbol"
+  ]
+ },
+ "#213": {
+  "index": 62,
+  "hexcode": "1F402",
+  "pixel_error": 0.06938064843416214,
+  "retrieval_error": 0.11766646802425385,
+  "calls": 416,
+  "id": "#213",
+  "input_subject": "ox/bull",
+  "model_drew": "fragmented brown quadruped shape",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "distorted_shape"
+  ]
+ },
+ "#214": {
+  "index": 322,
+  "hexcode": "E10C",
+  "pixel_error": 0.0725606232881546,
+  "retrieval_error": 0.10800501704216003,
+  "calls": 437,
+  "id": "#214",
+  "input_subject": "yellow hand pointing down at red mark",
+  "model_drew": "yellow cap, unfilled lines, small red dot",
+  "grade": 1,
+  "defects": [
+   "missing_fill",
+   "distorted_shape"
+  ]
+ },
+ "#215": {
+  "index": 85,
+  "hexcode": "1F468-1F3FC-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FC",
+  "pixel_error": 0.04618887975811958,
+  "retrieval_error": 0.04189436137676239,
+  "calls": 779,
+  "id": "#215",
+  "input_subject": "couple with heart, light skin blond",
+  "model_drew": "heart and two heads, right face distorted orange",
+  "grade": 2,
+  "defects": [
+   "distorted_shape",
+   "wrong_colour"
+  ]
+ },
+ "#216": {
+  "index": 307,
+  "hexcode": "E006",
+  "pixel_error": 0.051895979791879654,
+  "retrieval_error": 0.06992051750421524,
+  "calls": 382,
+  "id": "#216",
+  "input_subject": "narwhal",
+  "model_drew": "unfilled lying blob outline, no tusk",
+  "grade": 1,
+  "defects": [
+   "missing_fill",
+   "missing_parts",
+   "distorted_shape"
+  ]
+ },
+ "#217": {
+  "index": 234,
+  "hexcode": "1F9DA-1F3FC-200D-2642-FE0F",
+  "pixel_error": 0.11980654299259186,
+  "retrieval_error": 0.11949034035205841,
+  "calls": 862,
+  "id": "#217",
+  "input_subject": "fairy, light skin, blond",
+  "model_drew": "blond person, no wings",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#218": {
+  "index": 292,
+  "hexcode": "26D1",
+  "pixel_error": 0.08477618545293808,
+  "retrieval_error": 0.15490977466106415,
+  "calls": 481,
+  "id": "#218",
+  "input_subject": "rescue worker helmet",
+  "model_drew": "red brim, scribbled dome outline, no cross",
+  "grade": 1,
+  "defects": [
+   "missing_fill",
+   "lost_text_or_symbol",
+   "extra_strokes"
+  ]
+ },
+ "#219": {
+  "index": 29,
+  "hexcode": "1F3CA-1F3FD-200D-2642-FE0F",
+  "pixel_error": 0.03540809452533722,
+  "retrieval_error": 0.10294344276189804,
+  "calls": 401,
+  "id": "#219",
+  "input_subject": "swimmer, medium skin, in water",
+  "model_drew": "swimmer in blue water",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#220": {
+  "index": 156,
+  "hexcode": "1F64F",
+  "pixel_error": 0.0010608307784423232,
+  "retrieval_error": 0.017440540716052055,
+  "calls": 385,
+  "id": "#220",
+  "input_subject": "folded hands, yellow",
+  "model_drew": "same folded hands",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#221": {
+  "index": 83,
+  "hexcode": "1F468-1F3FC-200D-1F9B1",
+  "pixel_error": 0.03604378551244736,
+  "retrieval_error": 0.04145586118102074,
+  "calls": 584,
+  "id": "#221",
+  "input_subject": "person with curly hair, light skin",
+  "model_drew": "yellow curly head, messy face, unfilled shirt",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "missing_fill",
+   "distorted_shape"
+  ]
+ },
+ "#222": {
+  "index": 21,
+  "hexcode": "1F3BB",
+  "pixel_error": 0.09803366661071777,
+  "retrieval_error": 0.08054924756288528,
+  "calls": 577,
+  "id": "#222",
+  "input_subject": "violin",
+  "model_drew": "brown fragments and white blob",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_fill",
+   "distorted_shape"
+  ]
+ },
+ "#223": {
+  "index": 91,
+  "hexcode": "1F468-1F3FD-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FC",
+  "pixel_error": 0.03774106130003929,
+  "retrieval_error": 0.04505492001771927,
+  "calls": 887,
+  "id": "#223",
+  "input_subject": "couple with heart, two men",
+  "model_drew": "two heads with brown heart",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "distorted_shape"
+  ]
+ },
+ "#224": {
+  "index": 203,
+  "hexcode": "1F93D-1F3FF-200D-2640-FE0F",
+  "pixel_error": 0.07170756161212921,
+  "retrieval_error": 0.11999186873435974,
+  "calls": 530,
+  "id": "#224",
+  "input_subject": "water polo player, dark skin",
+  "model_drew": "circles and brown strokes, no water",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_fill"
+  ]
+ },
+ "#225": {
+  "index": 251,
+  "hexcode": "1F9DB-1F3FD-200D-2642-FE0F",
+  "pixel_error": 0.05492188036441803,
+  "retrieval_error": 0.058420829474925995,
+  "calls": 437,
+  "id": "#225",
+  "input_subject": "vampire, medium skin",
+  "model_drew": "plain person, no cape",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "wrong_colour"
+  ]
+ },
+ "#226": {
+  "index": 164,
+  "hexcode": "1F6B6-1F3FC-200D-2640-FE0F",
+  "pixel_error": 0.0,
+  "retrieval_error": 0.06980855762958527,
+  "calls": 305,
+  "id": "#226",
+  "input_subject": "woman walking, light skin",
+  "model_drew": "same walking figure",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#227": {
+  "index": 313,
+  "hexcode": "E099",
+  "pixel_error": 0.11353990435600281,
+  "retrieval_error": 0.1514645367860794,
+  "calls": 609,
+  "id": "#227",
+  "input_subject": "volcano with smoke",
+  "model_drew": "grey mountain with dark plume blob",
+  "grade": 2,
+  "defects": [
+   "distorted_shape",
+   "missing_parts"
+  ]
+ },
+ "#228": {
+  "index": 126,
+  "hexcode": "1F4E7",
+  "pixel_error": 0.05689375847578049,
+  "retrieval_error": 0.018957525491714478,
+  "calls": 287,
+  "id": "#228",
+  "input_subject": "e-mail envelope",
+  "model_drew": "envelope without E",
+  "grade": 2,
+  "defects": [
+   "lost_text_or_symbol"
+  ]
+ },
+ "#229": {
+  "index": 115,
+  "hexcode": "1F479",
+  "pixel_error": 0.13431096076965332,
+  "retrieval_error": 0.1409253180027008,
+  "calls": 804,
+  "id": "#229",
+  "input_subject": "ogre, red face with horns",
+  "model_drew": "brown blob with face strokes",
+  "grade": 1,
+  "defects": [
+   "wrong_colour",
+   "missing_parts",
+   "distorted_shape"
+  ]
+ },
+ "#230": {
+  "index": 242,
+  "hexcode": "1F9DA-200D-2642-FE0F",
+  "pixel_error": 0.11233559250831604,
+  "retrieval_error": 0.12111020088195801,
+  "calls": 808,
+  "id": "#230",
+  "input_subject": "fairy, orange hair",
+  "model_drew": "person with brown face, no wings",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "wrong_colour"
+  ]
+ },
+ "#231": {
+  "index": 302,
+  "hexcode": "2764",
+  "pixel_error": 0.0025561305228620768,
+  "retrieval_error": 0.04144905507564545,
+  "calls": 133,
+  "id": "#231",
+  "input_subject": "red heart",
+  "model_drew": "red heart",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#232": {
+  "index": 107,
+  "hexcode": "1F468-200D-1F9B1",
+  "pixel_error": 0.06858483701944351,
+  "retrieval_error": 0.04281247407197952,
+  "calls": 683,
+  "id": "#232",
+  "input_subject": "person with curly red hair",
+  "model_drew": "same person, face distorted over one eye",
+  "grade": 2,
+  "defects": [
+   "distorted_shape"
+  ]
+ },
+ "#233": {
+  "index": 211,
+  "hexcode": "1F959",
+  "pixel_error": 0.08446148782968521,
+  "retrieval_error": 0.07526375353336334,
+  "calls": 570,
+  "id": "#233",
+  "input_subject": "taco",
+  "model_drew": "round red-green ball",
+  "grade": 1,
+  "defects": [
+   "distorted_shape",
+   "wrong_colour"
+  ]
+ },
+ "#234": {
+  "index": 150,
+  "hexcode": "1F639",
+  "pixel_error": 0.0755423903465271,
+  "retrieval_error": 0.034057531505823135,
+  "calls": 524,
+  "id": "#234",
+  "input_subject": "cat with tears of joy",
+  "model_drew": "distorted orange cat face, no tears",
+  "grade": 2,
+  "defects": [
+   "missing_parts",
+   "distorted_shape"
+  ]
+ },
+ "#235": {
+  "index": 173,
+  "hexcode": "1F6B6",
+  "pixel_error": 0.004446310456842184,
+  "retrieval_error": 0.07121031731367111,
+  "calls": 271,
+  "id": "#235",
+  "input_subject": "person walking, yellow",
+  "model_drew": "same walking figure",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#236": {
+  "index": 294,
+  "hexcode": "2708",
+  "pixel_error": 0.09557764232158661,
+  "retrieval_error": 0.11803235858678818,
+  "calls": 361,
+  "id": "#236",
+  "input_subject": "airplane",
+  "model_drew": "grey wing fragments",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_parts"
+  ]
+ },
+ "#237": {
+  "index": 285,
+  "hexcode": "2650",
+  "pixel_error": 0.014149368740618229,
+  "retrieval_error": 0.018051017075777054,
+  "calls": 113,
+  "id": "#237",
+  "input_subject": "Sagittarius sign",
+  "model_drew": "purple square with short line, no arrow",
+  "grade": 1,
+  "defects": [
+   "lost_text_or_symbol"
+  ]
+ },
+ "#238": {
+  "index": 217,
+  "hexcode": "1F9B0",
+  "pixel_error": 0.06016148254275322,
+  "retrieval_error": 0.04985778406262398,
+  "calls": 104,
+  "id": "#238",
+  "input_subject": "orange arc over yellow",
+  "model_drew": "yellow block with one black line",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "wrong_colour"
+  ]
+ },
+ "#239": {
+  "index": 60,
+  "hexcode": "1F3F4-E0065-E0073-E0072-E0069-E007F",
+  "pixel_error": 0.07362145185470581,
+  "retrieval_error": 0.07780299335718155,
+  "calls": 389,
+  "id": "#239",
+  "input_subject": "striped flag with coat of arms",
+  "model_drew": "garbled striped flag, white box",
+  "grade": 1,
+  "defects": [
+   "distorted_shape",
+   "missing_parts"
+  ]
+ },
+ "#240": {
+  "index": 332,
+  "hexcode": "E240",
+  "pixel_error": 0.027988078072667122,
+  "retrieval_error": 0.08925753831863403,
+  "calls": 190,
+  "id": "#240",
+  "input_subject": "check mark in circle",
+  "model_drew": "check in circle, small gap, no grey fill",
+  "grade": 3,
+  "defects": [
+   "broken_outline"
+  ]
+ },
+ "#241": {
+  "index": 334,
+  "hexcode": "E257",
+  "pixel_error": 0.07418199628591537,
+  "retrieval_error": 0.1117241159081459,
+  "calls": 156,
+  "id": "#241",
+  "input_subject": "yellow funnel",
+  "model_drew": "top bar and thin stem, funnel body missing",
+  "grade": 1,
+  "defects": [
+   "missing_fill",
+   "missing_parts"
+  ]
+ },
+ "#242": {
+  "index": 70,
+  "hexcode": "1F44E-1F3FD",
+  "pixel_error": 0.10416616499423981,
+  "retrieval_error": 0.11602946370840073,
+  "calls": 417,
+  "id": "#242",
+  "input_subject": "thumbs down, medium skin",
+  "model_drew": "broken hand outline with skin fragments",
+  "grade": 2,
+  "defects": [
+   "missing_fill",
+   "broken_outline"
+  ]
+ },
+ "#243": {
+  "index": 134,
+  "hexcode": "1F54D",
+  "pixel_error": 0.08093757927417755,
+  "retrieval_error": 0.14586156606674194,
+  "calls": 407,
+  "id": "#243",
+  "input_subject": "synagogue with star of David",
+  "model_drew": "orange building with odd roof, no star",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "distorted_shape"
+  ]
+ },
+ "#244": {
+  "index": 180,
+  "hexcode": "1F6F4",
+  "pixel_error": 0.05706270784139633,
+  "retrieval_error": 0.0976700484752655,
+  "calls": 658,
+  "id": "#244",
+  "input_subject": "kick scooter",
+  "model_drew": "two wheels and deck, stem missing, handle bits floating",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "fragmented"
+  ]
+ },
+ "#245": {
+  "index": 214,
+  "hexcode": "1F993",
+  "pixel_error": 0.09382010251283646,
+  "retrieval_error": 0.1372576653957367,
+  "calls": 538,
+  "id": "#245",
+  "input_subject": "zebra outline",
+  "model_drew": "horse outline without stripes",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#246": {
+  "index": 100,
+  "hexcode": "1F468-1F3FE-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FF",
+  "pixel_error": 0.040385447442531586,
+  "retrieval_error": 0.04261377453804016,
+  "calls": 661,
+  "id": "#246",
+  "input_subject": "kiss, two men, red heart",
+  "model_drew": "heart and left head, right head partial",
+  "grade": 2,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#247": {
+  "index": 174,
+  "hexcode": "1F6BE",
+  "pixel_error": 0.031732380390167236,
+  "retrieval_error": 0.06088946759700775,
+  "calls": 123,
+  "id": "#247",
+  "input_subject": "WC sign",
+  "model_drew": "blue sign reading V C",
+  "grade": 2,
+  "defects": [
+   "lost_text_or_symbol"
+  ]
+ },
+ "#248": {
+  "index": 138,
+  "hexcode": "1F596-1F3FE",
+  "pixel_error": 0.16456365585327148,
+  "retrieval_error": 0.14101482927799225,
+  "calls": 303,
+  "id": "#248",
+  "input_subject": "vulcan salute, medium-dark skin",
+  "model_drew": "raised hand, split partly drawn, stray lines",
+  "grade": 2,
+  "defects": [
+   "distorted_shape",
+   "extra_strokes"
+  ]
+ },
+ "#249": {
+  "index": 212,
+  "hexcode": "1F968",
+  "pixel_error": 0.15246057510375977,
+  "retrieval_error": 0.196363627910614,
+  "calls": 541,
+  "id": "#249",
+  "input_subject": "pretzel",
+  "model_drew": "one orange loop plus outline fragments",
+  "grade": 1,
+  "defects": [
+   "missing_fill",
+   "fragmented"
+  ]
+ },
+ "#250": {
+  "index": 236,
+  "hexcode": "1F9DA-1F3FD-200D-2642-FE0F",
+  "pixel_error": 0.1247173324227333,
+  "retrieval_error": 0.11625716090202332,
+  "calls": 957,
+  "id": "#250",
+  "input_subject": "fairy with wings, medium skin",
+  "model_drew": "person with white hair, green shirt, no wings",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "wrong_colour"
+  ]
+ },
+ "#251": {
+  "index": 179,
+  "hexcode": "1F6F0",
+  "pixel_error": 0.19683541357517242,
+  "retrieval_error": 0.1951434165239334,
+  "calls": 345,
+  "id": "#251",
+  "input_subject": "satellite",
+  "model_drew": "diagonal grey and dark shapes, white square",
+  "grade": 1,
+  "defects": [
+   "distorted_shape",
+   "missing_parts"
+  ]
+ },
+ "#252": {
+  "index": 284,
+  "hexcode": "2639",
+  "pixel_error": 0.0005459230742417276,
+  "retrieval_error": 0.0016123014502227306,
+  "calls": 182,
+  "id": "#252",
+  "input_subject": "frowning face",
+  "model_drew": "frowning face, close match",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#253": {
+  "index": 336,
+  "hexcode": "E30A",
+  "pixel_error": 0.01855381950736046,
+  "retrieval_error": 0.08272260427474976,
+  "calls": 474,
+  "id": "#253",
+  "input_subject": "first aid kit with red cross",
+  "model_drew": "grey box with white cross, tabs missing",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "missing_parts"
+  ]
+ },
+ "#254": {
+  "index": 337,
+  "hexcode": "E316",
+  "pixel_error": 0.09391868859529495,
+  "retrieval_error": 0.09919208288192749,
+  "calls": 241,
+  "id": "#254",
+  "input_subject": "red kidney with vessels",
+  "model_drew": "red flame shape and black strokes",
+  "grade": 1,
+  "defects": [
+   "distorted_shape",
+   "fragmented"
+  ]
+ },
+ "#255": {
+  "index": 19,
+  "hexcode": "1F390",
+  "pixel_error": 0.048817627131938934,
+  "retrieval_error": 0.10643608868122101,
+  "calls": 380,
+  "id": "#255",
+  "input_subject": "blue dome lamp with hanging hook",
+  "model_drew": "grey dome, hook mostly missing",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "missing_parts"
+  ]
+ },
+ "#256": {
+  "index": 76,
+  "hexcode": "1F464",
+  "pixel_error": 0.039104484021663666,
+  "retrieval_error": 0.09219669550657272,
+  "calls": 207,
+  "id": "#256",
+  "input_subject": "bust in silhouette",
+  "model_drew": "bust, close match",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#257": {
+  "index": 66,
+  "hexcode": "1F426",
+  "pixel_error": 0.08094009757041931,
+  "retrieval_error": 0.012312142178416252,
+  "calls": 265,
+  "id": "#257",
+  "input_subject": "brown sparrow",
+  "model_drew": "thin elongated brown wedge, faint bird",
+  "grade": 1,
+  "defects": [
+   "distorted_shape",
+   "missing_fill"
+  ]
+ },
+ "#258": {
+  "index": 45,
+  "hexcode": "1F3CB-1F3FC",
+  "pixel_error": 0.0887259915471077,
+  "retrieval_error": 0.1314292848110199,
+  "calls": 435,
+  "id": "#258",
+  "input_subject": "person lifting weights",
+  "model_drew": "barbell end, head, scattered limbs",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_parts"
+  ]
+ },
+ "#259": {
+  "index": 35,
+  "hexcode": "1F3CA-1F3FF-200D-2642-FE0F",
+  "pixel_error": 0.032470449805259705,
+  "retrieval_error": 0.10547082126140594,
+  "calls": 395,
+  "id": "#259",
+  "input_subject": "person swimming, dark skin",
+  "model_drew": "water with swimmer head and arm, arm unfilled",
+  "grade": 2,
+  "defects": [
+   "missing_fill"
+  ]
+ },
+ "#260": {
+  "index": 243,
+  "hexcode": "1F9DA",
+  "pixel_error": 0.09185200184583664,
+  "retrieval_error": 0.1202152892947197,
+  "calls": 736,
+  "id": "#260",
+  "input_subject": "fairy with wings, yellow skin",
+  "model_drew": "person in green shirt, no wings, scribbles",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "extra_strokes"
+  ]
+ },
+ "#261": {
+  "index": 301,
+  "hexcode": "274C",
+  "pixel_error": 0.14708882570266724,
+  "retrieval_error": 0.11380919814109802,
+  "calls": 46,
+  "id": "#261",
+  "input_subject": "red cross mark X",
+  "model_drew": "black zigzag and red triangle fragments",
+  "grade": 0,
+  "defects": [
+   "fragmented",
+   "missing_parts"
+  ]
+ },
+ "#262": {
+  "index": 16,
+  "hexcode": "1F355",
+  "pixel_error": 0.07127057015895844,
+  "retrieval_error": 0.1226748451590538,
+  "calls": 383,
+  "id": "#262",
+  "input_subject": "pizza slice",
+  "model_drew": "slice outline with pepperoni, no yellow fill",
+  "grade": 2,
+  "defects": [
+   "missing_fill"
+  ]
+ },
+ "#263": {
+  "index": 95,
+  "hexcode": "1F468-1F3FE-200D-1F9B1",
+  "pixel_error": 0.05097686126828194,
+  "retrieval_error": 0.02567300945520401,
+  "calls": 585,
+  "id": "#263",
+  "input_subject": "person with curly hair, medium-dark skin",
+  "model_drew": "person with dark hair, shirt unfilled",
+  "grade": 2,
+  "defects": [
+   "missing_fill"
+  ]
+ },
+ "#264": {
+  "index": 96,
+  "hexcode": "1F468-1F3FE-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FB",
+  "pixel_error": 0.03766768425703049,
+  "retrieval_error": 0.0459117516875267,
+  "calls": 864,
+  "id": "#264",
+  "input_subject": "couple with heart, medium-dark and light skin",
+  "model_drew": "two heads with brown heart",
+  "grade": 2,
+  "defects": [
+   "wrong_colour"
+  ]
+ },
+ "#265": {
+  "index": 94,
+  "hexcode": "1F468-1F3FD-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FF",
+  "pixel_error": 0.03295358270406723,
+  "retrieval_error": 0.04261377453804016,
+  "calls": 885,
+  "id": "#265",
+  "input_subject": "couple with heart, medium-light and dark skin",
+  "model_drew": "two heads with brown heart",
+  "grade": 2,
+  "defects": [
+   "wrong_colour"
+  ]
+ },
+ "#266": {
+  "index": 148,
+  "hexcode": "1F62C",
+  "pixel_error": 0.012698700651526451,
+  "retrieval_error": 0.025456154718995094,
+  "calls": 373,
+  "id": "#266",
+  "input_subject": "grimacing face",
+  "model_drew": "yellow face with odd boxed mouth and circle",
+  "grade": 1,
+  "defects": [
+   "distorted_shape"
+  ]
+ },
+ "#267": {
+  "index": 123,
+  "hexcode": "1F4D2",
+  "pixel_error": 0.11654588580131531,
+  "retrieval_error": 0.11511538177728653,
+  "calls": 225,
+  "id": "#267",
+  "input_subject": "spiral notepad, orange stacked",
+  "model_drew": "single yellow spiral pad",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "missing_parts"
+  ]
+ },
+ "#268": {
+  "index": 162,
+  "hexcode": "1F6B6-1F3FB-200D-2640-FE0F",
+  "pixel_error": 0.0,
+  "retrieval_error": 0.07141833752393723,
+  "calls": 305,
+  "id": "#268",
+  "input_subject": "woman walking, light skin",
+  "model_drew": "matching walking figure",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#269": {
+  "index": 338,
+  "hexcode": "E31D",
+  "pixel_error": 0.061754871159791946,
+  "retrieval_error": 0.08972150087356567,
+  "calls": 544,
+  "id": "#269",
+  "input_subject": "grey person with red stress bolts over head",
+  "model_drew": "broken strokes over a red base bar",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_fill",
+   "wrong_colour"
+  ]
+ },
+ "#270": {
+  "index": 283,
+  "hexcode": "2602",
+  "pixel_error": 0.15745507180690765,
+  "retrieval_error": 0.1772242784500122,
+  "calls": 331,
+  "id": "#270",
+  "input_subject": "umbrella, purple",
+  "model_drew": "umbrella outline, no purple fill",
+  "grade": 2,
+  "defects": [
+   "missing_fill"
+  ]
+ },
+ "#271": {
+  "index": 227,
+  "hexcode": "1F9D3-1F3FC",
+  "pixel_error": 0.02659263275563717,
+  "retrieval_error": 0.03212473914027214,
+  "calls": 437,
+  "id": "#271",
+  "input_subject": "older person, medium-light skin",
+  "model_drew": "plain person with brown hair, no grey hair or wrinkles",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "wrong_colour"
+  ]
+ },
+ "#272": {
+  "index": 147,
+  "hexcode": "1F62B",
+  "pixel_error": 0.03825748339295387,
+  "retrieval_error": 0.013630427420139313,
+  "calls": 191,
+  "id": "#272",
+  "input_subject": "weary face",
+  "model_drew": "yellow face with one squint eye, no mouth",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#273": {
+  "index": 306,
+  "hexcode": "2B23",
+  "pixel_error": 0.00802317913621664,
+  "retrieval_error": 0.04972842335700989,
+  "calls": 275,
+  "id": "#273",
+  "input_subject": "black hexagon",
+  "model_drew": "matching dark hexagon",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#274": {
+  "index": 293,
+  "hexcode": "26F2",
+  "pixel_error": 0.18354211747646332,
+  "retrieval_error": 0.1971634477376938,
+  "calls": 551,
+  "id": "#274",
+  "input_subject": "fountain",
+  "model_drew": "loose arcs and boxes with grey patch",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_fill",
+   "distorted_shape"
+  ]
+ },
+ "#275": {
+  "index": 63,
+  "hexcode": "1F40B",
+  "pixel_error": 0.07578446716070175,
+  "retrieval_error": 0.11363142728805542,
+  "calls": 544,
+  "id": "#275",
+  "input_subject": "dolphin",
+  "model_drew": "blue dolphin body with grey belly, tail broken up",
+  "grade": 2,
+  "defects": [
+   "fragmented",
+   "distorted_shape"
+  ]
+ },
+ "#276": {
+  "index": 149,
+  "hexcode": "1F62E-200D-1F4A8",
+  "pixel_error": 0.03444535285234451,
+  "retrieval_error": 0.11591699719429016,
+  "calls": 566,
+  "id": "#276",
+  "input_subject": "face exhaling",
+  "model_drew": "closed-eye face, puff cloud reduced to broken outline",
+  "grade": 2,
+  "defects": [
+   "missing_fill",
+   "broken_outline"
+  ]
+ },
+ "#277": {
+  "index": 154,
+  "hexcode": "1F64F-1F3FE",
+  "pixel_error": 0.002301450353115797,
+  "retrieval_error": 0.017440540716052055,
+  "calls": 401,
+  "id": "#277",
+  "input_subject": "folded hands, medium skin",
+  "model_drew": "matching folded hands",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#278": {
+  "index": 55,
+  "hexcode": "1F3CB-FE0F-200D-2640-FE0F",
+  "pixel_error": 0.05714491009712219,
+  "retrieval_error": 0.12147532403469086,
+  "calls": 499,
+  "id": "#278",
+  "input_subject": "person lifting weights, yellow",
+  "model_drew": "yellow body with one plate, head pieces, no bar",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "fragmented"
+  ]
+ },
+ "#279": {
+  "index": 250,
+  "hexcode": "1F9DB-1F3FD-200D-2640-FE0F",
+  "pixel_error": 0.046747658401727676,
+  "retrieval_error": 0.04921276122331619,
+  "calls": 559,
+  "id": "#279",
+  "input_subject": "woman vampire, medium skin",
+  "model_drew": "plain woman with brown hair, no cape",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "extra_strokes"
+  ]
+ },
+ "#280": {
+  "index": 260,
+  "hexcode": "1F9DB-200D-2642-FE0F",
+  "pixel_error": 0.05501139909029007,
+  "retrieval_error": 0.07101210951805115,
+  "calls": 437,
+  "id": "#280",
+  "input_subject": "vampire, yellow",
+  "model_drew": "plain yellow person with small white collar, no red cape",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "wrong_colour"
+  ]
+ },
+ "#281": {
+  "index": 163,
+  "hexcode": "1F6B6-1F3FB",
+  "pixel_error": 0.0048822928220033646,
+  "retrieval_error": 0.06952941417694092,
+  "calls": 271,
+  "id": "#281",
+  "input_subject": "person walking, light skin",
+  "model_drew": "matching walking figure",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#282": {
+  "index": 41,
+  "hexcode": "1F3CB-1F3FB-200D-2642-FE0F",
+  "pixel_error": 0.06887759268283844,
+  "retrieval_error": 0.11553194373846054,
+  "calls": 334,
+  "id": "#282",
+  "input_subject": "person lifting weights, light skin",
+  "model_drew": "head, partial body, one plate, no bar",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "fragmented"
+  ]
+ },
+ "#283": {
+  "index": 46,
+  "hexcode": "1F3CB-1F3FD-200D-2640-FE0F",
+  "pixel_error": 0.05794853717088699,
+  "retrieval_error": 0.12035221606492996,
+  "calls": 612,
+  "id": "#283",
+  "input_subject": "person lifting weights, medium skin",
+  "model_drew": "barbell with plates over a broken skin-coloured figure",
+  "grade": 2,
+  "defects": [
+   "fragmented",
+   "broken_outline"
+  ]
+ },
+ "#284": {
+  "index": 229,
+  "hexcode": "1F9D3-1F3FE",
+  "pixel_error": 0.026445623487234116,
+  "retrieval_error": 0.02879422903060913,
+  "calls": 437,
+  "id": "#284",
+  "input_subject": "older person, medium skin",
+  "model_drew": "plain brown-haired person, no grey hair or wrinkles",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "wrong_colour"
+  ]
+ },
+ "#285": {
+  "index": 278,
+  "hexcode": "1FBC7",
+  "pixel_error": 0.017306646332144737,
+  "retrieval_error": 0.05548368766903877,
+  "calls": 170,
+  "id": "#285",
+  "input_subject": "standing person outline",
+  "model_drew": "matching standing figure, slightly distorted",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#286": {
+  "index": 72,
+  "hexcode": "1F44E-1F3FF",
+  "pixel_error": 0.04803745076060295,
+  "retrieval_error": 0.08615574240684509,
+  "calls": 369,
+  "id": "#286",
+  "input_subject": "thumbs down, dark skin",
+  "model_drew": "brown blob with finger rolls, thumb broken into pieces",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "broken_outline",
+   "distorted_shape"
+  ]
+ },
+ "#287": {
+  "index": 122,
+  "hexcode": "1F4CE",
+  "pixel_error": 0.06149766966700554,
+  "retrieval_error": 0.07552120834589005,
+  "calls": 73,
+  "id": "#287",
+  "input_subject": "paperclip",
+  "model_drew": "single small V stroke",
+  "grade": 0,
+  "defects": [
+   "blank_or_near_blank",
+   "missing_parts"
+  ]
+ },
+ "#288": {
+  "index": 113,
+  "hexcode": "1F469-1F3FF-200D-1F9B2",
+  "pixel_error": 0.00017852819291874766,
+  "retrieval_error": 0.00038706324994564056,
+  "calls": 281,
+  "id": "#288",
+  "input_subject": "person, dark skin",
+  "model_drew": "person, dark skin, close match",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#289": {
+  "index": 97,
+  "hexcode": "1F468-1F3FE-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FC",
+  "pixel_error": 0.03602764755487442,
+  "retrieval_error": 0.04505492001771927,
+  "calls": 838,
+  "id": "#289",
+  "input_subject": "couple with heart, medium-dark and light skin",
+  "model_drew": "two faces with brown heart, features faded",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "missing_parts"
+  ]
+ },
+ "#290": {
+  "index": 32,
+  "hexcode": "1F3CA-1F3FE-200D-2642-FE0F",
+  "pixel_error": 0.03539850935339928,
+  "retrieval_error": 0.10402797162532806,
+  "calls": 377,
+  "id": "#290",
+  "input_subject": "person swimming, medium skin",
+  "model_drew": "water with fill, brown blob and arm arc",
+  "grade": 2,
+  "defects": [
+   "distorted_shape"
+  ]
+ },
+ "#291": {
+  "index": 166,
+  "hexcode": "1F6B6-1F3FD-200D-2640-FE0F",
+  "pixel_error": 0.0,
+  "retrieval_error": 0.06771311908960342,
+  "calls": 305,
+  "id": "#291",
+  "input_subject": "person walking, medium skin",
+  "model_drew": "person walking, close match",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#292": {
+  "index": 124,
+  "hexcode": "1F4D7",
+  "pixel_error": 0.12625649571418762,
+  "retrieval_error": 0.06021999567747116,
+  "calls": 230,
+  "id": "#292",
+  "input_subject": "green book labelled VOL.2",
+  "model_drew": "darker green book with garbled text",
+  "grade": 2,
+  "defects": [
+   "lost_text_or_symbol",
+   "wrong_colour"
+  ]
+ },
+ "#293": {
+  "index": 170,
+  "hexcode": "1F6B6-1F3FF-200D-2640-FE0F",
+  "pixel_error": 0.003907700069248676,
+  "retrieval_error": 0.06740397214889526,
+  "calls": 305,
+  "id": "#293",
+  "input_subject": "person walking, dark skin",
+  "model_drew": "person walking, close match",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#294": {
+  "index": 252,
+  "hexcode": "1F9DB-1F3FD",
+  "pixel_error": 0.05243509262800217,
+  "retrieval_error": 0.05929380655288696,
+  "calls": 357,
+  "id": "#294",
+  "input_subject": "vampire, medium skin",
+  "model_drew": "plain person, no collar/fangs",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#295": {
+  "index": 0,
+  "hexcode": "1F0CF",
+  "pixel_error": 0.09856219589710236,
+  "retrieval_error": 0.14671438932418823,
+  "calls": 575,
+  "id": "#295",
+  "input_subject": "joker playing card",
+  "model_drew": "card with red top, garbled shapes, yellow band",
+  "grade": 1,
+  "defects": [
+   "distorted_shape",
+   "missing_parts"
+  ]
+ },
+ "#296": {
+  "index": 204,
+  "hexcode": "1F93D-1F3FF-200D-2642-FE0F",
+  "pixel_error": 0.1002894788980484,
+  "retrieval_error": 0.11800360679626465,
+  "calls": 437,
+  "id": "#296",
+  "input_subject": "water polo player, dark skin",
+  "model_drew": "head, brown fragments, wave lines, no water fill",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_fill"
+  ]
+ },
+ "#297": {
+  "index": 47,
+  "hexcode": "1F3CB-1F3FD-200D-2642-FE0F",
+  "pixel_error": 0.052294641733169556,
+  "retrieval_error": 0.11891768872737885,
+  "calls": 548,
+  "id": "#297",
+  "input_subject": "person lifting weights, medium skin",
+  "model_drew": "barbell and head with blob-shaped body",
+  "grade": 2,
+  "defects": [
+   "distorted_shape",
+   "missing_parts"
+  ]
+ },
+ "#298": {
+  "index": 7,
+  "hexcode": "1F261",
+  "pixel_error": 0.06716795265674591,
+  "retrieval_error": 0.04620955511927605,
+  "calls": 338,
+  "id": "#298",
+  "input_subject": "red circular ornamental emblem",
+  "model_drew": "red circle with scattered black strokes",
+  "grade": 1,
+  "defects": [
+   "lost_text_or_symbol",
+   "extra_strokes"
+  ]
+ },
+ "#299": {
+  "index": 280,
+  "hexcode": "25AE",
+  "pixel_error": 0.0,
+  "retrieval_error": 0.1226874589920044,
+  "calls": 71,
+  "id": "#299",
+  "input_subject": "dark grey rectangle",
+  "model_drew": "dark grey rectangle, match",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#300": {
+  "index": 31,
+  "hexcode": "1F3CA-1F3FE-200D-2640-FE0F",
+  "pixel_error": 0.03864656388759613,
+  "retrieval_error": 0.10657728463411331,
+  "calls": 480,
+  "id": "#300",
+  "input_subject": "person swimming, medium-dark skin",
+  "model_drew": "swimmer head and arm in water, fill clipped at right",
+  "grade": 2,
+  "defects": [
+   "missing_fill",
+   "distorted_shape"
+  ]
+ },
+ "#301": {
+  "index": 133,
+  "hexcode": "1F53D",
+  "pixel_error": 0.018858931958675385,
+  "retrieval_error": 0.048340290784835815,
+  "calls": 33,
+  "id": "#301",
+  "input_subject": "V-shaped chevron",
+  "model_drew": "V-shaped chevron, match",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#302": {
+  "index": 266,
+  "hexcode": "1FAA1",
+  "pixel_error": 0.03321507200598717,
+  "retrieval_error": 0.06646392494440079,
+  "calls": 461,
+  "id": "#302",
+  "input_subject": "sewing needle with blue thread",
+  "model_drew": "needle without thread",
+  "grade": 2,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#303": {
+  "index": 226,
+  "hexcode": "1F9D3-1F3FB",
+  "pixel_error": 0.029255930334329605,
+  "retrieval_error": 0.03378898650407791,
+  "calls": 437,
+  "id": "#303",
+  "input_subject": "older person, light skin, grey hair",
+  "model_drew": "plain person with pale hair, no wrinkles",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#304": {
+  "index": 330,
+  "hexcode": "E20B",
+  "pixel_error": 0.1276801973581314,
+  "retrieval_error": 0.13438785076141357,
+  "calls": 292,
+  "id": "#304",
+  "input_subject": "space shuttle",
+  "model_drew": "orange stripe, arch and loose lines",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_parts"
+  ]
+ },
+ "#305": {
+  "index": 282,
+  "hexcode": "25FD",
+  "pixel_error": 0.0,
+  "retrieval_error": 0.061125483363866806,
+  "calls": 49,
+  "id": "#305",
+  "input_subject": "white square outline",
+  "model_drew": "white square outline, match",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#306": {
+  "index": 104,
+  "hexcode": "1F468-1F3FF-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FD",
+  "pixel_error": 0.037332817912101746,
+  "retrieval_error": 0.04422431066632271,
+  "calls": 872,
+  "id": "#306",
+  "input_subject": "couple with heart, dark and light skin",
+  "model_drew": "two faces with brown heart",
+  "grade": 2,
+  "defects": [
+   "wrong_colour"
+  ]
+ },
+ "#307": {
+  "index": 161,
+  "hexcode": "1F6A4",
+  "pixel_error": 0.0762905478477478,
+  "retrieval_error": 0.06856466084718704,
+  "calls": 308,
+  "id": "#307",
+  "input_subject": "speedboat on water",
+  "model_drew": "filled water with brown streak, no boat",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#308": {
+  "index": 222,
+  "hexcode": "1F9D1-1F3FD-200D-1FA70",
+  "pixel_error": 0.04808208346366882,
+  "retrieval_error": 0.11262531578540802,
+  "calls": 488,
+  "id": "#308",
+  "input_subject": "person doing martial-arts kick, medium skin",
+  "model_drew": "fragmented figure with tan patches in kick layout",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_fill"
+  ]
+ },
+ "#309": {
+  "index": 181,
+  "hexcode": "1F7EB",
+  "pixel_error": 0.0,
+  "retrieval_error": 0.0005779472412541509,
+  "calls": 49,
+  "id": "#309",
+  "input_subject": "brown square",
+  "model_drew": "brown square, match",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#310": {
+  "index": 51,
+  "hexcode": "1F3CB-1F3FE",
+  "pixel_error": 0.057858265936374664,
+  "retrieval_error": 0.13273093104362488,
+  "calls": 491,
+  "id": "#310",
+  "input_subject": "person lifting weights, medium-dark skin",
+  "model_drew": "one barbell plate, head, scattered limb strokes",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_parts"
+  ]
+ },
+ "#311": {
+  "index": 286,
+  "hexcode": "2656",
+  "pixel_error": 0.07352814823389053,
+  "retrieval_error": 0.09501860290765762,
+  "calls": 340,
+  "id": "#311",
+  "input_subject": "chess rook / tower",
+  "model_drew": "fragment of battlements, square, curved line",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_parts"
+  ]
+ },
+ "#312": {
+  "index": 241,
+  "hexcode": "1F9DA-1F3FF",
+  "pixel_error": 0.11588547378778458,
+  "retrieval_error": 0.11263667047023773,
+  "calls": 717,
+  "id": "#312",
+  "input_subject": "fairy, dark skin, wings and wand",
+  "model_drew": "person in green shirt, no wings, stray strokes",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "extra_strokes"
+  ]
+ },
+ "#313": {
+  "index": 169,
+  "hexcode": "1F6B6-1F3FE",
+  "pixel_error": 0.003801289014518261,
+  "retrieval_error": 0.0671624094247818,
+  "calls": 271,
+  "id": "#313",
+  "input_subject": "person walking, medium-dark",
+  "model_drew": "walking figure, matched",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#314": {
+  "index": 37,
+  "hexcode": "1F3CA-200D-2640-FE0F",
+  "pixel_error": 0.0229560025036335,
+  "retrieval_error": 0.10598118603229523,
+  "calls": 450,
+  "id": "#314",
+  "input_subject": "person swimming",
+  "model_drew": "water, head and arm stroke, most of the yellow lost",
+  "grade": 2,
+  "defects": [
+   "missing_fill"
+  ]
+ },
+ "#315": {
+  "index": 50,
+  "hexcode": "1F3CB-1F3FE-200D-2642-FE0F",
+  "pixel_error": 0.0703159049153328,
+  "retrieval_error": 0.11776254326105118,
+  "calls": 618,
+  "id": "#315",
+  "input_subject": "weightlifter, medium-dark",
+  "model_drew": "figure with brown body and legs, bar with uneven plates",
+  "grade": 2,
+  "defects": [
+   "distorted_shape",
+   "fragmented"
+  ]
+ },
+ "#316": {
+  "index": 158,
+  "hexcode": "1F68D",
+  "pixel_error": 0.1173379123210907,
+  "retrieval_error": 0.1539187878370285,
+  "calls": 575,
+  "id": "#316",
+  "input_subject": "front of a bus",
+  "model_drew": "yellow box with black stripes, no windshield or wheels",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "distorted_shape"
+  ]
+ },
+ "#317": {
+  "index": 75,
+  "hexcode": "1F45B",
+  "pixel_error": 0.04565127566456795,
+  "retrieval_error": 0.13856282830238342,
+  "calls": 623,
+  "id": "#317",
+  "input_subject": "purple purse with clasp",
+  "model_drew": "purple purse with flat clasp bar, extra circle",
+  "grade": 2,
+  "defects": [
+   "extra_strokes",
+   "distorted_shape"
+  ]
+ },
+ "#318": {
+  "index": 308,
+  "hexcode": "E045",
+  "pixel_error": 0.10262270271778107,
+  "retrieval_error": 0.1059035211801529,
+  "calls": 348,
+  "id": "#318",
+  "input_subject": "GitHub octocat in grey ring",
+  "model_drew": "white ring with grey cat head, partial",
+  "grade": 2,
+  "defects": [
+   "missing_fill",
+   "missing_parts"
+  ]
+ },
+ "#319": {
+  "index": 272,
+  "hexcode": "1FAD3",
+  "pixel_error": 0.07380123436450958,
+  "retrieval_error": 0.032288141548633575,
+  "calls": 189,
+  "id": "#319",
+  "input_subject": "yellow disc with diagonal stripes",
+  "model_drew": "yellow blob with lines, no outline",
+  "grade": 2,
+  "defects": [
+   "broken_outline",
+   "distorted_shape"
+  ]
+ },
+ "#320": {
+  "index": 128,
+  "hexcode": "1F4F7",
+  "pixel_error": 0.07426823675632477,
+  "retrieval_error": 0.04956754669547081,
+  "calls": 620,
+  "id": "#320",
+  "input_subject": "camera",
+  "model_drew": "camera outline with lens, no grey fill or button",
+  "grade": 2,
+  "defects": [
+   "missing_fill",
+   "missing_parts"
+  ]
+ },
+ "#321": {
+  "index": 316,
+  "hexcode": "E0AE",
+  "pixel_error": 0.10699033737182617,
+  "retrieval_error": 0.15798157453536987,
+  "calls": 938,
+  "id": "#321",
+  "input_subject": "blue glove on grey sheet with dots",
+  "model_drew": "dots and messy outlines, no glove",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_parts"
+  ]
+ },
+ "#322": {
+  "index": 48,
+  "hexcode": "1F3CB-1F3FD",
+  "pixel_error": 0.08697929233312607,
+  "retrieval_error": 0.13337896764278412,
+  "calls": 616,
+  "id": "#322",
+  "input_subject": "weightlifter, medium skin",
+  "model_drew": "hook-like bar end, partial figure, one plate",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_parts"
+  ]
+ },
+ "#323": {
+  "index": 325,
+  "hexcode": "E1C4",
+  "pixel_error": 0.046459946781396866,
+  "retrieval_error": 0.08230149745941162,
+  "calls": 162,
+  "id": "#323",
+  "input_subject": "telescope on tripod",
+  "model_drew": "grey wedge on legs, looks like a paper plane",
+  "grade": 1,
+  "defects": [
+   "distorted_shape",
+   "missing_parts"
+  ]
+ },
+ "#324": {
+  "index": 144,
+  "hexcode": "1F5EF",
+  "pixel_error": 0.03619961813092232,
+  "retrieval_error": 0.10935457050800323,
+  "calls": 143,
+  "id": "#324",
+  "input_subject": "jagged speech bubble",
+  "model_drew": "jagged bubble with stray lines inside",
+  "grade": 2,
+  "defects": [
+   "extra_strokes"
+  ]
+ },
+ "#325": {
+  "index": 71,
+  "hexcode": "1F44E-1F3FE",
+  "pixel_error": 0.025611737743020058,
+  "retrieval_error": 0.11041489988565445,
+  "calls": 382,
+  "id": "#325",
+  "input_subject": "thumbs down, medium-dark",
+  "model_drew": "thumbs down, close, slight fill overhang",
+  "grade": 3,
+  "defects": [
+   "broken_outline"
+  ]
+ },
+ "#326": {
+  "index": 258,
+  "hexcode": "1F9DB-1F3FF",
+  "pixel_error": 0.05206291005015373,
+  "retrieval_error": 0.05255461856722832,
+  "calls": 357,
+  "id": "#326",
+  "input_subject": "vampire, dark skin",
+  "model_drew": "plain person, no cape or fangs",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#327": {
+  "index": 111,
+  "hexcode": "1F469-1F3FD-200D-1F9B2",
+  "pixel_error": 5.900508404010907e-05,
+  "retrieval_error": 0.0006407346809282899,
+  "calls": 281,
+  "id": "#327",
+  "input_subject": "bald person, medium skin, blue shirt",
+  "model_drew": "same person, matched",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#328": {
+  "index": 298,
+  "hexcode": "270B-1F3FE",
+  "pixel_error": 0.005624646786600351,
+  "retrieval_error": 0.09616290032863617,
+  "calls": 337,
+  "id": "#328",
+  "input_subject": "raised hand, medium-dark",
+  "model_drew": "raised hand, matched",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#329": {
+  "index": 183,
+  "hexcode": "1F923",
+  "pixel_error": 0.14466609060764313,
+  "retrieval_error": 0.07161779701709747,
+  "calls": 478,
+  "id": "#329",
+  "input_subject": "rolling on the floor laughing",
+  "model_drew": "tilted blue face with mouth and tears, no eyes",
+  "grade": 2,
+  "defects": [
+   "wrong_colour",
+   "missing_parts"
+  ]
+ },
+ "#330": {
+  "index": 244,
+  "hexcode": "1F9DB-1F3FB-200D-2640-FE0F",
+  "pixel_error": 0.0384337455034256,
+  "retrieval_error": 0.0563223697245121,
+  "calls": 476,
+  "id": "#330",
+  "input_subject": "woman vampire, light skin",
+  "model_drew": "long-haired woman, no cape or fangs",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#331": {
+  "index": 155,
+  "hexcode": "1F64F-1F3FF",
+  "pixel_error": 0.0008454874041490257,
+  "retrieval_error": 0.017440540716052055,
+  "calls": 397,
+  "id": "#331",
+  "input_subject": "folded hands, dark skin",
+  "model_drew": "folded hands, matched",
+  "grade": 3,
+  "defects": [
+   "none"
+  ]
+ },
+ "#332": {
+  "index": 207,
+  "hexcode": "1F93D-200D-2642-FE0F",
+  "pixel_error": 0.0754069834947586,
+  "retrieval_error": 0.12082425504922867,
+  "calls": 654,
+  "id": "#332",
+  "input_subject": "water polo player (yellow)",
+  "model_drew": "yellow strokes, ball outline, water fragment",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_parts"
+  ]
+ },
+ "#333": {
+  "index": 248,
+  "hexcode": "1F9DB-1F3FC-200D-2642-FE0F",
+  "pixel_error": 0.05536038801074028,
+  "retrieval_error": 0.05882579833269119,
+  "calls": 437,
+  "id": "#333",
+  "input_subject": "vampire, blond",
+  "model_drew": "plain blond person",
+  "grade": 1,
+  "defects": [
+   "missing_parts"
+  ]
+ },
+ "#334": {
+  "index": 261,
+  "hexcode": "1F9DB",
+  "pixel_error": 0.09909676760435104,
+  "retrieval_error": 0.07178901880979538,
+  "calls": 457,
+  "id": "#334",
+  "input_subject": "vampire, yellow, dark hair",
+  "model_drew": "bald yellow person with a stray triangle",
+  "grade": 1,
+  "defects": [
+   "missing_parts",
+   "extra_strokes"
+  ]
+ },
+ "#335": {
+  "index": 132,
+  "hexcode": "1F52F",
+  "pixel_error": 0.03027767688035965,
+  "retrieval_error": 0.004649297334253788,
+  "calls": 423,
+  "id": "#335",
+  "input_subject": "Star of David in purple square",
+  "model_drew": "purple square with an irregular white blob star",
+  "grade": 1,
+  "defects": [
+   "distorted_shape",
+   "lost_text_or_symbol"
+  ]
+ },
+ "#336": {
+  "index": 20,
+  "hexcode": "1F3B4",
+  "pixel_error": 0.11444313079118729,
+  "retrieval_error": 0.14519108831882477,
+  "calls": 161,
+  "id": "#336",
+  "input_subject": "red card with white sun over dark hill",
+  "model_drew": "dark card with circle outline and red bottom band",
+  "grade": 1,
+  "defects": [
+   "wrong_colour",
+   "distorted_shape",
+   "missing_fill"
+  ]
+ },
+ "#337": {
+  "index": 215,
+  "hexcode": "1F994",
+  "pixel_error": 0.13682875037193298,
+  "retrieval_error": 0.10570356994867325,
+  "calls": 587,
+  "id": "#337",
+  "input_subject": "hedgehog",
+  "model_drew": "brown blob with scattered dashes, no face",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_parts",
+   "extra_strokes"
+  ]
+ },
+ "#338": {
+  "index": 197,
+  "hexcode": "1F93D-1F3FD-200D-2640-FE0F",
+  "pixel_error": 0.07805061340332031,
+  "retrieval_error": 0.11881151795387268,
+  "calls": 578,
+  "id": "#338",
+  "input_subject": "water polo player in water",
+  "model_drew": "brown figure fragment, ball outline, wave strokes, no blue water",
+  "grade": 1,
+  "defects": [
+   "fragmented",
+   "missing_fill",
+   "missing_parts"
+  ]
+ }
+}
