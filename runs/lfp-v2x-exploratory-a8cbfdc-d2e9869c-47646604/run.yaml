@@ -1,0 +1,336 @@
+schema_version: 2
+run_id: lfp-v2x-exploratory-a8cbfdc-d2e9869c-47646604
+state: completed
+planned_at: '2026-10-31T00:09:29Z'
+hypothesis: 'A rectified-flow prior fitted to the aggregate posterior of the frozen canvas
+  latent (vt-v3-d02-s5, c = 16) replaces its N(0, I) prior, whose draws decode to fragments,
+  and so generates whole, novel OpenMoji-like drawings and interpolates through plausible
+  drawings. The prior is a DiT over standardised (16, 18, 18) grids (x_t = (1 - t) x_0 + t
+  eps, velocity target, logit-normal t, EMA 0.999), trained on posterior draws of 32 exact
+  variants per training icon (no compositions) and selected by EMA flow loss on the validation
+  icons'' latents. Samples: 50 Euler steps from noise scale 1 to z_hat_0, greedy IEEE float32
+  decoding by the VT. Scored afterwards by latent_metrics through the gallery backend canvas-flow
+  on its fixed sets (339 samples, seed 23; 32 validation pairs x 9 frames, rng 17; CLIP ViT-B/32
+  at 72 px against the 339 validation renders; bootstrap intervals, paired where paired; copy
+  rule without-twins): B1-B3 on the report with default settings (its samples block); B4 and
+  B5 on the report run with --interpolation backend, whose interpolation block is canvas-flow''s
+  own path, the slerp below (the report records interpolation.path slerp-through-prior-noise).
+  The default report''s interpolation block is the frozen VT''s lerp of posterior means and
+  scores neither B4 nor B5. Pass requires B1-B3; B4 and B5 are the interpolation claims. (B1)
+  fragment rate at most 10%. (B2) CLIP k-NN precision at least 0.73 (2x latent-v2''s plain
+  N(0, I) row, 0.366) and recall above 0.147 (that row''s), both with intervals excluding
+  zero. (B3) copy rate at most 10% and all 339 samples distinct. (B4) slerp through the prior''s
+  noise space (reverse-ODE inversion of both posterior means, slerp, forward integration):
+  interior fragment rate at most 15%, jump share below latent-v2''s (paired over pairs, interval
+  excluding zero), detour rate at most 20%. (B5) slerp interior precision above v9 on pixel
+  crossfades of the same pairs, paired, interval excluding zero; a failure is recorded as
+  "the latent adds nothing over crossfade plus transcriber". Decision: B1-B3 pass - the gallery''s
+  main latent model. B3 fails - add compositions to the prior''s data, then an earlier-stopped
+  prior. B1 or B2 fails while B3 passes - a larger prior. Only B5 fails - keep the model;
+  its interpolation is a dissolve. Reported without a criterion: validation flow loss against
+  the Gaussian velocity, vt-v3-d02-s5''s N(0, I) samples on the same seeds, lerp strips, watch-it-draw
+  strips, ms per sample.'
+parent_run: vt-v3-d02-s5-d05a169-0112d238-47646604
+git_commit: a8cbfdce2dfa28fd4d2c18de5d2c50c0ed300753
+dirty_patch_sha256: ''
+config_sha256: d2e9869cb53bd37270ad825d663cb9e8a348cc60ff2a163af3200f8f9d550cbd
+uncommitted_sources: []
+config: configs/latent/lfp-v2x-exploratory.yaml
+config_resolved:
+  parent_gate:
+  - A3
+  latents:
+    variants: 32
+    originals: true
+    mirror: 0.5
+    max_shift: 48
+    colour: 0.1
+    seed: 9101
+    chunk_icons: 8
+    train_icons: null
+    validation_icons: 339
+    encode_batch: 64
+    workers: 16
+  network:
+    channels: 16
+    grid: 18
+    patch: 2
+    d_model: 256
+    layers: 8
+    heads: 8
+    mlp_ratio: 4.0
+    frequency_dim: 256
+  training:
+    steps: 40000
+    batch_size: 256
+    learning_rate: 0.0003
+    weight_decay: 0.0
+    warmup_steps: 1000
+    schedule: constant
+    grad_clip: 1.0
+    ema_decay: 0.999
+    time_mean: 0.0
+    time_std: 1.0
+    posterior_sampling: true
+    seed: 7101
+    eval_every: 1000
+    validation_draws: 16
+    trace_every: 100
+    bf16: true
+  sampling:
+    steps: 50
+    trajectory_frames: 8
+  eval_icons: 339
+  prior_samples: 64
+  interpolation_pairs: 8
+  interpolation_frames: 9
+  trajectories: 4
+parent:
+  run: vt-v3-d02-s5-d05a169-0112d238-47646604
+  checkpoint: /home/eai-jdkxz/eai-team11/mojidiff/cache/runs/vt-v3-d02-s5-d05a169-0112d238-47646604/best.pt
+  checkpoint_sha256: 3ebbe17eb25039ef964708be7c70dc1cd90cd6243766a02ddce5f5aaf778e2e0
+  latent_shape:
+  - 16
+  - 18
+  - 18
+  gate:
+    record: /storage/hackathon_teams/eai-team11/mojidiff/repo-a8cbfdc/runs/vt-v3-d02-s5-d05a169-0112d238-47646604/run.yaml
+    state: completed
+    gate:
+      A3: true
+  frozen: true
+latents:
+  cache: /home/eai-jdkxz/eai-team11/mojidiff/cache/latent-flow/vt-v3-d02-s5-d05a169-0112d238-47646604-a15859e6454d.pt
+  cache_sha256: aed237f754e5f1ef2f1e78e94edcddcdbf2c9c512854e907b863cf2ddccd2a16
+  created_by_this_run: true
+  settings:
+    format: 1
+    vt_checkpoint_sha256: 3ebbe17eb25039ef964708be7c70dc1cd90cd6243766a02ddce5f5aaf778e2e0
+    dataset_sha256: 476466042da98d72c2bf2774cecc18f08d50a362eefbecae97904bde7a04ef0e
+    latent_shape:
+    - 16
+    - 18
+    - 18
+    image_size: 144
+    precision: IEEE float32 encoding (TF32 off), stored float16
+    variants: 32
+    originals: true
+    mirror: 0.5
+    max_shift: 48
+    colour: 0.1
+    seed: 9101
+    chunk_icons: 8
+    train_icons: null
+    validation_icons: 339
+    encode_batch: 64
+  train_latents: 85792
+  train_icons: 2681
+  dropped_variants: 0
+  validation_latents: 339
+  precompute_seconds: 100.72908592200838
+  channel_mean:
+  - 0.04413284361362457
+  - -0.015629036352038383
+  - 0.03381210193037987
+  - -0.06960287690162659
+  - -0.021304529160261154
+  - -0.028380408883094788
+  - -0.026091091334819794
+  - 0.026364922523498535
+  - -0.026994433254003525
+  - 0.00607042433694005
+  - -0.02067049965262413
+  - 0.004147899802774191
+  - -0.006913912016898394
+  - -0.03546278178691864
+  - -0.022319264709949493
+  - -0.011043607257306576
+  channel_std:
+  - 0.9945354461669922
+  - 1.0106734037399292
+  - 1.0069254636764526
+  - 1.0046265125274658
+  - 1.0027592182159424
+  - 0.9971258640289307
+  - 1.0021981000900269
+  - 1.005805492401123
+  - 0.998261570930481
+  - 0.9869696497917175
+  - 0.992184579372406
+  - 1.001129388809204
+  - 1.0020924806594849
+  - 0.9960492253303528
+  - 0.9967480897903442
+  - 0.9984707236289978
+  note: test icons are never encoded; validation latents select the checkpoint
+dataset:
+  pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+  cache_sha256: 476466042da98d72c2bf2774cecc18f08d50a362eefbecae97904bde7a04ef0e
+  train_icons: 2681
+  evaluated_on: primary/validation
+seed: 7101
+determinism: seeded (torch generator on the device for batches, t and eps; fixed CPU draws
+  for validation); cuDNN and SDPA kernels not forced deterministic
+model_parameters: 18802562
+parameters:
+  flow: 9764160
+  parent_vt_frozen: 9038402
+  total: 18802562
+  note: 'model_parameters is the served sampler: the flow and the frozen VT that decodes its
+    samples, as the gallery''s canvas-flow backend counts it; only the flow trains'
+command: .venv/bin/python -m mojidiff.learning.latent_flow --config configs/latent/lfp-v2x-exploratory.yaml
+outputs:
+  run_dir: runs/lfp-v2x-exploratory-a8cbfdc-d2e9869c-47646604
+  checkpoints: /home/eai-jdkxz/eai-team11/mojidiff/cache/runs/lfp-v2x-exploratory-a8cbfdc-d2e9869c-47646604
+notes: ''
+completed_at: '2026-10-31T00:24:50Z'
+resource:
+  device: NVIDIA B300 SXM6 AC
+  torch_version: 2.14.1+cu130
+  cuda_version: '13.0'
+  python_version: 3.12.3
+  peak_vram_gib: 4.678442001342773
+  train_seconds: 797.6049932729802
+  inference_ms_per_icon: 446.3928190234583
+  inference_p95_ms_per_icon: 446.7513750423677
+  icons_per_second: 2.2401794056356654
+  inference: 50 Euler steps of the EMA flow at batch 1 plus the VT's float32 CUDA-graph greedy
+    decode, IEEE float32 (TF32 off)
+  excludes: rasterising the output SVG
+  note: measured while other GPU work may be running
+baselines:
+  gaussian_velocity_validation_flow_loss: 1.745949142010623
+  vt_standard_normal_prior_fragment_rate: 0.140625
+  validation_icons_fragment_rate: 0.02064896755162242
+  note: 'zero-parameter controls on the same draws: the exact velocity if the standardised
+    latents were N(0, I); the parent VT decoding the same N(0, I) seeds as latents (its own
+    prior); the validation icons'
+result:
+  precision: 'IEEE float32 greedy decoding (TF32 off: matmul and cuDNN); pixel metrics at
+    72 px'
+  validation_flow_loss:
+    ema_served: 1.5015769367858625
+    gaussian_velocity_baseline: 1.745949142010623
+    icons: 339
+    draws_per_icon: 16
+    gaussian_velocity_baseline_at_selection_time: 1.745949142010623
+  prior_samples:
+    count: 64
+    distinct: 64
+    rendered: 64
+    ink_coverage_median: 0.23717206790123457
+    fragment_rate_ink_below_0.10: 0.140625
+    near_blank_rate_ink_below_0.02: 0.0
+    noise_scale: 1.0
+    seed: 23
+    euler_steps: 50
+    vt_standard_normal:
+      count: 64
+      distinct: 64
+      rendered: 64
+      ink_coverage_median: 0.17158564814814814
+      fragment_rate_ink_below_0.10: 0.140625
+      near_blank_rate_ink_below_0.02: 0.015625
+    validation_fragment_rate_ink_below_0.10: 0.02064896755162242
+  interpolation:
+    pairs:
+    - - 286
+      - 250
+    - - 54
+      - 155
+    - - 124
+      - 257
+    - - 154
+      - 72
+    - - 309
+      - 145
+    - - 206
+      - 30
+    - - 16
+      - 5
+    - - 85
+      - 124
+    frames: 9
+    inversion_steps: 50
+    slerp:
+      interior_fragment_rate_ink_below_0.10: 0.21428571428571427
+      endpoint_pixel_error:
+      - 0.08760899445042014
+      - 0.06726361885666847
+      - 0.10858024024055339
+      distinct_programs_per_strip: 8.875
+    lerp:
+      interior_fragment_rate_ink_below_0.10: 0.07142857142857142
+      endpoint_pixel_error:
+      - 0.07452558009390486
+      - 0.05177627357024903
+      - 0.09709030688100029
+      distinct_programs_per_strip: 9.0
+  watch_it_draw:
+    trajectories: 4
+    seed: 31
+    times:
+    - 1.0
+    - 0.86
+    - 0.72
+    - 0.58
+    - 0.46
+    - 0.32
+    - 0.18
+    - 0.04
+    step_indices:
+    - 0
+    - 7
+    - 14
+    - 21
+    - 27
+    - 34
+    - 41
+    - 48
+    columns: z_hat_0 at each time, then the final sample
+  latency:
+    end_to_end_ms_batch_1: 446.3928190234583
+    end_to_end_p95_ms_batch_1: 446.7513750423677
+    flow_only_ms_batch_1: 142.88289347314276
+    batched_ms_per_sample: 301.5690936399551
+    batched_note: '64 samples: flow then greedy_decode in batches of 64'
+  criteria:
+    B1:
+      claim: fragment rate at most 10%
+      status: 'scored after the run by latent_metrics through the gallery backend canvas-flow,
+        copy rule without-twins, default settings: its samples block'
+    B2:
+      claim: CLIP precision at least 2x the best latent-v2 prior row, and recall above it,
+        both with intervals excluding zero
+      status: 'scored after the run by latent_metrics through the gallery backend canvas-flow,
+        copy rule without-twins, default settings: its samples block'
+    B3:
+      claim: copy rate at most 10% under copy rule without-twins, and all samples distinct
+      status: 'scored after the run by latent_metrics through the gallery backend canvas-flow,
+        copy rule without-twins, default settings: its samples block'
+    B4:
+      claim: slerp interior fragments at most 15%, jump share below latent-v2's (paired),
+        detours at most 20%
+      status: 'scored after the run by latent_metrics through the gallery backend canvas-flow,
+        copy rule without-twins, with --interpolation backend: its interpolation block, the
+        backend''s slerp through the prior''s noise (the report records interpolation.path
+        slerp-through-prior-noise). The default report''s interpolation block is the frozen
+        VT''s lerp of posterior means and scores neither B4 nor B5'
+    B5:
+      claim: slerp interior CLIP precision above v9 on crossfades, paired
+      status: 'scored after the run by latent_metrics through the gallery backend canvas-flow,
+        copy rule without-twins, with --interpolation backend: its interpolation block, the
+        backend''s slerp through the prior''s noise (the report records interpolation.path
+        slerp-through-prior-noise). The default report''s interpolation block is the frozen
+        VT''s lerp of posterior means and scores neither B4 nor B5'
+  float32_flags:
+    matmul_allow_tf32: false
+    cudnn_allow_tf32: false
+    float32_matmul_precision: highest
+    tf32_cublas_override_variable: null
+  selection:
+    rule: lowest EMA validation flow loss (fixed t and eps draws, 16 per validation latent)
+      over evaluations every 1000 steps
+    step: 40000
+    validation_flow_loss_ema: 1.5015769367858625
+  selected_step: 40000

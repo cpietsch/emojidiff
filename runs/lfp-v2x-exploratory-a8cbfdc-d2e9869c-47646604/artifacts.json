@@ -1,0 +1,10 @@
+{
+  "checkpoint_best": "/home/eai-jdkxz/eai-team11/mojidiff/cache/runs/lfp-v2x-exploratory-a8cbfdc-d2e9869c-47646604/best.pt",
+  "checkpoint_latest": "/home/eai-jdkxz/eai-team11/mojidiff/cache/runs/lfp-v2x-exploratory-a8cbfdc-d2e9869c-47646604/latest.pt",
+  "latents": "/home/eai-jdkxz/eai-team11/mojidiff/cache/latent-flow/vt-v3-d02-s5-d05a169-0112d238-47646604-a15859e6454d.pt",
+  "samples": "prior-samples.png (flow samples, noise scale 1, Euler, greedy decode)",
+  "vt_normal_samples": "vt-normal-samples.png (the parent VT on the same N(0, I) seeds)",
+  "slerp": "slerp-interpolations.png (A, frames through the prior's noise, B)",
+  "lerp": "lerp-interpolations.png (A, lerp of posterior means, B)",
+  "watch_it_draw": "watch-it-draw.png (z_hat_0 at 8 flow times, then the sample)"
+}

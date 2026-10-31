@@ -444,3 +444,5 @@
 {"config":"configs/render2svg/cur-d025-s120k-seed5.yaml","run_id":"r2s-cur-d025-s120k-seed5-3d24194-23f9be27-47646604","slug":"r2s-cur-d025-s120k-seed5","state":"running","timestamp":"2026-10-30T22:36:58Z"}
 {"result_file":"runs/r2s-cur-d025-s120k-seed5-3d24194-23f9be27-47646604/result.md","run_id":"r2s-cur-d025-s120k-seed5-3d24194-23f9be27-47646604","state":"completed","timestamp":"2026-10-31T00:06:48Z"}
 {"result_file":"runs/r2s-cur-d025-s120k-seed6-3d24194-e82fb828-47646604/result.md","run_id":"r2s-cur-d025-s120k-seed6-3d24194-e82fb828-47646604","state":"completed","timestamp":"2026-10-31T00:07:00Z"}
+{"config":"configs/latent/lfp-v2x-exploratory.yaml","run_id":"lfp-v2x-exploratory-a8cbfdc-d2e9869c-47646604","slug":"lfp-v2x-exploratory","state":"running","timestamp":"2026-10-31T00:09:32Z"}
+{"result_file":"runs/lfp-v2x-exploratory-a8cbfdc-d2e9869c-47646604/result.md","run_id":"lfp-v2x-exploratory-a8cbfdc-d2e9869c-47646604","state":"completed","timestamp":"2026-10-31T00:24:50Z"}
