@@ -4400,3 +4400,25 @@ compositions at 0.5 stay. With all eight pairs, dropout 0.2 beats v9 by 0.0039 [
 single runs could not.
 
 **Decision.** Next seed-matched arms go the other way on both axes (learning rate 7e-4, compositions 0.7).
+
+## 2026-10-31 — Seed-matched: a higher learning rate helps (7e-4, +0.0028); compositions are near their best at 0.5
+
+**Setting.** Wave 8 (Curiosity jobs 14050-14065, commit d42025b), the same design as wave 7: one change from dropout
+0.2 at 60k steps, over seeds 7001-7008, each scored against the dropout-0.2 run of the same seed.
+
+| seed | dropout 0.2 (lr 5e-4, compose 0.5) | lr 7e-4 | compose 0.7 |
+| --- | --- | --- | --- |
+| 7001 | 0.0696 | 0.0683 | 0.0755 |
+| 7002 | 0.0690 | 0.0662 | 0.0684 |
+| 7003 | 0.0698 | 0.0673 | 0.0743 |
+| 7004 | 0.0816 | 0.0746 | 0.0823 |
+| 7005 | 0.0734 | 0.0736 | 0.0793 |
+| 7006 | 0.0783 | 0.0727 | 0.0748 |
+| 7007 | 0.0790 | 0.0752 | 0.0768 |
+| 7008 | 0.0729 | 0.0735 | 0.0727 |
+| arm better by (bootstrap over seeds) | | **+0.0028 [+0.0011, +0.0046]**, 6 of 8 | -0.0013 [-0.0037, +0.0011], 4 of 8 |
+
+**Reading.** With wave 7 the learning rate shows a monotone trend over three points: 3e-4 costs 0.0042, 5e-4 is the
+reference, 7e-4 gains 0.0028; the largest single gain is on the bad seed 7004 (0.0816 to 0.0746). Compositions are
+near their best at 0.5 (0.3 costs 0.0040, 0.7 gains nothing). **Decision.** Continue the learning-rate axis: 1e-3,
+seed-matched (wave 10), queued behind the translation arm (wave 9).
