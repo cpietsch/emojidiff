@@ -4598,3 +4598,24 @@ cannot close a 3x fidelity gap.
 either be measured against vtracer openly, or the model's role move to what a tracer cannot do (OpenMoji-
 structured output, e.g. turning a trace into strokes, or generation). No new cluster training until that is
 decided.
+
+## 2026-10-31 — Visual grades on the same blind sheets: greedy 52%, best of 8 65%, vtracer 99% recognisable
+
+**Setting.** The greedy review's sheets and grading workflow, repeated for the final model's best of 8 and for
+vtracer's compact trace (`reports/visual/2026-10-31-tracer-baseline/`): the same ids, rubric, test and blind
+re-grade.
+
+| method | faithful | recognisable or better | mean grade | pixel error |
+| --- | --- | --- | --- | --- |
+| model, greedy | 16% | 52% | 1.66 | 0.064 |
+| model, best of 8 | 22% | 65% | 1.87 | 0.045 |
+| vtracer, compact | 52% | 99% | 2.52 | 0.025 |
+
+**Reading.** Best of 8 is a real visual gain (+0.21 grade [+0.15, +0.27], 22% of icons up, 4% down), the one
+model-side lever that shows. The tracer is in another class: almost every icon recognisable, half faithful, at
+1.6 ms on a CPU. Its own failures are preset choices (small facial features erased, small heads filled dark), and
+those are the 9% of icons where the model is better, because it draws faces as templates.
+
+**Decision.** For the demo as framed (render in, editable SVG out) a tracer is the honest state of the art and the
+transcriber does not reach it; the operator decides whether the model's role changes. If the transcriber stays in
+the demo, it should use best of 8 and show vtracer next to it.

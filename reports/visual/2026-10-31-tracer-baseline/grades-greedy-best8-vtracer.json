@@ -1,0 +1,5113 @@
+{
+ "#000": {
+  "index": 333,
+  "hexcode": "E253",
+  "pixel_error": 0.015625756233930588,
+  "retrieval_error": 0.06105436757206917,
+  "calls": 127,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.009388617239892483,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "share icon, circles joined by lines"
+ },
+ "#001": {
+  "index": 335,
+  "hexcode": "E2C7",
+  "pixel_error": 0.1111600324511528,
+  "retrieval_error": 0.11814355850219727,
+  "calls": 465,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.08646463602781296,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "ice cliffs over water, ice chunk filled black"
+ },
+ "#002": {
+  "index": 199,
+  "hexcode": "1F93D-1F3FD",
+  "pixel_error": 0.0822719931602478,
+  "retrieval_error": 0.12338314205408096,
+  "calls": 750,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.07656161487102509,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "water polo player, head and ball black"
+ },
+ "#003": {
+  "index": 198,
+  "hexcode": "1F93D-1F3FD-200D-2642-FE0F",
+  "pixel_error": 0.07648849487304688,
+  "retrieval_error": 0.11682577431201935,
+  "calls": 566,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.0490100271999836,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "water polo player, head and ball black"
+ },
+ "#004": {
+  "index": 92,
+  "hexcode": "1F468-1F3FD-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FD",
+  "pixel_error": 0.056005656719207764,
+  "retrieval_error": 0.0466664656996727,
+  "calls": 800,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.04009092599153519,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "two heads with heart, faces featureless"
+ },
+ "#005": {
+  "index": 299,
+  "hexcode": "270B-1F3FF",
+  "pixel_error": 0.00495037529617548,
+  "retrieval_error": 0.09678900986909866,
+  "calls": 337,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.00495037529617548,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "raised hand, dark skin"
+ },
+ "#006": {
+  "index": 264,
+  "hexcode": "1F9FA",
+  "pixel_error": 0.07757832109928131,
+  "retrieval_error": 0.10622452944517136,
+  "calls": 415,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.0592731274664402,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "extra_strokes"
+  ],
+  "vtracer_drew": "picnic basket, weave blotchier"
+ },
+ "#007": {
+  "index": 315,
+  "hexcode": "E0A7",
+  "pixel_error": 0.02552877739071846,
+  "retrieval_error": 0.1326388716697693,
+  "calls": 109,
+  "grade_greedy": 2,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.014405561611056328,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "curved arrow, solid black"
+ },
+ "#008": {
+  "index": 22,
+  "hexcode": "1F3CA-1F3FB-200D-2640-FE0F",
+  "pixel_error": 0.04047118127346039,
+  "retrieval_error": 0.10369940847158432,
+  "calls": 303,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.03208489343523979,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "swimmer with black head"
+ },
+ "#009": {
+  "index": 216,
+  "hexcode": "1F99F",
+  "pixel_error": 0.04896589741110802,
+  "retrieval_error": 0.09985122829675674,
+  "calls": 638,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.05387971177697182,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "mosquito"
+ },
+ "#010": {
+  "index": 218,
+  "hexcode": "1F9BF",
+  "pixel_error": 0.042128872126340866,
+  "retrieval_error": 0.06629019230604172,
+  "calls": 379,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.03298838064074516,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "mechanical leg"
+ },
+ "#011": {
+  "index": 205,
+  "hexcode": "1F93D-1F3FF",
+  "pixel_error": 0.1399318128824234,
+  "retrieval_error": 0.12708181142807007,
+  "calls": 849,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.07724017649888992,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "water polo player, ball black"
+ },
+ "#012": {
+  "index": 159,
+  "hexcode": "1F68F",
+  "pixel_error": 0.056205619126558304,
+  "retrieval_error": 0.10202104598283768,
+  "calls": 283,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.046683866530656815,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "bus stop sign H"
+ },
+ "#013": {
+  "index": 137,
+  "hexcode": "1F596-1F3FD",
+  "pixel_error": 0.17063210904598236,
+  "retrieval_error": 0.1483493596315384,
+  "calls": 291,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.08941817283630371,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "vulcan salute, medium skin"
+ },
+ "#014": {
+  "index": 239,
+  "hexcode": "1F9DA-1F3FE",
+  "pixel_error": 0.12079551070928574,
+  "retrieval_error": 0.11278115957975388,
+  "calls": 796,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.08516576886177063,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "fairy with wings and wand, featureless face"
+ },
+ "#015": {
+  "index": 38,
+  "hexcode": "1F3CA-200D-2642-FE0F",
+  "pixel_error": 0.024554939940571785,
+  "retrieval_error": 0.10343187302350998,
+  "calls": 423,
+  "grade_greedy": 2,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.02999122440814972,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "swimmer with dark head"
+ },
+ "#016": {
+  "index": 74,
+  "hexcode": "1F459",
+  "pixel_error": 0.05149025470018387,
+  "retrieval_error": 0.10087170451879501,
+  "calls": 313,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.028392791748046875,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "bikini"
+ },
+ "#017": {
+  "index": 235,
+  "hexcode": "1F9DA-1F3FC",
+  "pixel_error": 0.10236044973134995,
+  "retrieval_error": 0.11830771714448929,
+  "calls": 772,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.085106261074543,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts",
+   "wrong_colour"
+  ],
+  "vtracer_drew": "fairy with wings, featureless tan face"
+ },
+ "#018": {
+  "index": 127,
+  "hexcode": "1F4F4",
+  "pixel_error": 0.04738662764430046,
+  "retrieval_error": 0.12333903461694717,
+  "calls": 443,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.03939421474933624,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "lost_text_or_symbol"
+  ],
+  "vtracer_drew": "phone with 'FF', O became black blob"
+ },
+ "#019": {
+  "index": 65,
+  "hexcode": "1F424",
+  "pixel_error": 0.06077422574162483,
+  "retrieval_error": 0.08198857307434082,
+  "calls": 374,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.05174089968204498,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "front-facing baby chick"
+ },
+ "#020": {
+  "index": 309,
+  "hexcode": "E060",
+  "pixel_error": 0.05383709445595741,
+  "retrieval_error": 0.1222827360033989,
+  "calls": 352,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.029574153944849968,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "reddit alien in red circle, eyes missing"
+ },
+ "#021": {
+  "index": 131,
+  "hexcode": "1F528",
+  "pixel_error": 0.02803472802042961,
+  "retrieval_error": 0.056072477251291275,
+  "calls": 349,
+  "grade_greedy": 2,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.02230694703757763,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "hammer"
+ },
+ "#022": {
+  "index": 142,
+  "hexcode": "1F5DD",
+  "pixel_error": 0.06720905750989914,
+  "retrieval_error": 0.09843031316995621,
+  "calls": 502,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.06882186233997345,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "old key"
+ },
+ "#023": {
+  "index": 82,
+  "hexcode": "1F468-1F3FB-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FF",
+  "pixel_error": 0.030535131692886353,
+  "retrieval_error": 0.04261377453804016,
+  "calls": 868,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.025567105039954185,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "two heads with heart, faces featureless"
+ },
+ "#024": {
+  "index": 202,
+  "hexcode": "1F93D-1F3FE",
+  "pixel_error": 0.11032260954380035,
+  "retrieval_error": 0.12471555918455124,
+  "calls": 616,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.07271191477775574,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "water polo player, red ball and head turned black"
+ },
+ "#025": {
+  "index": 2,
+  "hexcode": "1F194",
+  "pixel_error": 0.06013752892613411,
+  "retrieval_error": 0.043625686317682266,
+  "calls": 296,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.03934907540678978,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "ID button"
+ },
+ "#026": {
+  "index": 103,
+  "hexcode": "1F468-1F3FF-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FC",
+  "pixel_error": 0.035168036818504333,
+  "retrieval_error": 0.04505492001771927,
+  "calls": 808,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.026384854689240456,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "two heads with heart, faces gone"
+ },
+ "#027": {
+  "index": 34,
+  "hexcode": "1F3CA-1F3FF-200D-2640-FE0F",
+  "pixel_error": 0.049910735338926315,
+  "retrieval_error": 0.10802014172077179,
+  "calls": 327,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.039518777281045914,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "swimmer in water"
+ },
+ "#028": {
+  "index": 27,
+  "hexcode": "1F3CA-1F3FC",
+  "pixel_error": 0.09253031015396118,
+  "retrieval_error": 0.11694654822349548,
+  "calls": 406,
+  "grade_greedy": 0,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.04708832874894142,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "swimmer with head filled dark grey"
+ },
+ "#029": {
+  "index": 220,
+  "hexcode": "1F9D1-1F3FB-200D-1FA70",
+  "pixel_error": 0.04175315424799919,
+  "retrieval_error": 0.09681901335716248,
+  "calls": 488,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.0443657711148262,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "dancer, head and hands/feet filled dark"
+ },
+ "#030": {
+  "index": 59,
+  "hexcode": "1F3F3-FE0F-200D-1F7EB",
+  "pixel_error": 0.0,
+  "retrieval_error": 0.0506536103785038,
+  "calls": 49,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "brown rectangle"
+ },
+ "#031": {
+  "index": 196,
+  "hexcode": "1F93D-1F3FC",
+  "pixel_error": 0.09876139461994171,
+  "retrieval_error": 0.12261785566806793,
+  "calls": 709,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.08053261041641235,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "water polo, ball and head black"
+ },
+ "#032": {
+  "index": 291,
+  "hexcode": "26B0",
+  "pixel_error": 0.05843823030591011,
+  "retrieval_error": 0.09939027577638626,
+  "calls": 238,
+  "grade_greedy": 2,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.029739823192358017,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "coffin"
+ },
+ "#033": {
+  "index": 68,
+  "hexcode": "1F44E-1F3FB",
+  "pixel_error": 0.06199190020561218,
+  "retrieval_error": 0.11897215992212296,
+  "calls": 396,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.05540047958493233,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "thumbs down"
+ },
+ "#034": {
+  "index": 105,
+  "hexcode": "1F468-1F3FF-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FE",
+  "pixel_error": 0.03327710181474686,
+  "retrieval_error": 0.043442368507385254,
+  "calls": 882,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.02100631408393383,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "two heads with heart, faces gone"
+ },
+ "#035": {
+  "index": 328,
+  "hexcode": "E200",
+  "pixel_error": 0.11982066929340363,
+  "retrieval_error": 0.18587331473827362,
+  "calls": 450,
+  "grade_greedy": 2,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.10165214538574219,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts",
+   "extra_strokes"
+  ],
+  "vtracer_drew": "table with chairs, cup as black block"
+ },
+ "#036": {
+  "index": 167,
+  "hexcode": "1F6B6-1F3FD",
+  "pixel_error": 0.0041631367057561874,
+  "retrieval_error": 0.06878605484962463,
+  "calls": 271,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "walker with head filled dark"
+ },
+ "#037": {
+  "index": 189,
+  "hexcode": "1F933",
+  "pixel_error": 0.09912551194429398,
+  "retrieval_error": 0.16486044228076935,
+  "calls": 379,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.08068162947893143,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "lost_text_or_symbol"
+  ],
+  "vtracer_drew": "selfie arm, phone icon a dark blob"
+ },
+ "#038": {
+  "index": 172,
+  "hexcode": "1F6B6-200D-2640-FE0F",
+  "pixel_error": 0.0,
+  "retrieval_error": 0.07199477404356003,
+  "calls": 305,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "yellow walker with dark head"
+ },
+ "#039": {
+  "index": 237,
+  "hexcode": "1F9DA-1F3FD",
+  "pixel_error": 0.1199452355504036,
+  "retrieval_error": 0.11508714407682419,
+  "calls": 914,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.09373966604471207,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "fairy with wings and wand, face featureless"
+ },
+ "#040": {
+  "index": 121,
+  "hexcode": "1F4B5",
+  "pixel_error": 0.10484547913074493,
+  "retrieval_error": 0.12498966604471207,
+  "calls": 556,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.08217769116163254,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "distorted_shape"
+  ],
+  "vtracer_drew": "dollar banknote, slightly warped"
+ },
+ "#041": {
+  "index": 13,
+  "hexcode": "1F342",
+  "pixel_error": 0.051638275384902954,
+  "retrieval_error": 0.10031645745038986,
+  "calls": 129,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.013230251148343086,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "two leaves"
+ },
+ "#042": {
+  "index": 191,
+  "hexcode": "1F93D-1F3FB-200D-2640-FE0F",
+  "pixel_error": 0.07524912804365158,
+  "retrieval_error": 0.12012652307748795,
+  "calls": 672,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.05281812325119972,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "water polo, ball and head black"
+ },
+ "#043": {
+  "index": 230,
+  "hexcode": "1F9D3-1F3FF",
+  "pixel_error": 0.02725379168987274,
+  "retrieval_error": 0.02690732665359974,
+  "calls": 437,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.026979947462677956,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "grey-haired head, face featureless"
+ },
+ "#044": {
+  "index": 54,
+  "hexcode": "1F3CB-1F3FF",
+  "pixel_error": 0.07776971161365509,
+  "retrieval_error": 0.1322823315858841,
+  "calls": 449,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.03777006268501282,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "weightlifter"
+ },
+ "#045": {
+  "index": 324,
+  "hexcode": "E148",
+  "pixel_error": 0.07942613959312439,
+  "retrieval_error": 0.038191165775060654,
+  "calls": 749,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.06604055315256119,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "broom with dustpan"
+ },
+ "#046": {
+  "index": 151,
+  "hexcode": "1F64F-1F3FB",
+  "pixel_error": 0.0018937101121991873,
+  "retrieval_error": 0.017440540716052055,
+  "calls": 397,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0011352174915373325,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "folded hands"
+ },
+ "#047": {
+  "index": 231,
+  "hexcode": "1F9D3",
+  "pixel_error": 0.031126443296670914,
+  "retrieval_error": 0.031796932220458984,
+  "calls": 437,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.030813010409474373,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts",
+   "wrong_colour"
+  ],
+  "vtracer_drew": "grey-haired head, olive face, no features"
+ },
+ "#048": {
+  "index": 160,
+  "hexcode": "1F693",
+  "pixel_error": 0.014505920000374317,
+  "retrieval_error": 0.06806287914514542,
+  "calls": 573,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.00987099576741457,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "police car, close copy"
+ },
+ "#049": {
+  "index": 157,
+  "hexcode": "1F689",
+  "pixel_error": 0.36569711565971375,
+  "retrieval_error": 0.3001774847507477,
+  "calls": 416,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.18507222831249237,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "train at station, sign slightly simplified"
+ },
+ "#050": {
+  "index": 102,
+  "hexcode": "1F468-1F3FF-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FB",
+  "pixel_error": 0.03578053414821625,
+  "retrieval_error": 0.0459117516875267,
+  "calls": 885,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.025476831942796707,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "two heads with heart, faces featureless"
+ },
+ "#051": {
+  "index": 141,
+  "hexcode": "1F5A4",
+  "pixel_error": 0.0023299444001168013,
+  "retrieval_error": 0.020262446254491806,
+  "calls": 133,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "dark heart"
+ },
+ "#052": {
+  "index": 112,
+  "hexcode": "1F469-1F3FE-200D-1F9B2",
+  "pixel_error": 0.00020399621280375868,
+  "retrieval_error": 0.0005219680606387556,
+  "calls": 281,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.00020399621280375868,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "bust with blank face"
+ },
+ "#053": {
+  "index": 12,
+  "hexcode": "1F33F",
+  "pixel_error": 0.040738724172115326,
+  "retrieval_error": 0.08053159713745117,
+  "calls": 568,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.037512607872486115,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "sprig, top leaf black"
+ },
+ "#054": {
+  "index": 26,
+  "hexcode": "1F3CA-1F3FC-200D-2642-FE0F",
+  "pixel_error": 0.058041080832481384,
+  "retrieval_error": 0.10195321589708328,
+  "calls": 309,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.035344548523426056,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "swimmer, head dark grey"
+ },
+ "#055": {
+  "index": 192,
+  "hexcode": "1F93D-1F3FB-200D-2642-FE0F",
+  "pixel_error": 0.06324765086174011,
+  "retrieval_error": 0.11836746335029602,
+  "calls": 732,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.06337675452232361,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "water polo, ball black, head dark"
+ },
+ "#056": {
+  "index": 233,
+  "hexcode": "1F9DA-1F3FB",
+  "pixel_error": 0.104350745677948,
+  "retrieval_error": 0.12233544141054153,
+  "calls": 852,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.10239676386117935,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "fairy with wings, blank face"
+ },
+ "#057": {
+  "index": 143,
+  "hexcode": "1F5E3",
+  "pixel_error": 0.05961379408836365,
+  "retrieval_error": 0.10383632779121399,
+  "calls": 253,
+  "grade_greedy": 1,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0440467894077301,
+  "grade_vtracer": 1,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "grey head profile, speech marks gone"
+ },
+ "#058": {
+  "index": 106,
+  "hexcode": "1F468-1F3FF-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FF",
+  "pixel_error": 0.0440225824713707,
+  "retrieval_error": 0.04993267357349396,
+  "calls": 872,
+  "grade_greedy": 2,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.02617531083524227,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "two heads with heart, faces featureless"
+ },
+ "#059": {
+  "index": 312,
+  "hexcode": "E08C",
+  "pixel_error": 0.10142066329717636,
+  "retrieval_error": 0.0901365652680397,
+  "calls": 454,
+  "grade_greedy": 0,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.06655798852443695,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "triangle with wave, close"
+ },
+ "#060": {
+  "index": 225,
+  "hexcode": "1F9D1-200D-1FA70",
+  "pixel_error": 0.0697878822684288,
+  "retrieval_error": 0.1071607917547226,
+  "calls": 497,
+  "grade_greedy": 1,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.037077128887176514,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "kicking figure, head filled dark"
+ },
+ "#061": {
+  "index": 90,
+  "hexcode": "1F468-1F3FD-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FB",
+  "pixel_error": 0.03853636980056763,
+  "retrieval_error": 0.0459117516875267,
+  "calls": 808,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.027594206854701042,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "two heads with heart, faces featureless"
+ },
+ "#062": {
+  "index": 267,
+  "hexcode": "1FAA6",
+  "pixel_error": 0.17487922310829163,
+  "retrieval_error": 0.12568208575248718,
+  "calls": 353,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.07237805426120758,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "headstone, close"
+ },
+ "#063": {
+  "index": 140,
+  "hexcode": "1F596",
+  "pixel_error": 0.10422516614198685,
+  "retrieval_error": 0.15542064607143402,
+  "calls": 287,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.0796223133802414,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "vulcan salute, close"
+ },
+ "#064": {
+  "index": 275,
+  "hexcode": "1FAE7",
+  "pixel_error": 0.07267812639474869,
+  "retrieval_error": 0.11407774686813354,
+  "calls": 329,
+  "grade_greedy": 2,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.028811879456043243,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "bubbles, some highlights lost"
+ },
+ "#065": {
+  "index": 238,
+  "hexcode": "1F9DA-1F3FE-200D-2642-FE0F",
+  "pixel_error": 0.12319177389144897,
+  "retrieval_error": 0.11393503844738007,
+  "calls": 696,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.08504951745271683,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "fairy with wings, blank face"
+ },
+ "#066": {
+  "index": 98,
+  "hexcode": "1F468-1F3FE-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FD",
+  "pixel_error": 0.04400291293859482,
+  "retrieval_error": 0.04422431066632271,
+  "calls": 661,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.02772129513323307,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "two heads with heart, faces featureless"
+ },
+ "#067": {
+  "index": 213,
+  "hexcode": "1F970",
+  "pixel_error": 0.085805244743824,
+  "retrieval_error": 0.08093050867319107,
+  "calls": 468,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.06219993159174919,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "smiling face with hearts, close"
+ },
+ "#068": {
+  "index": 67,
+  "hexcode": "1F430",
+  "pixel_error": 0.17912657558918,
+  "retrieval_error": 0.22296960651874542,
+  "calls": 495,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.16277459263801575,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "rabbit face, close"
+ },
+ "#069": {
+  "index": 73,
+  "hexcode": "1F44E",
+  "pixel_error": 0.09937842935323715,
+  "retrieval_error": 0.10142318159341812,
+  "calls": 415,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.048490580171346664,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "thumbs down, close"
+ },
+ "#070": {
+  "index": 168,
+  "hexcode": "1F6B6-1F3FE-200D-2640-FE0F",
+  "pixel_error": 0.0,
+  "retrieval_error": 0.06670348346233368,
+  "calls": 305,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "walking figure, head dark blob"
+ },
+ "#071": {
+  "index": 33,
+  "hexcode": "1F3CA-1F3FE",
+  "pixel_error": 0.08878827840089798,
+  "retrieval_error": 0.11889120191335678,
+  "calls": 287,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.03587105870246887,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "swimmer, head black"
+ },
+ "#072": {
+  "index": 8,
+  "hexcode": "1F30A",
+  "pixel_error": 0.16865871846675873,
+  "retrieval_error": 0.20238767564296722,
+  "calls": 205,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.13031095266342163,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "water wave, close copy"
+ },
+ "#073": {
+  "index": 93,
+  "hexcode": "1F468-1F3FD-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FE",
+  "pixel_error": 0.05358266457915306,
+  "retrieval_error": 0.043442368507385254,
+  "calls": 661,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.028428852558135986,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "two heads with heart, faces blank"
+ },
+ "#074": {
+  "index": 318,
+  "hexcode": "E0CC",
+  "pixel_error": 0.08159621059894562,
+  "retrieval_error": 0.1136690080165863,
+  "calls": 631,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.07063185423612595,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "water bottle, close copy"
+ },
+ "#075": {
+  "index": 114,
+  "hexcode": "1F469-200D-1F9B2",
+  "pixel_error": 4.4884207454742864e-05,
+  "retrieval_error": 0.0007325203623622656,
+  "calls": 281,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 1.840756885940209e-05,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts",
+   "wrong_colour"
+  ],
+  "vtracer_drew": "bust with blank olive head"
+ },
+ "#076": {
+  "index": 80,
+  "hexcode": "1F468-1F3FB-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FD",
+  "pixel_error": 0.03698937967419624,
+  "retrieval_error": 0.04422431066632271,
+  "calls": 797,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.027500150725245476,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "two heads with heart, faces blank"
+ },
+ "#077": {
+  "index": 125,
+  "hexcode": "1F4DC",
+  "pixel_error": 0.12116668373346329,
+  "retrieval_error": 0.1547158658504486,
+  "calls": 237,
+  "grade_greedy": 2,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.09062449634075165,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "scroll, close copy"
+ },
+ "#078": {
+  "index": 276,
+  "hexcode": "1FAE8",
+  "pixel_error": 0.19920089840888977,
+  "retrieval_error": 0.119239941239357,
+  "calls": 447,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.06469957530498505,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "yellow ball with holes and motion lines"
+ },
+ "#079": {
+  "index": 249,
+  "hexcode": "1F9DB-1F3FC",
+  "pixel_error": 0.04007226973772049,
+  "retrieval_error": 0.06506218016147614,
+  "calls": 419,
+  "grade_greedy": 2,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.03490150719881058,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "caped blond woman, face blank"
+ },
+ "#080": {
+  "index": 279,
+  "hexcode": "203C",
+  "pixel_error": 0.027459805831313133,
+  "retrieval_error": 0.10198675096035004,
+  "calls": 351,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.004298041574656963,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "double exclamation, dark dots"
+ },
+ "#081": {
+  "index": 311,
+  "hexcode": "E084",
+  "pixel_error": 0.08589248359203339,
+  "retrieval_error": 0.17076148092746735,
+  "calls": 606,
+  "grade_greedy": 2,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.07499495893716812,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "distorted_shape",
+   "extra_strokes"
+  ],
+  "vtracer_drew": "table with crawling figure, blobby"
+ },
+ "#082": {
+  "index": 186,
+  "hexcode": "1F933-1F3FD",
+  "pixel_error": 0.08828950673341751,
+  "retrieval_error": 0.16577628254890442,
+  "calls": 484,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.08891057968139648,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "arm with phone, fingers lost"
+ },
+ "#083": {
+  "index": 57,
+  "hexcode": "1F3CB",
+  "pixel_error": 0.051713671535253525,
+  "retrieval_error": 0.1337423175573349,
+  "calls": 465,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.0520525686442852,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "weightlifter with brown head"
+ },
+ "#084": {
+  "index": 101,
+  "hexcode": "1F468-1F3FF-200D-1F9B1",
+  "pixel_error": 0.07357076555490494,
+  "retrieval_error": 0.024231167510151863,
+  "calls": 493,
+  "grade_greedy": 1,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.01229045633226633,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "bust, black hair blob, blank face"
+ },
+ "#085": {
+  "index": 28,
+  "hexcode": "1F3CA-1F3FD-200D-2640-FE0F",
+  "pixel_error": 0.05328184366226196,
+  "retrieval_error": 0.10549276322126389,
+  "calls": 467,
+  "grade_greedy": 2,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.040164560079574585,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "swimmer with dark head in water"
+ },
+ "#086": {
+  "index": 110,
+  "hexcode": "1F469-1F3FC-200D-1F9B2",
+  "pixel_error": 4.211046689306386e-05,
+  "retrieval_error": 0.000762779382057488,
+  "calls": 281,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 4.211046689306386e-05,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "bust with blank face"
+ },
+ "#087": {
+  "index": 253,
+  "hexcode": "1F9DB-1F3FE-200D-2640-FE0F",
+  "pixel_error": 0.04154588282108307,
+  "retrieval_error": 0.04817916452884674,
+  "calls": 476,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.038163427263498306,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "caped woman, face features lost"
+ },
+ "#088": {
+  "index": 116,
+  "hexcode": "1F47E",
+  "pixel_error": 0.0877503901720047,
+  "retrieval_error": 0.1549808830022812,
+  "calls": 348,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.05988965556025505,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "purple invader, black feet"
+ },
+ "#089": {
+  "index": 24,
+  "hexcode": "1F3CA-1F3FB",
+  "pixel_error": 0.06527802348136902,
+  "retrieval_error": 0.11549386382102966,
+  "calls": 457,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.039713192731142044,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "swimmer with dark head"
+ },
+ "#090": {
+  "index": 256,
+  "hexcode": "1F9DB-1F3FF-200D-2640-FE0F",
+  "pixel_error": 0.04147452116012573,
+  "retrieval_error": 0.04550326243042946,
+  "calls": 476,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.03786487132310867,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "caped woman, face dark and blank"
+ },
+ "#091": {
+  "index": 295,
+  "hexcode": "270B-1F3FB",
+  "pixel_error": 0.0765421986579895,
+  "retrieval_error": 0.0964982733130455,
+  "calls": 337,
+  "grade_greedy": 2,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.019792674109339714,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "raised hand, close copy"
+ },
+ "#092": {
+  "index": 117,
+  "hexcode": "1F493",
+  "pixel_error": 0.18159545958042145,
+  "retrieval_error": 0.060178373008966446,
+  "calls": 201,
+  "grade_greedy": 1,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.00675456877797842,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "beating heart, close copy"
+ },
+ "#093": {
+  "index": 221,
+  "hexcode": "1F9D1-1F3FC-200D-1FA70",
+  "pixel_error": 0.08165472000837326,
+  "retrieval_error": 0.1046326532959938,
+  "calls": 488,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.03766970336437225,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "kicking figure with dark head"
+ },
+ "#094": {
+  "index": 171,
+  "hexcode": "1F6B6-1F3FF",
+  "pixel_error": 0.0033920358400791883,
+  "retrieval_error": 0.06494568288326263,
+  "calls": 271,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "walking figure, black head"
+ },
+ "#095": {
+  "index": 206,
+  "hexcode": "1F93D-200D-2640-FE0F",
+  "pixel_error": 0.0964617133140564,
+  "retrieval_error": 0.12253338098526001,
+  "calls": 543,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.06824769824743271,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "water polo player, black ball, dark head"
+ },
+ "#096": {
+  "index": 175,
+  "hexcode": "1F6D1",
+  "pixel_error": 0.24071376025676727,
+  "retrieval_error": 0.11050819605588913,
+  "calls": 685,
+  "grade_greedy": 0,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.10746565461158752,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "distorted_shape"
+  ],
+  "vtracer_drew": "red circle with STOP lettering"
+ },
+ "#097": {
+  "index": 39,
+  "hexcode": "1F3CA",
+  "pixel_error": 0.08368232101202011,
+  "retrieval_error": 0.11674810200929642,
+  "calls": 361,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.03186652436852455,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "swimmer with dark-filled head"
+ },
+ "#098": {
+  "index": 177,
+  "hexcode": "1F6DE",
+  "pixel_error": 0.06082214042544365,
+  "retrieval_error": 0.14609584212303162,
+  "calls": 253,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.05242147669196129,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "distorted_shape"
+  ],
+  "vtracer_drew": "solid black tyre with wedge spokes"
+ },
+ "#099": {
+  "index": 262,
+  "hexcode": "1F9E2",
+  "pixel_error": 0.05301783233880997,
+  "retrieval_error": 0.09736569970846176,
+  "calls": 487,
+  "grade_greedy": 2,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.03982918709516525,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "green baseball cap"
+ },
+ "#100": {
+  "index": 129,
+  "hexcode": "1F508",
+  "pixel_error": 0.03268402814865112,
+  "retrieval_error": 0.020578399300575256,
+  "calls": 183,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.03166303411126137,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "speaker low volume"
+ },
+ "#101": {
+  "index": 81,
+  "hexcode": "1F468-1F3FB-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FE",
+  "pixel_error": 0.043571218848228455,
+  "retrieval_error": 0.043442368507385254,
+  "calls": 861,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.029849007725715637,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "couple with heart, featureless faces"
+ },
+ "#102": {
+  "index": 317,
+  "hexcode": "E0B0",
+  "pixel_error": 0.09553804993629456,
+  "retrieval_error": 0.1498018056154251,
+  "calls": 605,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.09314104169607162,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "figures with arrow, dark-filled bodies and heads"
+ },
+ "#103": {
+  "index": 228,
+  "hexcode": "1F9D3-1F3FD",
+  "pixel_error": 0.02593122236430645,
+  "retrieval_error": 0.030446622520685196,
+  "calls": 437,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.025682592764496803,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "grey-haired bust, no facial features"
+ },
+ "#104": {
+  "index": 86,
+  "hexcode": "1F468-1F3FC-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FD",
+  "pixel_error": 0.03739459812641144,
+  "retrieval_error": 0.04422431066632271,
+  "calls": 838,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.028331516310572624,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "couple with heart, featureless faces"
+ },
+ "#105": {
+  "index": 36,
+  "hexcode": "1F3CA-1F3FF",
+  "pixel_error": 0.07109810411930084,
+  "retrieval_error": 0.12026823312044144,
+  "calls": 332,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.038752470165491104,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "swimmer, dark skin"
+ },
+ "#106": {
+  "index": 78,
+  "hexcode": "1F468-1F3FB-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FB",
+  "pixel_error": 0.04092179238796234,
+  "retrieval_error": 0.0459117516875267,
+  "calls": 838,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.031084079295396805,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "couple with heart, featureless faces"
+ },
+ "#107": {
+  "index": 326,
+  "hexcode": "E1CA",
+  "pixel_error": 0.08123058080673218,
+  "retrieval_error": 0.1376984417438507,
+  "calls": 281,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.07500378787517548,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "head with VR headset"
+ },
+ "#108": {
+  "index": 61,
+  "hexcode": "1F3F4-FE0F-200D-1F170-FE0F",
+  "pixel_error": 0.0807073563337326,
+  "retrieval_error": 0.08051270246505737,
+  "calls": 49,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.0807073563337326,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "red/black diagonal flag"
+ },
+ "#109": {
+  "index": 289,
+  "hexcode": "26A0",
+  "pixel_error": 0.02988935448229313,
+  "retrieval_error": 0.07497983425855637,
+  "calls": 202,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.020714063197374344,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "warning triangle, thicker mark"
+ },
+ "#110": {
+  "index": 193,
+  "hexcode": "1F93D-1F3FB",
+  "pixel_error": 0.07585355639457703,
+  "retrieval_error": 0.12282361835241318,
+  "calls": 606,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.07927307486534119,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "water polo, dark head and ball"
+ },
+ "#111": {
+  "index": 281,
+  "hexcode": "25C9-FE0F-200D-1F534-200D-25AE-FE0F",
+  "pixel_error": 0.06265608221292496,
+  "retrieval_error": 0.10067149996757507,
+  "calls": 290,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.06265608221292496,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "dark panel with red eye"
+ },
+ "#112": {
+  "index": 259,
+  "hexcode": "1F9DB-200D-2640-FE0F",
+  "pixel_error": 0.03254332020878792,
+  "retrieval_error": 0.06484659761190414,
+  "calls": 476,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.03184332698583603,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts",
+   "wrong_colour"
+  ],
+  "vtracer_drew": "vampire with hair over face, features lost"
+ },
+ "#113": {
+  "index": 210,
+  "hexcode": "1F948",
+  "pixel_error": 0.01838058792054653,
+  "retrieval_error": 0.09033350646495819,
+  "calls": 407,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.018384873867034912,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "2nd place medal"
+ },
+ "#114": {
+  "index": 271,
+  "hexcode": "1FACE",
+  "pixel_error": 0.04095003008842468,
+  "retrieval_error": 0.11652066558599472,
+  "calls": 470,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.02050023153424263,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "moose face, slightly simplified"
+ },
+ "#115": {
+  "index": 118,
+  "hexcode": "1F494",
+  "pixel_error": 0.06352149695158005,
+  "retrieval_error": 0.07738163322210312,
+  "calls": 361,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.04986030235886574,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "broken heart"
+ },
+ "#116": {
+  "index": 42,
+  "hexcode": "1F3CB-1F3FB",
+  "pixel_error": 0.05972675979137421,
+  "retrieval_error": 0.1293129175901413,
+  "calls": 461,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.0624447762966156,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "weightlifter with dark-filled head"
+ },
+ "#117": {
+  "index": 153,
+  "hexcode": "1F64F-1F3FD",
+  "pixel_error": 0.0023839061614125967,
+  "retrieval_error": 0.017440540716052055,
+  "calls": 401,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0009952695108950138,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "folded hands"
+ },
+ "#118": {
+  "index": 208,
+  "hexcode": "1F93D",
+  "pixel_error": 0.10582435131072998,
+  "retrieval_error": 0.12810583412647247,
+  "calls": 778,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.06940208375453949,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "water polo, dark head and ball"
+ },
+ "#119": {
+  "index": 58,
+  "hexcode": "1F3D1",
+  "pixel_error": 0.06526768952608109,
+  "retrieval_error": 0.1265774965286255,
+  "calls": 468,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.051756538450717926,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "field hockey stick and ball"
+ },
+ "#120": {
+  "index": 1,
+  "hexcode": "1F12F",
+  "pixel_error": 0.0,
+  "retrieval_error": 0.056054070591926575,
+  "calls": 253,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "copyleft symbol, faithful"
+ },
+ "#121": {
+  "index": 88,
+  "hexcode": "1F468-1F3FC-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FF",
+  "pixel_error": 0.03893024101853371,
+  "retrieval_error": 0.04261377453804016,
+  "calls": 848,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.024973776191473007,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "two heads and heart, faces blank"
+ },
+ "#122": {
+  "index": 323,
+  "hexcode": "E10D",
+  "pixel_error": 0.04231547191739082,
+  "retrieval_error": 0.12016385793685913,
+  "calls": 159,
+  "grade_greedy": 2,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.012204973958432674,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "same, faithful"
+ },
+ "#123": {
+  "index": 255,
+  "hexcode": "1F9DB-1F3FE",
+  "pixel_error": 0.05225707218050957,
+  "retrieval_error": 0.05552857741713524,
+  "calls": 357,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.03559494391083717,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "vampire collar and hair, face blank"
+ },
+ "#124": {
+  "index": 290,
+  "hexcode": "26AB",
+  "pixel_error": 0.004171961918473244,
+  "retrieval_error": 0.004179527051746845,
+  "calls": 125,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.004171961918473244,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "dark circle, outline dropped"
+ },
+ "#125": {
+  "index": 84,
+  "hexcode": "1F468-1F3FC-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FB",
+  "pixel_error": 0.039618633687496185,
+  "retrieval_error": 0.0459117516875267,
+  "calls": 808,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.030756274238228798,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "two heads and heart, faces blank"
+ },
+ "#126": {
+  "index": 232,
+  "hexcode": "1F9DA-1F3FB-200D-2642-FE0F",
+  "pixel_error": 0.11185750365257263,
+  "retrieval_error": 0.1235339492559433,
+  "calls": 817,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.1008601114153862,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "fairy with wings and wand, face blank"
+ },
+ "#127": {
+  "index": 99,
+  "hexcode": "1F468-1F3FE-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FE",
+  "pixel_error": 0.043548017740249634,
+  "retrieval_error": 0.05097963660955429,
+  "calls": 769,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.040281057357788086,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "two heads and heart, faces blank"
+ },
+ "#128": {
+  "index": 184,
+  "hexcode": "1F933-1F3FB",
+  "pixel_error": 0.07763732224702835,
+  "retrieval_error": 0.1660481095314026,
+  "calls": 465,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.07407205551862717,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "selfie arm with phone, camera detail blobbed"
+ },
+ "#129": {
+  "index": 79,
+  "hexcode": "1F468-1F3FB-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FC",
+  "pixel_error": 0.0399181991815567,
+  "retrieval_error": 0.04505492001771927,
+  "calls": 838,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.028308570384979248,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "two heads and heart, faces blank"
+ },
+ "#130": {
+  "index": 130,
+  "hexcode": "1F50B",
+  "pixel_error": 0.0553407184779644,
+  "retrieval_error": 0.049138378351926804,
+  "calls": 111,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.024846939370036125,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "full battery, faithful"
+ },
+ "#131": {
+  "index": 273,
+  "hexcode": "1FAD6",
+  "pixel_error": 0.06753282994031906,
+  "retrieval_error": 0.10239273309707642,
+  "calls": 305,
+  "grade_greedy": 2,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.052288591861724854,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "teapot, faithful"
+ },
+ "#132": {
+  "index": 195,
+  "hexcode": "1F93D-1F3FC-200D-2642-FE0F",
+  "pixel_error": 0.06926742941141129,
+  "retrieval_error": 0.11713945865631104,
+  "calls": 673,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.06978990137577057,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "player in water, head and ball black"
+ },
+ "#133": {
+  "index": 3,
+  "hexcode": "1F199",
+  "pixel_error": 0.04345068708062172,
+  "retrieval_error": 0.045096274465322495,
+  "calls": 291,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.024575868621468544,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "UP! button, exclamation slightly damaged"
+ },
+ "#134": {
+  "index": 44,
+  "hexcode": "1F3CB-1F3FC-200D-2642-FE0F",
+  "pixel_error": 0.0806836485862732,
+  "retrieval_error": 0.11918824911117554,
+  "calls": 507,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.049764484167099,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "weightlifter, head black"
+ },
+ "#135": {
+  "index": 288,
+  "hexcode": "2699",
+  "pixel_error": 0.07900528609752655,
+  "retrieval_error": 0.125779926776886,
+  "calls": 218,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.04587821662425995,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "gear, faithful"
+ },
+ "#136": {
+  "index": 329,
+  "hexcode": "E204",
+  "pixel_error": 0.03228359669446945,
+  "retrieval_error": 0.10093096643686295,
+  "calls": 168,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.03228359669446945,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "same, faithful"
+ },
+ "#137": {
+  "index": 64,
+  "hexcode": "1F423",
+  "pixel_error": 0.1043381318449974,
+  "retrieval_error": 0.12502546608448029,
+  "calls": 490,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.07168134301900864,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "hatching chick, beak darker"
+ },
+ "#138": {
+  "index": 135,
+  "hexcode": "1F596-1F3FB",
+  "pixel_error": 0.10321703553199768,
+  "retrieval_error": 0.15787313878536224,
+  "calls": 299,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.0887317955493927,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "vulcan salute, faithful"
+ },
+ "#139": {
+  "index": 87,
+  "hexcode": "1F468-1F3FC-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FE",
+  "pixel_error": 0.04252627491950989,
+  "retrieval_error": 0.043442368507385254,
+  "calls": 865,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.031253278255462646,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "two heads and heart, faces blank"
+ },
+ "#140": {
+  "index": 305,
+  "hexcode": "2B22",
+  "pixel_error": 0.09128162264823914,
+  "retrieval_error": 0.04979650676250458,
+  "calls": 145,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.09128162264823914,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "dark hexagon, faithful"
+ },
+ "#141": {
+  "index": 40,
+  "hexcode": "1F3CB-1F3FB-200D-2640-FE0F",
+  "pixel_error": 0.06038615480065346,
+  "retrieval_error": 0.11785759776830673,
+  "calls": 536,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.05819161981344223,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "weightlifter, head black"
+ },
+ "#142": {
+  "index": 14,
+  "hexcode": "1F344",
+  "pixel_error": 0.07811315357685089,
+  "retrieval_error": 0.1299574375152588,
+  "calls": 647,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.05845789983868599,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "red mushroom, faithful"
+ },
+ "#143": {
+  "index": 52,
+  "hexcode": "1F3CB-1F3FF-200D-2640-FE0F",
+  "pixel_error": 0.07530587166547775,
+  "retrieval_error": 0.11888490617275238,
+  "calls": 563,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.05102376267313957,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "weightlifter, head near-black"
+ },
+ "#144": {
+  "index": 296,
+  "hexcode": "270B-1F3FC",
+  "pixel_error": 0.019443940371274948,
+  "retrieval_error": 0.09591376781463623,
+  "calls": 337,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.009518478065729141,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "raised hand closely matched"
+ },
+ "#145": {
+  "index": 145,
+  "hexcode": "1F608",
+  "pixel_error": 0.031071975827217102,
+  "retrieval_error": 0.0018841283163055778,
+  "calls": 319,
+  "grade_greedy": 2,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.00804284680634737,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "red devil face, close"
+ },
+ "#146": {
+  "index": 120,
+  "hexcode": "1F4A3",
+  "pixel_error": 0.08544844388961792,
+  "retrieval_error": 0.1438397616147995,
+  "calls": 113,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.04840988665819168,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "bomb, one spark line missing"
+ },
+ "#147": {
+  "index": 223,
+  "hexcode": "1F9D1-1F3FE-200D-1FA70",
+  "pixel_error": 0.06941746175289154,
+  "retrieval_error": 0.11447036266326904,
+  "calls": 564,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.03265427052974701,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "kicking figure, head slightly darker"
+ },
+ "#148": {
+  "index": 303,
+  "hexcode": "2795",
+  "pixel_error": 0.05077311769127846,
+  "retrieval_error": 0.04369906336069107,
+  "calls": 129,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.04444192349910736,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "grey plus sign, close"
+ },
+ "#149": {
+  "index": 310,
+  "hexcode": "E080",
+  "pixel_error": 0.056923769414424896,
+  "retrieval_error": 0.12115584313869476,
+  "calls": 388,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.06091770529747009,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "pin over two people, close"
+ },
+ "#150": {
+  "index": 182,
+  "hexcode": "1F916",
+  "pixel_error": 0.051156144589185715,
+  "retrieval_error": 0.1355644315481186,
+  "calls": 582,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.05147764831781387,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts",
+   "wrong_colour"
+  ],
+  "vtracer_drew": "robot with dark blob eyes, antenna tip lost"
+ },
+ "#151": {
+  "index": 165,
+  "hexcode": "1F6B6-1F3FC",
+  "pixel_error": 0.004522966220974922,
+  "retrieval_error": 0.07088150084018707,
+  "calls": 271,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "walking figure with dark brown head"
+ },
+ "#152": {
+  "index": 152,
+  "hexcode": "1F64F-1F3FC",
+  "pixel_error": 0.002465605502948165,
+  "retrieval_error": 0.017440540716052055,
+  "calls": 401,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0010648652678355575,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "folded hands, close"
+ },
+ "#153": {
+  "index": 10,
+  "hexcode": "1F329",
+  "pixel_error": 0.02108675241470337,
+  "retrieval_error": 0.05447404459118843,
+  "calls": 253,
+  "grade_greedy": 2,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.022890189662575722,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "cloud with lightning, close"
+ },
+ "#154": {
+  "index": 119,
+  "hexcode": "1F49C",
+  "pixel_error": 0.002801985014230013,
+  "retrieval_error": 0.03929486498236656,
+  "calls": 133,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "purple heart, close"
+ },
+ "#155": {
+  "index": 320,
+  "hexcode": "E104",
+  "pixel_error": 0.06630582362413406,
+  "retrieval_error": 0.02514171041548252,
+  "calls": 310,
+  "grade_greedy": 2,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.013196965679526329,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "mouse with heavier arrows"
+ },
+ "#156": {
+  "index": 274,
+  "hexcode": "1FAD8",
+  "pixel_error": 0.060989320278167725,
+  "retrieval_error": 0.12076928466558456,
+  "calls": 405,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.06343172490596771,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "beans, close"
+ },
+ "#157": {
+  "index": 270,
+  "hexcode": "1FAC0",
+  "pixel_error": 0.06782306730747223,
+  "retrieval_error": 0.08108710497617722,
+  "calls": 937,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.037189844995737076,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "anatomical heart, slightly simplified"
+ },
+ "#158": {
+  "index": 327,
+  "hexcode": "E1CE",
+  "pixel_error": 0.0578559972345829,
+  "retrieval_error": 0.1051730290055275,
+  "calls": 523,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.06250504404306412,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour",
+   "lost_text_or_symbol"
+  ],
+  "vtracer_drew": "watch with dark face, tiles barely visible"
+ },
+ "#159": {
+  "index": 89,
+  "hexcode": "1F468-1F3FD-200D-1F9B1",
+  "pixel_error": 0.03560074046254158,
+  "retrieval_error": 0.03264947980642319,
+  "calls": 685,
+  "grade_greedy": 2,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.015522118657827377,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts",
+   "distorted_shape"
+  ],
+  "vtracer_drew": "bust with smooth hair, featureless face"
+ },
+ "#160": {
+  "index": 77,
+  "hexcode": "1F468-1F3FB-200D-1F9B1",
+  "pixel_error": 0.018051521852612495,
+  "retrieval_error": 0.038591597229242325,
+  "calls": 601,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.017399942502379417,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts",
+   "wrong_colour"
+  ],
+  "vtracer_drew": "bust with brown hair, featureless face"
+ },
+ "#161": {
+  "index": 190,
+  "hexcode": "1F93A",
+  "pixel_error": 0.05951923131942749,
+  "retrieval_error": 0.12204015254974365,
+  "calls": 518,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.05506914108991623,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "fencer with dark head"
+ },
+ "#162": {
+  "index": 269,
+  "hexcode": "1FABB",
+  "pixel_error": 0.0436115637421608,
+  "retrieval_error": 0.09259762614965439,
+  "calls": 524,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.03214138001203537,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "purple flower with leaf, close"
+ },
+ "#163": {
+  "index": 17,
+  "hexcode": "1F36F",
+  "pixel_error": 0.15462559461593628,
+  "retrieval_error": 0.100694440305233,
+  "calls": 557,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.047235336154699326,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "honey pot, slightly wider"
+ },
+ "#164": {
+  "index": 257,
+  "hexcode": "1F9DB-1F3FF-200D-2642-FE0F",
+  "pixel_error": 0.06591472774744034,
+  "retrieval_error": 0.054028987884521484,
+  "calls": 388,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.05357813090085983,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "vampire with collar, facial features lost"
+ },
+ "#165": {
+  "index": 200,
+  "hexcode": "1F93D-1F3FE-200D-2640-FE0F",
+  "pixel_error": 0.05941181629896164,
+  "retrieval_error": 0.11912495642900467,
+  "calls": 675,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.06481708586215973,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "water polo, ball and head dark"
+ },
+ "#166": {
+  "index": 321,
+  "hexcode": "E108",
+  "pixel_error": 0.031842321157455444,
+  "retrieval_error": 0.012713577598333359,
+  "calls": 802,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.03226266801357269,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "pointing hand with arrow, close"
+ },
+ "#167": {
+  "index": 108,
+  "hexcode": "1F468-200D-2764-FE0F-200D-1F48B-200D-1F468",
+  "pixel_error": 0.0490160770714283,
+  "retrieval_error": 0.044878408312797546,
+  "calls": 775,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.036325447261333466,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts",
+   "wrong_colour"
+  ],
+  "vtracer_drew": "heart over two featureless olive heads"
+ },
+ "#168": {
+  "index": 139,
+  "hexcode": "1F596-1F3FF",
+  "pixel_error": 0.2625822126865387,
+  "retrieval_error": 0.1328522115945816,
+  "calls": 309,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.07432951033115387,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "Vulcan salute hand, dark brown, close copy"
+ },
+ "#169": {
+  "index": 176,
+  "hexcode": "1F6D2",
+  "pixel_error": 0.1219879686832428,
+  "retrieval_error": 0.12047754228115082,
+  "calls": 733,
+  "grade_greedy": 0,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.055245399475097656,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour",
+   "lost_text_or_symbol"
+  ],
+  "vtracer_drew": "cart with solid grey basket, half-dot wheels"
+ },
+ "#170": {
+  "index": 201,
+  "hexcode": "1F93D-1F3FE-200D-2642-FE0F",
+  "pixel_error": 0.09205373376607895,
+  "retrieval_error": 0.11713769286870956,
+  "calls": 504,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.05062157288193703,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "person in water with arm raised, ball and head blacked"
+ },
+ "#171": {
+  "index": 53,
+  "hexcode": "1F3CB-1F3FF-200D-2642-FE0F",
+  "pixel_error": 0.051192205399274826,
+  "retrieval_error": 0.11651309579610825,
+  "calls": 497,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.05141839012503624,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour",
+   "distorted_shape"
+  ],
+  "vtracer_drew": "weightlifter with solid black plates and head"
+ },
+ "#172": {
+  "index": 287,
+  "hexcode": "2660",
+  "pixel_error": 0.10306523740291595,
+  "retrieval_error": 0.10223235934972763,
+  "calls": 141,
+  "grade_greedy": 3,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.04017489403486252,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "broken_outline"
+  ],
+  "vtracer_drew": "dark grey spade, outline lost"
+ },
+ "#173": {
+  "index": 188,
+  "hexcode": "1F933-1F3FF",
+  "pixel_error": 0.13116149604320526,
+  "retrieval_error": 0.16671407222747803,
+  "calls": 495,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.09571683406829834,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "arm holding phone, camera dots as blob"
+ },
+ "#174": {
+  "index": 297,
+  "hexcode": "270B-1F3FD",
+  "pixel_error": 0.0724993497133255,
+  "retrieval_error": 0.09582198411226273,
+  "calls": 329,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.010154422372579575,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "raised tan hand, close copy"
+ },
+ "#175": {
+  "index": 49,
+  "hexcode": "1F3CB-1F3FE-200D-2640-FE0F",
+  "pixel_error": 0.05843646451830864,
+  "retrieval_error": 0.1198900043964386,
+  "calls": 536,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.05400049686431885,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour",
+   "distorted_shape"
+  ],
+  "vtracer_drew": "weightlifter, black plates, dark head"
+ },
+ "#176": {
+  "index": 5,
+  "hexcode": "1F1FA",
+  "pixel_error": 0.10712523758411407,
+  "retrieval_error": 0.022982478141784668,
+  "calls": 267,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.09359719604253769,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "circled U, close copy"
+ },
+ "#177": {
+  "index": 185,
+  "hexcode": "1F933-1F3FC",
+  "pixel_error": 0.09356920421123505,
+  "retrieval_error": 0.16644500195980072,
+  "calls": 462,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.0761987641453743,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "arm holding phone, camera dots as blob"
+ },
+ "#178": {
+  "index": 9,
+  "hexcode": "1F313",
+  "pixel_error": 0.10896775871515274,
+  "retrieval_error": 0.07259742170572281,
+  "calls": 124,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.10844580084085464,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "half black half yellow circle"
+ },
+ "#179": {
+  "index": 209,
+  "hexcode": "1F943",
+  "pixel_error": 0.08653928339481354,
+  "retrieval_error": 0.14274941384792328,
+  "calls": 164,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.060340262949466705,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "glass with orange drink and ice cubes"
+ },
+ "#180": {
+  "index": 265,
+  "hexcode": "1FA90",
+  "pixel_error": 0.1293797343969345,
+  "retrieval_error": 0.12025386840105057,
+  "calls": 306,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.0751989558339119,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "extra_strokes",
+   "wrong_colour"
+  ],
+  "vtracer_drew": "red planet with ring, black blotch at left"
+ },
+ "#181": {
+  "index": 23,
+  "hexcode": "1F3CA-1F3FB-200D-2642-FE0F",
+  "pixel_error": 0.038910575211048126,
+  "retrieval_error": 0.10115008801221848,
+  "calls": 323,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.025453632697463036,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "swimmer in water, head dark grey"
+ },
+ "#182": {
+  "index": 246,
+  "hexcode": "1F9DB-1F3FB",
+  "pixel_error": 0.043785806745290756,
+  "retrieval_error": 0.0690087154507637,
+  "calls": 419,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.039926014840602875,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "person with red collar cape, face features lost"
+ },
+ "#183": {
+  "index": 30,
+  "hexcode": "1F3CA-1F3FD",
+  "pixel_error": 0.030972374603152275,
+  "retrieval_error": 0.11789315193891525,
+  "calls": 306,
+  "grade_greedy": 2,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.029590291902422905,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "swimmer in water, head filled dark"
+ },
+ "#184": {
+  "index": 319,
+  "hexcode": "E102",
+  "pixel_error": 0.08013495802879333,
+  "retrieval_error": 0.12665289640426636,
+  "calls": 462,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.08045166730880737,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour",
+   "distorted_shape"
+  ],
+  "vtracer_drew": "yellow hand, circles partly blacked"
+ },
+ "#185": {
+  "index": 331,
+  "hexcode": "E216",
+  "pixel_error": 0.07129327207803726,
+  "retrieval_error": 0.09544753283262253,
+  "calls": 451,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.045812152326107025,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "broken_outline"
+  ],
+  "vtracer_drew": "moai with thin broken outline"
+ },
+ "#186": {
+  "index": 245,
+  "hexcode": "1F9DB-1F3FB-200D-2642-FE0F",
+  "pixel_error": 0.06004725396633148,
+  "retrieval_error": 0.05922824516892433,
+  "calls": 437,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.0554758757352829,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "person with red collar cape, face features lost"
+ },
+ "#187": {
+  "index": 194,
+  "hexcode": "1F93D-1F3FC-200D-2640-FE0F",
+  "pixel_error": 0.09186562150716782,
+  "retrieval_error": 0.11912570893764496,
+  "calls": 638,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.05746111646294594,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "person in water, ball and head dark"
+ },
+ "#188": {
+  "index": 300,
+  "hexcode": "270B",
+  "pixel_error": 0.006795418914407492,
+  "retrieval_error": 0.09760802239179611,
+  "calls": 331,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.006501654163002968,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "raised yellow hand, close copy"
+ },
+ "#189": {
+  "index": 6,
+  "hexcode": "1F1FC",
+  "pixel_error": 0.0337100587785244,
+  "retrieval_error": 0.0746096521615982,
+  "calls": 206,
+  "grade_greedy": 2,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.018248457461595535,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "circled W, close copy"
+ },
+ "#190": {
+  "index": 18,
+  "hexcode": "1F37D",
+  "pixel_error": 0.053787168115377426,
+  "retrieval_error": 0.1468275636434555,
+  "calls": 479,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.060151394456624985,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "plate with fork and knife"
+ },
+ "#191": {
+  "index": 247,
+  "hexcode": "1F9DB-1F3FC-200D-2640-FE0F",
+  "pixel_error": 0.03778821602463722,
+  "retrieval_error": 0.0601687952876091,
+  "calls": 476,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.037626080214977264,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts",
+   "wrong_colour"
+  ],
+  "vtracer_drew": "blonde person with red collar, tan face, features lost"
+ },
+ "#192": {
+  "index": 277,
+  "hexcode": "1FBC6",
+  "pixel_error": 0.029917845502495766,
+  "retrieval_error": 0.005579006392508745,
+  "calls": 295,
+  "grade_greedy": 2,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.01204914040863514,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "line person with filled grey head"
+ },
+ "#193": {
+  "index": 136,
+  "hexcode": "1F596-1F3FC",
+  "pixel_error": 0.12974965572357178,
+  "retrieval_error": 0.1546919047832489,
+  "calls": 309,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.1029583215713501,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "vulcan salute, light skin"
+ },
+ "#194": {
+  "index": 268,
+  "hexcode": "1FAAF",
+  "pixel_error": 0.05869467556476593,
+  "retrieval_error": 0.06421114504337311,
+  "calls": 251,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.04614575579762459,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "khanda in purple square"
+ },
+ "#195": {
+  "index": 146,
+  "hexcode": "1F614",
+  "pixel_error": 0.0032019081991165876,
+  "retrieval_error": 0.02303442545235157,
+  "calls": 177,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0020233197137713432,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "same face"
+ },
+ "#196": {
+  "index": 11,
+  "hexcode": "1F331",
+  "pixel_error": 0.02124611660838127,
+  "retrieval_error": 0.0628005713224411,
+  "calls": 135,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.022921457886695862,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "seedling"
+ },
+ "#197": {
+  "index": 240,
+  "hexcode": "1F9DA-1F3FF-200D-2642-FE0F",
+  "pixel_error": 0.08918164670467377,
+  "retrieval_error": 0.11377616971731186,
+  "calls": 891,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.08799977600574493,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "fairy with wings, featureless face"
+ },
+ "#198": {
+  "index": 178,
+  "hexcode": "1F6E0",
+  "pixel_error": 0.13358953595161438,
+  "retrieval_error": 0.15383557975292206,
+  "calls": 709,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.10583066195249557,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "hammer and wrench"
+ },
+ "#199": {
+  "index": 314,
+  "hexcode": "E0A4",
+  "pixel_error": 0.009115024469792843,
+  "retrieval_error": 0.04665965959429741,
+  "calls": 205,
+  "grade_greedy": 3,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.004633412230759859,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "red NO sign"
+ },
+ "#200": {
+  "index": 25,
+  "hexcode": "1F3CA-1F3FC-200D-2640-FE0F",
+  "pixel_error": 0.048434097319841385,
+  "retrieval_error": 0.10450252890586853,
+  "calls": 425,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.045633118599653244,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "swimmer with black head"
+ },
+ "#201": {
+  "index": 15,
+  "hexcode": "1F34E",
+  "pixel_error": 0.0666956678032875,
+  "retrieval_error": 0.06713341176509857,
+  "calls": 377,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.05174493417143822,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "red apple, shading lost"
+ },
+ "#202": {
+  "index": 109,
+  "hexcode": "1F469-1F3FB-200D-1F9B2",
+  "pixel_error": 2.3955055439728312e-05,
+  "retrieval_error": 0.0008790244464762509,
+  "calls": 281,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts",
+   "wrong_colour"
+  ],
+  "vtracer_drew": "featureless tan bust"
+ },
+ "#203": {
+  "index": 254,
+  "hexcode": "1F9DB-1F3FE-200D-2642-FE0F",
+  "pixel_error": 0.07495108246803284,
+  "retrieval_error": 0.057199377566576004,
+  "calls": 396,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.053887274116277695,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "caped figure with red collar, featureless face, no fangs"
+ },
+ "#204": {
+  "index": 43,
+  "hexcode": "1F3CB-1F3FC-200D-2640-FE0F",
+  "pixel_error": 0.06800764799118042,
+  "retrieval_error": 0.12048232555389404,
+  "calls": 572,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.04557083547115326,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "weightlifter with dark head"
+ },
+ "#205": {
+  "index": 224,
+  "hexcode": "1F9D1-1F3FF-200D-1FA70",
+  "pixel_error": 0.05988234281539917,
+  "retrieval_error": 0.11746801435947418,
+  "calls": 483,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.033448316156864166,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "dancer kicking, dark skin"
+ },
+ "#206": {
+  "index": 263,
+  "hexcode": "1F9EF",
+  "pixel_error": 0.044327445328235626,
+  "retrieval_error": 0.08915390074253082,
+  "calls": 347,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.04481334984302521,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "fire extinguisher"
+ },
+ "#207": {
+  "index": 56,
+  "hexcode": "1F3CB-FE0F-200D-2642-FE0F",
+  "pixel_error": 0.0513104684650898,
+  "retrieval_error": 0.11919127404689789,
+  "calls": 464,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.042284201830625534,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "weightlifter with dark head"
+ },
+ "#208": {
+  "index": 304,
+  "hexcode": "2B21-FE0F-200D-1F7EA",
+  "pixel_error": 0.0021841968409717083,
+  "retrieval_error": 0.04331981763243675,
+  "calls": 145,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "purple hexagon"
+ },
+ "#209": {
+  "index": 219,
+  "hexcode": "1F9CC",
+  "pixel_error": 0.16044414043426514,
+  "retrieval_error": 0.13111181557178497,
+  "calls": 1005,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.0821555033326149,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "green eared figure with club, featureless face"
+ },
+ "#210": {
+  "index": 69,
+  "hexcode": "1F44E-1F3FC",
+  "pixel_error": 0.10140906274318695,
+  "retrieval_error": 0.1190069392323494,
+  "calls": 393,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.02973906509578228,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "thumbs down"
+ },
+ "#211": {
+  "index": 187,
+  "hexcode": "1F933-1F3FE",
+  "pixel_error": 0.07873774319887161,
+  "retrieval_error": 0.16542024910449982,
+  "calls": 651,
+  "grade_greedy": 2,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.07566595077514648,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "selfie arm with phone"
+ },
+ "#212": {
+  "index": 4,
+  "hexcode": "1F1EF",
+  "pixel_error": 0.031965624541044235,
+  "retrieval_error": 0.033841684460639954,
+  "calls": 131,
+  "grade_greedy": 1,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.016503268852829933,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "circled letter J"
+ },
+ "#213": {
+  "index": 62,
+  "hexcode": "1F402",
+  "pixel_error": 0.06938064843416214,
+  "retrieval_error": 0.11766646802425385,
+  "calls": 416,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.039526600390672684,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "ox"
+ },
+ "#214": {
+  "index": 322,
+  "hexcode": "E10C",
+  "pixel_error": 0.0725606232881546,
+  "retrieval_error": 0.10800501704216003,
+  "calls": 437,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.03217214345932007,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "finger pressing red button"
+ },
+ "#215": {
+  "index": 85,
+  "hexcode": "1F468-1F3FC-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FC",
+  "pixel_error": 0.04618887975811958,
+  "retrieval_error": 0.04189436137676239,
+  "calls": 779,
+  "grade_greedy": 2,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.03281993791460991,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts",
+   "wrong_colour"
+  ],
+  "vtracer_drew": "two featureless tan heads with heart"
+ },
+ "#216": {
+  "index": 307,
+  "hexcode": "E006",
+  "pixel_error": 0.051895979791879654,
+  "retrieval_error": 0.06992051750421524,
+  "calls": 382,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.024228142574429512,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "narwhal"
+ },
+ "#217": {
+  "index": 234,
+  "hexcode": "1F9DA-1F3FC-200D-2642-FE0F",
+  "pixel_error": 0.11980654299259186,
+  "retrieval_error": 0.11949034035205841,
+  "calls": 862,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.09523066878318787,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts",
+   "wrong_colour"
+  ],
+  "vtracer_drew": "fairy, face featureless and darker"
+ },
+ "#218": {
+  "index": 292,
+  "hexcode": "26D1",
+  "pixel_error": 0.08477618545293808,
+  "retrieval_error": 0.15490977466106415,
+  "calls": 481,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.10651829093694687,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "rescue worker helmet"
+ },
+ "#219": {
+  "index": 29,
+  "hexcode": "1F3CA-1F3FD-200D-2642-FE0F",
+  "pixel_error": 0.03540809452533722,
+  "retrieval_error": 0.10294344276189804,
+  "calls": 401,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.03106037713587284,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "swimmer with dark head"
+ },
+ "#220": {
+  "index": 156,
+  "hexcode": "1F64F",
+  "pixel_error": 0.0010608307784423232,
+  "retrieval_error": 0.017440540716052055,
+  "calls": 385,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.00022290808556135744,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "folded hands"
+ },
+ "#221": {
+  "index": 83,
+  "hexcode": "1F468-1F3FC-200D-1F9B1",
+  "pixel_error": 0.03604378551244736,
+  "retrieval_error": 0.04145586118102074,
+  "calls": 584,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.023751815780997276,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "person bust, face featureless"
+ },
+ "#222": {
+  "index": 21,
+  "hexcode": "1F3BB",
+  "pixel_error": 0.09803366661071777,
+  "retrieval_error": 0.08054924756288528,
+  "calls": 577,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.049227889627218246,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "violin"
+ },
+ "#223": {
+  "index": 91,
+  "hexcode": "1F468-1F3FD-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FC",
+  "pixel_error": 0.03774106130003929,
+  "retrieval_error": 0.04505492001771927,
+  "calls": 887,
+  "grade_greedy": 2,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.02577412687242031,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "two heads with heart, faces gone"
+ },
+ "#224": {
+  "index": 203,
+  "hexcode": "1F93D-1F3FF-200D-2640-FE0F",
+  "pixel_error": 0.07170756161212921,
+  "retrieval_error": 0.11999186873435974,
+  "calls": 530,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.0870630070567131,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "water polo, ball black"
+ },
+ "#225": {
+  "index": 251,
+  "hexcode": "1F9DB-1F3FD-200D-2642-FE0F",
+  "pixel_error": 0.05492188036441803,
+  "retrieval_error": 0.058420829474925995,
+  "calls": 437,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.05492188036441803,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "vampire with cape, face features lost"
+ },
+ "#226": {
+  "index": 164,
+  "hexcode": "1F6B6-1F3FC-200D-2640-FE0F",
+  "pixel_error": 0.0,
+  "retrieval_error": 0.06980855762958527,
+  "calls": 305,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "walker with dark head"
+ },
+ "#227": {
+  "index": 313,
+  "hexcode": "E099",
+  "pixel_error": 0.11353990435600281,
+  "retrieval_error": 0.1514645367860794,
+  "calls": 609,
+  "grade_greedy": 2,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.08835507184267044,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "volcano with smoke"
+ },
+ "#228": {
+  "index": 126,
+  "hexcode": "1F4E7",
+  "pixel_error": 0.05689375847578049,
+  "retrieval_error": 0.018957525491714478,
+  "calls": 287,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.03717723488807678,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "e-mail envelope"
+ },
+ "#229": {
+  "index": 115,
+  "hexcode": "1F479",
+  "pixel_error": 0.13431096076965332,
+  "retrieval_error": 0.1409253180027008,
+  "calls": 804,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.1288285255432129,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "ogre"
+ },
+ "#230": {
+  "index": 242,
+  "hexcode": "1F9DA-200D-2642-FE0F",
+  "pixel_error": 0.11233559250831604,
+  "retrieval_error": 0.12111020088195801,
+  "calls": 808,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.07141001522541046,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts",
+   "wrong_colour"
+  ],
+  "vtracer_drew": "fairy, olive featureless face"
+ },
+ "#231": {
+  "index": 302,
+  "hexcode": "2764",
+  "pixel_error": 0.0025561305228620768,
+  "retrieval_error": 0.04144905507564545,
+  "calls": 133,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "red heart"
+ },
+ "#232": {
+  "index": 107,
+  "hexcode": "1F468-200D-1F9B1",
+  "pixel_error": 0.06858483701944351,
+  "retrieval_error": 0.04281247407197952,
+  "calls": 683,
+  "grade_greedy": 2,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.013455428183078766,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts",
+   "wrong_colour"
+  ],
+  "vtracer_drew": "person bust, olive featureless face"
+ },
+ "#233": {
+  "index": 211,
+  "hexcode": "1F959",
+  "pixel_error": 0.08446148782968521,
+  "retrieval_error": 0.07526375353336334,
+  "calls": 570,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.07297920435667038,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour",
+   "missing_parts"
+  ],
+  "vtracer_drew": "taco, darker shell, texture lost"
+ },
+ "#234": {
+  "index": 150,
+  "hexcode": "1F639",
+  "pixel_error": 0.0755423903465271,
+  "retrieval_error": 0.034057531505823135,
+  "calls": 524,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.06381626427173615,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "cat with tears of joy"
+ },
+ "#235": {
+  "index": 173,
+  "hexcode": "1F6B6",
+  "pixel_error": 0.004446310456842184,
+  "retrieval_error": 0.07121031731367111,
+  "calls": 271,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "yellow walker with dark head"
+ },
+ "#236": {
+  "index": 294,
+  "hexcode": "2708",
+  "pixel_error": 0.09557764232158661,
+  "retrieval_error": 0.11803235858678818,
+  "calls": 361,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.09089834243059158,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "airplane"
+ },
+ "#237": {
+  "index": 285,
+  "hexcode": "2650",
+  "pixel_error": 0.014149368740618229,
+  "retrieval_error": 0.018051017075777054,
+  "calls": 113,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.010949982330203056,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "Sagittarius sign"
+ },
+ "#238": {
+  "index": 217,
+  "hexcode": "1F9B0",
+  "pixel_error": 0.06016148254275322,
+  "retrieval_error": 0.04985778406262398,
+  "calls": 104,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.048874616622924805,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "orange quarter-arc fragment"
+ },
+ "#239": {
+  "index": 60,
+  "hexcode": "1F3F4-E0065-E0073-E0072-E0069-E007F",
+  "pixel_error": 0.07362145185470581,
+  "retrieval_error": 0.07780299335718155,
+  "calls": 389,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.07338820397853851,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "lost_text_or_symbol"
+  ],
+  "vtracer_drew": "same flag, coat of arms simplified"
+ },
+ "#240": {
+  "index": 332,
+  "hexcode": "E240",
+  "pixel_error": 0.027988078072667122,
+  "retrieval_error": 0.08925753831863403,
+  "calls": 190,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.02382040210068226,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "check in circle, check filled grey"
+ },
+ "#241": {
+  "index": 334,
+  "hexcode": "E257",
+  "pixel_error": 0.07418199628591537,
+  "retrieval_error": 0.1117241159081459,
+  "calls": 156,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.043403785675764084,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "yellow funnel, close"
+ },
+ "#242": {
+  "index": 70,
+  "hexcode": "1F44E-1F3FD",
+  "pixel_error": 0.10416616499423981,
+  "retrieval_error": 0.11602946370840073,
+  "calls": 417,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.0513102151453495,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "thumbs down, close"
+ },
+ "#243": {
+  "index": 134,
+  "hexcode": "1F54D",
+  "pixel_error": 0.08093757927417755,
+  "retrieval_error": 0.14586156606674194,
+  "calls": 407,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.06702372431755066,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "synagogue, windows darker"
+ },
+ "#244": {
+  "index": 180,
+  "hexcode": "1F6F4",
+  "pixel_error": 0.05706270784139633,
+  "retrieval_error": 0.0976700484752655,
+  "calls": 658,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.033497489988803864,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "kick scooter, grips black"
+ },
+ "#245": {
+  "index": 214,
+  "hexcode": "1F993",
+  "pixel_error": 0.09382010251283646,
+  "retrieval_error": 0.1372576653957367,
+  "calls": 538,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.07044198364019394,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "zebra line art, grey fills"
+ },
+ "#246": {
+  "index": 100,
+  "hexcode": "1F468-1F3FE-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FF",
+  "pixel_error": 0.040385447442531586,
+  "retrieval_error": 0.04261377453804016,
+  "calls": 661,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.023624727502465248,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "two heads with heart, faces featureless"
+ },
+ "#247": {
+  "index": 174,
+  "hexcode": "1F6BE",
+  "pixel_error": 0.031732380390167236,
+  "retrieval_error": 0.06088946759700775,
+  "calls": 123,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.032612916082143784,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "WC sign, close"
+ },
+ "#248": {
+  "index": 138,
+  "hexcode": "1F596-1F3FE",
+  "pixel_error": 0.16456365585327148,
+  "retrieval_error": 0.14101482927799225,
+  "calls": 303,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.10179688036441803,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "vulcan salute, close"
+ },
+ "#249": {
+  "index": 212,
+  "hexcode": "1F968",
+  "pixel_error": 0.15246057510375977,
+  "retrieval_error": 0.196363627910614,
+  "calls": 541,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.12056427448987961,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "pretzel, close"
+ },
+ "#250": {
+  "index": 236,
+  "hexcode": "1F9DA-1F3FD-200D-2642-FE0F",
+  "pixel_error": 0.1247173324227333,
+  "retrieval_error": 0.11625716090202332,
+  "calls": 957,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.09575314819812775,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "fairy with wings, blank face"
+ },
+ "#251": {
+  "index": 179,
+  "hexcode": "1F6F0",
+  "pixel_error": 0.19683541357517242,
+  "retrieval_error": 0.1951434165239334,
+  "calls": 345,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.16179925203323364,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "satellite, close"
+ },
+ "#252": {
+  "index": 284,
+  "hexcode": "2639",
+  "pixel_error": 0.0005459230742417276,
+  "retrieval_error": 0.0016123014502227306,
+  "calls": 182,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 9.859396232059225e-05,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "frowning face, close"
+ },
+ "#253": {
+  "index": 336,
+  "hexcode": "E30A",
+  "pixel_error": 0.01855381950736046,
+  "retrieval_error": 0.08272260427474976,
+  "calls": 474,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.019352657720446587,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour",
+   "missing_parts"
+  ],
+  "vtracer_drew": "box with red cross, tabs merged black"
+ },
+ "#254": {
+  "index": 337,
+  "hexcode": "E316",
+  "pixel_error": 0.09391868859529495,
+  "retrieval_error": 0.09919208288192749,
+  "calls": 241,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.0284127127379179,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "kidney, close"
+ },
+ "#255": {
+  "index": 19,
+  "hexcode": "1F390",
+  "pixel_error": 0.048817627131938934,
+  "retrieval_error": 0.10643608868122101,
+  "calls": 380,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.03758951276540756,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "wind chime, close"
+ },
+ "#256": {
+  "index": 76,
+  "hexcode": "1F464",
+  "pixel_error": 0.039104484021663666,
+  "retrieval_error": 0.09219669550657272,
+  "calls": 207,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.01454954408109188,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "bust in silhouette, close"
+ },
+ "#257": {
+  "index": 66,
+  "hexcode": "1F426",
+  "pixel_error": 0.08094009757041931,
+  "retrieval_error": 0.012312142178416252,
+  "calls": 265,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.04701267555356026,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "brown bird, close"
+ },
+ "#258": {
+  "index": 45,
+  "hexcode": "1F3CB-1F3FC",
+  "pixel_error": 0.0887259915471077,
+  "retrieval_error": 0.1314292848110199,
+  "calls": 435,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.06095174700021744,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "weight lifter, head dark"
+ },
+ "#259": {
+  "index": 35,
+  "hexcode": "1F3CA-1F3FF-200D-2642-FE0F",
+  "pixel_error": 0.032470449805259705,
+  "retrieval_error": 0.10547082126140594,
+  "calls": 395,
+  "grade_greedy": 2,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.020380204543471336,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "swimmer, close"
+ },
+ "#260": {
+  "index": 243,
+  "hexcode": "1F9DA",
+  "pixel_error": 0.09185200184583664,
+  "retrieval_error": 0.1202152892947197,
+  "calls": 736,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.08766616880893707,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "fairy with wings, blank face"
+ },
+ "#261": {
+  "index": 301,
+  "hexcode": "274C",
+  "pixel_error": 0.14708882570266724,
+  "retrieval_error": 0.11380919814109802,
+  "calls": 46,
+  "grade_greedy": 0,
+  "grade_best8": 0,
+  "pixel_error_best8": 0.12525594234466553,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "cross mark, close"
+ },
+ "#262": {
+  "index": 16,
+  "hexcode": "1F355",
+  "pixel_error": 0.07127057015895844,
+  "retrieval_error": 0.1226748451590538,
+  "calls": 383,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.05395056679844856,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "pizza slice, toppings recoloured"
+ },
+ "#263": {
+  "index": 95,
+  "hexcode": "1F468-1F3FE-200D-1F9B1",
+  "pixel_error": 0.05097686126828194,
+  "retrieval_error": 0.02567300945520401,
+  "calls": 585,
+  "grade_greedy": 2,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.013614540919661522,
+  "grade_vtracer": 1,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "person, smooth dark hair, blank face"
+ },
+ "#264": {
+  "index": 96,
+  "hexcode": "1F468-1F3FE-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FB",
+  "pixel_error": 0.03766768425703049,
+  "retrieval_error": 0.0459117516875267,
+  "calls": 864,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.029152797535061836,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "two heads with heart, faces blank"
+ },
+ "#265": {
+  "index": 94,
+  "hexcode": "1F468-1F3FD-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FF",
+  "pixel_error": 0.03295358270406723,
+  "retrieval_error": 0.04261377453804016,
+  "calls": 885,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.021945100277662277,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "two heads with heart, faces blank"
+ },
+ "#266": {
+  "index": 148,
+  "hexcode": "1F62C",
+  "pixel_error": 0.012698700651526451,
+  "retrieval_error": 0.025456154718995094,
+  "calls": 373,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.012698700651526451,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "grimacing face, close copy"
+ },
+ "#267": {
+  "index": 123,
+  "hexcode": "1F4D2",
+  "pixel_error": 0.11654588580131531,
+  "retrieval_error": 0.11511538177728653,
+  "calls": 225,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.09665259718894958,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "spiral notebooks, close copy"
+ },
+ "#268": {
+  "index": 162,
+  "hexcode": "1F6B6-1F3FB-200D-2640-FE0F",
+  "pixel_error": 0.0,
+  "retrieval_error": 0.07141833752393723,
+  "calls": 305,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "walking figure, black head"
+ },
+ "#269": {
+  "index": 338,
+  "hexcode": "E31D",
+  "pixel_error": 0.061754871159791946,
+  "retrieval_error": 0.08972150087356567,
+  "calls": 544,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.038187380880117416,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "grey bust with red sparks, close"
+ },
+ "#270": {
+  "index": 283,
+  "hexcode": "2602",
+  "pixel_error": 0.15745507180690765,
+  "retrieval_error": 0.1772242784500122,
+  "calls": 331,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.0928543284535408,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "purple umbrella, close copy"
+ },
+ "#271": {
+  "index": 227,
+  "hexcode": "1F9D3-1F3FC",
+  "pixel_error": 0.02659263275563717,
+  "retrieval_error": 0.03212473914027214,
+  "calls": 437,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.02659263275563717,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "grey-haired bust, face blank"
+ },
+ "#272": {
+  "index": 147,
+  "hexcode": "1F62B",
+  "pixel_error": 0.03825748339295387,
+  "retrieval_error": 0.013630427420139313,
+  "calls": 191,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.01191751379519701,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "tired face, close copy"
+ },
+ "#273": {
+  "index": 306,
+  "hexcode": "2B23",
+  "pixel_error": 0.00802317913621664,
+  "retrieval_error": 0.04972842335700989,
+  "calls": 275,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.006555615924298763,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "black hexagon"
+ },
+ "#274": {
+  "index": 293,
+  "hexcode": "26F2",
+  "pixel_error": 0.18354211747646332,
+  "retrieval_error": 0.1971634477376938,
+  "calls": 551,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.12375282496213913,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "fountain, close copy"
+ },
+ "#275": {
+  "index": 63,
+  "hexcode": "1F40B",
+  "pixel_error": 0.07578446716070175,
+  "retrieval_error": 0.11363142728805542,
+  "calls": 544,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.04796987026929855,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "dolphin, close copy"
+ },
+ "#276": {
+  "index": 149,
+  "hexcode": "1F62E-200D-1F4A8",
+  "pixel_error": 0.03444535285234451,
+  "retrieval_error": 0.11591699719429016,
+  "calls": 566,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.026986755430698395,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "face exhaling, close copy"
+ },
+ "#277": {
+  "index": 154,
+  "hexcode": "1F64F-1F3FE",
+  "pixel_error": 0.002301450353115797,
+  "retrieval_error": 0.017440540716052055,
+  "calls": 401,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0005993806989863515,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "folded hands, close copy"
+ },
+ "#278": {
+  "index": 55,
+  "hexcode": "1F3CB-FE0F-200D-2640-FE0F",
+  "pixel_error": 0.05714491009712219,
+  "retrieval_error": 0.12147532403469086,
+  "calls": 499,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.05430787429213524,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "weightlifter with dark head"
+ },
+ "#279": {
+  "index": 250,
+  "hexcode": "1F9DB-1F3FD-200D-2640-FE0F",
+  "pixel_error": 0.046747658401727676,
+  "retrieval_error": 0.04921276122331619,
+  "calls": 559,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.029333341866731644,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "caped woman, face blank"
+ },
+ "#280": {
+  "index": 260,
+  "hexcode": "1F9DB-200D-2642-FE0F",
+  "pixel_error": 0.05501139909029007,
+  "retrieval_error": 0.07101210951805115,
+  "calls": 437,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.05501139909029007,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour",
+   "missing_parts"
+  ],
+  "vtracer_drew": "caped figure, black hair, features faint"
+ },
+ "#281": {
+  "index": 163,
+  "hexcode": "1F6B6-1F3FB",
+  "pixel_error": 0.0048822928220033646,
+  "retrieval_error": 0.06952941417694092,
+  "calls": 271,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "walking figure, dark head"
+ },
+ "#282": {
+  "index": 41,
+  "hexcode": "1F3CB-1F3FB-200D-2642-FE0F",
+  "pixel_error": 0.06887759268283844,
+  "retrieval_error": 0.11553194373846054,
+  "calls": 334,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.03660988062620163,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "weightlifter with dark head"
+ },
+ "#283": {
+  "index": 46,
+  "hexcode": "1F3CB-1F3FD-200D-2640-FE0F",
+  "pixel_error": 0.05794853717088699,
+  "retrieval_error": 0.12035221606492996,
+  "calls": 612,
+  "grade_greedy": 2,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.06761503964662552,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "weightlifter with dark head"
+ },
+ "#284": {
+  "index": 229,
+  "hexcode": "1F9D3-1F3FE",
+  "pixel_error": 0.026445623487234116,
+  "retrieval_error": 0.02879422903060913,
+  "calls": 437,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.026379810646176338,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "grey-haired bust, face blank"
+ },
+ "#285": {
+  "index": 278,
+  "hexcode": "1FBC7",
+  "pixel_error": 0.017306646332144737,
+  "retrieval_error": 0.05548368766903877,
+  "calls": 170,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.002859477186575532,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "distorted_shape",
+   "extra_strokes"
+  ],
+  "vtracer_drew": "standing figure with black filled head and torso"
+ },
+ "#286": {
+  "index": 72,
+  "hexcode": "1F44E-1F3FF",
+  "pixel_error": 0.04803745076060295,
+  "retrieval_error": 0.08615574240684509,
+  "calls": 369,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.03195352479815483,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "thumbs down, close copy"
+ },
+ "#287": {
+  "index": 122,
+  "hexcode": "1F4CE",
+  "pixel_error": 0.06149766966700554,
+  "retrieval_error": 0.07552120834589005,
+  "calls": 73,
+  "grade_greedy": 0,
+  "grade_best8": 0,
+  "pixel_error_best8": 0.047589872032403946,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "paperclip, close copy"
+ },
+ "#288": {
+  "index": 113,
+  "hexcode": "1F469-1F3FF-200D-1F9B2",
+  "pixel_error": 0.00017852819291874766,
+  "retrieval_error": 0.00038706324994564056,
+  "calls": 281,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.00011649722000584006,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "bust without facial features"
+ },
+ "#289": {
+  "index": 97,
+  "hexcode": "1F468-1F3FE-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FC",
+  "pixel_error": 0.03602764755487442,
+  "retrieval_error": 0.04505492001771927,
+  "calls": 838,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.028153996914625168,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "couple with heart, featureless faces"
+ },
+ "#290": {
+  "index": 32,
+  "hexcode": "1F3CA-1F3FE-200D-2642-FE0F",
+  "pixel_error": 0.03539850935339928,
+  "retrieval_error": 0.10402797162532806,
+  "calls": 377,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.015653997659683228,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "swimmer, medium skin"
+ },
+ "#291": {
+  "index": 166,
+  "hexcode": "1F6B6-1F3FD-200D-2640-FE0F",
+  "pixel_error": 0.0,
+  "retrieval_error": 0.06771311908960342,
+  "calls": 305,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "person walking"
+ },
+ "#292": {
+  "index": 124,
+  "hexcode": "1F4D7",
+  "pixel_error": 0.12625649571418762,
+  "retrieval_error": 0.06021999567747116,
+  "calls": 230,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.03068692982196808,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "lost_text_or_symbol"
+  ],
+  "vtracer_drew": "book with VOL 2, O filled, dot lost"
+ },
+ "#293": {
+  "index": 170,
+  "hexcode": "1F6B6-1F3FF-200D-2640-FE0F",
+  "pixel_error": 0.003907700069248676,
+  "retrieval_error": 0.06740397214889526,
+  "calls": 305,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "person walking"
+ },
+ "#294": {
+  "index": 252,
+  "hexcode": "1F9DB-1F3FD",
+  "pixel_error": 0.05243509262800217,
+  "retrieval_error": 0.05929380655288696,
+  "calls": 357,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.038002047687768936,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "vampire, face features mostly lost"
+ },
+ "#295": {
+  "index": 0,
+  "hexcode": "1F0CF",
+  "pixel_error": 0.09856219589710236,
+  "retrieval_error": 0.14671438932418823,
+  "calls": 575,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.06698841601610184,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "card with jester hat, featureless yellow face"
+ },
+ "#296": {
+  "index": 204,
+  "hexcode": "1F93D-1F3FF-200D-2642-FE0F",
+  "pixel_error": 0.1002894788980484,
+  "retrieval_error": 0.11800360679626465,
+  "calls": 437,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.0667019709944725,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "water polo, ball dark not red"
+ },
+ "#297": {
+  "index": 47,
+  "hexcode": "1F3CB-1F3FD-200D-2642-FE0F",
+  "pixel_error": 0.052294641733169556,
+  "retrieval_error": 0.11891768872737885,
+  "calls": 548,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.04834962263703346,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "weightlifter with dark head"
+ },
+ "#298": {
+  "index": 7,
+  "hexcode": "1F261",
+  "pixel_error": 0.06716795265674591,
+  "retrieval_error": 0.04620955511927605,
+  "calls": 338,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.04845855385065079,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "dark-red disc with red symbol pattern"
+ },
+ "#299": {
+  "index": 280,
+  "hexcode": "25AE",
+  "pixel_error": 0.0,
+  "retrieval_error": 0.1226874589920044,
+  "calls": 71,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "dark grey rectangle"
+ },
+ "#300": {
+  "index": 31,
+  "hexcode": "1F3CA-1F3FE-200D-2640-FE0F",
+  "pixel_error": 0.03864656388759613,
+  "retrieval_error": 0.10657728463411331,
+  "calls": 480,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.032354455441236496,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "swimmer with dark head"
+ },
+ "#301": {
+  "index": 133,
+  "hexcode": "1F53D",
+  "pixel_error": 0.018858931958675385,
+  "retrieval_error": 0.048340290784835815,
+  "calls": 33,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.005798384081572294,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "V shape"
+ },
+ "#302": {
+  "index": 266,
+  "hexcode": "1FAA1",
+  "pixel_error": 0.03321507200598717,
+  "retrieval_error": 0.06646392494440079,
+  "calls": 461,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.03208867833018303,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "needle and thread"
+ },
+ "#303": {
+  "index": 226,
+  "hexcode": "1F9D3-1F3FB",
+  "pixel_error": 0.029255930334329605,
+  "retrieval_error": 0.03378898650407791,
+  "calls": 437,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.02907765470445156,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "grey-haired bust, no facial features"
+ },
+ "#304": {
+  "index": 330,
+  "hexcode": "E20B",
+  "pixel_error": 0.1276801973581314,
+  "retrieval_error": 0.13438785076141357,
+  "calls": 292,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.10138913989067078,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "space shuttle"
+ },
+ "#305": {
+  "index": 282,
+  "hexcode": "25FD",
+  "pixel_error": 0.0,
+  "retrieval_error": 0.061125483363866806,
+  "calls": 49,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "white square"
+ },
+ "#306": {
+  "index": 104,
+  "hexcode": "1F468-1F3FF-200D-2764-FE0F-200D-1F48B-200D-1F468-1F3FD",
+  "pixel_error": 0.037332817912101746,
+  "retrieval_error": 0.04422431066632271,
+  "calls": 872,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.029760751873254776,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "couple with heart, featureless faces"
+ },
+ "#307": {
+  "index": 161,
+  "hexcode": "1F6A4",
+  "pixel_error": 0.0762905478477478,
+  "retrieval_error": 0.06856466084718704,
+  "calls": 308,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.04653433337807655,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "speedboat"
+ },
+ "#308": {
+  "index": 222,
+  "hexcode": "1F9D1-1F3FD-200D-1FA70",
+  "pixel_error": 0.04808208346366882,
+  "retrieval_error": 0.11262531578540802,
+  "calls": 488,
+  "grade_greedy": 1,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.03577195852994919,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "same figure with dark head"
+ },
+ "#309": {
+  "index": 181,
+  "hexcode": "1F7EB",
+  "pixel_error": 0.0,
+  "retrieval_error": 0.0005779472412541509,
+  "calls": 49,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "brown square"
+ },
+ "#310": {
+  "index": 51,
+  "hexcode": "1F3CB-1F3FE",
+  "pixel_error": 0.057858265936374664,
+  "retrieval_error": 0.13273093104362488,
+  "calls": 491,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.05287208408117294,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "weightlifter, slightly darker head"
+ },
+ "#311": {
+  "index": 286,
+  "hexcode": "2656",
+  "pixel_error": 0.07352814823389053,
+  "retrieval_error": 0.09501860290765762,
+  "calls": 340,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.058384522795677185,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "chess rook"
+ },
+ "#312": {
+  "index": 241,
+  "hexcode": "1F9DA-1F3FF",
+  "pixel_error": 0.11588547378778458,
+  "retrieval_error": 0.11263667047023773,
+  "calls": 717,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.08205337822437286,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "fairy with wings and wand, face blank"
+ },
+ "#313": {
+  "index": 169,
+  "hexcode": "1F6B6-1F3FE",
+  "pixel_error": 0.003801289014518261,
+  "retrieval_error": 0.0671624094247818,
+  "calls": 271,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "walking person, head black"
+ },
+ "#314": {
+  "index": 37,
+  "hexcode": "1F3CA-200D-2640-FE0F",
+  "pixel_error": 0.0229560025036335,
+  "retrieval_error": 0.10598118603229523,
+  "calls": 450,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.02874152734875679,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "swimmer in water, head black"
+ },
+ "#315": {
+  "index": 50,
+  "hexcode": "1F3CB-1F3FE-200D-2642-FE0F",
+  "pixel_error": 0.0703159049153328,
+  "retrieval_error": 0.11776254326105118,
+  "calls": 618,
+  "grade_greedy": 2,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.0546719916164875,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "weightlifter, head black"
+ },
+ "#316": {
+  "index": 158,
+  "hexcode": "1F68D",
+  "pixel_error": 0.1173379123210907,
+  "retrieval_error": 0.1539187878370285,
+  "calls": 575,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.12968459725379944,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "bus front, faithful"
+ },
+ "#317": {
+  "index": 75,
+  "hexcode": "1F45B",
+  "pixel_error": 0.04565127566456795,
+  "retrieval_error": 0.13856282830238342,
+  "calls": 623,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.04684802144765854,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "purple purse, clasp blobbed"
+ },
+ "#318": {
+  "index": 308,
+  "hexcode": "E045",
+  "pixel_error": 0.10262270271778107,
+  "retrieval_error": 0.1059035211801529,
+  "calls": 348,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.06046507880091667,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "distorted_shape"
+  ],
+  "vtracer_drew": "grey ring with distorted cat cut-out"
+ },
+ "#319": {
+  "index": 272,
+  "hexcode": "1FAD3",
+  "pixel_error": 0.07380123436450958,
+  "retrieval_error": 0.032288141548633575,
+  "calls": 189,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.0176218431442976,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "same, faithful"
+ },
+ "#320": {
+  "index": 128,
+  "hexcode": "1F4F7",
+  "pixel_error": 0.07426823675632477,
+  "retrieval_error": 0.04956754669547081,
+  "calls": 620,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.04145510494709015,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "camera, faithful"
+ },
+ "#321": {
+  "index": 316,
+  "hexcode": "E0AE",
+  "pixel_error": 0.10699033737182617,
+  "retrieval_error": 0.15798157453536987,
+  "calls": 938,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.09516964852809906,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "glove with cloth, dots lost, grey background tint"
+ },
+ "#322": {
+  "index": 48,
+  "hexcode": "1F3CB-1F3FD",
+  "pixel_error": 0.08697929233312607,
+  "retrieval_error": 0.13337896764278412,
+  "calls": 616,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.05477437004446983,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "weightlifter, head black"
+ },
+ "#323": {
+  "index": 325,
+  "hexcode": "E1C4",
+  "pixel_error": 0.046459946781396866,
+  "retrieval_error": 0.08230149745941162,
+  "calls": 162,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.018910877406597137,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "telescope, red tip lost"
+ },
+ "#324": {
+  "index": 144,
+  "hexcode": "1F5EF",
+  "pixel_error": 0.03619961813092232,
+  "retrieval_error": 0.10935457050800323,
+  "calls": 143,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.025745127350091934,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "spiky balloon, rougher outline"
+ },
+ "#325": {
+  "index": 71,
+  "hexcode": "1F44E-1F3FE",
+  "pixel_error": 0.025611737743020058,
+  "retrieval_error": 0.11041489988565445,
+  "calls": 382,
+  "grade_greedy": 3,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.024513838812708855,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "thumbs down, faithful"
+ },
+ "#326": {
+  "index": 258,
+  "hexcode": "1F9DB-1F3FF",
+  "pixel_error": 0.05206291005015373,
+  "retrieval_error": 0.05255461856722832,
+  "calls": 357,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.05206291005015373,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "vampire collar and hair, face blank"
+ },
+ "#327": {
+  "index": 111,
+  "hexcode": "1F469-1F3FD-200D-1F9B2",
+  "pixel_error": 5.900508404010907e-05,
+  "retrieval_error": 0.0006407346809282899,
+  "calls": 281,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "bust with blank face"
+ },
+ "#328": {
+  "index": 298,
+  "hexcode": "270B-1F3FE",
+  "pixel_error": 0.005624646786600351,
+  "retrieval_error": 0.09616290032863617,
+  "calls": 337,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.00803150050342083,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "raised hand, faithful"
+ },
+ "#329": {
+  "index": 183,
+  "hexcode": "1F923",
+  "pixel_error": 0.14466609060764313,
+  "retrieval_error": 0.07161779701709747,
+  "calls": 478,
+  "grade_greedy": 2,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.07352335751056671,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "rolling laughing face, faithful"
+ },
+ "#330": {
+  "index": 244,
+  "hexcode": "1F9DB-1F3FB-200D-2640-FE0F",
+  "pixel_error": 0.0384337455034256,
+  "retrieval_error": 0.0563223697245121,
+  "calls": 476,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.02960163913667202,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "vampire collar and hair, face blank"
+ },
+ "#331": {
+  "index": 155,
+  "hexcode": "1F64F-1F3FF",
+  "pixel_error": 0.0008454874041490257,
+  "retrieval_error": 0.017440540716052055,
+  "calls": 397,
+  "grade_greedy": 3,
+  "grade_best8": 3,
+  "pixel_error_best8": 0.0006732631591148674,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "folded hands, faithful"
+ },
+ "#332": {
+  "index": 207,
+  "hexcode": "1F93D-200D-2642-FE0F",
+  "pixel_error": 0.0754069834947586,
+  "retrieval_error": 0.12082425504922867,
+  "calls": 654,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.04811738431453705,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "player in water, head and ball black"
+ },
+ "#333": {
+  "index": 248,
+  "hexcode": "1F9DB-1F3FC-200D-2642-FE0F",
+  "pixel_error": 0.05536038801074028,
+  "retrieval_error": 0.05882579833269119,
+  "calls": 437,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.05536038801074028,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "vampire collar and blond hair, face mostly blank"
+ },
+ "#334": {
+  "index": 261,
+  "hexcode": "1F9DB",
+  "pixel_error": 0.09909676760435104,
+  "retrieval_error": 0.07178901880979538,
+  "calls": 457,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.04524681344628334,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "vampire collar and hair, face blank"
+ },
+ "#335": {
+  "index": 132,
+  "hexcode": "1F52F",
+  "pixel_error": 0.03027767688035965,
+  "retrieval_error": 0.004649297334253788,
+  "calls": 423,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.030853355303406715,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "distorted_shape"
+  ],
+  "vtracer_drew": "purple square with blobby white six-point shape"
+ },
+ "#336": {
+  "index": 20,
+  "hexcode": "1F3B4",
+  "pixel_error": 0.11444313079118729,
+  "retrieval_error": 0.14519108831882477,
+  "calls": 161,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.0869341567158699,
+  "grade_vtracer": 3,
+  "vtracer_defects": [
+   "none"
+  ],
+  "vtracer_drew": "same card, close"
+ },
+ "#337": {
+  "index": 215,
+  "hexcode": "1F994",
+  "pixel_error": 0.13682875037193298,
+  "retrieval_error": 0.10570356994867325,
+  "calls": 587,
+  "grade_greedy": 1,
+  "grade_best8": 2,
+  "pixel_error_best8": 0.046801622956991196,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "missing_parts"
+  ],
+  "vtracer_drew": "hedgehog body without spine strokes or eye"
+ },
+ "#338": {
+  "index": 197,
+  "hexcode": "1F93D-1F3FD-200D-2640-FE0F",
+  "pixel_error": 0.07805061340332031,
+  "retrieval_error": 0.11881151795387268,
+  "calls": 578,
+  "grade_greedy": 1,
+  "grade_best8": 1,
+  "pixel_error_best8": 0.06958816945552826,
+  "grade_vtracer": 2,
+  "vtracer_defects": [
+   "wrong_colour"
+  ],
+  "vtracer_drew": "water polo, ball and head dark"
+ }
+}
