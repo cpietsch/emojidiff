@@ -31,6 +31,12 @@ dev = [
 model-cpu = [
   "torch==2.8.0",
 ]
+onnx = [
+  "onnx==1.21.0",
+  "onnxruntime==1.30.0",
+  "onnxscript==0.7.1",
+  "protobuf<7",
+]
 
 [project.scripts]
 mojidiff-curate = "mojidiff.curation.cli:main"
@@ -71,5 +77,5 @@ url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [[tool.mypy.overrides]]
-module = ["cairosvg", "cairosvg.*", "pyarrow", "pyarrow.*"]
+module = ["cairosvg", "cairosvg.*", "onnxruntime", "onnxruntime.*", "pyarrow", "pyarrow.*"]
 ignore_missing_imports = true

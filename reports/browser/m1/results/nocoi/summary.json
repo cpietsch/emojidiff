@@ -1,0 +1,71 @@
+{
+ "what": "free-running greedy decode in headless Chrome: web/src grammar + loop + codec on ONNX Runtime Web",
+ "cross_origin_isolation": false,
+ "model": "/home/dev/.cache/mojidiff/onnx/r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604",
+ "reference": "/home/dev/.cache/mojidiff/web-reference/r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604/validation-32",
+ "conditions": {
+  "node": "v22.23.2",
+  "playwright": "1.63.0",
+  "onnxruntime_web": "1.30.0",
+  "chrome_args": [
+   "--enable-unsafe-webgpu",
+   "--enable-features=Vulkan,VulkanFromANGLE,DefaultANGLEVulkan",
+   "--use-angle=vulkan",
+   "--use-vulkan=native",
+   "--ignore-gpu-blocklist",
+   "--disable-vulkan-surface"
+  ],
+  "cpu": "13th Gen Intel(R) Core(TM) i7-13700K",
+  "logical_cpus": 24,
+  "host": "gpubox-4080"
+ },
+ "configs": {
+  "wasm4": {
+   "query": "ep=wasm&threads=4",
+   "error": null,
+   "adapter": {
+    "vendor": "nvidia",
+    "architecture": "lovelace",
+    "description": "",
+    "isFallbackAdapter": false
+   },
+   "chrome": "153.0.8010.12",
+   "crossOriginIsolated": false,
+   "threads_effective": 1,
+   "session_ms": 300,
+   "cold_icon_ms": 3072,
+   "wall_s": 64.775,
+   "nvidia_smi_before": "NVIDIA GeForce RTX 4080, 595.71.05, 0 %, 30 MiB, 16376 MiB",
+   "loadavg_before": [
+    0.88,
+    2.59,
+    2.67
+   ],
+   "gpu_during": {
+    "samples": 260,
+    "util_max": 3,
+    "util_mean": 0,
+    "memory_max_mib": 102
+   },
+   "summary": {
+    "icons": 32,
+    "identical_tokens": 32,
+    "identical_svg": 32,
+    "equal_calls": 32,
+    "ms_icon_median": 1506.4,
+    "ms_icon_p90": 3439.2,
+    "ms_icon_mean": 1912.9,
+    "ms_icon_max": 5178.6,
+    "calls_median": 419,
+    "calls_p90": 704.2,
+    "calls_total": 14090,
+    "ms_per_call_mean": 4.217,
+    "ms_encode_median": 51.6,
+    "ms_grammar_median": 2.75,
+    "ms_svg_median": 0.1,
+    "grammar_share": 0.0016,
+    "step_share": 0.9706
+   }
+  }
+ }
+}

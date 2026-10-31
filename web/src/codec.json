@@ -1,0 +1,214 @@
+{
+ "format": 1,
+ "max_paths": 32,
+ "max_segments": 128,
+ "total_segment_slots": 128,
+ "coordinate_bins": 289,
+ "control_coordinate_bins": 417,
+ "control_coordinate_min": -8.0,
+ "control_coordinate_max": 96.0,
+ "palette": [
+  "#000000",
+  "#ffffff",
+  "#92d3f5",
+  "#61b2e4",
+  "#ea5a47",
+  "#d22f27",
+  "#b1cc33",
+  "#5c9e31",
+  "#fcea2b",
+  "#f1b31c",
+  "#d0cfce",
+  "#9b9b9a",
+  "#3f3f3f",
+  "#f4aa41",
+  "#e27022",
+  "#ffa7c0",
+  "#e67a94",
+  "#b399c8",
+  "#8967aa",
+  "#a57939",
+  "#6a462f",
+  "#1e50a0",
+  "#781e32",
+  "#186648",
+  "#fadcbc",
+  "#debb90",
+  "#c19a65",
+  "#352318"
+ ],
+ "stroke_widths": [
+  0.1,
+  0.204,
+  0.25,
+  0.3,
+  0.5,
+  0.625,
+  0.75,
+  0.853973,
+  0.8974,
+  0.9285,
+  1.0,
+  1.25,
+  1.3618,
+  1.5,
+  1.548,
+  1.6,
+  1.64,
+  1.675,
+  1.757,
+  1.8,
+  1.8573578976656555,
+  1.879,
+  1.9083,
+  1.9487,
+  1.968,
+  2.0,
+  2.0071,
+  2.0247,
+  2.04,
+  2.0737,
+  2.1,
+  2.1659,
+  2.219,
+  2.32,
+  2.434,
+  2.4999579387999997,
+  3.0,
+  3.146,
+  3.227,
+  3.501278,
+  3.868,
+  4.0,
+  4.1,
+  4.453,
+  4.784,
+  6.0,
+  6.73,
+  8.0,
+  10.0
+ ],
+ "dash_patterns": [
+  [
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   0.0,
+   5.1598,
+   5.1598
+  ],
+  [
+   0.0,
+   0.0,
+   3.9396,
+   3.9396
+  ],
+  [
+   0.0,
+   6.7346,
+   0.0,
+   0.0,
+   0.0,
+   0.0
+  ],
+  [
+   2.0,
+   4.0
+  ],
+  [
+   5.2132,
+   5.2132
+  ],
+  [
+   6.1156,
+   4.5867
+  ]
+ ],
+ "miter_limits": [
+  1.5,
+  2.0,
+  4.0,
+  7.0,
+  10.0
+ ],
+ "opacities": [
+  0.25,
+  0.4,
+  0.5,
+  0.502,
+  0.6,
+  0.9969,
+  0.997,
+  0.999,
+  1.0
+ ],
+ "length": 1376,
+ "vocabulary": 418,
+ "effective_control_coordinate_bins": 417,
+ "path_positions": 480,
+ "path_stride": 15,
+ "segment_stride": 7,
+ "path_fields": [
+  "path_length",
+  "layer",
+  "opacity",
+  "fill",
+  "fill_opacity",
+  "stroke",
+  "stroke_opacity",
+  "stroke_width",
+  "linecap",
+  "linejoin",
+  "miter_limit",
+  "dash_pattern",
+  "fill_rule"
+ ],
+ "field_types": 22,
+ "fill_rules": [
+  "nonzero",
+  "evenodd"
+ ],
+ "linecaps": [
+  "butt",
+  "round",
+  "square"
+ ],
+ "linejoins": [
+  "miter",
+  "round",
+  "bevel"
+ ],
+ "control_slots": [
+  0,
+  0,
+  2,
+  4,
+  0
+ ],
+ "tokens": {
+  "pad": 0,
+  "none": 1
+ },
+ "segment_types": {
+  "pad": 0,
+  "line": 1,
+  "quad": 2,
+  "cubic": 3,
+  "close": 4
+ },
+ "roles": {
+  "none": 0,
+  "endpoint": 1,
+  "control": 2
+ },
+ "ids_rows": [
+  "tokens",
+  "steps",
+  "field",
+  "path",
+  "axis",
+  "role"
+ ]
+}
