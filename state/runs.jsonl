@@ -580,3 +580,17 @@
 {"result_file":"runs/r2s-cur-d02-lr15-s8-c0f85b3-1efdfbdc-47646604/result.md","run_id":"r2s-cur-d02-lr15-s8-c0f85b3-1efdfbdc-47646604","state":"completed","timestamp":"2026-10-31T11:21:58Z"}
 {"config":"configs/render2svg/cur-d02-sh64-s7.yaml","run_id":"r2s-cur-d02-sh64-s7-2bd7d3a-1c5212d2-47646604","slug":"r2s-cur-d02-sh64-s7","state":"running","timestamp":"2026-10-31T11:06:51Z"}
 {"result_file":"runs/r2s-cur-d02-sh64-s7-2bd7d3a-1c5212d2-47646604/result.md","run_id":"r2s-cur-d02-sh64-s7-2bd7d3a-1c5212d2-47646604","state":"completed","timestamp":"2026-10-31T11:53:13Z"}
+{"config":"configs/render2svg/cur-d02-lr10-s120k-s3.yaml","run_id":"r2s-cur-d02-lr10-s120k-s3-ee83881-8815463b-47646604","slug":"r2s-cur-d02-lr10-s120k-s3","state":"running","timestamp":"2026-10-31T11:19:36Z"}
+{"config":"configs/render2svg/cur-d02-lr10-s120k-s2.yaml","run_id":"r2s-cur-d02-lr10-s120k-s2-ee83881-8948d8bc-47646604","slug":"r2s-cur-d02-lr10-s120k-s2","state":"running","timestamp":"2026-10-31T11:19:36Z"}
+{"config":"configs/render2svg/cur-d02-lr10-s120k-s1.yaml","run_id":"r2s-cur-d02-lr10-s120k-s1-ee83881-ea52a3b7-47646604","slug":"r2s-cur-d02-lr10-s120k-s1","state":"running","timestamp":"2026-10-31T11:19:36Z"}
+{"config":"configs/render2svg/cur-d02-lr10-s120k-s5.yaml","run_id":"r2s-cur-d02-lr10-s120k-s5-ee83881-d09bba4f-47646604","slug":"r2s-cur-d02-lr10-s120k-s5","state":"running","timestamp":"2026-10-31T11:19:36Z"}
+{"config":"configs/render2svg/cur-d02-lr10-s120k-s6.yaml","run_id":"r2s-cur-d02-lr10-s120k-s6-ee83881-871ccd3b-47646604","slug":"r2s-cur-d02-lr10-s120k-s6","state":"running","timestamp":"2026-10-31T11:19:36Z"}
+{"config":"configs/render2svg/cur-d02-lr10-s120k-s4.yaml","run_id":"r2s-cur-d02-lr10-s120k-s4-ee83881-bc6abff9-47646604","slug":"r2s-cur-d02-lr10-s120k-s4","state":"running","timestamp":"2026-10-31T11:19:36Z"}
+{"config":"configs/render2svg/cur-d02-lr10-s120k-s7.yaml","run_id":"r2s-cur-d02-lr10-s120k-s7-ee83881-b4883b0f-47646604","slug":"r2s-cur-d02-lr10-s120k-s7","state":"running","timestamp":"2026-10-31T11:22:51Z"}
+{"result_file":"runs/r2s-cur-d02-lr10-s120k-s5-ee83881-d09bba4f-47646604/result.md","run_id":"r2s-cur-d02-lr10-s120k-s5-ee83881-d09bba4f-47646604","state":"completed","timestamp":"2026-10-31T12:48:49Z"}
+{"result_file":"runs/r2s-cur-d02-lr10-s120k-s6-ee83881-871ccd3b-47646604/result.md","run_id":"r2s-cur-d02-lr10-s120k-s6-ee83881-871ccd3b-47646604","state":"completed","timestamp":"2026-10-31T12:49:01Z"}
+{"result_file":"runs/r2s-cur-d02-lr10-s120k-s3-ee83881-8815463b-47646604/result.md","run_id":"r2s-cur-d02-lr10-s120k-s3-ee83881-8815463b-47646604","state":"completed","timestamp":"2026-10-31T12:49:14Z"}
+{"result_file":"runs/r2s-cur-d02-lr10-s120k-s1-ee83881-ea52a3b7-47646604/result.md","run_id":"r2s-cur-d02-lr10-s120k-s1-ee83881-ea52a3b7-47646604","state":"completed","timestamp":"2026-10-31T12:49:26Z"}
+{"result_file":"runs/r2s-cur-d02-lr10-s120k-s2-ee83881-8948d8bc-47646604/result.md","run_id":"r2s-cur-d02-lr10-s120k-s2-ee83881-8948d8bc-47646604","state":"completed","timestamp":"2026-10-31T12:50:16Z"}
+{"result_file":"runs/r2s-cur-d02-lr10-s120k-s7-ee83881-b4883b0f-47646604/result.md","run_id":"r2s-cur-d02-lr10-s120k-s7-ee83881-b4883b0f-47646604","state":"completed","timestamp":"2026-10-31T12:52:52Z"}
+{"result_file":"runs/r2s-cur-d02-lr10-s120k-s4-ee83881-bc6abff9-47646604/result.md","run_id":"r2s-cur-d02-lr10-s120k-s4-ee83881-bc6abff9-47646604","state":"completed","timestamp":"2026-10-31T12:56:13Z"}
