@@ -4671,3 +4671,22 @@ evidence points to best of 8 in the browser, a variations page for the dense fam
 teaches drawing unfamiliar shapes.
 
 The lessons drawn from the whole project are written up in `reports/learnings-2026-10-31.md`.
+
+## 2026-10-31 — Render-reward RL on the transcriber: stopped by the operator before a result, no visible effect so far
+
+**Setting.** Reopened for one bet on the remaining cluster hours: group-relative policy-gradient fine-tuning of the
+final model with a rendered reward (`render2svg.render_reward_loss`: 16 icons x 8 grammar-sampled programs per step,
+reward minus pixel error against the true program's render, group-normalised advantages, plus 0.5 x the supervised
+loss), 800 steps at lr 2e-5 on the d02 online stream, against a supervised-only control; a second RL arm at lr 5e-5
+on the GPUs the controls freed. Criteria declared in state/CURRENT.md at 18:45.
+
+**Observation.** The controls completed: 339-icon validation error of their selected checkpoints 0.0635, 0.0636,
+0.0664, 0.0659 (mean 0.0649; the parent 0.0641), their 64-icon curves flat noise between 0.059 and 0.071. RL steps
+took about 12.5 s on a B300 (sampling 128 programs token by token is latency-bound, about 60% GPU use), so the RL
+runs reached steps 250-300 when the operator stopped the experiment at 19:55. Their last 64-icon evaluations: lr 2e-5
+0.061, 0.067, 0.066, 0.068; lr 5e-5 0.063, 0.065, 0.071, 0.071 - inside the controls' range. They are recorded as
+cancelled (`runs/r2s-cur-rl-*`, metrics only; no final evaluation, no checkpoint copied).
+
+**Reading.** No criterion was scored. At 250-300 steps there is no sign that the rendered reward moves the model
+beyond what continued supervised training does, which itself leaves it where it was. Whether more steps, a larger
+sample group or a reward on unseen shapes would help is open; the method is in the code and tested.

@@ -1,0 +1,91 @@
+schema_version: 2
+run_id: r2s-cur-rl-s4-1df927d-4d6aed95-47646604
+state: cancelled
+planned_at: '2026-10-31T17:53:05Z'
+hypothesis: 'Render-reward fine-tuning of the final model for 800 steps at lr 2e-5
+  on the d02 recipe''s online stream. Declared in state/CURRENT.md (2026-10-31 18:45):
+  the RL arm''s greedy float32 pixel error on the 339 validation renders beats the
+  control''s, seed-matched over seeds 7001-7004 with a bootstrap interval excluding
+  zero, and the best RL run is more often recognisable than the final model on the
+  same blind visual review.'
+parent_run: r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604
+git_commit: 1df927d22972b4037240b9f44ae2a00a55aad475
+dirty_patch_sha256: ''
+config: configs/render2svg/cur-rl-s4.yaml
+config_sha256: 4d6aed95e9ba1c64d120b5c1f320a9a389cdec4d224fb4e92fb76bb02c6456cd
+config_resolved:
+  model:
+    image_size: 144
+    d_model: 256
+    heads: 8
+    encoder_layers: 2
+    decoder_layers: 6
+    feedforward: 1024
+    dropout: 0.2
+    metric: true
+    fourier: 10
+    order: path
+    sources: 0
+  training:
+    steps: 800
+    batch_size: 16
+    learning_rate: 2.0e-05
+    weight_decay: 0.01
+    warmup_steps: 50
+    seed: 7004
+    eval_every: 50
+    eval_icons: 64
+    train_icons: null
+    evaluate_on_train: false
+    augment_variants: 0
+    augment_seed: 9004
+    augment_mirror: 0.5
+    augment_max_shift: 48
+    augment_colour: 0.1
+    augment_online: true
+    compose_probability: 0.5
+    compose_parts: 4
+    augment_original: 0.1
+    loader_workers: 16
+    extra_training: []
+    degrade_probability: 0.0
+    degrade_kinds:
+    - lineart
+    - sloppy
+    - flat
+    degrade_eval_seed: 0
+    init_run: r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604
+    init_sha256: 38daeca4dd27fb4c6ad337891cc976b26f7e60e2dc1285fb2a9ad78940159c50
+    rl_samples: 8
+    rl_temperature: 1.0
+    rl_anchor: 0.5
+    max_seconds: 6000
+    bf16: true
+  final_eval_icons: 339
+  clip_icons: 32
+dataset:
+  pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+  cache_sha256: 476466042da98d72c2bf2774cecc18f08d50a362eefbecae97904bde7a04ef0e
+  train_icons: 2681
+  augmented_variants: 0
+  extra_training: null
+  augmented_sha256: null
+  evaluated_on: primary/validation
+  evaluation_inputs: clean renders
+init:
+  run: r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604
+  checkpoint: /home/eai-jdkxz/eai-team11/mojidiff/cache/runs/r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604/best.pt
+  sha256: 38daeca4dd27fb4c6ad337891cc976b26f7e60e2dc1285fb2a9ad78940159c50
+  step: 64000
+seed: 7004
+determinism: seeded; cuDNN and SDPA kernels not forced deterministic
+model_parameters: 9025826
+command: .venv/bin/python -m mojidiff.learning.render2svg --config configs/render2svg/cur-rl-s4.yaml
+outputs:
+  run_dir: runs/r2s-cur-rl-s4-1df927d-4d6aed95-47646604
+  checkpoints: /home/eai-jdkxz/eai-team11/mojidiff/cache/runs/r2s-cur-rl-s4-1df927d-4d6aed95-47646604
+notes: ''
+cancelled_at: '2026-10-31T18:59:47Z'
+cancel_reason: stopped_by_operator_at_step_300_of_800_before_its_time_cap; last_64_icon_eval_0.0676;
+  no_final_evaluation_or_checkpoint_copied
+slurm_job: '14175'

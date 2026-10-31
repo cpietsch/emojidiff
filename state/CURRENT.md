@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-10-31 18:45 — wrapped up at 17:30; reopened at 18:30 for one bet on the remaining cluster hours
+Updated: 2026-10-31 20:00 — wrapped up at 17:30; reopened 18:30-19:55 for render-reward RL, stopped by the operator
 
 ## Where the project stands
 
@@ -37,15 +37,10 @@ The recurring check-in loop was cancelled.
 
 ## Active jobs
 
-Wave R1, render-reward RL (operator's choice, 18:30): 8 one-GPU Curiosity jobs from the final model, 800 steps
-at lr 2e-5 on the d02 recipe's online stream, seeds 7001-7004 in two arms that differ only in rl_samples:
-RL (16 icons x 8 samples per step, reward minus pixel error against the clean render, group-normalised
-advantages, plus 0.5 x the supervised loss; `render2svg.render_reward_loss`) and a supervised-only control.
-Declared before results (18:45): (1) RL's greedy float32 pixel error on the 339 validation renders beats the
-control's, seed-matched with a bootstrap interval excluding zero; (2) the best RL run (lowest validation
-error) is recognisable more often than the final model's 52% on the same blind visual review. Both pass:
-the RL model becomes a candidate for the demo. (1) fails: RL adds nothing over continued training; stop.
-Added 19:00 (operator approved) on the GPUs the controls free: wave R1b, the RL arm at lr 5e-5, same seeds; judged by the same criteria against the same control. Smoke runs on the RTX 4080: r2s-cur-rl-smoke-*. The allocation ends about 22:45.
+None. Render-reward RL (wave R1/R1b, reopened 18:30) was stopped by the operator at 19:55 before any criterion
+could be scored: the supervised controls completed (mean 0.0649 against the parent's 0.0641), the 8 RL runs reached
+steps 250-300 with 64-icon evaluations inside the controls' range and are recorded as cancelled (findings
+2026-10-31). The Curiosity queue is empty; nothing runs locally; the demo server is off.
 
 ## Artifact durability
 
