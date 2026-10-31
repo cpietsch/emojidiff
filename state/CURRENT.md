@@ -55,9 +55,8 @@ the recorded run.
   +0.0028 [+0.0011, +0.0046], 1e-3 +0.0035 [+0.0002, +0.0066], 1.5e-3 +0.0001 (7 seeds; -0.0043
   [-0.0068, -0.0015] against 1e-3). Earlier: dropout 0.2 vs v9 +0.0039, compose 0.3 -0.0040,
   compose 0.7 -0.0013 (n.s.), 120k vs 60k +0.0024.
-- Browser demo (web/demo, 92089f7): tmux mojidiff-demo serves it on 100.69.189.78:8952 (339-icon
-  bundle via the symlink web-reference/<run>/demo); tmux mojidiff-tunnel is a Cloudflare quick tunnel
-  the operator asked for (https, so 4 WASM threads and WebGPU). Its review fixes are in (95c3348).
+- Browser demo (web/demo, 92089f7): the operator closed the tunnel and the demo server at 16:05; restart with
+  `node web/demo/serve.mjs` (see its header) when needed. Its review fixes are in (95c3348).
 - Visual review (findings 2026-10-31, reports/visual/2026-10-31-final-greedy/): of the greedy SVGs 16%
   faithful, 37% recognisable, 46% partial, 2% garbage; offered the operator a best-of-8 visual check.
 - Browser milestone 1 merged (2b2ab8f, squash of browser-m1; findings 2026-10-31): the final model
