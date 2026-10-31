@@ -359,6 +359,94 @@ def test_online_augmentation_streams_exact_reproducible_variants(pieces: Pieces)
         assert np.array_equal(image.numpy(), rendered)
 
 
+def test_degradation_changes_only_the_input_pixels_of_the_stream(pieces: Pieces) -> None:
+    """With degrade_probability the programs, masks, orders and sets are those of the stream
+    without it (a separate generator); only the images change, and the stored renders stay."""
+
+    from mojidiff.learning.render2svg import OnlineAugmentation
+
+    layout, programs = pieces
+    rows = [flatten_program(p, layout) for p in programs]
+    tokens = np.stack([r.numpy() for r in rows]).astype(np.int16)
+    masks = np.stack([_masks(r, layout) for r in rows])
+    images = np.stack(
+        [render_trusted_rgb(serialize_packed_svg(p, layout.codec, 128), 32) for p in programs]
+    )
+    stored = images.copy()
+    plain = TrainConfig(augment_original=0.5, compose_probability=0.3, augment_seed=5)
+    doodled = TrainConfig(
+        augment_original=0.5, compose_probability=0.3, augment_seed=5, degrade_probability=1.0
+    )
+    reference = iter(OnlineAugmentation(tokens, images, masks, layout, programs[0], 32, plain))
+    degraded = iter(OnlineAugmentation(tokens, images, masks, layout, programs[0], 32, doodled))
+    changed = 0
+    for _ in range(8):
+        image, variant, packed, order, source = next(reference)
+        other_image, other_variant, other_packed, other_order, other_source = next(degraded)
+        assert torch.equal(variant, other_variant) and torch.equal(order, other_order)
+        assert np.array_equal(packed, other_packed) and source == other_source
+        assert other_image.shape == image.shape and other_image.dtype == torch.uint8
+        changed += int(not torch.equal(image, other_image))
+    assert changed == 8
+    assert np.array_equal(images, stored)
+
+
+def test_fine_tuning_loads_the_parent_and_checks_its_hash(pieces: Pieces, tmp_path: Path) -> None:
+    from dataclasses import asdict
+
+    from mojidiff.learning.render2svg import load_init
+
+    layout, _ = pieces
+    small = ModelConfig(
+        image_size=32, d_model=32, heads=2, encoder_layers=1, decoder_layers=1, feedforward=64
+    )
+    parent = RenderToProgram(layout, small)
+    path = tmp_path / "runs" / "parent-run" / "best.pt"
+    path.parent.mkdir(parents=True)
+    torch.save({"model": parent.state_dict(), "step": 12, "config": asdict(small)}, path)
+    import hashlib
+
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    child = RenderToProgram(layout, small)
+    record = load_init(
+        child,
+        small,
+        TrainConfig(init_run="parent-run", init_sha256=digest),
+        torch.device("cpu"),
+        tmp_path,
+    )
+    assert record is not None and record["sha256"] == digest and record["step"] == 12
+    for name, value in parent.state_dict().items():
+        assert torch.equal(child.state_dict()[name], value)
+    assert load_init(child, small, TrainConfig(), torch.device("cpu"), tmp_path) is None
+    with pytest.raises(SystemExit):
+        load_init(
+            child,
+            small,
+            TrainConfig(init_run="parent-run", init_sha256="0" * 64),
+            torch.device("cpu"),
+            tmp_path,
+        )
+    other = ModelConfig(
+        image_size=32, d_model=32, heads=2, encoder_layers=1, decoder_layers=2, feedforward=64
+    )
+    with pytest.raises(ValueError):
+        load_init(
+            RenderToProgram(layout, other),
+            other,
+            TrainConfig(init_run="parent-run"),
+            torch.device("cpu"),
+            tmp_path,
+        )
+
+
+def test_degrade_kinds_arrive_as_a_tuple_from_yaml() -> None:
+    from mojidiff.learning.render2svg import _train_config
+
+    config = _train_config({"degrade_probability": 0.5, "degrade_kinds": ["lineart", "flat"]})
+    assert config.degrade_kinds == ("lineart", "flat") and config.degrade_probability == 0.5
+
+
 def test_compositions_are_valid_and_carry_their_own_masks(pieces: Pieces) -> None:
     from mojidiff.learning.render2svg import OnlineAugmentation, compose_program
 

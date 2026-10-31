@@ -152,6 +152,18 @@ class TrainConfig:
     extra_training: tuple[str, ...] = ()
     """Other emoji sets appended to the training split ("twemoji"); held-out concepts
     are excluded, see `extra_data`."""
+    degrade_probability: float = 0.0
+    """Under online augmentation, probability that the input render is made to look
+    hand-drawn (`doodle.degrade`); the target program is unchanged. The draws come from a
+    generator of their own, so the program stream is the one without degradation. With it
+    on, checkpoints are selected and scored on validation renders degraded the same way."""
+    degrade_kinds: tuple[str, ...] = ("lineart", "sloppy", "flat")
+    degrade_eval_seed: int = 0
+    """Seed of the degraded validation set (`doodle.degrade_split`)."""
+    init_run: str | None = None
+    """Start from this run's best.pt (fine-tuning) instead of random weights."""
+    init_sha256: str | None = None
+    """The sha256 that `init_run`'s best.pt must have."""
     bf16: bool = True
 
 
@@ -172,8 +184,9 @@ def _train_config(values: dict[str, Any]) -> TrainConfig:
     """TrainConfig from YAML, where lists arrive for tuple-valued fields."""
 
     fields_ = dict(values)
-    if "extra_training" in fields_:
-        fields_["extra_training"] = tuple(fields_["extra_training"])
+    for name in ("extra_training", "degrade_kinds"):
+        if name in fields_:
+            fields_[name] = tuple(fields_[name])
     return TrainConfig(**fields_)
 
 
@@ -1022,10 +1035,26 @@ class OnlineAugmentation(
     def _source(self, index: int) -> int:
         return 0 if self.sources is None else int(self.sources[index])
 
+    def _finish(self, image: np.ndarray, drng: np.random.Generator | None) -> Tensor:
+        """The input render as yielded: degraded with `degrade_probability` when on."""
+
+        if drng is not None and drng.random() < self.config.degrade_probability:
+            from mojidiff.learning.doodle import degrade
+
+            image, _ = degrade(image, drng, self.config.degrade_kinds)
+        return torch.from_numpy(image)
+
     def __iter__(self) -> Iterator[tuple[Tensor, Tensor, np.ndarray, Tensor, int]]:
         info = torch.utils.data.get_worker_info()
         worker = info.id if info is not None else 0
         rng = np.random.default_rng([self.config.augment_seed, worker])
+        # Degradation draws its own numbers, so the programs, masks and orders are those of
+        # the stream without it and the input pixels are the only change.
+        drng = (
+            np.random.default_rng([self.config.augment_seed, worker, 0xD00D])
+            if self.config.degrade_probability > 0.0 and self.render_images
+            else None
+        )
         layout = self.layout
         while True:
             # Drawn only when compositions are on, so a stream without them is the
@@ -1062,7 +1091,7 @@ class OnlineAugmentation(
                     continue
                 mask = program_legal_masks(tokens, layout)
                 yield (
-                    torch.from_numpy(image),
+                    self._finish(image, drng),
                     tokens,
                     np.packbits(mask.reshape(-1)),
                     path_major_order(tokens, layout),
@@ -1074,7 +1103,7 @@ class OnlineAugmentation(
             order = path_major_order(source, layout)
             if rng.random() < self.config.augment_original:
                 original = (
-                    torch.from_numpy(self.images[index])
+                    self._finish(self.images[index], drng)
                     if self.render_images
                     else torch.zeros((1, 1, 3), dtype=torch.uint8)
                 )
@@ -1084,7 +1113,7 @@ class OnlineAugmentation(
             image = self._render(unflatten_program(variant, self.template, layout))
             if image is None:
                 continue
-            yield torch.from_numpy(image), variant, self.masks[index], order, self._source(index)
+            yield self._finish(image, drng), variant, self.masks[index], order, self._source(index)
 
 
 LOADER_TIMEOUT_SECONDS = 900
@@ -2029,6 +2058,36 @@ def _write_yaml(path: Path, value: dict[str, Any]) -> None:
     path.write_text(yaml.safe_dump(plain, sort_keys=False, width=88, allow_unicode=True))
 
 
+def load_init(
+    model: RenderToProgram,
+    model_config: ModelConfig,
+    training: TrainConfig,
+    device: torch.device,
+    cache_root: Path | None = None,
+) -> dict[str, Any] | None:
+    """Load `training.init_run`'s best.pt into `model` (fine-tuning); its record, or None.
+
+    The checkpoint must have `training.init_sha256` when that is set, and the same model
+    configuration as this run."""
+
+    if training.init_run is None:
+        return None
+    path = (cache_root or CACHE_ROOT) / "runs" / training.init_run / "best.pt"
+    digest = hashlib.sha256(path.read_bytes()).hexdigest()
+    if training.init_sha256 is not None and digest != training.init_sha256:
+        raise SystemExit(f"{path} has sha256 {digest}, not {training.init_sha256}")
+    state = torch.load(path, map_location=device)
+    if ModelConfig(**state["config"]) != model_config:
+        raise ValueError(f"{path} was trained with another model configuration")
+    model.load_state_dict(state["model"])
+    return {
+        "run": training.init_run,
+        "checkpoint": str(path),
+        "sha256": digest,
+        "step": state["step"],
+    }
+
+
 def train_and_evaluate(config_path: Path) -> dict[str, Any]:
     config = load_config(config_path)
     torch.manual_seed(config.training.seed)
@@ -2050,6 +2109,18 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
         train = train.subset(config.training.train_icons)
     validation = plain["primary/validation"]
     evaluation = train if config.training.evaluate_on_train else validation
+    evaluation_inputs = "clean renders"
+    if config.training.degrade_probability > 0.0:
+        from mojidiff.learning.doodle import degrade_split
+
+        evaluation = degrade_split(
+            evaluation, config.training.degrade_kinds, config.training.degrade_eval_seed
+        )
+        evaluation_inputs = (
+            f"renders degraded by doodle.degrade_split, kinds "
+            f"{list(config.training.degrade_kinds)}, seed {config.training.degrade_eval_seed}; "
+            "scored against the clean targets"
+        )
 
     from mojidiff.learning.openmoji_pilot import _load_program, _select_rows
 
@@ -2075,6 +2146,7 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
         )
 
     model = RenderToProgram(layout, config.model).to(device)
+    init = load_init(model, config.model, config.training, device)
     optimizer = torch.optim.AdamW(
         model.parameters(),
         lr=config.training.learning_rate,
@@ -2111,7 +2183,9 @@ def train_and_evaluate(config_path: Path) -> dict[str, Any]:
             "evaluated_on": "primary/train"
             if config.training.evaluate_on_train
             else "primary/validation",
+            "evaluation_inputs": evaluation_inputs,
         },
+        "init": init,
         "seed": config.training.seed,
         "determinism": "seeded; cuDNN and SDPA kernels not forced deterministic",
         "model_parameters": parameter_count(model),

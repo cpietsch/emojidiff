@@ -17,6 +17,7 @@ dependencies = [
   "numpy>=2.3",
   "picosvg>=0.23.0",
   "pyarrow>=21.0",
+  "scipy>=1.14",
   "svg.path>=7.0",
 ]
 
@@ -77,5 +78,5 @@ url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [[tool.mypy.overrides]]
-module = ["cairosvg", "cairosvg.*", "onnxruntime", "onnxruntime.*", "pyarrow", "pyarrow.*"]
+module = ["cairosvg", "cairosvg.*", "onnxruntime", "onnxruntime.*", "pyarrow", "pyarrow.*", "scipy", "scipy.*"]
 ignore_missing_imports = true

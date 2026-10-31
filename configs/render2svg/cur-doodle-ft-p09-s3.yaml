@@ -1,0 +1,39 @@
+# Doodle to emoji, wave D1 (seed-matched): the final model fine-tuned on inputs degraded to look
+# hand-drawn (mojidiff.learning.doodle: lineart, sloppy, flat) with probability 0.9; target programs
+# unchanged. The two arms differ only in degrade_probability (0.5, 0.9). Seed 7003 / 9003.
+schema_version: 1
+slug: r2s-cur-doodle-ft-p09-s3
+parent_run: r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604
+hypothesis: >-
+  Fine-tuned for 30k steps on renders degraded to look hand-drawn (probability 0.9), the final model
+  turns degraded validation renders into programs closer to the clean icon than the parent model does,
+  and closer than the degraded input itself (what a faithful tracer returns), while its error on clean
+  validation renders rises by at most 0.010. Scored by doodle_eval on the sets declared in
+  state/CURRENT.md (2026-10-31 16:00): clean, the training kinds and the held-out kinds pencil, hatched,
+  affine, thumb.
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+model: {image_size: 144, d_model: 256, heads: 8, encoder_layers: 2, decoder_layers: 6, feedforward: 1024, dropout: 0.2, metric: true, fourier: 10, order: path}
+training:
+  steps: 30000
+  batch_size: 32
+  seed: 7003
+  augment_seed: 9003
+  learning_rate: 0.0003
+  warmup_steps: 500
+  eval_every: 2000
+  eval_icons: 64
+  augment_online: true
+  augment_original: 0.1
+  loader_workers: 16
+  compose_probability: 0.5
+  compose_parts: 4
+  augment_mirror: 0.5
+  augment_max_shift: 48
+  augment_colour: 0.1
+  degrade_probability: 0.9
+  degrade_kinds: [lineart, sloppy, flat]
+  degrade_eval_seed: 0
+  init_run: r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604
+  init_sha256: 38daeca4dd27fb4c6ad337891cc976b26f7e60e2dc1285fb2a9ad78940159c50
+final_eval_icons: 339
+clip_icons: 32

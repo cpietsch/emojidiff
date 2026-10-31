@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-10-31 15:00
+Updated: 2026-10-31 16:00
 
 ## Current hypothesis and evidence
 
@@ -20,45 +20,25 @@ against v7 0.0710 (paired +0.0093 [+0.0056, +0.0131]); best of 8 0.0397 (v7 0.05
 16-icon median: greedy 388 ms, best of 8 1,022 ms. Checkpoint in
 `/home/dev/.cache/mojidiff/runs/<run_id>/` and on the HF checkpoints repo.
 
-What the Curiosity night established (findings 2026-10-30, three entries): at 2,681 training
-icons dropout (0.15-0.3) is the one lever that holds, about 5%; length, depth, width, Twemoji
-(with or without an emoji-set input) and more compositions do not help. Seeds scatter by
-0.005-0.010 per configuration, and the 64-icon checkpoint selection adds noise without gain,
-so configurations are compared by seed means and last checkpoints are reported too. Choosing
-per icon among several seeds' greedy decodes beats sampling one model (validation: best of 4
-models 0.048 against best of 4 samples 0.051; 8 models 0.043). Training runs at about 21
-steps/s per run, twice wave 1, with byte-identical batches (`reports/curiosity/speedup.md`).
-
-**Direction for the next 24 hours (operator granted them at ~22:45):** seeds 6-9 of the final
-configuration as a model pool; a proper best-of-models decoder with one declared test look;
-the browser demo on the new model; the canvas-latent line (vt, flow prior) rebuilt on the
-dropout recipe, the operator's preferred generative direction. A read-only investigation of
-the three code paths (browser, latent, decoding) is running before the plan is fixed.
+What the cluster established (findings 2026-10-30/31): recipe tuning is closed (dropout 0.2 the one
+lever; lr, length, depth, width, compositions, translation, Twemoji level). Visually the final model's greedy
+SVGs are 52% recognisable, best of 8 65%; vtracer, a classical tracer, 99% at 1.6 ms on a CPU
+(reports/visual/). So the model's job changes to what a tracer cannot do (below).
 
 ## Last completed action and verification
 
-2026-10-30 22:50: final model scored once on the test split (float32 greedy and best of 8) and
-for latency on the RTX 4080; paired test comparison against v7 by re-decoding both
-(`/home/dev/.cache/mojidiff/ensemble-2026-10-30/paired_test_*`). Findings entry written. The
-first test attempt never ran (zsh passed `$args` as one argument); no number was seen before
-the recorded run.
+2026-10-31 15:58: doodle path (mojidiff.learning.doodle, render2svg degrade hooks, fine-tuning via init_run)
+smoke-tested on the RTX 4080 (r2s-cur-doodle-smoke-*: parent loaded with its sha256, degraded selection set,
+completed); ruff, strict mypy, 25 targeted tests.
 
 ## Active jobs
 
 - Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz). One-GPU
   jobs; job scripts ~/eai-team11/mojidiff/jobs/arms-<commit>.slurm (MODULE/EXTRA). Submit and wait
   only through scratchpad `submit_wave.sh` / `wait_jobs.sh` (bash; zsh loops broke waiters twice).
-  Nothing running (14:25). Wave 12 done: dropout 0.2 + lr 1e-3 + 120k is level with d02-s120k
-  (-0.0009 [-0.0028, +0.0011], 4/8); the final-model rule's stage 1 failed, so the final model stays
-  and recipe tuning is closed (findings 2026-10-31). Waves 9-11 are complete (findings 2026-10-31): translation range 64 +0.0000 [-0.0020, +0.0023].
-  Learning rate at 60k, seed-matched against 5e-4 (8 seeds unless noted): 3e-4 -0.0042, 7e-4
-  +0.0028 [+0.0011, +0.0046], 1e-3 +0.0035 [+0.0002, +0.0066], 1.5e-3 +0.0001 (7 seeds; -0.0043
-  [-0.0068, -0.0015] against 1e-3). Earlier: dropout 0.2 vs v9 +0.0039, compose 0.3 -0.0040,
-  compose 0.7 -0.0013 (n.s.), 120k vs 60k +0.0024.
+  Wave D1 (doodle fine-tunes) is being submitted; waves 1-12 are complete and recorded.
 - Browser demo (web/demo, 92089f7): the operator closed the tunnel and the demo server at 16:05; restart with
   `node web/demo/serve.mjs` (see its header) when needed. Its review fixes are in (95c3348).
-- Visual review (findings 2026-10-31, reports/visual/2026-10-31-final-greedy/): of the greedy SVGs 16%
-  faithful, 37% recognisable, 46% partial, 2% garbage; offered the operator a best-of-8 visual check.
 - Browser milestone 1 merged (2b2ab8f, squash of browser-m1; findings 2026-10-31): the final model
   decodes in Chrome token for token as Python, WASM 4 threads 1,171 ms per icon median. Agent
   worktrees (mojidiff-browser-m1*, mojidiff-m1js-review, mojidiff-review-m1py) are still on disk.
@@ -87,8 +67,20 @@ on WebGPU only, ONNX files under `onnx/` in the checkpoints repo, test-split ico
 
 ## Next smallest evidence-producing action
 
-Decision for the operator (asked 15:00): vtracer, a classical tracer, beats the transcriber 3x on pixel error
-(0.022 vs 0.064; findings 2026-10-31, reports/visual/2026-10-31-tracer-baseline/) at 1.8 ms on a CPU. Either
-measure the demo openly against vtracer, or move the model's role to what a tracer cannot do (OpenMoji-
-structured output: strokes, the 72-unit frame; or generation). No new cluster training until decided; the
-cluster is idle with ~7.5 h left. Best-of-8 SVGs for the 339 icons are being generated on the 4080.
+Direction (operator, 15:30): give the model a job a tracer cannot do. Design workflow (5 agents, two judges
+unanimous): doodle to emoji - fine-tune the final model on renders degraded to look hand-drawn
+(mojidiff.learning.doodle), so a rough drawing comes out as a clean OpenMoji SVG. Wave D1: 8 fine-tunes from
+the final model's best.pt, 30k steps at lr 3e-4, seeds 7001-7004, degrade_probability 0.5 vs 0.9.
+Declared before results (16:00), scored by doodle_eval on the 339 validation icons, each kind degraded once
+with seed 1 (selection used seed 0), against the clean targets, means over icons with paired bootstrap:
+(1) each arm beats the parent on the training kinds (expected, not evidence);
+(2) the decisive claim: on lineart and on the held-out pencil kind the arm beats both the degraded input
+    itself (input-as-output at 72 px, the bound for any faithful tracer) and vtracer compact on the degraded
+    input, intervals excluding zero;
+(3) clean validation error rises by at most 0.010 over the parent;
+(4) blind visual grades on lineart and pencil sheets (input | vtracer | parent | doodle model, shuffled
+    columns, neutral ids): recognisable as the icon, in clean OpenMoji style.
+The arm with the lower mean over the held-out kinds that passes (3) is the doodle model; within it the seed
+with the lowest error on the mixed selection set. Real drawings (QuickDraw, the operator's own) are reported,
+not gated. Fallback if (2) or (3) fails by ~19:30: a variations page from the existing flow prior.
+The allocation ends about 22:45.
