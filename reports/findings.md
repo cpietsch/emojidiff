@@ -4374,3 +4374,29 @@ several seeds on validation is itself worth about one seed-spread.
 
 **Decision.** From now on configurations are compared seed-matched over the same eight seeds (7001-7008),
 against the dropout-0.2 runs above. Next arms test regularisers aimed at the overfitting that bad seeds show.
+
+## 2026-10-31 — Seed-matched arms: a lower learning rate and fewer compositions both cost 0.004
+
+**Setting.** Wave 7 (Curiosity jobs 14033-14049, commit 8e367a7): two arms, each one change from dropout 0.2 at
+60k steps, over the same eight seeds (7001-7008 / 9001-9008), scored against the dropout-0.2 run of the same
+seed; plus the v9 seed-7006 rerun that completes the eighth v9 pair (the first attempt failed on a shared-memory
+error). 339 validation icons, selected checkpoints, bootstrap over seeds.
+
+| seed | dropout 0.2, 60k | learning rate 3e-4 | compositions 0.3 | v9 (dropout 0.1) |
+| --- | --- | --- | --- | --- |
+| 7001 | 0.0696 | 0.0749 | 0.0717 | 0.0790 |
+| 7002 | 0.0690 | 0.0755 | 0.0785 | 0.0728 |
+| 7003 | 0.0698 | 0.0736 | 0.0698 | 0.0722 |
+| 7004 | 0.0816 | 0.0880 | 0.0844 | 0.0861 |
+| 7005 | 0.0734 | 0.0769 | 0.0785 | 0.0804 |
+| 7006 | 0.0783 | 0.0796 | 0.0812 | 0.0743 |
+| 7007 | 0.0790 | 0.0774 | 0.0783 | 0.0819 |
+| 7008 | 0.0729 | 0.0810 | 0.0836 | 0.0778 |
+| arm minus dropout 0.2, mean | | **-0.0042 [-0.0061, -0.0020]**, 1 of 8 better | **-0.0040 [-0.0068, -0.0015]**, 2 of 8 | -0.0039 [-0.0062, -0.0012], 1 of 8 |
+
+**Reading.** Both changes hurt by about 0.004 with intervals well clear of zero: the learning rate of 5e-4 and
+compositions at 0.5 stay. With all eight pairs, dropout 0.2 beats v9 by 0.0039 [0.0012, 0.0062], 7 of 8 seeds
+(0.0050 over the seven pairs of the previous entry). Eight matched seeds resolve effects of about 0.004, which
+single runs could not.
+
+**Decision.** Next seed-matched arms go the other way on both axes (learning rate 7e-4, compositions 0.7).
