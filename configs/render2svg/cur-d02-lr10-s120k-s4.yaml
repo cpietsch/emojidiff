@@ -1,0 +1,33 @@
+# Curiosity wave 12 (seed-matched), the combined recipe: dropout 0.2, 120k steps, learning rate
+# 0.001 (waves 10-11); seed 7004 / 9004; paired with r2s-cur-d02-s120k-seed4.
+schema_version: 1
+slug: r2s-cur-d02-lr10-s120k-s4
+parent_run: r2s-cur-d02-s120k-seed4
+hypothesis: >-
+  Dropout 0.2 for 120k steps with learning rate 0.001 instead of 5e-4 (seed 7004) transcribes
+  the 339 validation renders better than r2s-cur-d02-s120k of the same seed. Judged over seeds
+  7001-7008: the mean seed-matched difference with a bootstrap interval over seeds excluding zero.
+  Final-model rule (state/CURRENT.md, declared 2026-10-31 11:50): if it passes, the run with the
+  lowest float32 greedy validation error is the candidate; one paired test look against the
+  current final model decides, its interval reported either way.
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+model: {image_size: 144, d_model: 256, heads: 8, encoder_layers: 2, decoder_layers: 6, feedforward: 1024, dropout: 0.2, metric: true, fourier: 10, order: path}
+training:
+  steps: 120000
+  batch_size: 32
+  seed: 7004
+  augment_seed: 9004
+  learning_rate: 0.001
+  warmup_steps: 1000
+  eval_every: 2000
+  eval_icons: 64
+  augment_online: true
+  augment_original: 0.1
+  loader_workers: 16
+  compose_probability: 0.5
+  compose_parts: 4
+  augment_mirror: 0.5
+  augment_max_shift: 48
+  augment_colour: 0.1
+final_eval_icons: 339
+clip_icons: 32
