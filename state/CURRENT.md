@@ -55,8 +55,8 @@ the recorded run.
 - Browser milestone 1 merged (2b2ab8f, squash of browser-m1; findings 2026-10-31): the final model
   decodes in Chrome token for token as Python, WASM 4 threads 1,171 ms per icon median. Agent
   worktrees (mojidiff-browser-m1*, mojidiff-m1js-review, mojidiff-review-m1py) are still on disk.
-- Cluster-only models (d02, lf2, c3) are in configs/gallery/curiosity.yaml until their checkpoints
-  are on the HF checkpoints repo (asked the operator 2026-10-31 ~09:30; no answer yet).
+- d02, vt-v3-d02-s5 and lfp-v2x are on the public HF checkpoints repo (operator approved 2026-10-31;
+  sha256 verified, index reports/checkpoints-hf.json) and back in configs/gallery/models.yaml.
 - Hugging Face token: `~/.cache/huggingface/token` here, `~/.config/mojidiff/hf_token` there
   (mode 600). It was pasted into the session; rotate it after the hackathon.
 - Local servers stay stopped; the RTX 4080 runs short evaluations only.

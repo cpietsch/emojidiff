@@ -9,8 +9,9 @@ tags:
 
 # MojiDiff checkpoints
 
-Research checkpoints from MojiDiff: small models, trained from scratch on an RTX 4080,
-that write OpenMoji-style emoji as SVG programs in a typed codec. These are research
+Research checkpoints from MojiDiff: small models, trained from scratch on an RTX 4080
+(and, from 2026-10-30, on single B300 GPUs of a hackathon cluster), that write
+OpenMoji-style emoji as SVG programs in a typed codec. These are research
 artifacts with honest, mostly negative results, not a polished release. Loading them
 needs the MojiDiff code (`mojidiff.learning.*`) from
 [github.com/cpietsch/emojidiff](https://github.com/cpietsch/emojidiff), which also holds
@@ -30,6 +31,9 @@ every run record and the research log
 
 | run | what | validation pixel error (72 px) |
 | --- | --- | --- |
+| `r2s-cur-d02-s120k-seed2-*` | final transcriber: v9's recipe with dropout 0.2 and 120k steps, best of nine seeds on validation | 0.064 greedy, 0.045 best of 8 (test: 0.062, 0.040) |
+| `vt-v3-d02-s5-*` | variational canvas latent (c = 16) on the final transcriber | 0.076 from the posterior mean |
+| `lfp-v2x-exploratory-*` | rectified-flow prior over vt-v3-d02-s5's latent | samples: 17% fragments, CLIP recall 0.41 |
 | `r2s-full-v7-systems-*` | render-to-SVG transcriber, 9.0M parameters | 0.077 greedy, 0.057 best of 8 |
 | `r2s-full-v9-colour-*` | v7 with palette permutation cut from 0.5 to 0.1 | 0.072 |
 | `vt-v1-*`, `vt-v2-c16-*` | variational canvas latent on v9 (c = 8, 16) | 0.083, 0.081 from the posterior mean |

@@ -305,6 +305,46 @@
    "local": "/home/dev/workspace/mojidiff/runs/lfp-v1x-exploratory-81eb2e2-5ae4d777-47646604/run.yaml",
    "sha256": "cdd95f51ac20b94b9cd2fef972b00f5ddc501ff4e2bfa3c3eeb9c7c486e894de"
   },
+  "runs/lfp-v2x-exploratory-a8cbfdc-d2e9869c-47646604/best.pt": {
+   "bytes": 39084533,
+   "local": "/home/dev/.cache/mojidiff/runs/lfp-v2x-exploratory-a8cbfdc-d2e9869c-47646604/best.pt",
+   "sha256": "21e83197a6a9a9209a8742eaa3855e967d2e538b570773f1de22ee079c9e9983"
+  },
+  "runs/lfp-v2x-exploratory-a8cbfdc-d2e9869c-47646604/latest.pt": {
+   "bytes": 156362547,
+   "local": "/home/dev/.cache/mojidiff/runs/lfp-v2x-exploratory-a8cbfdc-d2e9869c-47646604/latest.pt",
+   "sha256": "6e0223f46eadfcbb66582d07167de791eb72934a79190d91993a532f50b1f08b"
+  },
+  "runs/lfp-v2x-exploratory-a8cbfdc-d2e9869c-47646604/result.md": {
+   "bytes": 4793,
+   "local": "/home/dev/workspace/mojidiff/runs/lfp-v2x-exploratory-a8cbfdc-d2e9869c-47646604/result.md",
+   "sha256": "27b1b15140a85153f4d109d42ef523fe7bc5efe25184a2a1b39dcfe7bc7346b1"
+  },
+  "runs/lfp-v2x-exploratory-a8cbfdc-d2e9869c-47646604/run.yaml": {
+   "bytes": 12420,
+   "local": "/home/dev/workspace/mojidiff/runs/lfp-v2x-exploratory-a8cbfdc-d2e9869c-47646604/run.yaml",
+   "sha256": "4412ed952d2f58b01023933a7c651b5e80a1ce579f339bffee010922d20d5909"
+  },
+  "runs/r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604/best.pt": {
+   "bytes": 36158032,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604/best.pt",
+   "sha256": "38daeca4dd27fb4c6ad337891cc976b26f7e60e2dc1285fb2a9ad78940159c50"
+  },
+  "runs/r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604/latest.pt": {
+   "bytes": 108525709,
+   "local": "/home/dev/.cache/mojidiff/runs/r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604/latest.pt",
+   "sha256": "50a358396d91ff3bea08cb8f011267d7ad064bdf37b5af97a6349f0084a9c092"
+  },
+  "runs/r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604/result.md": {
+   "bytes": 1612,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604/result.md",
+   "sha256": "beb1133c4f5c0637fc76ed67b2dc055aeead2d89b54b410029942f16fd5b147c"
+  },
+  "runs/r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604/run.yaml": {
+   "bytes": 3952,
+   "local": "/home/dev/workspace/mojidiff/runs/r2s-cur-d02-s120k-seed2-53b3108-46294452-47646604/run.yaml",
+   "sha256": "62ab2bdfd0a9d3ae6297cb1473396801afd3e6aa273500bee5e23a902b64fbdd"
+  },
   "runs/r2s-full-v1-940f5d3-1974cf82-47646604/best.pt": {
    "bytes": 35738498,
    "local": "/home/dev/.cache/mojidiff/runs/r2s-full-v1-940f5d3-1974cf82-47646604/best.pt",
@@ -574,6 +614,26 @@
    "bytes": 9054,
    "local": "/home/dev/workspace/mojidiff/runs/vt-v2-c16-0f4d5de-1497d4b5-47646604/run.yaml",
    "sha256": "4025d5ae5a551d05faf47cbb2dd6a6cb24e2e289523e60e3b3ad9829ddd36e2f"
+  },
+  "runs/vt-v3-d02-s5-d05a169-0112d238-47646604/best.pt": {
+   "bytes": 36209916,
+   "local": "/home/dev/.cache/mojidiff/runs/vt-v3-d02-s5-d05a169-0112d238-47646604/best.pt",
+   "sha256": "3ebbe17eb25039ef964708be7c70dc1cd90cd6243766a02ddce5f5aaf778e2e0"
+  },
+  "runs/vt-v3-d02-s5-d05a169-0112d238-47646604/latest.pt": {
+   "bytes": 108681821,
+   "local": "/home/dev/.cache/mojidiff/runs/vt-v3-d02-s5-d05a169-0112d238-47646604/latest.pt",
+   "sha256": "dbb0bc95fa12e63eed0934f37febccebd0e837b4098bea48fa721a6bdb4735e3"
+  },
+  "runs/vt-v3-d02-s5-d05a169-0112d238-47646604/result.md": {
+   "bytes": 2904,
+   "local": "/home/dev/workspace/mojidiff/runs/vt-v3-d02-s5-d05a169-0112d238-47646604/result.md",
+   "sha256": "48f962d899dbee9da1929f15737083c8daebc32df802d83a97e78d26808c48b9"
+  },
+  "runs/vt-v3-d02-s5-d05a169-0112d238-47646604/run.yaml": {
+   "bytes": 8637,
+   "local": "/home/dev/workspace/mojidiff/runs/vt-v3-d02-s5-d05a169-0112d238-47646604/run.yaml",
+   "sha256": "807aefcccc2b64ab2e5de41c5fe33d98c88ce00488702a0e6aa23b02d2c0ec39"
   }
  },
  "repo": "https://huggingface.co/chrispie/mojidiff-checkpoints"
