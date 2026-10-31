@@ -4324,3 +4324,53 @@ with a flow prior has reached what it gives.
 
 **Decision.** The canvas line stays stopped. lfp-v2x joins the gallery (ids lf2, c3) for the operator's visual
 judgement; no larger prior is trained (lfp-v1's rule for B1/B2 failures assumes a passing stage A).
+
+## 2026-10-31 — The training seed carries the variance; matched by seed, dropout 0.2 is worth 0.005 in 7 of 7 pairs
+
+**Why this entry.** Earlier entries tonight compared configurations by seed means and concluded first that
+length pays (wave 2), then that it was seed luck and only dropout helps (waves 3-4), then (nine seeds at 120k,
+mean 0.0717, sd 0.0043) that even dropout's gain had vanished. All three readings were limited by one fact this
+entry establishes: the training seed decides most of a run's score, so unpaired comparisons drown real effects.
+
+**The training seed, not the stream.** Seed 4 (training seed 7004, augmentation seed 9004) was bad in all four
+configurations it ran in (v9 0.0861; dropout 0.2 at 60k 0.0816, at 120k 0.0746; dropout 0.25 at 120k 0.0740).
+Two diagnostic v9 runs separate the parts: training seed 7004 with the normal stream 9001 scores 0.0816 (bad);
+training seed 7001 with stream 9004 scores 0.0727 (normal). The training seed sets the initialisation and the
+dropout and sampling draws; the stream (which icons, which augmentations) is not what decides. Bad seeds do not
+optimise worse: their training loss matches the others', but their validation NLL climbs higher (1.64-1.73 at
+60k against 1.52-1.59), so they overfit more; validation NLL near 40k already separates them.
+
+**Seed-matched comparisons** (same training and augmentation seed, all on B300s, 339 validation icons, each
+run's selected checkpoint):
+
+| training seed | v9 (dropout 0.1), 60k | dropout 0.2, 60k | v9 minus dropout 0.2 |
+| --- | --- | --- | --- |
+| 7001 | 0.0790 | 0.0696 | +0.0095 |
+| 7002 | 0.0728 | 0.0690 | +0.0038 |
+| 7003 | 0.0722 | 0.0698 | +0.0024 |
+| 7004 | 0.0861 | 0.0816 | +0.0045 |
+| 7005 | 0.0804 | 0.0734 | +0.0070 |
+| 7007 | 0.0819 | 0.0790 | +0.0029 |
+| 7008 | 0.0778 | 0.0729 | +0.0049 |
+| mean | 0.0786 (sd 0.0049) | 0.0736 (sd 0.0049) | **+0.0050 [+0.0035, +0.0068], 7 of 7, t = 5.3** |
+
+v9 seed 7006 failed on infrastructure (a DataLoader worker could not unlink its shared-memory file) and is
+kept as a failed run; a rerun follows. Across seeds the two configurations correlate at r = 0.87: a seed that is
+bad for one is bad for the other, which is why pairing removes most of the noise.
+
+| matched comparison | difference (bootstrap over seeds) | pairs in favour |
+| --- | --- | --- |
+| dropout 0.2: 120k minus 60k steps (8 seeds) | 120k better by +0.0024 [+0.0001, +0.0045], t = 2.0 | 6 of 8 |
+| at 120k: dropout 0.25 minus 0.2 (6 seeds) | +0.0006 [-0.0014, +0.0031], t = 0.5 | 3 of 6 |
+
+**Reading.** Dropout 0.2 is a real gain of about 0.005 (6%) over v9's recipe; 120k steps add a small, marginal
+gain on top; the dose between 0.2 and 0.25 does not matter. v9's own baseline on the B300 is 0.0786 over eight
+seeds, not the 0.072 of its first seed on other hardware. Single runs and unpaired seed means were the wrong
+instrument at this scale: the seed spread (sd about 0.005) is as large as the effects.
+
+**What stands.** The final model (dropout 0.2, 120k, seed 7002; test 0.0617 against v7 0.0710) is the best of
+nine seeds of a recipe that is genuinely better than v9's, and its test score was taken once. Picking the best of
+several seeds on validation is itself worth about one seed-spread.
+
+**Decision.** From now on configurations are compared seed-matched over the same eight seeds (7001-7008),
+against the dropout-0.2 runs above. Next arms test regularisers aimed at the overfitting that bad seeds show.
