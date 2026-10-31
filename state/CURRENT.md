@@ -1,6 +1,6 @@
 # Current research state
 
-Updated: 2026-10-31 11:30
+Updated: 2026-10-31 12:25
 
 ## Current hypothesis and evidence
 
@@ -48,11 +48,16 @@ the recorded run.
 - Curiosity (`ssh curiosity`, account eai-hackathon, QoS eai-team11, user eai-jdkxz). One-GPU
   jobs; job scripts ~/eai-team11/mojidiff/jobs/arms-<commit>.slurm (MODULE/EXTRA). Submit and wait
   only through scratchpad `submit_wave.sh` / `wait_jobs.sh` (bash; zsh loops broke waiters twice).
-  Running (seed-matched over seeds 7001-7008 against dropout 0.2 at 60k): wave 9 seed 7
-  (translation 16 view units; 7 seeds -0.0008 [-0.0024, +0.0011]; 14089 failed, rerun 14107), wave 10 done (lr 1e-3, 8 seeds:
-  +0.0035 [+0.0002, +0.0066], 6/8; over 7e-4 +0.0007 [-0.0013, +0.0026]), wave 11 14099-14106 (lr 1.5e-3,
-  submitted 11:25). Earlier (findings 2026-10-31): dropout 0.2 vs v9 +0.0039 (8 pairs), lr 7e-4
-  +0.0028, lr 3e-4 -0.0042, compose 0.3 -0.0040, compose 0.7 -0.0013 (n.s.), 120k vs 60k +0.0024.
+  Running: wave 12 14121-14128 (submitted 12:20): dropout 0.2 + lr 1e-3 + 120k on seeds 7001-7008,
+  seed-matched against d02-s120k; the final-model rule below. Also wave 9 seed 7 rerun 14107
+  (translation 16 view units; 7 seeds -0.0008 [-0.0024, +0.0011]) and wave 11 seed 8 14106.
+  Learning rate at 60k, seed-matched against 5e-4 (8 seeds unless noted): 3e-4 -0.0042, 7e-4
+  +0.0028 [+0.0011, +0.0046], 1e-3 +0.0035 [+0.0002, +0.0066], 1.5e-3 +0.0001 (7 seeds; -0.0043
+  [-0.0068, -0.0015] against 1e-3). Earlier: dropout 0.2 vs v9 +0.0039, compose 0.3 -0.0040,
+  compose 0.7 -0.0013 (n.s.), 120k vs 60k +0.0024.
+- Browser demo (web/demo, 92089f7): tmux mojidiff-demo serves it on 100.69.189.78:8952 (339-icon
+  bundle via the symlink web-reference/<run>/demo); tmux mojidiff-tunnel is a Cloudflare quick tunnel
+  the operator asked for (https, so 4 WASM threads and WebGPU). A review workflow is running.
 - Browser milestone 1 merged (2b2ab8f, squash of browser-m1; findings 2026-10-31): the final model
   decodes in Chrome token for token as Python, WASM 4 threads 1,171 ms per icon median. Agent
   worktrees (mojidiff-browser-m1*, mojidiff-m1js-review, mojidiff-review-m1py) are still on disk.
@@ -81,8 +86,8 @@ on WebGPU only, ONNX files under `onnx/` in the checkpoints repo, test-split ico
 
 ## Next smallest evidence-producing action
 
-Declared before wave 11's results (11:50): the recipe's learning rate is the one of 7e-4, 1e-3,
-1.5e-3 with the largest 8-seed seed-matched mean gain over 5e-4 at 60k. Then train it with dropout
+Declared before wave 11's results (11:50), applied 12:20: the recipe's learning rate is 1e-3 (the largest
+8-seed gain of 7e-4, 1e-3, 1.5e-3 over 5e-4 at 60k). Then train it with dropout
 0.2 for 120k steps on seeds 7001-7008, seed-matched against r2s-cur-d02-s120k(-seedN). Final-model
 rule: (1) the recipe's mean gain over d02-s120k has a bootstrap interval over seeds excluding zero;
 (2) if so, the candidate is the run with the lowest float32 greedy validation error (339 icons);
