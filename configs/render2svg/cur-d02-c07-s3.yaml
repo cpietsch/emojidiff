@@ -1,0 +1,31 @@
+# Curiosity wave 8 (seed-matched), one change from dropout 0.2 at 60k: compositions 0.5 -> 0.7; seed 7003 / 9003.
+# Paired with the dropout-0.2 60k run of the same seed (findings 2026-10-31: the training seed carries
+# most of the variance; matched by seed, dropout 0.2 beat v9 in 7 of 7 pairs).
+schema_version: 1
+slug: r2s-cur-d02-c07-s3
+parent_run: r2s-cur-dropout02
+hypothesis: >-
+  With compositions with probability 0.7 instead of 0.5 and everything else as dropout 0.2 at 60k steps, the model transcribes the 339
+  validation renders better than the dropout-0.2 run of the same seed. Judged over seeds 7001-7008:
+  the mean seed-matched difference with a bootstrap interval over seeds excluding zero.
+pilot_config: configs/learning/openmoji-g1-geometric-gate-v16.yaml
+model: {image_size: 144, d_model: 256, heads: 8, encoder_layers: 2, decoder_layers: 6, feedforward: 1024, dropout: 0.2, metric: true, fourier: 10, order: path}
+training:
+  steps: 60000
+  batch_size: 32
+  seed: 7003
+  augment_seed: 9003
+  learning_rate: 0.0005
+  warmup_steps: 1000
+  eval_every: 2000
+  eval_icons: 64
+  augment_online: true
+  augment_original: 0.1
+  loader_workers: 16
+  compose_probability: 0.7
+  compose_parts: 4
+  augment_mirror: 0.5
+  augment_max_shift: 48
+  augment_colour: 0.1
+final_eval_icons: 339
+clip_icons: 32
